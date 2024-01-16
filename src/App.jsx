@@ -4,12 +4,16 @@ import SingIn from "./Components/Registry/SingIn/SingIn";
 import SingUp from './Components/Registry/SingUp/SingUp';
 import Profile from "./Components/Profile/Profile";
 import About from './Components/About/About';
+import Header from "./Components/Header/Header";
 
 function App() {
   let x = 10 - 5 +40
   console.log(x); 
   return (
     <BrowserRouter>
+    {/* component the header */}
+    <Header/>
+    {/* component the OutLet change pages  */}
       <Routes>
          <Route path="/" element={<Home/>}/>
          <Route path="/SingIn" element={<SingIn/>}/>
@@ -17,6 +21,7 @@ function App() {
          <Route path="/Profile" element={<Profile/>}/>
          <Route path="/About" element={<About/>}/>
       </Routes>
+      {/* component the footer */}
     </BrowserRouter>
   )
 }
