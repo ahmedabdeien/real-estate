@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { FaSearch } from "react-icons/fa";
-
+import { FaUser } from "react-icons/fa";
 
 export default function Header() {
     let styleIconMenu = `w-8 h-1 bg-slate-800 transition-transform`
@@ -11,8 +11,8 @@ export default function Header() {
         {title:'About',path:'/About',style:''},
         {title:'Sing-In',path:'/SingIn',style:''},
         {title:'Sing-Up',path:'/SingUp',style:''},
-        {title:'Profile',path:'/Profile',style:''},
     ]
+    
   return (
     <header className='bg-gray-100 border-b flex justify-between items-center p-4 relative overflow-hidden'>
         <h2 className='font-bold'>
@@ -24,7 +24,7 @@ export default function Header() {
             <FaSearch className='me-3 text-blue-500 absolute top-[50%] translate-y-[-50%] right-[0px]'/>
         </form>
          {/* icon navbar on phone  */}
-        <div onClick={()=>setMenuActions(!menuActions)} className='md:hidden z-40 cursor-pointer '>
+        <div onClick={()=>setMenuActions(!menuActions)} className='block md:hidden z-40 cursor-pointer '>
         {menuActions?
           <div className='-space-y-1'>
             <div className='w-8 h-1 -rotate-45  bg-slate-800 transition-transform'></div>
@@ -39,13 +39,13 @@ export default function Header() {
           </div>}
         </div>
 
-        <div className={`${menuActions?'translate-y-0 ':'translate-y-[-100%]'} w-full h-screen fixed top-0 right-0 bg-white md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>
-            <ul className=' w-[90%] divide-y md:divide-none bg-gray-100 rounded text-center space-y-2 md:w-auto md:rounded-none md:bg-transparent md:space-y-0 md:space-x-3 md:flex items-center justify-center '>
-               {titleLikeNavbar.map((link)=><li key={link.path} className='hover:bg-slate-400'>
-                <Link to={link.path}>{link.title}</Link></li>)}
-                <li><Link to='/Profile'>Profile</Link></li>
+        <nav className={`${menuActions? 'translate-y-0':'translate-y-[-100%]'} w-full h-screen fixed top-0 right-0 bg-white md:translate-y-0 md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>
+            <ul className=' w-full md:p-0 divide-y md:divide-y-0 text-center space-y-2  md:w-auto md:space-y-0 md:space-x-0 md:flex items-center justify-center '>
+               {titleLikeNavbar.map((link)=><li key={link.path} className=''>
+                <NavLink className="px-3 py-2  block hover:text-blue-600 " to={link.path}>{link.title}</NavLink></li>)}
+                <li className='absolute top-2 left-4 hover:opacity-70 md:static border-none w-auto'><NavLink to='/Profile'><div className='bg-white border w-12 h-12 md:w-8 md:h-8 rounded-full flex justify-center items-center'><FaUser className='text-xl md:text-base'/></div></NavLink></li>
             </ul>
-        </div>
+        </nav>
     </header>
   )
 }
