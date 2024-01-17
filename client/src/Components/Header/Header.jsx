@@ -14,14 +14,14 @@ export default function Header() {
     ]
     
   return (
-    <header className='bg-gray-100 border-b flex justify-between items-center p-4 relative overflow-hidden'>
+    <header className='bg-gray-100/70 backdrop-blur-md	 border-b flex justify-between items-center p-2 relative overflow-hidden'>
         <h2 className='font-bold'>
             <span className='text-blue-700/70'>Elsarh </span>
             <span>Rear Estate</span>
         </h2>
-        <form className='w-1/2 md:w-1/3 border rounded bg-white outline-blue-600 relative'>
+        <form className='w-1/2 md:w-1/3 border rounded bg-white outline-blue-600 flex justify-start items-center'>
+            <FaSearch className='ms-3 text-black/50 '/>
             <input type="text" placeholder='Search...' className='p-2 w-full bg-transparent focus:outline-none '/>
-            <FaSearch className='me-3 text-blue-500 absolute top-[50%] translate-y-[-50%] right-[0px]'/>
         </form>
          {/* icon navbar on phone  */}
         <div onClick={()=>setMenuActions(!menuActions)} className='block md:hidden z-40 cursor-pointer '>
