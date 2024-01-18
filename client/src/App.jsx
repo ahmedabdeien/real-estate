@@ -7,8 +7,7 @@ import About from './Components/About/About';
 import Header from "./Components/Header/Header";
 
 function App() {
-  let x = 10 - 5 +40
-  console.log(x); 
+ 
   return (
     <BrowserRouter>
     {/* component the header */}

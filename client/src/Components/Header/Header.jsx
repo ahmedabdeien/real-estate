@@ -14,7 +14,7 @@ export default function Header() {
     ]
     
   return (
-    <header className='bg-gray-100/70 backdrop-blur-md	 border-b flex justify-between items-center p-2 relative overflow-hidden'>
+    <header className='bg-gray-100/70 backdrop-blur-md border-b flex justify-between items-center p-2 relative '>
         <h2 className='font-bold'>
             <span className='text-blue-700/70'>Elsarh </span>
             <span>Rear Estate</span>

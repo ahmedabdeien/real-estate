@@ -18,6 +18,4 @@ nav a.active::after{
     left: 50%;
     transform: translateX(-50%);
     bottom: 2px;
-
-
 }
