@@ -9,8 +9,7 @@ export default function Header() {
     const titleLikeNavbar = [
         {title:'Home',path:'/',style:''},
         {title:'About',path:'/About',style:''},
-        {title:'Sing-In',path:'/SingIn',style:''},
- 
+        {title:'Sing-In',path:'/Signin',style:''},
     ]
     
   return (
