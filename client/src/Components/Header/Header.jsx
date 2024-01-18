@@ -10,7 +10,7 @@ export default function Header() {
         {title:'Home',path:'/',style:''},
         {title:'About',path:'/About',style:''},
         {title:'Sing-In',path:'/SingIn',style:''},
-        {title:'Sing-Up',path:'/SingUp',style:''},
+ 
     ]
     
   return (

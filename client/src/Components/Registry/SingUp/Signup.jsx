@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
 
 
-function SingUp() {
+function Signup() {
   const StyleInput = 'border p-2 rounded bg-gray-50 focus:outline-blue-600'
   const [formData,SetFormData] = useState({});
   const [erorr,setError] = useState(null);
@@ -18,7 +18,7 @@ function SingUp() {
     e.preventDefault();
     try{
       setLoading(true);
-      const res = await fetch('/api/auth/signup',
+      const res = await fetch('/api/auth/signUp',
       {
         method:'POST',
         headers:{
@@ -48,7 +48,8 @@ function SingUp() {
     <section className='p-5 flex justify-center items-center flex-col w-full h-[85vh]'>
     <h1 className='text-2xl font-bold'>SignUp</h1>
     <form   onSubmit={handelSubmit} className='mt-4 flex flex-col space-y-2 w-full sm:w-2/3 md:w-1/2 lg:w-[30%]'>
-      <input type="text" className={StyleInput} id='username' placeholder='UserName' onChange={handelChange}/>
+    <input type="text" className={StyleInput} id='name' placeholder='Name' onChange={handelChange}/>
+      <input type="text" className={StyleInput} id='username' placeholder='Useruame' onChange={handelChange}/>
       <input type="email" className={StyleInput} id='email' placeholder='Email' onChange={handelChange}/>
       <input type="number" className={StyleInput} id='number' placeholder='Phone Number' onChange={handelChange}/>
       <input type="password" className={StyleInput} id='password' placeholder='Password' onChange={handelChange}/>
@@ -67,4 +68,4 @@ function SingUp() {
   )
 }
 
-export default SingUp
+export default Signup
