@@ -47,7 +47,7 @@ function Signup() {
   return (
     <section className='p-5 flex justify-center  items-center flex-col w-full h-[85vh]'>
     <h1 className='text-2xl font-bold'>SignUp</h1>
-    <form   onSubmit={handelSubmit} className='mt-4 p-5 flex flex-col space-y-2 w-full sm:w-2/3 md:w-1/2 lg:w-[30%]'>
+    <form   onSubmit={handelSubmit} className='mt-4 flex flex-col space-y-2 w-full sm:w-2/3 md:w-1/2 lg:w-[30%]'>
     <input type="text" className={StyleInput} id='name' placeholder='Name' onChange={handelChange}/>
       <input type="text" className={StyleInput} id='username' placeholder='Username' onChange={handelChange}/>
       <input type="email" className={StyleInput} id='email' placeholder='Email' onChange={handelChange}/>
@@ -59,8 +59,8 @@ function Signup() {
     </form>
     <div className='flex p-1 w-full sm:w-2/3 md:w-1/2 lg:w-[30%] text-sm'>
       <p className='text-black/80'>have an account?</p>
-      <Link to="/singIn">
-        <span className='text-blue-700 hover:underline ms-1'>Sign in</span>
+      <Link to="/signin">
+        <span className='text-blue-700 hover:underline ms-1'>Sign In</span>
       </Link>
     </div>
     {erorr && <p className='text-red-500 text-sm'>{erorr}</p>}
