@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
-
+import {  useSelector,useDispatch } from 'react-redux';
+import { signInStart,signInSuccess,signInFailure} from '../../redux/user/userSlice'
 
 function Signin() {
   const StyleInput = 'border p-2 rounded bg-gray-50 focus:outline-blue-600'
   const [formData,SetFormData] = useState({});
-  const [erorr,setError] = useState(null);
-  const [loading,setLoading] =useState(false)
+  const {loading,error} = useSelector((state)=> state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handelChange = (e)=>{
     SetFormData({
       ...formData,
@@ -17,7 +18,7 @@ function Signin() {
   const handelSubmit = async (e) => {
     e.preventDefault();
     try{
-      setLoading(true);
+      dispatch(signInStart());
       const res = await fetch('/api/auth/signin',
       {
         method:'POST',
@@ -29,16 +30,13 @@ function Signin() {
       const data = await res.json();
       console.log(data);
       if(data.success === false){
-        setError(data.message);
-        setLoading(false);
+        dispatch(signInFailure(data.message));
         return;
       }
-      setLoading(false);
-      setError(null);
+      dispatch(signInSuccess(data));
       navigate('/');
     }catch(error){
-      setLoading(false);
-      setError(error.message);
+      dispatch(signInFailure(error.message));
     }
     
     
@@ -52,7 +50,7 @@ function Signin() {
       <input type="password" className={StyleInput} id='password' placeholder='Password' onChange={handelChange}/>
       <button disabled={loading} className='bg-blue-600 text-white py-2 rounded hover:ring-offset-2 
       hover:ring-2 active:ring-offset-0 disabled:bg-blue-600/70 disabled:hover:ring-offset-0 
-      disabled:hover:ring-0 '>{loading?'Loading...':"Sign Up"}</button>
+      disabled:hover:ring-0 '>{loading?'Loading...':"Sign In"}</button>
     </form>
     <div className='flex p-1 w-full sm:w-2/3 md:w-1/2 lg:w-[30%] text-sm'>
       <p className='text-black/80'>Dont have an account?</p>
@@ -60,7 +58,7 @@ function Signin() {
         <span className='text-blue-700 hover:underline ms-1'>Sign Up</span>
       </Link>
     </div>
-    {erorr && <p className='text-red-500 text-sm'>{erorr}</p>}
+    {error && <p className='text-red-500 text-sm'>{error}</p>}
 </section>
   )
 }
