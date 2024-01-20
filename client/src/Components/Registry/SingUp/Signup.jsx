@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
+import OAuth from '../../OAuth/OAuth';
 
 
 function Signup() {
@@ -56,6 +57,7 @@ function Signup() {
       <button disabled={loading} className='bg-blue-600 text-white py-2 rounded hover:ring-offset-2 
       hover:ring-2 active:ring-offset-0 disabled:bg-blue-600/70 disabled:hover:ring-offset-0 
       disabled:hover:ring-0 '>{loading?'Loading...':"Sign Up"}</button>
+      <OAuth/>
     </form>
     <div className='flex p-1 w-full sm:w-2/3 md:w-1/2 lg:w-[30%] text-sm'>
       <p className='text-black/80'>have an account?</p>

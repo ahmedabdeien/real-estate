@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
 import {  useSelector,useDispatch } from 'react-redux';
 import { signInStart,signInSuccess,signInFailure} from '../../redux/user/userSlice'
+import OAuth from './../../OAuth/OAuth';
 
 function Signin() {
   const StyleInput = 'border p-2 rounded bg-gray-50 focus:outline-blue-600'
@@ -51,6 +52,7 @@ function Signin() {
       <button disabled={loading} className='bg-blue-600 text-white py-2 rounded hover:ring-offset-2 
       hover:ring-2 active:ring-offset-0 disabled:bg-blue-600/70 disabled:hover:ring-offset-0 
       disabled:hover:ring-0 '>{loading?'Loading...':"Sign In"}</button>
+      <OAuth/>
     </form>
     <div className='flex p-1 w-full sm:w-2/3 md:w-1/2 lg:w-[30%] text-sm'>
       <p className='text-black/80'>Dont have an account?</p>
