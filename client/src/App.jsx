@@ -5,6 +5,7 @@ import SignUp from './Components/Registry/SingUp/Signup';
 import Profile from "./Components/Profile/Profile";
 import About from './Components/About/About';
 import Header from "./Components/Header/Header";
+import PrivateRoute from "./Components/PrivateRoute/PrivateRoute";
 
 function App() {
  
@@ -17,8 +18,10 @@ function App() {
          <Route path="/" element={<Home/>}/>
          <Route path="/Signin" element={<SingIn/>}/>
          <Route path="/Signup" element={<SignUp/>}/>
-         <Route path="/Profile" element={<Profile/>}/>
          <Route path="/About" element={<About/>}/>
+         <Route element={<PrivateRoute/>}>
+         <Route path="/Profile" element={<Profile/>}/>
+         </Route>
       </Routes>
       {/* component the footer */}
     </BrowserRouter>

@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { FaSearch } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
+import { FcOrganization } from "react-icons/fc";
+import { useSelector } from 'react-redux';
 
 export default function Header() {
     let styleIconMenu = `w-8 h-1 bg-slate-800 transition-transform`
@@ -9,14 +11,13 @@ export default function Header() {
     const titleLikeNavbar = [
         {title:'Home',path:'/',style:''},
         {title:'About',path:'/About',style:''},
-        {title:'Sing-In',path:'/Signin',style:''},
+       
     ]
-    
+    const {currentUser} = useSelector(state => state.user)
   return (
     <header className='bg-gray-100/70 backdrop-blur-md border-b flex justify-between items-center p-2 relative '>
         <h2 className='font-bold'>
-            <span className='text-blue-700/70'>Elsarh </span>
-            <span>Rear Estate</span>
+        <FcOrganization className='text-5xl'/>
         </h2>
         <form className='w-1/2 md:w-1/3 border rounded bg-white outline-blue-600 flex justify-start items-center'>
             <FaSearch className='ms-3 text-black/50 '/>
@@ -42,7 +43,13 @@ export default function Header() {
             <ul className=' w-full md:p-0 divide-y md:divide-y-0 text-center space-y-2  md:w-auto md:space-y-0 md:space-x-0 md:flex items-center justify-center '>
                {titleLikeNavbar.map((link)=><li key={link.path} className=''>
                 <NavLink className="px-3 py-2  block hover:text-blue-600 " to={link.path}>{link.title}</NavLink></li>)}
-                <li className='absolute top-2 left-4 hover:opacity-70 md:static border-none w-auto'><NavLink to='/Profile'><div className='bg-white border w-12 h-12 md:w-8 md:h-8 rounded-full flex justify-center items-center'><FaUser className='text-xl md:text-base'/></div></NavLink></li>
+                {currentUser?<li className='absolute top-2 left-4 hover:opacity-70 md:static border-none w-auto'>
+                  <NavLink to='/Profile'>
+                    <div className='bg-white border-2 w-10 h-10 md:w-7 md:h-7 rounded-full flex justify-center items-center overflow-hidden'>
+                      <img src={currentUser.avatar} alt="profile" />
+                      </div></NavLink></li>:<li className=''><NavLink className="px-3 py-2  block hover:text-blue-600 " to='/Signin'>Sing-In</NavLink></li>}
+                
+                
             </ul>
         </nav>
     </header>
