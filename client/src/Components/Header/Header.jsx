@@ -15,7 +15,7 @@ export default function Header() {
     ]
     const {currentUser} = useSelector(state => state.user)
   return (
-    <header className='bg-gray-100/70 backdrop-blur-md border-b flex justify-between items-center p-2 relative '>
+    <header className='bg-gray-100/85 sticky top-0 backdrop-blur-md border-b flex justify-between items-center p-2 '>
         <h2 className='font-bold'>
         <FcOrganization className='text-5xl'/>
         </h2>
