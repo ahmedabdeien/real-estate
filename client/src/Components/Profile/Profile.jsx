@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from './../../firebase';
-import {updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess} from "../redux/user/userSlice"
+import {updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess, logOutUserStart, logOutUserFailure, logOutUserSuccess} from "../redux/user/userSlice"
 
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
@@ -85,6 +85,20 @@ export default function Profile(){
       } catch (error) {
         dispatch(deleteUserFailure(error.message));
       }
+    };
+    const handleLogOut = async () =>{
+      try{
+        dispatch(logOutUserStart());
+        const res = await fetch('/api/auth/logout');
+        const data = await res.json();
+        if(data.success === false){
+          dispatch(logOutUserFailure(data.message))
+          return;
+        }
+        dispatch(logOutUserSuccess(data));
+      }catch (error){
+        dispatch(logOutUserFailure(data.message))
+      }
     }
   return (
     <div className=' bg-cover bg-[url("https://cdn.pixabay.com/photo/2021/10/07/15/23/real-estate-6688945_1280.jpg")]'>
@@ -128,7 +142,7 @@ export default function Profile(){
                     <span onClick={handleDeleteUser} className=" text-white bg-red-600 hover:bg-red-800 cursor-pointer py-2 w-1/2">
                       delete account
                     </span>
-                    <span className=" text-white bg-red-500 hover:bg-red-700 cursor-pointer py-2 w-1/2">
+                    <span onClick={handleLogOut} className=" text-white bg-red-500 hover:bg-red-700 cursor-pointer py-2 w-1/2">
                       log out
                     </span>
                   </div>
