@@ -49,7 +49,7 @@ export default function Profile() {
                 <form className="w-full space-y-2 flex items-center flex-col">
                   <input onChange={(e)=>setFile(e.target.files[0])} type="file" ref={fileRef} hidden accept="image/*"/>
                   <img onClick={()=>fileRef.current.click()} src={formData.avatar||currentUser.avatar} alt="profile" 
-                  className="rounded-full w-24 h-24 object-cover cursor-pointer mb-1 m-auto"/>
+                  className="rounded-full border-2 w-24 h-24 object-cover cursor-pointer mb-1 m-auto"/>
                   <p>
                     {fileUploadError?
                     <span className="text-sm text-red-700">error img upload // image must be less than 2 mb 
