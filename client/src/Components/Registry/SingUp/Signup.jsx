@@ -2,14 +2,20 @@ import React, { useState } from 'react'
 import { Link,useNavigate } from 'react-router-dom'
 import OAuth from '../../OAuth/OAuth';
 
+import { FaEye } from "react-icons/fa6";
+import { FaEyeSlash } from "react-icons/fa6";
+
 
 function Signup() {
+
   const StyleInput = 'border p-2 rounded bg-gray-50 focus:outline-blue-600'
+  const [visible,setVisible] = useState()
+
   const [formData,SetFormData] = useState({});
   const [erorr,setError] = useState(null);
   const [loading,setLoading] =useState(false)
   const navigate = useNavigate();
-  const handelChange = (e)=>{
+  const handelChange = (e)=>{ 
     SetFormData({
       ...formData,
       [e.target.id]: e.target.value,
@@ -49,11 +55,16 @@ function Signup() {
     <section className='p-5 flex justify-center  items-center flex-col w-full h-[85vh]'>
     <h1 className='text-2xl font-bold'>SignUp</h1>
     <form   onSubmit={handelSubmit} className='mt-4 flex flex-col space-y-2 w-full sm:w-2/3 md:w-1/2 lg:w-[30%]'>
-    <input type="text" className={StyleInput} id='name' placeholder='Name' onChange={handelChange}/>
-      <input type="text" className={StyleInput} id='username' placeholder='Username' onChange={handelChange}/>
-      <input type="email" className={StyleInput} id='email' placeholder='Email' onChange={handelChange}/>
-      <input type="number" className={StyleInput} id='number' placeholder='Phone Number' onChange={handelChange}/>
-      <input type="password" className={StyleInput} id='password' placeholder='Password' onChange={handelChange}/>
+      <input type="text"   className={StyleInput}  id='name' placeholder='Name' onChange={handelChange}/>
+      <input type="text"   className={StyleInput}  id='username' placeholder='Username' onChange={handelChange}/>
+      <input type="email"  className={StyleInput}  id='email' placeholder='Email' onChange={handelChange}/>
+      <input type="number" className={StyleInput}  id='number' placeholder='Phone Number' onChange={handelChange}/>
+      <div className='relative'>
+      <input type={visible?"text":"password"} className={`${StyleInput} w-full`} name='password' id='password' placeholder='Password' onChange={handelChange}/>
+          <div onClick={()=>setVisible(!visible)} className="absolute top-[50%] translate-y-[-50%] right-2">
+          {visible?<FaEye/>:<FaEyeSlash/>}
+          </div>
+      </div>
       <button disabled={loading} className='bg-blue-600 text-white py-2 rounded hover:ring-offset-2 
       hover:ring-2 active:ring-offset-0 disabled:bg-blue-600/70 disabled:hover:ring-offset-0 
       disabled:hover:ring-0 '>{loading?'Loading...':"Sign Up"}</button>

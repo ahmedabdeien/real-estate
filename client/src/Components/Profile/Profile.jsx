@@ -74,8 +74,8 @@ export default function Profile(){
   return (
     <div className=' bg-cover bg-[url("https://cdn.pixabay.com/photo/2021/10/07/15/23/real-estate-6688945_1280.jpg")]'>
       <div className='flex justify-center h-[92.2vh] items-center bg-black/60 p-2 '>
-         <div className=" w-full sm:w-4/5 md:w-4/6 lg:w-3/6 bg-white rounded-md flex justify-center items-center flex-wrap overflow-hidden text-center">
-            <h2 className='text-2xl font-bold py-2 text-white w-full bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-30% to-blue-500 to-90% '>Profile page</h2>
+         <div className=" w-full sm:w-4/5 md:w-4/6 lg:w-3/6 bg-white border-b-2 border-blue-600 rounded-md flex justify-center items-center flex-wrap overflow-hidden text-center">
+            <h2 className='text-2xl font-bold py-2 text-white w-full bg-blue-600  '>Profile page</h2>
             <div className="w-full p-3">
                 <form onSubmit={handleSubmit} className="w-full space-y-2 flex items-center flex-col">
                   <input onChange={(e)=>setFile(e.target.files[0])} type="file" ref={fileRef} hidden accept="image/*"/>
