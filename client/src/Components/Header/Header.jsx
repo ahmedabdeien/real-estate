@@ -1,8 +1,6 @@
 import React, { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { FaSearch } from "react-icons/fa";
-import { FaUser } from "react-icons/fa";
-import { FcOrganization } from "react-icons/fc";
 import { useSelector } from 'react-redux';
 
 export default function Header() {
@@ -15,7 +13,7 @@ export default function Header() {
     ]
     const {currentUser} = useSelector(state => state.user)
   return (
-    <header className='bg-gray-100/85 sticky top-0 backdrop-blur-md border-b flex justify-between items-center p-2 '>
+    <header className='bg-gray-100/85 sticky z-50 top-0 backdrop-blur-md border-b flex justify-between items-center p-2 '>
         <h2 className='font-bold'>
         <Link to="/">
           <img className='w-10' src="https://scontent.fcai21-4.fna.fbcdn.net/v/t39.30808-6/397243883_654808093473666_891298750542220823_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=efb6e6&_nc_ohc=h6m6iIbo6jcAX-ZCTJ2&_nc_oc=AQnwFJnS_DWIlaORslorSEw8jiNz60RG2vTr0KFSC2sJJh98_1OQjjehGSp9eyD8njw&_nc_ht=scontent.fcai21-4.fna&oh=00_AfA789aTe_LcXzRyVBbgPONNqQN-xEeyHWiGgWDlq6RmEQ&oe=65B26FC9" alt="" />
