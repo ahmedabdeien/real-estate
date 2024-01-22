@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from './../../firebase';
-import {updateUserStart,updateUserSuccess,updateUserFailure} from "../redux/user/userSlice"
+import {updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess} from "../redux/user/userSlice"
 
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
@@ -68,9 +68,24 @@ export default function Profile(){
       setUpdateSuccess(true);
     } catch (error) {
       dispatch(updateUserFailure(error.message));
+      }
+   };
+   const handleDeleteUser = async () =>{
+      try {
+        dispatch(deleteUserStart());
+        const res = await fetch(`/api/user/delete/${currentUser._id}`,{
+          method:"DELETE",
+        })
+        const data = await res.json();
+        if(data.success === false){
+          dispatch(deleteUserFailure(data.message));
+          return;
+        }
+        dispatch(deleteUserSuccess(data));
+      } catch (error) {
+        dispatch(deleteUserFailure(error.message));
+      }
     }
-  
-   }
   return (
     <div className=' bg-cover bg-[url("https://cdn.pixabay.com/photo/2021/10/07/15/23/real-estate-6688945_1280.jpg")]'>
       <div className='flex justify-center h-[92.2vh] items-center bg-black/60 p-2 '>
@@ -110,7 +125,7 @@ export default function Profile(){
                 </form>
                 <div className="w-full flex justify-center pt-2">
                   <div className="m-auto flex w-full md:w-3/4 lg:w-1/2 rounded-md overflow-hidden">
-                    <span className=" text-white bg-red-600 hover:bg-red-800 cursor-pointer py-2 w-1/2">
+                    <span onClick={handleDeleteUser} className=" text-white bg-red-600 hover:bg-red-800 cursor-pointer py-2 w-1/2">
                       delete account
                     </span>
                     <span className=" text-white bg-red-500 hover:bg-red-700 cursor-pointer py-2 w-1/2">
