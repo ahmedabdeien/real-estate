@@ -6,7 +6,7 @@ import {updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart, de
 
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
-
+// const admin = import.meta.env.ADMIN
 export default function Profile(){
   const [visible,setVisible] = useState()
   const style = 'text-center w-full md:w-3/4 lg:w-1/2 p-2 rounded focus:border-0 focus:outline-blue-600 border-b border-black'
@@ -100,6 +100,9 @@ export default function Profile(){
         dispatch(logOutUserFailure(data.message))
       }
     }
+
+ 
+
   return (
     <div className=' bg-cover bg-[url("https://cdn.pixabay.com/photo/2021/10/07/15/23/real-estate-6688945_1280.jpg")]'>
       <div className='flex justify-center h-[92.2vh] items-center bg-black/60 p-2 '>
@@ -147,6 +150,7 @@ export default function Profile(){
                     </span>
                   </div>
                 </div>
+           
                 <div>
                   <p>
                     {updateSuccess?

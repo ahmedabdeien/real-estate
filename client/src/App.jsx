@@ -6,7 +6,7 @@ import Profile from "./Components/Profile/Profile";
 import About from './Components/About/About';
 import Header from "./Components/Header/Header";
 import PrivateRoute from "./Components/PrivateRoute/PrivateRoute";
-
+import NotFound from"./Components/NotFound/NotFound.jsx"
 function App() {
  
   return (
@@ -21,6 +21,7 @@ function App() {
          <Route path="/About" element={<About/>}/>
          <Route element={<PrivateRoute/>}>
          <Route path="/Profile" element={<Profile/>}/>
+         <Route path="*" element={<NotFound/>}/>
          </Route>
       </Routes>
       {/* component the footer */}
