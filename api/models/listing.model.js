@@ -15,40 +15,40 @@ const listingSchema = new mongoose.Schema(
             type: String,
             required: true
         },
-        regularPrice: {
-            type: Number,
-            required: true
-        },
-        discountedPrice: {
-            type: Number,
-            required: true
-        },
-        bathrooms:{
-            type: Number,
-            required: true
-        },
-        bedrooms: {
-            type: Number,
-            required: true
-        },
-        furnished: {
+        availableOrNot:{
             type: Boolean,
             required: true
         },
-        parking: {
-            type: Boolean,
+        numberFloors: {
+            type: Number,
             required: true
         },
-        type: {
-            type: String,
+        propertySize: {
+            type: Number,
             required: true
-        },
-        offer:{
-            type:Boolean,
-            required:true
         },
         imageUrls:{
             type: Array,
+            required: true
+        },
+        titlePlans:{
+            type: String,
+            required: true
+        },
+        imagePlans:{
+            type: String,
+            required: true
+        },
+        nameAdApartments:{
+            type: String,
+            required: true
+        },
+        imageApartments:{
+            type: Array,
+            required: true
+        },
+        titleApartments:{
+            type: String,
             required: true
         },
         useRef:{
@@ -62,4 +62,5 @@ const listingSchema = new mongoose.Schema(
 );
 
 const Listing = mongoose.model('Listing', listingSchema);
+
 export default Listing;

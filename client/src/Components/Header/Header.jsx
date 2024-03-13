@@ -14,13 +14,13 @@ export default function Header() {
     ]
     const {currentUser} = useSelector(state => state.user)
   return (
-    <header className='bg-gray-100/85 sticky z-50 top-0 backdrop-blur-md border-b flex justify-between items-center p-2 md:px-5 '>
+    <header className='bg-gray-100/85 sticky z-50 top-0 backdrop-blur-md border-b flex justify-between items-center px-5 p-1  '>
         <h2 className='font-bold'>
         <Link to="/" className='text-stone-700'>
-         <img src={Logoelsarh} alt="Logoelsarh" className='w-20 sm:w-24 ' />
+         <img src={Logoelsarh} alt="Logoelsarh" className='w-24 sm:w-28 ' title='Elsarh Real Estate' />
         </Link>
         </h2>
-        <form className='w-1/2 md:w-1/3 border rounded bg-white  flex justify-start items-center group-focus/edittts:outline-blue-600'>
+        <form className='w-1/2 md:w-1/3 border rounded-full bg-white  flex justify-start items-center group-focus/edittts:outline-blue-600'>
             <FaSearch className='ms-3 text-black/50'/>
             <input type="text" placeholder='Search...' className='p-2 w-full bg-transparent focus:outline-none group/edittts'/>
         </form>
@@ -45,7 +45,7 @@ export default function Header() {
                {titleLikeNavbar.map((link)=><li key={link.path} className=''>
                 <NavLink onClick={()=>setMenuActions(!menuActions)} className='px-3 py-2  block hover:text-blue-600 ' to={link.path}>{link.title}</NavLink></li>)}
                 {currentUser?<li className='absolute top-2 left-4 hover:opacity-70 md:static border-none w-auto'>
-                  <NavLink onClick={()=>setMenuActions(!menuActions)} to='/Profile'>
+                  <NavLink onClick={()=>setMenuActions(!menuActions)} to='/Profile'  title='Profile'>
                     <div className='bg-white border-2 w-10 h-10 md:w-7 md:h-7 rounded-full flex justify-center items-center overflow-hidden'>
                       <img src={currentUser.avatar} alt="profile" />
                       </div></NavLink></li>:<li className=''><NavLink onClick={()=>setMenuActions(!menuActions)} className="px-3 py-2  block hover:text-blue-600 " to='/Signin'>Sing in</NavLink></li>}

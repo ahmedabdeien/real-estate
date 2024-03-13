@@ -58,7 +58,7 @@ function Signup() {
       <input type="text"   className={StyleInput}  id='name' placeholder='Name' onChange={handelChange}/>
       <input type="text"   className={StyleInput}  id='username' placeholder='Username' onChange={handelChange}/>
       <input type="email"  className={StyleInput}  id='email' placeholder='Email' onChange={handelChange}/>
-      <input type="number" className={StyleInput}  id='number' placeholder='Phone Number' onChange={handelChange}/>
+      <input type="number" className={StyleInput} number="number"  id='number' placeholder='Phone Number' onChange={handelChange}/>
       <div className='relative'>
       <input type={visible?"text":"password"} className={`${StyleInput} w-full`} name='password' id='password' placeholder='Password' onChange={handelChange}/>
           <div onClick={()=>setVisible(!visible)} className="absolute top-[50%] translate-y-[-50%] right-2">

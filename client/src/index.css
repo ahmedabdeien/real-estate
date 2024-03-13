@@ -19,8 +19,8 @@ nav a.active::after{
     transform: translateX(-50%);
     bottom: 2px;
 }
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button{
+input[number="number"]::-webkit-outer-spin-button,
+input[number="number"]::-webkit-inner-spin-button{
     -webkit-appearance: none;
     margin: 0;
 }
