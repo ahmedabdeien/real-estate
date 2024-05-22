@@ -38,6 +38,7 @@ export default function Header() {
             <div className={styleIconMenu}></div>
             <div className={styleIconMenu}></div>
           </div>}
+  
         </div>
 
         <nav className={`${menuActions? 'translate-y-0':'translate-y-[-100%]'} w-full h-screen transition-transform fixed top-0 right-0 bg-white md:translate-y-0 md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>

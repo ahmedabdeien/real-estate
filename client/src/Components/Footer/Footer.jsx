@@ -1,7 +1,7 @@
 import React from 'react'
 import { FaRegWindowMinimize } from "react-icons/fa6";export default function Footer() {
   return (
-    <footer className='bg-stone-50 p-5 grid md:grid-cols-3 gap-3 text-stone-700 border-t '>
+    <footer className='bg-[#023e8a]/10 p-5 grid md:grid-cols-3 gap-3 text-stone-700 border-t '>
 
 <div className=''  >
     
