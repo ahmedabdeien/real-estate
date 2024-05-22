@@ -31,15 +31,7 @@ const listingSchema = new mongoose.Schema(
             type: Array,
             required: true
         },
-        titlePlans:{
-            type: String,
-            required: true
-        },
         imagePlans:{
-            type: String,
-            required: true
-        },
-        nameAdApartments:{
             type: String,
             required: true
         },
