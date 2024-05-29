@@ -6,14 +6,14 @@
 nav a.active{
     font-weight: bold;
     position: relative;
-   color: #2563eb;
+   color: #ffffff;
 }
 nav a.active::after{
     content: "";
     width: 4px;
     height: 4px;
     border-radius: 50px; 
-    background-color: #2563eb;
+    background-color: #1282a2;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);

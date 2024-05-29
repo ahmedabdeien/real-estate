@@ -8,7 +8,7 @@ import { FaCamera } from "react-icons/fa6";
 import { FaArrowsRotate } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
-import { FaPlus } from "react-icons/fa6";
+
 
 import videoElsarh from '../../assets/images/@ELSARHEGYPT.mp4';
 import { Link } from "react-router-dom";
@@ -109,6 +109,7 @@ export default function Profile(){
  
 
   return <>
+  
     <div>
       <h2 className='text-2xl font-bold py-2 text-white w-full bg-[#023E8A]  text-center'>Profile page</h2>
     </div>
@@ -188,19 +189,19 @@ export default function Profile(){
          </div>
          <p className="text-sm text-stone-600 mt-2 text-center">click for input change name and email and phone number and password ahd avatar </p>
       </div>
-      <div className="mt-8 border-t-2 pt-4 lg:mt-0 lg:border-none lg:pt-0"> 
+      {currentUser.isAdmin && (<div className="mt-8 border-t-2 pt-4 lg:mt-0 lg:border-none lg:pt-0"> 
           <div className="flex justify-center items-center relative py-2 overflow-hidden">
           <svg className="absolute top-0 left-0 -z-10 animate-pulse" id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(1) rotate(65)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/><path d='M3.25 10h13.5M10 3.25v13.5'  stroke='hsla(259, 0%, 92%, 1)' fill='none'/></pattern></defs><rect width='800%' height='800%' transform='translate(-1,-2)' fill='url(#a)'/></svg>
-        <Link to={"/create-page"} className="group/acss bg-green-600 font-semibold text-white p-5 rounded  hover:bg-green-800 hover:scale-105 transition-all flex justify-center items-center">
-          <FaPlus className="me-1"/>
-          <span>Create Page</span>  
-            
-        </Link>
+       
+          <Link to={"/create-page"} className=" bg-green-600 font-semibold text-white p-5 rounded  hover:bg-green-800 hover:scale-105 transition-all flex justify-center items-center">
+           create a page
+            </Link>
+
           </div>
         <video  autoPlay loop>
           <source src={videoElsarh}  type="video/mp4"/>
         </video>
-      </div>
+      </div>)}
 
     </div>
   </>
