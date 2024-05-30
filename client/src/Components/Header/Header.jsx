@@ -2,10 +2,10 @@ import  { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { FaSearch } from "react-icons/fa";
 import { useSelector } from 'react-redux';
-import Logoelsarh from '../../assets/images/logo_nawe-03.png'
+import Logoelsarh from '../../assets/images/logoElsarh.png'
 
 export default function Header() {
-    let styleIconMenu = `w-8 h-1 bg-slate-800 transition-transform`
+    let styleIconMenu = `w-8 h-1 bg-[#fefcfb] rounded-full transition-transform`
     let [menuActions,setMenuActions] = useState(false); 
     const titleLikeNavbar = [
         {title:'Home',path:'/',style:''},
@@ -16,10 +16,10 @@ export default function Header() {
     ]
     const {currentUser} = useSelector(state => state.user)
   return (
-    <header className='bg-[#001f54]  sticky z-50 top-0 backdrop-blur-md  flex justify-between items-center px-5 p-1  '>
+    <header className='bg-[#001f54]  sticky z-50 top-0  backdrop-blur-md  flex justify-between items-center px-5 p-1  '>
         <h2 className='font-bold'>
         <Link to="/" className='text-stone-700'>
-         <img src={Logoelsarh} alt="Logoelsarh" className='w-24 sm:w-28 ' title='Elsarh Real Estate' />
+         <img src={Logoelsarh} alt="Logoelsarh" className='w-24 sm:w-24 p-1 ' title='Elsarh Real Estate' />
         </Link>
         </h2>
         <form className='w-1/2 md:w-1/3 border rounded-full bg-white  flex justify-start items-center group-focus/edittts:outline-blue-600'>
@@ -30,9 +30,9 @@ export default function Header() {
         <div onClick={()=>setMenuActions(!menuActions)} className='block md:hidden z-40 cursor-pointer text-[#fefcfb]'>
         {menuActions?
           <div className='-space-y-1'>
-            <div className='w-8 h-1 -rotate-45  bg-slate-800 transition-transform'></div>
+            <div className='w-8 h-1 -rotate-45 rounded-full bg-[#fefcfb] transition-transform'></div>
             <div className='w-8 h-1 -translate-x-5 opacity-0  transition-[transform_opacity]'></div>
-            <div className='w-8 h-1 rotate-45  bg-slate-800 transition-transform'></div>
+            <div className='w-8 h-1 rotate-45 rounded-full bg-[#fefcfb] transition-transform'></div>
           </div>
           :
           <div className='space-y-1'>
@@ -43,8 +43,8 @@ export default function Header() {
   
         </div>
 
-        <nav className={`${menuActions? 'translate-y-0':'translate-y-[-100%]'} text-[#fefcfb] w-full h-screen transition-transform fixed top-0 right-0 bg-white md:translate-y-0 md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>
-            <ul className=' w-full md:p-0 divide-y md:divide-y-0 text-center space-y-2  md:w-auto md:space-y-0 md:space-x-0 md:flex items-center justify-center '>
+        <nav className={`${menuActions? 'translate-y-0':'translate-y-[-100%]'} text-[#fefcfb] w-full h-screen transition-transform fixed top-0 right-0 bg-[#001f54] md:translate-y-0 md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>
+            <ul className=' w-full md:p-0 divide-[#fefcfb]/30 divide-y md:divide-y-0 text-center space-y-2  md:w-auto md:space-y-0 md:space-x-0 md:flex items-center justify-center '>
                {titleLikeNavbar.map((link)=><li key={link.path} className=''>
                 <NavLink onClick={()=>setMenuActions(!menuActions)} className='px-3 py-2  block hover:text-white ' to={link.path}>{link.title}</NavLink></li>)}
                 {currentUser?<li className='absolute top-2 left-4 hover:opacity-70 md:static border-none w-auto'>
