@@ -3,7 +3,7 @@ import elsarhLoge from "../../assets/images/logoElsarh.png";
 function About() {
   return (
     <section className="">
-      <div className="w-full rounded-b-2xl overflow-hidden h-80 bg-fixed bg-cover bg-zinc-600 bg-[url(https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODZ8fHJlYWwlMjBzdGF0ZXxlbnwwfHwwfHx8MA%3D%3D)]">
+      <div className="w-full md:rounded-b-2xl overflow-hidden h-80 bg-fixed bg-cover bg-zinc-600 bg-[url(https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODZ8fHJlYWwlMjBzdGF0ZXxlbnwwfHwwfHx8MA%3D%3D)]">
         <div className="w-full h-full bg-[#1282a2]/80 flex justify-center items-center">
           
           <h1 className="text-4xl md:text-5xl font-bold text-white ">

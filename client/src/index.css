@@ -23,4 +23,15 @@ input[number="number"]::-webkit-outer-spin-button,
 input[number="number"]::-webkit-inner-spin-button{
     -webkit-appearance: none;
     margin: 0;
+  
 }
+.noneScroll{
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.noneScroll::-webkit-scrollbar {
+    display: none;
+    visibility: hidden;
+    
+  }
+  

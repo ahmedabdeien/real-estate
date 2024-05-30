@@ -6,11 +6,11 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className=''>
+    <footer className=' text-sm'>
        <div className='p-5 grid md:grid-cols-3 gap-3 text-stone-700 border-t-2 '>
        <div>
            <h6 className='text-xl font-semibold mb-3 text-stone-900'>Work Hours</h6>
-            <ul>
+            <ul className="space-y-1">
                 <li className='flex items-start'><span>Saturday</span><FaRegWindowMinimize/><span>Thursday</span> </li>
                 <li className='flex items-start'><span>10am</span><FaRegWindowMinimize /><span>5am</span> </li>
             </ul>
@@ -18,7 +18,7 @@ export default function Footer() {
           
          <div>
             <h6 className='text-xl font-semibold mb-3 text-stone-900'>Quick Links</h6>
-            <ul className="">
+            <ul className=" space-y-1">
               <li><Link to="/Home" className='hover:text-[#1282a2]'>Home</Link></li>
               <li><Link to="/Project" className='hover:text-[#1282a2]'>Project</Link></li>
               <li><Link to="/About" className='hover:text-[#1282a2]'>About</Link></li>
@@ -30,7 +30,7 @@ export default function Footer() {
 
           <div className=''>
             <h6 className='text-xl font-semibold mb-3 text-stone-900'>Site Title</h6>
-            <ul>
+            <ul className="space-y-1">
               <li>14 El Mokhtar Street from Nasr Street</li>
               <li>New Maadi , Cairo</li>
               <li><a href="mailto:elsarhegypt@gmail.com" className='hover:text-[#1282a2]'>elsarhegypt@gmail.com</a></li>

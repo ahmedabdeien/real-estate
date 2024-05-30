@@ -57,8 +57,8 @@ function Signin() {
           {visible?<FaEye/>:<FaEyeSlash/>}
        </div>
       </div>
-      <button disabled={loading} className='bg-blue-600 text-white py-2 rounded hover:ring-offset-2 
-      hover:ring-2 active:ring-offset-0 disabled:bg-blue-600/70 disabled:hover:ring-offset-0 
+      <button disabled={loading} className='bg-[#034078] text-white py-2 rounded hover:ring-offset-2 
+      hover:ring-2 active:ring-offset-0 disabled:bg-[#1282a2] disabled:hover:ring-offset-0 
       disabled:hover:ring-0 '>{loading?'Loading...':"Sign In"}</button>
       <OAuth/>
     </form>

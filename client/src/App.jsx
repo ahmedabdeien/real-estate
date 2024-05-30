@@ -11,10 +11,12 @@ import NotFound from"./Components/NotFound/NotFound.jsx"
 import CreatePage from "./Components/CreatePage/CreatePage.jsx";
 import Footer from "./Components/Footer/Footer.jsx";
 import OnlyAdminPrivateRoute from "./Components/PrivateRoute/OnlyAdminPrivateRoute.jsx";
+import Dashboard from "./Components/Profile/Dashboard.jsx";
 
 function App() {
  
   return (
+    
     <BrowserRouter>
     {/* component the header */}
     <Header/>
@@ -27,6 +29,7 @@ function App() {
          <Route path="/Project" element={<Project/>}/>
          <Route element={<PrivateRoute/>}>
            <Route path="/Profile" element={<Profile/>}/>
+           <Route path="/Dashboard" element={<Dashboard/>}/>
            <Route path="*" element={<NotFound/>}/>
          </Route>
          <Route element={<OnlyAdminPrivateRoute/>}>
@@ -36,6 +39,7 @@ function App() {
       {/* component the footer */}
       <Footer/>
     </BrowserRouter>
+    
   )
 }
 
