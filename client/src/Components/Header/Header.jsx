@@ -1,25 +1,50 @@
-import  { useState } from 'react'
+"use client";
+import  { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { FaSearch } from "react-icons/fa";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Logoelsarh from '../../assets/images/logoElsarh.png'
-import { HiLogout } from "react-icons/hi";
-import { HiOutlineUserCircle } from "react-icons/hi";
+import { Avatar, Dropdown } from "flowbite-react";
+import { HiCog, HiCurrencyDollar, HiLogout, HiUser, HiUsers, HiViewGrid } from "react-icons/hi";
+import { logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice';
 export default function Header() {
     let styleIconMenu = `w-8 h-1 bg-[#fefcfb] rounded-full transition-transform`
     let [menuActions,setMenuActions] = useState(false); 
-    let [menuActionsList,setMenuActionsList] = useState(false);
-   
+    useEffect(()=>{
+      if(menuActions){
+        document.body.style.overflow = 'hidden';
+      }else{
+        document.body.style.overflow = 'auto'
+      }
+    },[menuActions])
+
     const titleLikeNavbar = [
         {title:'Home',path:'/',style:''},
         {title:'Project',path:'/Project',style:''},
         {title:'About',path:'/About',style:''},
-        
-       
     ]
     const {currentUser} = useSelector(state => state.user)
+
+//Sign Out function
+   const dispatch = useDispatch();
+  const handleSignout = async () =>{
+      try {
+        dispatch(logOutUserStart());
+        const res = await fetch('/api/user/signout',{
+          method:"POST",
+        })
+        const data = await res.json();
+        if(!res.ok){
+          dispatch(logOutUserFailure(data.message));
+        }else{
+          dispatch(logOutUserSuccess());
+        }
+      } catch (error) {
+        dispatch(logOutUserFailure());
+      }
+   }
   return (
-    <header  className='bg-[#001f54]  sticky z-50 top-0  backdrop-blur-md  flex justify-between items-center px-5 p-1  '>
+    <header  className='bg-[#001f54]  sticky z-50 top-0  flex justify-between items-center px-5 p-1  '>
         <h2 className='font-bold'>
         <Link to="/" className='text-stone-700'>
          <img src={Logoelsarh} alt="Logoelsarh" className='w-24 sm:w-24 p-1 ' title='Elsarh Real Estate' />
@@ -32,7 +57,7 @@ export default function Header() {
          {/* icon navbar on phone  */}
         <div onClick={()=>setMenuActions(!menuActions)} className='block md:hidden z-40 cursor-pointer text-[#fefcfb]'>
         {menuActions?
-          <div className='-space-y-1'>
+          <div className='-space-y-1 translate-y-2 '>
             <div className='w-8 h-1 -rotate-45 rounded-full bg-[#fefcfb] transition-transform'></div>
             <div className='w-8 h-1 -translate-x-5 opacity-0  transition-[transform_opacity]'></div>
             <div className='w-8 h-1 rotate-45 rounded-full bg-[#fefcfb] transition-transform'></div>
@@ -46,32 +71,44 @@ export default function Header() {
   
         </div>
 
-        <nav className={`${menuActions? '':'translate-y-[-100%]'} text-[#fefcfb] w-full h-screen transition-transform fixed top-0 right-0 bg-[#001f54] md-translate-x-0 md:translate-y-0 md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>
-            <ul className=' w-full md:p-0 divide-[#fefcfb]/30 divide-y md:divide-y-0 text-center space-y-2 md:w-auto md:space-y-0 md:space-x-0 md:flex items-center justify-center '>
+        <nav className={`${menuActions? 'translate-y-[0%]':'-translate-y-[100%]'} top-0 left-0 text-[#fefcfb] w-full h-screen transition-all fixed right-0 bg-[#001f54]  md:translate-y-0 md:static md:w-auto md:h-auto md:bg-transparent flex justify-center items-center`}>
+            <ul className='md:space-x-1 w-full md:p-0 divide-[#fefcfb]/30 divide-y md:divide-y-0 text-center space-y-2 md:w-auto md:space-y-0  md:flex items-center justify-center '>
                {titleLikeNavbar.map((link)=><li key={link.path} className=''>
-                <NavLink onClick={()=>setMenuActions(!menuActions)} className='px-3 py-2  block hover:text-white ' to={link.path}>{link.title}</NavLink></li>)}
+                <NavLink onClick={()=>setMenuActions(false)} className='px-2 py-2  block hover:text-white hover:bg-[#034078] rounded ' to={link.path}>{link.title}</NavLink></li>)}
                 {currentUser?
-                <li onClick={()=>setMenuActionsList(!menuActionsList)} className='absolute border-none top-2 left-2 md:static'>
-                  <div className='px-3 py-2 block hover:text-white '><img src={currentUser.avatar} className='w-8 rounded-full ring' alt='img' /></div>
-                  <div className={`${menuActionsList?" flex":" hidden"} flex-col w-80 md:w-64 absolute top-12 left-0 md:-right-4 md:top-[3.25rem] bg-white shadow text-stone-600 border rounded-b `}>
-                    <div className='text-sm p-2 py-4'>
-                      <p>
-                        @{currentUser.username}
-                      </p>
-                      <p className='font-medium truncate'>
-                        {currentUser.email}
-                      </p>
-                    </div>
-                    <div className='border-t p-1' >
-                      <NavLink onClick={()=>setMenuActions(!menuActions)} className='hover:bg-stone-100 w-full flex justify-center items-center py-2 rounded' to="/profile"><span><HiOutlineUserCircle className=' text-stone-600'/></span><span className=' text-stone-600 text-sm ms-1'>Profile</span></NavLink>
-                    </div>
-                    <div className='border-t p-1'>
-                      <NavLink onClick={()=>setMenuActions(!menuActions)} className='hover:bg-stone-100 w-full flex justify-center items-center py-2 rounded ' to="/profile"><HiLogout className=' text-stone-600'/><span className='text-stone-600 text-sm ms-1'>Log Out</span></NavLink>
-                    </div>
-                  </div>
+                <li className='absolute border-none top-2 left-4 md:static'>
+                  
+                  <Dropdown className=' block hover:text-white' 
+                  arrowIcon={false} 
+                  inline 
+                  label={
+                  <Avatar  className='border-[3px] border-[#ffffff] rounded-full object-cover' 
+                  alt='user' 
+                  img={currentUser.avatar}
+                  size={'sm'}
+                  rounded
+                  
+                  />}>
+                    <Dropdown.Header>
+                      <span className="block text-sm">{currentUser.name}</span>
+                      <span className="block truncate text-sm font-medium">{currentUser.email}</span>
+                    </Dropdown.Header>
+                   <Link to={"/Dashboard?tab=Profile"}> <Dropdown.Item onClick={()=>setMenuActions(false)} icon={HiUser}>Profile</Dropdown.Item></Link>
+                    {currentUser.isAdmin &&<div>
+                    <Dropdown.Item onClick={()=>setMenuActions(false)} icon={HiViewGrid}>Dashboard</Dropdown.Item>
+                    <Dropdown.Item onClick={()=>setMenuActions(false)} icon={HiCog}>Settings</Dropdown.Item>
+                    <Dropdown.Item onClick={()=>setMenuActions(false)} icon={HiCurrencyDollar}>Earnings</Dropdown.Item>
+                    </div>}
+                    {currentUser.isBroker &&
+                    <div>
+                    <Link to={"/PageBroker"}><Dropdown.Item onClick={()=>setMenuActions(false)} icon={HiUsers}>Broker</Dropdown.Item></Link>
+                    </div>}
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={()=>{setMenuActions(false) ,handleSignout()}} icon={HiLogout}>Sign out</Dropdown.Item>
+                  </Dropdown>
                 </li>
                 :<li className='absolute top-2 left-4 md:static'>
-                        <Link onClick={()=>setMenuActions(!menuActions)} className="px-3 py-2 rounded  block font-bold  text-[#1282a2] bg-[#fefcfb] border border-[#1282a2]  " to='/Signin'>Sing in</Link></li>}
+                        <Link onClick={()=>setMenuActions(false)} className={` px-3 py-2 rounded  block font-bold  text-[#1282a2] bg-[#fefcfb] border border-[#1282a2]`} to='/Signin'>Sing in</Link></li>}
                 
                 
             </ul>

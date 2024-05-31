@@ -13,6 +13,9 @@ import Footer from "./Components/Footer/Footer.jsx";
 import OnlyAdminPrivateRoute from "./Components/PrivateRoute/OnlyAdminPrivateRoute.jsx";
 import Dashboard from "./Components/Profile/Dashboard.jsx";
 
+import PageBroker from "./Components/Profile/PageBroker.jsx";
+import BrokerPrivateRoute from "./Components/PrivateRoute/BrokerPrivateRoute";
+
 function App() {
  
   return (
@@ -33,8 +36,12 @@ function App() {
            <Route path="*" element={<NotFound/>}/>
          </Route>
          <Route element={<OnlyAdminPrivateRoute/>}>
-           <Route path="/create-Page" element={<CreatePage/>}/> 
+           <Route  path="/Dashboard?tab=CreatePage" element={<CreatePage/>}/>
          </Route>
+         <Route element={<BrokerPrivateRoute/>}>
+           <Route  path="/PageBroker" element={<PageBroker/>}/>
+         </Route>
+
       </Routes>
       {/* component the footer */}
       <Footer/>

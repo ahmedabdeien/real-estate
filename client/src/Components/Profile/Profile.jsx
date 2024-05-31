@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from './../../firebase';
-import {updateUserStart,updateUserSuccess,updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess, logOutUserStart, logOutUserFailure, logOutUserSuccess} from "../redux/user/userSlice"
+import {updateStart,updateSuccess,updateFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess, logOutUserStart, logOutUserFailure, logOutUserSuccess} from "../redux/user/userSlice"
 
 import { FaCamera } from "react-icons/fa6";
 import { FaArrowsRotate } from "react-icons/fa6";
@@ -55,7 +55,7 @@ export default function Profile(){
    const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      dispatch(updateUserStart());
+      dispatch(updateStart());
       const res = await fetch(`/api/user/update/${currentUser._id}`, {
         method: 'POST',
         headers: {
@@ -65,14 +65,14 @@ export default function Profile(){
       });
       const data = await res.json();
       if (data.success === false) {
-        dispatch(updateUserFailure(data.message));
+        dispatch(updateFailure(data.message));
         return;
       }
 
-      dispatch(updateUserSuccess(data));
+      dispatch(updateSuccess(data));
       setUpdateSuccess(true);
     } catch (error) {
-      dispatch(updateUserFailure(error.message));
+      dispatch(updateFailure(error.message));
       }
    };
    const handleDeleteUser = async () =>{

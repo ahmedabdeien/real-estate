@@ -32,6 +32,12 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isBroker:{
+        type: Boolean,
+        default: false,
+    },
+    
+    
     
 },{timestamps:true});
 

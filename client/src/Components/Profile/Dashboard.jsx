@@ -2,10 +2,14 @@ import { useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
 import DashSideBar from "./DashSideBar"
 import DashProfile from "./DashProfile"
+import CreatePage from './../CreatePage/CreatePage';
+import { useSelector } from "react-redux";
+import NotFound from "../NotFound/NotFound";
 
 
 
 function Dashboard() {
+    const {currentUser} = useSelector((state) => state.user);
     const location = useLocation()
     const [tab, setTab] = useState('')
     useEffect(()=>{
@@ -20,9 +24,11 @@ function Dashboard() {
             {/* sidebar */}
             <DashSideBar />
         </div>
-        <div>
+        <div className="w-full">
             {/* content */}
             {tab === 'Profile' && <DashProfile/>}
+            {currentUser.isAdmin && tab ===  'CreatePage' && <CreatePage/>}
+            { tab === '*' && <NotFound/>}
         </div>
     </div>
     </>

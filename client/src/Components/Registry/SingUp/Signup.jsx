@@ -4,6 +4,7 @@ import OAuth from '../../OAuth/OAuth';
 
 import { FaEye } from "react-icons/fa6";
 import { FaEyeSlash } from "react-icons/fa6";
+import { FloatingLabel } from 'flowbite-react';
 
 
 function Signup() {
@@ -54,18 +55,18 @@ function Signup() {
   return (
     <section className='p-5 flex justify-center  items-center flex-col w-full h-[85vh]'>
     <h1 className='text-2xl font-bold'>SignUp</h1>
-    <form   onSubmit={handelSubmit} className='mt-4 flex flex-col space-y-2 w-full sm:w-2/3 md:w-1/2 lg:w-[30%]'>
-      <input type="text"   className={StyleInput}  id='name' placeholder='Name' onChange={handelChange}/>
-      <input type="text"   className={StyleInput}  id='username' placeholder='Username' onChange={handelChange}/>
-      <input type="email"  className={StyleInput}  id='email' placeholder='Email' onChange={handelChange}/>
-      <input type="number" className={StyleInput} number="number"  id='number' placeholder='Phone Number' onChange={handelChange}/>
+    <form   onSubmit={handelSubmit} className='mt-4 flex flex-col w-full sm:w-2/3 md:w-1/2 lg:w-[30%]'>
+      <FloatingLabel variant="filled" label="name" type="text" id='name' onChange={handelChange}/>
+      <FloatingLabel variant="filled" label="username" type="text" id='username' onChange={handelChange}/>
+      <FloatingLabel variant="filled" label="email" type="email" id='email' onChange={handelChange}/>
+      <FloatingLabel variant="filled" label="number" type="number" number="number" id='number' onChange={handelChange}/>
       <div className='relative'>
-      <input type={visible?"text":"password"} className={`${StyleInput} w-full`} name='password' id='password' placeholder='Password' onChange={handelChange}/>
+      <FloatingLabel variant="filled" label="password" type={visible?"text":"password"} name='password' id='password' onChange={handelChange}/>
           <div onClick={()=>setVisible(!visible)} className="absolute top-[50%] translate-y-[-50%] right-2">
           {visible?<FaEye/>:<FaEyeSlash/>}
           </div>
       </div>
-      <button disabled={loading} className='bg-[#034078] text-white py-2 rounded hover:ring-offset-2 
+      <button disabled={loading} className='bg-[#034078] mb-2 text-white py-2 rounded hover:ring-offset-2 
       hover:ring-2 active:ring-offset-0 disabled:bg-[#1282a2] disabled:hover:ring-offset-0 
       disabled:hover:ring-0 '>{loading?'Loading...':"Sign Up"}</button>
       <OAuth/>
