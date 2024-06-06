@@ -1,6 +1,6 @@
 import {Button, Modal, Sidebar} from 'flowbite-react'
 import { useEffect, useState } from 'react'
-import {HiArrowSmRight, HiChartPie, HiOutlineExclamationCircle, HiOutlineTrash, HiTemplate, HiUser} from 'react-icons/hi'
+import {HiArrowSmRight, HiChartPie, HiDocumentAdd, HiDocumentText, HiOutlineExclamationCircle, HiOutlineTrash, HiUser} from 'react-icons/hi'
 import { Link, useLocation } from 'react-router-dom'
 import { deleteUserFailure, deleteUserStart, deleteUserSuccess, logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -56,8 +56,8 @@ function DashSideBar() {
  
   return <>
  
-    <Sidebar className='w-full md:w-56 border-e-2'>
-        <Sidebar.Items className=' sticky top-0'>
+    <Sidebar className='w-full md:w-56 border-b-2 md:border-e-2 dark: dark:border-gray-700'>
+        <Sidebar.Items className=' sticky top-0 '>
             <Sidebar.ItemGroup className='flex-col flex  w-full'>
                  <Link to="/Dashboard?tab=Profile" className=''>
                    <Sidebar.Item active={tab === "Profile"} icon={HiUser} label={currentUser.isAdmin?"Admin": currentUser.isBroker ?"Broker":"User"} labelColor="dark" as="div">
@@ -65,13 +65,13 @@ function DashSideBar() {
                    </Sidebar.Item>
                  </Link>
                  {currentUser.isAdmin &&<>
-                 <Link to="/Dashboard?tab=CreatePage">                 
-                 <Sidebar.Item active={tab === "CreatePage"} icon={HiTemplate} className="cursor-pointer">
-                  Create Page
+                 <Link to="/Dashboard?tab=pagesFinished">                 
+                 <Sidebar.Item active={tab === "pagesFinished"} icon={HiDocumentText } className="cursor-pointer" as="dev">
+                  Pages finished
                  </Sidebar.Item>
                  </Link>
                  <Link to="/Dashboard?tab=Dashboard">
-                 <Sidebar.Item active={tab === "Dashboard"} icon={HiChartPie} className="cursor-pointer">
+                 <Sidebar.Item active={tab === "Dashboard"} icon={HiChartPie} className="cursor-pointer" as="dev">
                  Dashboard
                  </Sidebar.Item>
                  </Link>
@@ -92,12 +92,12 @@ function DashSideBar() {
 <Modal
 show={showModal}
 onClose={() => setShowModal(false)}
-popup
+popup dark={false}
 size="md">
-   <Modal.Header/>
-   <Modal.Body>
+   <Modal.Header className='' />
+   <Modal.Body className='' >
       <div className="flex flex-col items-center space-y-3 text-center">
-        <HiOutlineExclamationCircle className="text-[#034078]/80 text-4xl " />
+        <HiOutlineExclamationCircle className="text-[#034078]/80  text-4xl " />
         <h1 className="text-[#034078] font-semibold text-xl">
           Are you sure you want to delete your account?
         </h1>

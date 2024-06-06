@@ -7,18 +7,18 @@ import { Link } from "react-router-dom";
 export default function Footer() {
   return (
     <footer className=' text-sm'>
-       <div className='p-5 grid md:grid-cols-3 gap-3 text-stone-700 border-t-2 '>
+       <div className='p-5 grid md:grid-cols-3 gap-3  border-t-2 dark:bg-gray-900  dark:border-gray-600'>
        <div>
-           <h6 className='text-xl font-semibold mb-3 text-stone-900'>Work Hours</h6>
-            <ul className="space-y-1">
+           <h6 className='text-xl font-semibold mb-3 '>Work Hours</h6>
+            <ul className="space-y-1 text-gray-500 dark:text-gray-400/90">
                 <li className='flex items-start'><span>Saturday</span><FaRegWindowMinimize/><span>Thursday</span> </li>
                 <li className='flex items-start'><span>10am</span><FaRegWindowMinimize /><span>5am</span> </li>
             </ul>
           </div>
           
          <div>
-            <h6 className='text-xl font-semibold mb-3 text-stone-900'>Quick Links</h6>
-            <ul className=" space-y-1">
+            <h6 className='text-xl font-semibold mb-3 '>Quick Links</h6>
+            <ul className=" space-y-1 text-gray-500 dark:text-gray-400/90">
               <li><Link to="/Home" className='hover:text-[#1282a2]'>Home</Link></li>
               <li><Link to="/Project" className='hover:text-[#1282a2]'>Project</Link></li>
               <li><Link to="/About" className='hover:text-[#1282a2]'>About</Link></li>
@@ -29,8 +29,8 @@ export default function Footer() {
 
 
           <div className=''>
-            <h6 className='text-xl font-semibold mb-3 text-stone-900'>Site Title</h6>
-            <ul className="space-y-1">
+            <h6 className='text-xl font-semibold mb-3 '>Site Title</h6>
+            <ul className="space-y-1  text-gray-500 dark:text-gray-400/90">
               <li>14 El Mokhtar Street from Nasr Street</li>
               <li>New Maadi , Cairo</li>
               <li><a href="mailto:elsarhegypt@gmail.com" className='hover:text-[#1282a2]'>elsarhegypt@gmail.com</a></li>
@@ -39,12 +39,12 @@ export default function Footer() {
           </div>
 
 
-          <div className='border-t  md:col-span-3  flex justify-between items-center py-2' >
+          <div className='border-t dark:border-gray-600  md:col-span-3  flex justify-between items-center py-2 text-gray-500 dark:text-gray-400/90' >
             <p>
               © 2021 <a className="hover:underline" href="">Elsarh Real Estate.</a> All Rights Reserved.
             </p>
            <div className="  ">
-              <ul className='flex text-[#001f54] text-lg space-x-2'>
+              <ul className='flex text-gray-500 dark:text-gray-400/90 text-lg space-x-2'>
               <li><a href="http://" target="_blank" rel="noopener noreferrer" className='hover:text-[#1282a2] underline '><FaFacebook/></a></li>
               <li><a href="http://" target="_blank" rel="noopener noreferrer" className='hover:text-[#1282a2] underline '><FaInstagram/></a></li>
               <li><a href="http://" target="_blank" rel="noopener noreferrer" className='hover:text-[#1282a2] underline '><FaLinkedinIn/></a></li>

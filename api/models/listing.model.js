@@ -2,20 +2,25 @@
 import mongoose from 'mongoose';
 
 const listingSchema = new mongoose.Schema({
+    userId:{
+        type: String,
+        required: true
+    },
     name: {
         type: String,
         required: true
     },
     description: {
-        type: String,
-        required: true
+        type: Array,
+        required: true,
+        
     },
     address: {
         type: String,
         required: true
     },
-    availableOrNot: {
-        type: Boolean,
+    available: {
+        type: String,
         required: true
     },
     numberFloors: {
@@ -31,7 +36,7 @@ const listingSchema = new mongoose.Schema({
         required: true
     },
     imagePlans: {
-        type: String,
+        type: Array,
         required: true
     },
     imageApartments: {
@@ -39,10 +44,16 @@ const listingSchema = new mongoose.Schema({
         required: true
     },
     titleApartments: {
-        type: String,
+        type: Object,
         required: true
     },
-    useRef: {
+    slug:{
+        type: String,
+        required: true,
+        unique: true,
+    },
+    
+    userRef: {
         type: String,
         required: true
     }

@@ -89,7 +89,7 @@ function Signin() {
         <OAuth />
       </form>
       <div className="flex p-1 w-full sm:w-2/3 md:w-1/2 lg:w-[30%] text-sm">
-        <p className="text-black/80">Dont have an account?</p>
+        <p className="">Dont have an account?</p>
         <Link to="/signup">
           <span className="text-blue-700 hover:underline ms-1">Sign Up</span>
         </Link>

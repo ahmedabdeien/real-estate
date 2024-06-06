@@ -2,7 +2,6 @@ import { BrowserRouter,Routes,Route } from "react-router-dom";
 import Home from "./Components/Home/Home";
 import SingIn from "./Components/Registry/SingIn/Signin";
 import SignUp from './Components/Registry/SingUp/Signup';
-import Profile from "./Components/Profile/Profile";
 import About from './Components/About/About';
 import Project from './Components/Project/Project';
 import Header from "./Components/Header/Header";
@@ -31,12 +30,11 @@ function App() {
          <Route path="/About" element={<About/>}/>
          <Route path="/Project" element={<Project/>}/>
          <Route element={<PrivateRoute/>}>
-           <Route path="/Profile" element={<Profile/>}/>
            <Route path="/Dashboard" element={<Dashboard/>}/>
            <Route path="*" element={<NotFound/>}/>
          </Route>
          <Route element={<OnlyAdminPrivateRoute/>}>
-           <Route  path="/Dashboard?tab=CreatePage" element={<CreatePage/>}/>
+           <Route  path="/CreatePage" element={<CreatePage/>}/>
          </Route>
          <Route element={<BrokerPrivateRoute/>}>
            <Route  path="/PageBroker" element={<PageBroker/>}/>

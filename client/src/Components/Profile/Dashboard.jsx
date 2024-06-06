@@ -5,6 +5,7 @@ import DashProfile from "./DashProfile"
 import CreatePage from './../CreatePage/CreatePage';
 import { useSelector } from "react-redux";
 import NotFound from "../NotFound/NotFound";
+import DashPagesFinished from './DashPagesFinished';
 
 
 
@@ -19,15 +20,15 @@ function Dashboard() {
             setTab(tabFromUrl)}
     },[location.search])
   return <>
-    <div className="min-h-screen flex flex-col md:flex-row">
-        <div className="border-e md:w-56">
+    <div className="min-h-screen  flex flex-col md:flex-row">
+        <div className=" md:w-56">
             {/* sidebar */}
             <DashSideBar />
         </div>
-        <div className="w-full">
+        <div className="w-full overflow-hidden">
             {/* content */}
             {tab === 'Profile' && <DashProfile/>}
-            {currentUser.isAdmin && tab ===  'CreatePage' && <CreatePage/>}
+            {currentUser.isAdmin && tab ===  'pagesFinished' && <DashPagesFinished/>}
             { tab === '*' && <NotFound/>}
         </div>
     </div>

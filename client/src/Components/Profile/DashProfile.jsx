@@ -116,7 +116,7 @@ function DashProfile() {
 
   return (
     <div className="max-w-xl mx-auto p-3 w-full ">
-      <h1 className="my-5 text-center text-[#034078] font-semibold text-3xl">
+      <h1 className="my-5 text-center text-[#034078] dark:text-blue-500 font-semibold text-3xl">
         Profile
       </h1>
       <form onSubmit={handleSubmit} className="flex flex-col">
@@ -157,7 +157,7 @@ function DashProfile() {
           <img
             src={imageFileUrl || currentUser.avatar}
             alt="user"
-            className={`${imageFileUploadProgress && imageFileUploadProgress < 100 && "opacity-60"} rounded-full w-full h-full object-cover border-8 border-gray-100`}
+            className={`${imageFileUploadProgress && imageFileUploadProgress < 100 && "opacity-60"} rounded-full w-full h-full object-cover border-8 dark:border-gray-500 `}
           />
         </div>
         {imageFileUploadError && (
