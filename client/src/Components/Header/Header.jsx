@@ -56,13 +56,13 @@ export default function Header() {
       }
    }
   return (
-    <header  className='bg-[#001f54] dark:bg-gray-900/80 dark:backdrop-blur-md dark:border-gray-500 dark:border-b  sticky z-50 top-0  flex justify-between items-center px-5 p-1  '>
+    <header  className='bg-[#001f54] dark:bg-gray-900/80 backdrop-blur-md dark:border-gray-500 dark:border-b  sticky z-50 top-0  flex justify-between items-center px-5 p-1  '>
         <h2 className='font-bold'>
         <Link to="/" className='text-stone-700'>
          <img src={Logoelsarh} alt="Logoelsarh" className='w-24 sm:w-24 p-1 ' title='Elsarh Real Estate' />
         </Link>
         </h2>
-        <form className='w-1/2 md:w-1/3 border rounded-full bg-white  flex justify-start items-center '>
+        <form className='w-1/2 md:w-1/3 border rounded-lg bg-white  flex justify-start items-center '>
             <FaSearch    className='ms-3 text-lg text-blue-800'/>
             <input type="text" placeholder='Search...' className='p-2 w-full dark:valid:text-blue-800 bg-transparent focus:outline-none border-none focus:ring-0'/>
         </form>

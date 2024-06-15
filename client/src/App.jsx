@@ -8,10 +8,10 @@ import Header from "./Components/Header/Header";
 import PrivateRoute from "./Components/PrivateRoute/PrivateRoute";
 import NotFound from"./Components/NotFound/NotFound.jsx"
 import CreatePage from "./Components/CreatePage/CreatePage.jsx";
+import UpdatePage from "./Components/CreatePage/UpdatePage.jsx";
 import Footer from "./Components/Footer/Footer.jsx";
 import OnlyAdminPrivateRoute from "./Components/PrivateRoute/OnlyAdminPrivateRoute.jsx";
 import Dashboard from "./Components/Profile/Dashboard.jsx";
-
 import PageBroker from "./Components/Profile/PageBroker.jsx";
 import BrokerPrivateRoute from "./Components/PrivateRoute/BrokerPrivateRoute";
 
@@ -35,6 +35,7 @@ function App() {
          </Route>
          <Route element={<OnlyAdminPrivateRoute/>}>
            <Route  path="/CreatePage" element={<CreatePage/>}/>
+           <Route  path="/Update-Page/:pageId" element={<UpdatePage/>}/>
          </Route>
          <Route element={<BrokerPrivateRoute/>}>
            <Route  path="/PageBroker" element={<PageBroker/>}/>

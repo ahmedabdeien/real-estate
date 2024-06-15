@@ -44,7 +44,7 @@ const listingSchema = new mongoose.Schema({
         required: true
     },
     titleApartments: {
-        type: Object,
+        type: Array,
         required: true
     },
     slug:{

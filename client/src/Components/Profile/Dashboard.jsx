@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
 import DashSideBar from "./DashSideBar"
 import DashProfile from "./DashProfile"
-import CreatePage from './../CreatePage/CreatePage';
 import { useSelector } from "react-redux";
 import NotFound from "../NotFound/NotFound";
 import DashPagesFinished from './DashPagesFinished';

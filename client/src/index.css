@@ -42,8 +42,41 @@ input[number="number"]::-webkit-inner-spin-button{
     visibility: hidden;
     
   }
-  .ql-editor{
-    min-height: 200px;
-    font-size: 1.04rem;
-  }
+  .custom-quill-editor {
+    /* Add custom styles here */
+    border-radius: 10px;
+    padding: 10px;
+    min-height: 300px;
+    font-size: 16px;
+}
+
+/* Toolbar customization */
+.ql-toolbar {
+    border-radius: 8px 8px 0 0;
+    border: #e5e7eb 2px solid !important;
+    border-bottom: none !important;
+    background-color: #f9f9f9;
+}
+
+
+
+/* Editor area customization */
+.ql-container {
+    border-radius: 0 0 8px 8px;
+    border: #e5e7eb 2px solid !important;
+    font-weight: 400;
+    font-size: 16px;
+}
+
+.bg-img-createPage{
+    background-image: url("../src/assets/images/pattern.svg");
+    background-size: auto;
+    background-position: center top;
+    height: 100%;
+    width: 100%;
     
+}
+.ql-editor::before{
+    font-style: normal !important;
+    color:var(dark);
+}

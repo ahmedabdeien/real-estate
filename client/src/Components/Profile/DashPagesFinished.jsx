@@ -74,10 +74,10 @@ export default function DashPagesFinished() {
     <div className=" ">
         {currentUser.isAdmin && userPages.length > 0 ? (
             <>
-            <div className="overflow-x-auto shadow-md table-auto scrollbar scrollbar-track-gray-100 
+            <div className="overflow-x-auto shadow-md table-auto rounded-none scrollbar scrollbar-track-gray-100 
              dark:scrollbar-track-gray-900 scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
-                <Table className="divide-y dark:divide-gray-600 rounded-none  drop-shadow-none">
-                <Table.Head className=" rounded-none">
+                <Table className="divide-y dark:divide-gray-600 drop-shadow-none">
+                <Table.Head>
                     <Table.HeadCell>Date updated</Table.HeadCell>
                     <Table.HeadCell>Title</Table.HeadCell>
                     <Table.HeadCell>Location</Table.HeadCell>
@@ -95,7 +95,6 @@ export default function DashPagesFinished() {
                 {userPages.map((page,index) => (
                     <Table.Body key={index} className="divide-x dark:divide-gray-600 font-normal hover:bg-gray-100 dark:hover:bg-gray-700/70">
                         <Table.Cell className="p-2">{new Date(page.updatedAt).toLocaleDateString()}
-                        {new Date(page.updatedAt).getHours()}
                         </Table.Cell>
                         <Table.Cell className="p-2 font-medium text-[#034078] dark:text-blue-500">{page.name}</Table.Cell>
                         <Table.Cell className="p-2 bg-gray-50/70 dark:bg-gray-900/50">{page.address}</Table.Cell>
@@ -123,7 +122,7 @@ export default function DashPagesFinished() {
                         </Table.Cell>
                         <Table.Cell className="p-2">{page.titleApartments}</Table.Cell>
                         <Table.Cell className="p-2 relative overflow-hidden">
-                            <Link to={`/update-listing/${page._id}`} className="absolute top-0 left-0 w-full h-full font-medium text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-600 dark:hover:text-blue-100 flex justify-center items-center">Edit</Link>
+                            <Link to={`/Update-Page/${page._id}`} className="absolute top-0 left-0 w-full h-full font-medium text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-600 dark:hover:text-blue-100 flex justify-center items-center">Edit</Link>
                         </Table.Cell>
                         <Table.Cell className="p-2 relative">
                             <div onClick={()=>{setShowModal(true);setPageIdToDelete(page._id) }} className="absolute top-0 left-0 w-full h-full cursor-pointer font-medium text-red-500 hover:bg-red-100 dark:hover:bg-red-600 dark:hover:text-red-100 flex justify-center items-center">Delete</div></Table.Cell>

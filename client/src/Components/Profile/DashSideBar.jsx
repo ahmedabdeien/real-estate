@@ -1,6 +1,6 @@
 import {Button, Modal, Sidebar} from 'flowbite-react'
 import { useEffect, useState } from 'react'
-import {HiArrowSmRight, HiChartPie, HiDocumentAdd, HiDocumentText, HiOutlineExclamationCircle, HiOutlineTrash, HiUser} from 'react-icons/hi'
+import {HiArrowSmRight, HiChartPie, HiDocumentText, HiOutlineExclamationCircle, HiOutlineTrash, HiUser} from 'react-icons/hi'
 import { Link, useLocation } from 'react-router-dom'
 import { deleteUserFailure, deleteUserStart, deleteUserSuccess, logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice'
 import { useDispatch, useSelector } from 'react-redux'

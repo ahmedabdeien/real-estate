@@ -8,9 +8,6 @@ export const createListing = async (req, res ,next) => {
         if(!req.user.isAdmin){
             return next(errorHandler(403,"you are not allowed to create a page"));
         }
-        if(req.body.name.length < 3 || req.body.name.length > 100){
-            return next(errorHandler(400,"name must be between 3 and 100 characters!"));
-        }
         const slug = req.body.name.split(' ').join('-').toLowerCase().replace(/[^a-zA-z0-9-]/g,'-');
         const newListing = new Listing({
             ...req.body,slug ,userId: req.user.id
@@ -62,8 +59,6 @@ export const getListing = async (req,res,next) =>{
             now.getFullYear(),
             now.getMonth() - 1,
             now.getDate(),
-            now.getTime(),
-            now.getHours()
             
         );
         const lastMonthPages = await Listing.countDocuments({
@@ -84,6 +79,34 @@ export const deletePage = async (req,res,next) =>{
     try{
         await Listing.findByIdAndDelete(req.params.pageId);
         res.status(200).json('the page has been deleted successfully!');
+    }catch(error){
+        next(error);
+    }
+}
+
+export const updatePage = async (req,res,next) =>{
+    const updatePage = await Listing.findById(req.params.id);
+    if(!updatePage){
+        return next(errorHandler(404,"page not found"));
+    }
+    if(!req.user.isAdmin || req.user.id !== updatePage.userId){
+        return next(errorHandler(403,"you are not allowed to update a page"));
+    }
+    try{
+        const updatedPage = await Listing.findByIdAndUpdate(req.params.id,{$set: req.body},{new:true});
+        res.status(200).json(updatedPage);
+    }catch(error){
+        next(error);
+    }
+}
+
+export const getPage = async (req,res,next) =>{
+    try{
+        const page = await Listing.findById(req.params.id);
+        if(!page){
+            return next(errorHandler(404,"page not found"));
+        }
+        res.status(200).json(page);
     }catch(error){
         next(error);
     }

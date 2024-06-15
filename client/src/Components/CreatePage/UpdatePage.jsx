@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getStorage,
   getDownloadURL,
@@ -12,12 +12,12 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Alert } from "flowbite-react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useParams } from "react-router-dom";
 import { HiArchive } from "react-icons/hi";
 
-function CreatePage() {
+function UpdatePage() {
   const navigate = useNavigate();
-    const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.user);
   const fileRef = useRef(null);
   const fileRefPlan = useRef(null);
   const fileRefApartment = useRef(null);
@@ -33,7 +33,9 @@ function CreatePage() {
     useState(false);
   const [error , setError] = useState(false);
   const [loading, setLoading] = useState(false)
+  const params = useParams();
 
+ 
   const [formData, setFormData] = useState({
     name: "",
     description: '',
@@ -46,6 +48,21 @@ function CreatePage() {
     imagePlans: [],
     imageApartments: [],
   });
+
+
+ useEffect(() => {
+     const fetchPage = async () => {
+      const pageId = params.pageId;
+       const res = await fetch(`/api/listing/get/${pageId}`);
+        const data = await res.json();
+        if(data.success === false){
+          console.log(data.message);
+          return;
+        }
+        setFormData(data);
+     }
+      fetchPage();
+  }, [])
   
 
   const storeImage = async (file) => {
@@ -205,7 +222,7 @@ function CreatePage() {
         }
         setLoading(true);
         setError(false);
-        const res = await fetch('/api/listing/create', {
+        const res = await fetch(`/api/listing/updatePage/${params.pageId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -233,10 +250,10 @@ function CreatePage() {
        <div className="w-full  ">
         <div className="container mb-6">
           <h1 className=" text-3xl font-bold flex items-center text-black dark:text-white ">
-          <HiArchive className="me-2 text-blue-600"/><span>Create New Page</span>
+          <HiArchive className="me-2 text-blue-600"/><span>Update Page</span>
           </h1>
           <p className=" text-gray-500 dark:text-gray-400">
-            Please fill out the form below to create your page
+            Please correct the data below to update your page
           </p>
         </div>
       
@@ -256,6 +273,7 @@ function CreatePage() {
                 required
                 className={styleIuput}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
+                value={formData.name}
               />
             </div>
             <div>
@@ -267,13 +285,13 @@ function CreatePage() {
                 required
                 className={styleIuput}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
+                value={formData.address}
               />
             </div>
             <div>
               <label htmlFor="description">Description</label>
               <ReactQuill 
                 theme="snow"
-
                className="dark:"
                 type="text"
                 placeholder="Description"
@@ -281,6 +299,7 @@ function CreatePage() {
                 name="description"
                 required
                 onChange={(value) => setFormData({...formData, description: value})}
+                value={formData.description}
                 modules={{
                   toolbar: [
                     [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
@@ -325,6 +344,7 @@ function CreatePage() {
                   required
                   className={styleIuput}
                   onChange={(e) => setFormData({...formData, numberFloors: e.target.value})}
+                  value={formData.numberFloors}
                 />
               </div>
               <div>
@@ -337,6 +357,7 @@ function CreatePage() {
                   required
                   className={styleIuput}
                   onChange={(e) => setFormData({...formData, propertySize: e.target.value})}
+                  value={formData.propertySize}
                 />
               </div>
             </div>
@@ -507,6 +528,7 @@ function CreatePage() {
                 placeholder="Title Apartments"
                className={styleIuput}
                 onChange={(e) => setFormData({...formData, titleApartments: e.target.value})}
+                value={formData.titleApartments}
               />
             </div>
           </div>
@@ -606,7 +628,7 @@ function CreatePage() {
 
           <div className="order-last">
             <button disabled={loading || uploading == uploadingApartment == uploadingPlan} className="bg-green-600 dark:bg-green-600 disabled:bg-green-700/60 disabled:hover:-skew-y-0 uppercase hover:-skew-y-1 transition-all font-bold text-white rounded-lg active:scale-95 active:transition-all p-4 w-full hover:shadow-lg my-3">
-               {loading ? <FaCircleNotch className="animate-spin" /> : "Publish New Page"}
+               {loading ? <FaCircleNotch className="animate-spin" /> : "Publish Update Page"}
             </button>
             
             {error && <Alert color="failure" icon={HiInformationCircle}>{error}</Alert> }
@@ -621,4 +643,4 @@ function CreatePage() {
   );
 }
 
-export default CreatePage;
+export default UpdatePage;
