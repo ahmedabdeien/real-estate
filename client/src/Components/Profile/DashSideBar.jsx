@@ -1,6 +1,6 @@
 import {Button, Modal, Sidebar} from 'flowbite-react'
 import { useEffect, useState } from 'react'
-import {HiArrowSmRight, HiChartPie, HiDocumentText, HiOutlineExclamationCircle, HiOutlineTrash, HiUser} from 'react-icons/hi'
+import {HiArrowSmRight, HiChartPie, HiDocumentText, HiOutlineExclamationCircle, HiOutlineTrash, HiUser, HiUserGroup} from 'react-icons/hi'
 import { Link, useLocation } from 'react-router-dom'
 import { deleteUserFailure, deleteUserStart, deleteUserSuccess, logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice'
 import { useDispatch, useSelector } from 'react-redux'
@@ -68,6 +68,11 @@ function DashSideBar() {
                  <Link to="/Dashboard?tab=pagesFinished">                 
                  <Sidebar.Item active={tab === "pagesFinished"} icon={HiDocumentText } className="cursor-pointer" as="dev">
                   Pages finished
+                 </Sidebar.Item>
+                 </Link>
+                 <Link to="/Dashboard?tab=users">                 
+                 <Sidebar.Item active={tab === "users"} icon={HiUserGroup } className="cursor-pointer" as="dev">
+                 Users
                  </Sidebar.Item>
                  </Link>
                  <Link to="/Dashboard?tab=Dashboard">

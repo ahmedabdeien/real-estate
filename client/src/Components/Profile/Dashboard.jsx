@@ -5,6 +5,7 @@ import DashProfile from "./DashProfile"
 import { useSelector } from "react-redux";
 import NotFound from "../NotFound/NotFound";
 import DashPagesFinished from './DashPagesFinished';
+import DashUsers from './DashUsers';
 
 
 
@@ -28,6 +29,7 @@ function Dashboard() {
             {/* content */}
             {tab === 'Profile' && <DashProfile/>}
             {currentUser.isAdmin && tab ===  'pagesFinished' && <DashPagesFinished/>}
+            {currentUser.isAdmin && tab ===  'users' && <DashUsers/>}
             { tab === '*' && <NotFound/>}
         </div>
     </div>

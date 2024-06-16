@@ -15,7 +15,6 @@ import { HiInformationCircle } from "react-icons/hi";
 
 function Signin() {
   const [visible, setVisible] = useState();
-  const StyleInput = "border p-2 rounded bg-gray-50 focus:outline-blue-600";
   const [formData, SetFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
