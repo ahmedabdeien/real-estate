@@ -102,19 +102,19 @@ export default function DashPagesFinished() {
                         <Table.Cell className='p-2'>{page.numberFloors}</Table.Cell>
                         <Table.Cell className="p-2 bg-indigo-50/20 dark:bg-indigo-50/5 ">{page.propertySize} m</Table.Cell>
                         <Table.Cell className="p-2 group/itemss">
-                            <Link to={`/listing/${page.slug}`} className="flex -space-x-6">
+                            <Link to={`/Projects/${page.slug}`} className="flex -space-x-6">
                              {page.imageUrls.map((image,index) => (
                                 <img className="w-10 h-10 rounded-full border-2 dark:border-gray-800 border-white object-cover" src={image} alt={image} key={index} />
                              ))}
                             </Link>
                         </Table.Cell>
                         <Table.Cell className="p-2">
-                            <Link to={`/listing/${page.slug}`} className="flex justify-center">
+                            <Link to={`/Projects/${page.slug}`} className="flex justify-center">
                                 <img className="w-10 h-10 rounded-full border-2 dark:border-gray-800 border-white object-cover" src={page.imagePlans} alt={page.imagePlans} key={index} />
                             </Link>
                         </Table.Cell>
                         <Table.Cell className="p-2">
-                            <Link to={`/listing/${page.slug}`} className="flex -space-x-6">
+                            <Link to={`/Projects/${page.slug}`} className="flex -space-x-6">
                              {page.imageApartments.map((image,index) => (
                                 <img className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 object-cover" src={image} alt={image} key={index} />
                              ))}
@@ -126,7 +126,7 @@ export default function DashPagesFinished() {
                         </Table.Cell>
                         <Table.Cell className="p-2 relative">
                             <div onClick={()=>{setShowModal(true);setPageIdToDelete(page._id) }} className="absolute top-0 left-0 w-full h-full cursor-pointer font-medium text-red-500 hover:bg-red-100 dark:hover:bg-red-600 dark:hover:text-red-100 flex justify-center items-center">Delete</div></Table.Cell>
-                        <Table.Cell className="p-2 relative"><Link to={`/listing/${page.slug}`} className="absolute top-0 left-0 w-full h-full  font-medium text-green-500 hover:bg-green-100 dark:hover:bg-green-600 dark:hover:text-green-100 flex justify-center items-center">View</Link></Table.Cell>
+                        <Table.Cell className="p-2 relative"><Link to={`/Projects/${page.slug}`} className="absolute top-0 left-0 w-full h-full  font-medium text-green-500 hover:bg-green-100 dark:hover:bg-green-600 dark:hover:text-green-100 flex justify-center items-center">View</Link></Table.Cell>
                     </Table.Body>
                 ))}
             </Table> 
