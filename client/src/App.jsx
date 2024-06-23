@@ -14,7 +14,8 @@ import OnlyAdminPrivateRoute from "./Components/PrivateRoute/OnlyAdminPrivateRou
 import Dashboard from "./Components/Profile/Dashboard.jsx";
 import PageBroker from "./Components/Profile/PageBroker.jsx";
 import BrokerPrivateRoute from "./Components/PrivateRoute/BrokerPrivateRoute";
-
+import ShowPage from "./Components/CreatePage/ShowPage.jsx";
+ 
 function App() {
  
   return (
@@ -29,6 +30,7 @@ function App() {
          <Route path="/Signup" element={<SignUp/>}/>
          <Route path="/About" element={<About/>}/>
          <Route path="/Project" element={<Project/>}/>
+         <Route path="/Projects/:pageSlug" element={<ShowPage/>}/>
          <Route element={<PrivateRoute/>}>
            <Route path="/Dashboard" element={<Dashboard/>}/>
            <Route path="*" element={<NotFound/>}/>

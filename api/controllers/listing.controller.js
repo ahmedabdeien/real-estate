@@ -28,8 +28,12 @@ export const getListing = async (req,res,next) =>{
             ...(req.query.userId && {userId: req.query.userId}),
             ...(req.query.name && {name: req.query.name}),
             ...(req.query.address && {address: req.query.address}),
+            ...(req.query.description && {description: req.query.description}),
+            ...(req.query.numberFloors && {numberFloors: req.query.numberFloors}),
+            ...(req.query.propertySize && {propertySize: req.query.propertySize}),
+            ...(req.query.titleApartments && {titleApartments: req.query.titleApartments}),
             ...(req.query.available && {available: req.query.available}),
-            ...(req.query.slug && {available: req.query.slug}),
+            ...(req.query.slug && {slug: req.query.slug}),
             ...(req.query.listingId && {_id: req.query.listingId}),
             ...(req.query.searchTerm &&{
                 $or:[

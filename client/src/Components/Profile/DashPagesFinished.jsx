@@ -2,7 +2,8 @@
 import { Badge, Button, Modal, Table } from "flowbite-react";
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
-import { FaCircleNotch } from "react-icons/fa";
+import { TbLoaderQuarter } from "react-icons/tb";
+
 import { Link } from "react-router-dom";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
 
@@ -138,8 +139,11 @@ export default function DashPagesFinished() {
            </div>
             </>
         ) : (
-            <div className="w-full h-screen flex justify-center items-center">
-                <FaCircleNotch className="text-4xl animate-spin text-[#034078] dark:text-blue-400"></FaCircleNotch>
+            <div className="w-full h-screen flex justify-center items-center flex-col">
+                <div className="">
+                <TbLoaderQuarter  className="text-4xl animate-spin text-gray-500 "></TbLoaderQuarter>
+                </div>
+                <p className="text-gray-500">loading...</p>
             </div>
         )}
     </div>

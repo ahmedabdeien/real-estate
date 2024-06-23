@@ -206,7 +206,7 @@ function UpdatePage() {
            
         })
     }
-    if(e.target.name === 'description'){
+    if(e.target.id === 'description'){
       setFormData({
         ...formData,
         description: e.target.value,
@@ -237,7 +237,7 @@ function UpdatePage() {
         if(data.success === false){
             setError(data.message)
         }
-        navigate(`/pagesFinished/${data.slug}`)
+        navigate(`/Projects/${data.slug}`)
     } catch (error) {
         setError(error.message);
         setLoading(false);
@@ -298,7 +298,7 @@ function UpdatePage() {
                 id="description"
                 name="description"
                 required
-                onChange={(value) => setFormData({...formData, description: value})}
+                onChange={(e) => setFormData({...formData, description: e})}
                 value={formData.description}
                 modules={{
                   toolbar: [

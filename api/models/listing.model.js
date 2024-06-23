@@ -11,7 +11,7 @@ const listingSchema = new mongoose.Schema({
         required: true
     },
     description: {
-        type: Array,
+        type: String,
         required: true,
         
     },
@@ -53,10 +53,7 @@ const listingSchema = new mongoose.Schema({
         unique: true,
     },
     
-    userRef: {
-        type: String,
-        required: true
-    }
+
 }, { timestamps: true });
 
 const Listing = mongoose.model('Listing', listingSchema);

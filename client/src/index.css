@@ -42,24 +42,41 @@ input[number="number"]::-webkit-inner-spin-button{
     visibility: hidden;
     
   }
-  .custom-quill-editor {
+
+.custom-quill-editor {
     /* Add custom styles here */
     border-radius: 10px;
     padding: 10px;
     min-height: 300px;
     font-size: 16px;
-}
+    
 
+}
 /* Toolbar customization */
 .ql-toolbar {
     border-radius: 8px 8px 0 0;
     border: #e5e7eb 2px solid !important;
     border-bottom: none !important;
-    background-color: #f9f9f9;
 }
 
+.dark .ql-toolbar{
+    border-color: #6b7280 !important;
+}
 
+.dark .ql-toolbar .ql-picker-label{
+    color: #d1d5db ;
+}
+.dark .ql-toolbar .ql-picker-options{
+    background-color: #1f2937 ;
+    color: #d1d5db ;
+}
 
+.dark .ql-snow .ql-fill, .ql-snow .ql-stroke.ql-fill{
+    fill: #d1d5db;
+}
+.dark .ql-snow .ql-stroke{
+    stroke: #d1d5db;
+}
 /* Editor area customization */
 .ql-container {
     border-radius: 0 0 8px 8px;
@@ -67,6 +84,21 @@ input[number="number"]::-webkit-inner-spin-button{
     font-weight: 400;
     font-size: 16px;
 }
+.dark .ql-container{
+    border-color: #6b7280 !important;
+}
+.dark .ql-editor.ql-blank::before{
+   color: #ffffff ;
+}
+.dark .ql-container{
+    background-color:#1e293b73;
+}
+.dark .ql-editor p span{
+    color: #d1d5db !important;
+
+}
+/* 
+ */
 
 .bg-img-createPage{
     background-image: url("../src/assets/images/pattern.svg");
@@ -78,5 +110,39 @@ input[number="number"]::-webkit-inner-spin-button{
 }
 .ql-editor::before{
     font-style: normal !important;
-    color:var(dark);
+}
+.description-pages p{
+    margin-bottom: 1.05rem;
+}
+.description-pages h1{
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 1rem 0;
+}
+.description-pages h2{
+    font-size: 1,2rem;
+    font-weight: 700;
+    margin: 6px 0;
+}
+.dark .description-pages ul, 
+.dark .description-pages ol,
+.dark .description-pages li,
+.dark .description-pages p , 
+.dark .description-pages h1, 
+.dark .description-pages h2,
+.dark .description-pages span,
+.dark .description-pages u
+{
+    color: #ffffff !important;
+}
+
+.description-pages a{
+    color: blue;
+    text-decoration: underline;
+}
+.description-pages a:hover{
+    color: #3b82f6;
+}
+[data-testid="carousel"] div{
+     border-radius: 0% ;
 }

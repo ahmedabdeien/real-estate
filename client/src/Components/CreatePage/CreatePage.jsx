@@ -220,7 +220,7 @@ function CreatePage() {
         if(data.success === false){
             setError(data.message)
         }
-        navigate(`/pagesFinished/${data.slug}`)
+        navigate(`/Projects/${data.slug}`)
     } catch (error) {
         setError(error.message);
         setLoading(false);
