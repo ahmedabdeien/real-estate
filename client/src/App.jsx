@@ -15,6 +15,9 @@ import Dashboard from "./Components/Profile/Dashboard.jsx";
 import PageBroker from "./Components/Profile/PageBroker.jsx";
 import BrokerPrivateRoute from "./Components/PrivateRoute/BrokerPrivateRoute";
 import ShowPage from "./Components/CreatePage/ShowPage.jsx";
+import Contact from "./Components/Contact/Contact.jsx";
+import Settings from "./Components/Settings/Settings.jsx";
+import ButtonTop from "./Components/ButtonTop/ButtonTop.jsx";
  
 function App() {
  
@@ -24,18 +27,24 @@ function App() {
     {/* component the header */}
     <Header/>
     {/* component the OutLet change pages  */}
+     <div className="relative">
+      <ButtonTop/>
+     </div>
       <Routes>
          <Route path="/" element={<Home/>}/>
          <Route path="/Signin" element={<SingIn/>}/>
          <Route path="/Signup" element={<SignUp/>}/>
          <Route path="/About" element={<About/>}/>
          <Route path="/Project" element={<Project/>}/>
+         <Route path="/Contact" element={<Contact/>}/>
          <Route path="/Projects/:pageSlug" element={<ShowPage/>}/>
          <Route element={<PrivateRoute/>}>
-           <Route path="/Dashboard" element={<Dashboard/>}/>
+         <Route path="/Dashboard" element={<Dashboard/>}/>
+         <Route path="/Settings" element={<Settings/>}/>
            <Route path="*" element={<NotFound/>}/>
          </Route>
          <Route element={<OnlyAdminPrivateRoute/>}>
+          
            <Route  path="/CreatePage" element={<CreatePage/>}/>
            <Route  path="/Update-Page/:pageId" element={<UpdatePage/>}/>
          </Route>

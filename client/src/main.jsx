@@ -6,14 +6,16 @@ import { persistor, store } from './Components/redux/store.js'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 import ThemeProvider from './Components/PrivateRoute/ThemeProvider.jsx'
-
+import {QueryClient, QueryClientProvider} from 'react-query'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
+  <QueryClientProvider client={new QueryClient()}>
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistor}>
       <ThemeProvider>
-        <App  className="overflow-hidden"/>
+        <App />
     </ThemeProvider>
     </PersistGate>
   </Provider>
+  </QueryClientProvider>
 )

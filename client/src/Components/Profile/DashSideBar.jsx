@@ -57,7 +57,7 @@ function DashSideBar() {
   return <>
  
     <Sidebar className='w-full md:w-56 border-b-2 md:border-e-2 dark: dark:border-gray-700'>
-        <Sidebar.Items className=' sticky top-0 '>
+        <Sidebar.Items className='  '>
             <Sidebar.ItemGroup className='flex-col flex  w-full'>
                  <Link to="/Dashboard?tab=Profile" className=''>
                    <Sidebar.Item active={tab === "Profile"} icon={HiUser} label={currentUser.isAdmin?"Admin": currentUser.isBroker ?"Broker":"User"} labelColor="dark" as="div">

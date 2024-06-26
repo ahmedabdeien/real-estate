@@ -115,118 +115,121 @@ function DashProfile() {
 
 
   return (
-    <div className="max-w-xl mx-auto p-3 w-full ">
-      <h1 className="my-5 text-center text-[#034078] dark:text-blue-500 font-semibold text-3xl">
+    <div className="max-w-2xl mx-auto p-6 w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <h1 className="text-center text-[#034078] dark:text-blue-500 font-semibold text-4xl mb-6">
         Profile
-      </h1>
-      <form onSubmit={handleSubmit} className="flex flex-col">
+    </h1>
+    <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
         <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          ref={filePickerRef}
-          hidden
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            ref={filePickerRef}
+            hidden
         />
         <div
-          className="relative w-32 h-32 self-center cursor-pointer shadow rounded-full overflow-hidden mb-4"
-          onClick={() => filePickerRef.current.click()}
+            className="relative w-32 h-32 self-center cursor-pointer shadow-md rounded-full overflow-hidden mb-4"
+            onClick={() => filePickerRef.current.click()}
         >
-          {imageFileUploadProgress && (
-            <CircularProgressbar
-              value={imageFileUploadProgress || 0}
-              text={`${imageFileUploadProgress}%`}
-              strokeWidth={5}
-              styles={{
-                root: {
-                  width: "100%",
-                  height: "100%",
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-
-                  textColor: "#034078",
-                  trailColor: "#034078",
-                },
-                path: {
-                  stroke: `rgb(3, 64, 120,${imageFileUploadProgress / 100}) `,
-                },
-                text: { fill: "#034078", fontSize: "16px" },
-              }}
+            {imageFileUploadProgress && (
+                <CircularProgressbar
+                    value={imageFileUploadProgress || 0}
+                    text={`${imageFileUploadProgress}%`}
+                    strokeWidth={5}
+                    styles={{
+                        root: {
+                            width: "100%",
+                            height: "100%",
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            textColor: "#034078",
+                            trailColor: "#034078",
+                        },
+                        path: {
+                            stroke: `rgba(3, 64, 120, ${imageFileUploadProgress / 100})`,
+                        },
+                        text: { fill: "#034078", fontSize: "16px" },
+                    }}
+                />
+            )}
+            <img
+                src={imageFileUrl || currentUser.avatar}
+                alt="user"
+                className={`${imageFileUploadProgress && imageFileUploadProgress < 100 && "opacity-60"} rounded-full w-full h-full object-cover border-4 dark:border-gray-600 border-white`}
             />
-          )}
-          <img
-            src={imageFileUrl || currentUser.avatar}
-            alt="user"
-            className={`${imageFileUploadProgress && imageFileUploadProgress < 100 && "opacity-60"} rounded-full w-full h-full object-cover border-8 dark:border-gray-500 `}
-          />
         </div>
         {imageFileUploadError && (
-          <Alert color="failure">{imageFileUploadError}</Alert>
+            <Alert color="failure" className="text-center">{imageFileUploadError}</Alert>
         )}
 
-        <div className="space-y-0 mt-4">
-          <FloatingLabel
-            type="text"
-            id="name"
-            variant="filled"
-            label="Name"
-            defaultValue={currentUser.name}
-            onChange={handleChange}
-          />
-          <FloatingLabel
-            type="text"
-            id="username"
-            variant="filled"
-            label="Username"
-            defaultValue={currentUser.username}
-            onChange={handleChange}
-          />
-          <FloatingLabel
-            type="email"
-            id="email"
-            variant="filled"
-            label="Email"
-            defaultValue={currentUser.email}
-            onChange={handleChange}
-          />
-          <FloatingLabel
-            type="tel"
-            id="number"
-            number="number"
-            variant="filled"
-            label="Number"
-            defaultValue={currentUser.number}
-            onChange={handleChange}
-          />
-          <FloatingLabel
-            type="password"
-            id="password"
-            variant="filled"
-            label="password"
-            onChange={handleChange}
-          />
-          <Button type="submit" className="w-full" color="blue">
-            Update
-          </Button>
+        <div className="space-y-4">
+            <FloatingLabel
+                type="text"
+                id="name"
+                variant="filled"
+                label="Name"
+                defaultValue={currentUser.name}
+                onChange={handleChange}
+                className="dark:bg-gray-700 dark:text-gray-300"
+            />
+            <FloatingLabel
+                type="text"
+                id="username"
+                variant="filled"
+                label="Username"
+                defaultValue={currentUser.username}
+                onChange={handleChange}
+                className="dark:bg-gray-700 dark:text-gray-300"
+            />
+            <FloatingLabel
+                type="email"
+                id="email"
+                variant="filled"
+                label="Email"
+                defaultValue={currentUser.email}
+                onChange={handleChange}
+                className="dark:bg-gray-700 dark:text-gray-300"
+            />
+            <FloatingLabel
+                type="tel"
+                id="number"
+                variant="filled"
+                label="Number"
+                defaultValue={currentUser.number}
+                onChange={handleChange}
+                className="dark:bg-gray-700 dark:text-gray-300"
+            />
+            <FloatingLabel
+                type="password"
+                id="password"
+                variant="filled"
+                label="Password"
+                onChange={handleChange}
+                className="dark:bg-gray-700 dark:text-gray-300"
+            />
+            <Button type="submit" className="w-full py-3 bg-[#034078] text-white rounded-md shadow-md hover:bg-[#034078]/80 transition duration-200">
+                Update
+            </Button>
         </div>
-      </form>
-  
-      <div>
+    </form>
+
+    <div className="mt-5">
         {updateUserSuccess && (
-          <Alert color="success" className="mt-5">
-            {updateUserSuccess}
-          </Alert>
+            <Alert color="success" className="text-center">
+                {updateUserSuccess}
+            </Alert>
         )}
-      </div>
-      <div>
-        {updateUserError && (
-          <Alert color="failure" className="mt-5">
-            {updateUserError}
-          </Alert>
-        )}
-      </div>
-    
     </div>
+    <div className="mt-5">
+        {updateUserError && (
+            <Alert color="failure" className="text-center">
+                {updateUserError}
+            </Alert>
+        )}
+    </div>
+</div>
+
   );
 }
 

@@ -43,10 +43,35 @@ const listingSchema = new mongoose.Schema({
         type: Array,
         required: true
     },
-    titleApartments: {
-        type: Array,
+    sizeApartmentsOne: {
+        type: Number,
+    },
+    sizeApartmentsTwo: {
+        type: Number,
+    },
+    sizeApartmentsThree: {
+        type: Number,
+    },
+    sizeApartmentsFour: {
+        type: Number,
+    },
+    sizeApartmentsFive: {
+        type: Number,
+    },
+    sizeApartmentsSix: {
+        type: Number,
+    },
+    sizeApartmentsSeven: {
+        type: Number,
+    },
+    sizeApartmentsEight: {
+        type: Number,
+    },
+    userRef: {
+        type: String,
         required: true
     },
+   
     slug:{
         type: String,
         required: true,

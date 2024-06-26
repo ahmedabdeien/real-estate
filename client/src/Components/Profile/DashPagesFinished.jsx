@@ -97,7 +97,7 @@ export default function DashPagesFinished() {
                     <Table.Body key={index} className="divide-x dark:divide-gray-600 font-normal hover:bg-gray-100 dark:hover:bg-gray-700/70">
                         <Table.Cell className="p-2">{new Date(page.updatedAt).toLocaleDateString()}
                         </Table.Cell>
-                        <Table.Cell className="p-2 font-medium text-[#034078] dark:text-blue-500">{page.name}</Table.Cell>
+                        <Table.Cell className="p-2 font-medium text-[#016FB9]">{page.name}</Table.Cell>
                         <Table.Cell className="p-2 bg-gray-50/70 dark:bg-gray-900/50">{page.address}</Table.Cell>
                         <Table.Cell className={`p-2 ${page.available=='available'?"text-green-600":"text-red-600"}`}><Badge color={`${page.available=='available'?"success":"failure"}`} className="rounded-full">{page.available}</Badge></Table.Cell>
                         <Table.Cell className='p-2'>{page.numberFloors}</Table.Cell>
@@ -123,7 +123,7 @@ export default function DashPagesFinished() {
                         </Table.Cell>
                         <Table.Cell className="p-2">{page.titleApartments}</Table.Cell>
                         <Table.Cell className="p-2 relative overflow-hidden">
-                            <Link to={`/Update-Page/${page._id}`} className="absolute top-0 left-0 w-full h-full font-medium text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-600 dark:hover:text-blue-100 flex justify-center items-center">Edit</Link>
+                            <Link to={`/Update-Page/${page._id}`} className="absolute top-0 left-0 w-full h-full font-medium text-[#016FB9] hover:bg-blue-100 dark:hover:bg-[#016FB9] dark:hover:text-blue-100 flex justify-center items-center">Edit</Link>
                         </Table.Cell>
                         <Table.Cell className="p-2 relative">
                             <div onClick={()=>{setShowModal(true);setPageIdToDelete(page._id) }} className="absolute top-0 left-0 w-full h-full cursor-pointer font-medium text-red-500 hover:bg-red-100 dark:hover:bg-red-600 dark:hover:text-red-100 flex justify-center items-center">Delete</div></Table.Cell>
@@ -134,7 +134,7 @@ export default function DashPagesFinished() {
             </div>
            <div className="p-4 flex justify-center">
             {showMore && <button 
-            className=" bg-[#034078] hover:bg-[#034078]/95 dark:bg-blue-700 text-white py-3 w-3/4 rounded-md transition-transform hover:scale-125" 
+            className=" bg-[#016FB9] hover:bg-[#016FB9]/95 dark:bg-[#016FB9] text-white py-3 w-full rounded-md" 
             onClick={handleShowMore}>Show More</button>}
            </div>
             </>
@@ -151,14 +151,16 @@ export default function DashPagesFinished() {
 show={showModal}
 onClose={() => setShowModal(false)}
 popup dark={false}
-size="md">
-   <Modal.Header className='' />
+size="md"
+className="">
+   <Modal.Header className='bg-stone-200 ' />
    <Modal.Body className='' >
-      <div className="flex flex-col items-center space-y-3 text-center">
-        <HiOutlineExclamationCircle className="text-[#034078]/80  text-4xl " />
-        <h1 className="text-[#034078] font-semibold text-xl">
+      <div className="flex flex-col items-center space-y-3 pt-3">
+        <div className="flex ">
+        <HiOutlineExclamationCircle className="text-[#b01c1c] me-2 text-4xl " />
+        <h1 className="text-[#000000] font-semibold text-xl">
           Are you sure you want to delete this page?
-        </h1>
+        </h1></div>
         <div className=" flex gap-2">
         <Button color="failure" onClick={handleDeletePage}>
           Delete page

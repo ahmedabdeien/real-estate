@@ -8,7 +8,6 @@ import {
 import { app } from "../../firebase";
 import { FaCircleNotch } from "react-icons/fa6";
 import { HiCursorClick, HiInformationCircle, HiPhotograph } from "react-icons/hi";
-import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Alert } from "flowbite-react";
 import { useSelector } from "react-redux";
@@ -39,9 +38,16 @@ function CreatePage() {
     description: '',
     address: "",
     available: '',
-    numberFloors: 1,
-    propertySize: 1,
-    titleApartments: [],
+    numberFloors: 0,
+    propertySize: 0,
+    sizeApartmentsOne: 0,
+    sizeApartmentsTwo: 0,
+    sizeApartmentsThree: 0,
+    sizeApartmentsFour: 0,
+    sizeApartmentsFive: 0,
+    sizeApartmentsSix: 0,
+    sizeApartmentsSeven: 0,
+    sizeApartmentsEight: 0,
     imageUrls: [],
     imagePlans: [],
     imageApartments: [],
@@ -182,19 +188,14 @@ function CreatePage() {
         available: e.target.id
       })
     }
-    if(e.target.id === 'number' || e.target.id === 'text'){
+    if(e.target.type === 'number' || e.target.type === 'text'||e.target.type === "textarea"){
         setFormData({
             ...formData,
             [e.target.id]: e.target.value,
            
         })
     }
-    if(e.target.name === 'description'){
-      setFormData({
-        ...formData,
-        description: e.target.value,
-      })
-    }
+    
   }
   const handleSubmit = async (e) =>{
     e.preventDefault();
@@ -255,7 +256,8 @@ function CreatePage() {
                 minLength={3}
                 required
                 className={styleIuput}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={handleChange}
+                value={formData.name}
               />
             </div>
             <div>
@@ -266,38 +268,21 @@ function CreatePage() {
                 id="address"
                 required
                 className={styleIuput}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
+                onChange={handleChange}
+                value={formData.address}
               />
             </div>
             <div>
               <label htmlFor="description">Description</label>
-              <ReactQuill 
-                theme="snow"
-
-               className="dark:"
+              <textarea
                 type="text"
                 placeholder="Description"
                 id="description"
-                name="description"
                 required
-                onChange={(value) => setFormData({...formData, description: value})}
-                modules={{
-                  toolbar: [
-                    [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                    [{ 'align': [] }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['link', 'image'],
-                    ['clean']
-
-                  ],
-                }}
-                formats={[
-                  'header', 'font', 'list', 'bullet', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'align', 'color', 'background', 'link', 'image'
-                ]}
-                
-                />
+                className={`${styleIuput} max-h-48 min-h-14`}
+                onChange={handleChange}
+                value={formData.description}
+              />
             </div>
             <div className="w-full dark:bg-gray-700 dark:placeholder:text-gray-300 rounded-lg">
               <p>There are apartments</p>
@@ -324,7 +309,8 @@ function CreatePage() {
                   max={20}
                   required
                   className={styleIuput}
-                  onChange={(e) => setFormData({...formData, numberFloors: e.target.value})}
+                  onChange={handleChange}
+                  value={formData.numberFloors}
                 />
               </div>
               <div>
@@ -336,7 +322,8 @@ function CreatePage() {
                   min={1}
                   required
                   className={styleIuput}
-                  onChange={(e) => setFormData({...formData, propertySize: e.target.value})}
+                  onChange={handleChange}
+                  value={formData.propertySize}
                 />
               </div>
             </div>
@@ -499,16 +486,101 @@ function CreatePage() {
               </button>
             </div>
 
+
+            <div className="grid grid-cols-4 gap-3">
             <div className="w-full">
-              <label htmlFor="titleApartments">Title Apartments</label>
+              <label htmlFor="titleApartments">Size Apartment (1)</label>
               <input
-                type="text"
-                id="titleApartments"
-                placeholder="Title Apartments"
-               className={styleIuput}
-                onChange={(e) => setFormData({...formData, titleApartments: e.target.value})}
+                type="number"
+                id="sizeApartmentsOne"
+                placeholder="Size Apartment 1"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsOne}
               />
             </div>
+            <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (2)</label>
+              <input
+                type="number"
+                id="sizeApartmentsTwo"
+                placeholder="Size Apartment 2"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsTwo}
+              />
+            </div>
+            <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (3)</label>
+              <input
+                type="number"
+                id="sizeApartmentsThree"
+                placeholder="Size Apartment 3"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsThree}
+              />
+              </div>
+              <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (4)</label>
+              <input
+                type="number"
+                id="sizeApartmentsFour"
+                placeholder="Size Apartment 4"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsFour}
+              />
+              </div>
+              <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (5)</label>
+              <input
+                type="number"
+                id="sizeApartmentsFive"
+                placeholder="Size Apartment 5"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsFive}
+              />
+              </div>
+              <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (6)</label>
+              <input
+                type="number"
+                id="sizeApartmentsSix"
+                placeholder="Size Apartment 6"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsSix}
+              />
+              </div>
+              <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (7)</label>
+              <input
+                type="number"
+                id="sizeApartmentsSeven"
+                placeholder="Size Apartment 7"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsSeven}
+                />
+                </div>
+                <div className="w-full">
+              <label htmlFor="titleApartments">Size Apartment (8)</label>
+              <input
+                type="number"
+                id="sizeApartmentsEight"
+                placeholder="Size Apartment 8"
+                className={styleIuput}
+                onChange={handleChange}
+                value={formData.sizeApartmentsEight}
+              />
+              </div>
+            
+            </div>
+
+
+
           </div>
 
           <div className=" order-first md:order-2">

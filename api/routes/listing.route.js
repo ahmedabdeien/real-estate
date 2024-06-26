@@ -6,9 +6,9 @@ import { verifyToken } from '../Utils/verifyUser.js';
 const router = express.Router();
 
 router.post('/create', verifyToken, createListing);
-router.get('/getPages', verifyToken, getListing);
+router.get('/getPages', getListing);
 router.delete('/deletePage/:pageId/:userId', verifyToken, deletePage);
 router.post('/updatePage/:id', verifyToken, updatePage);
-router.get('/get/:id', getPage);
+router.get('/get/:id',verifyToken, getPage);
 
 export default router;
