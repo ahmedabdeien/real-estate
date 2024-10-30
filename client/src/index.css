@@ -1,61 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-nav a{
-    transition: width 0.2s;
-}
-nav a.active::after{
-    content: "";
-    width: 100%; 
-    height: 3px;
-    border-radius: 50px; 
-    background-color: #ff9505;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    transition: width 0.2s;
-}
-.hoverLink::before  {
-    content: "";
-    width: 0; 
-    height: 3px;
-    border-radius: 50px; 
-    background-color: #ff9505;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    transition: width 0.2s;
-    
-}
-.hoverLink:hover::before  {
-    content: "";
-    width: 100%; 
-    height: 3px;
-    border-radius: 50px; 
-    background-color: #ff9505;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    transition: width 0.2s;
+body {
+    font-family: "DM Sans", Arial, Helvetica, sans-serif;
+    font-size: 16px;
 }
 
-nav a::after {
-    content: "";
-    width: 0px;
-    height: 3px;
-    border-radius: 50px; 
-    background-color: #ff9505;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 0;
-    transition: width 0.2s;
-       
+ [data-testid="carousel-indicator"]{
+    width: 20px;
+    height: 5px;
+    margin-bottom: -15px;
+    border-radius: 3px;
+    transition: background-color 0.5s ease;
+  }
+
+  
+  [data-active="false"] {
+    opacity: 0.3; /* Decreased opacity to make it more 'inactive' */
+    pointer-events: none;
+    cursor: not-allowed;
+    transform: scale(0.7) rotate(-3deg); /* Slight rotation for a more dynamic effect */
+    transition: opacity 0.5s ease, transform 0.6s ease; /* Slower, smoother transition */
 }
+
+[data-active="true"] {
+    opacity: 1;
+    pointer-events: all;
+    cursor: pointer;
+    transform: scale(1) rotate(0deg); /* Reset to original state */
+    transition: opacity 0.5s ease, transform 0.6s ease;
+}
+
+.carousel-item img {
+    max-width: 100%;
+    height: auto;
+}
+
+.carousel-item.active img {
+    transform: scale(1.1); /* Enlarge the active image */
+}
+
+.carousel-caption {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: center;
+}
+
+.carousel-caption h3 {
+    font-size: 2rem;
+}
+
 
 input[number="number"]::-webkit-outer-spin-button,
 input[number="number"]::-webkit-inner-spin-button{
@@ -102,3 +101,18 @@ S
     background-position: center top;
     background-repeat: no-repeat;
 }
+[aria-label="Sidebar"]{
+    border-radius: 0;
+}
+[aria-label="Sidebar"] div{
+    background-color: white ;
+    border-radius: 0;
+ 
+    
+}
+
+[aria-label="Sidebar"] div div{
+    background-color: transparent ;
+}
+
+/* -------------- */

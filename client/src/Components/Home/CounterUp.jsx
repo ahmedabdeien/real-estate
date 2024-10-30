@@ -1,34 +1,73 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CountUp from 'react-countup';
-import ScrollTrigger from 'react-scroll-trigger'; 
+import { motion } from "framer-motion";
+
 export default function CounterUp() {
-    const [counterOn, setCounterOn] = useState(false);
+  const [counterOn, setCounterOn] = useState(false);
+  const counterRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setCounterOn(entry.isIntersecting),
+      { threshold: 0.5 }
+    );
+    if (counterRef.current) {
+      observer.observe(counterRef.current);
+    }
+    return () => {
+      if (counterRef.current) {
+        observer.unobserve(counterRef.current);
+      }
+    };
+  }, []);
+
+  const counterItems = [
+    { end: 280, text: "Our Projects" },
+    { end: 30, text: "Projects Under Construction" },
+    { end: 3570, text: "Units Delivered" },
+  ];
+
   return (
-    <ScrollTrigger onEnter={() => setCounterOn(true)} onExit={()=>setCounterOn(false)}>
-      <div className=' bg-imagess w-full'>
-        <div className='py-8 px-5 md:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  text-xl font-medium items-center  bg-[#033e8a]/90 dark:bg-stone-800/90 divide-y md:divide-y-0 '>
-
-          <div className=' text-center space-y-2 p-16 text-white '>
-            <h1 className='text-5xl text-[#ff9505] font-medium'>
-              {counterOn && <CountUp start={0} end={280} duration={3}/>}+
-            </h1> 
-            <p>Our Projects</p>
-         </div>
-         <div className='text-center space-y-2 p-16 text-white   '>
-            <h1 className='text-5xl text-[#ff9505] font-medium'>
-              {counterOn && <CountUp start={0} end={30} duration={3}/>}+
-            </h1> 
-            <p>Projects Under Constructions</p>
-         </div>
-         <div className='text-center space-y-2 p-16 text-white '>
-            <h1 className='text-5xl  text-[#ff9505] font-medium '>
-              {counterOn && <CountUp start={0} end={3570} duration={3}/>}+
-            </h1> 
-            <p>Units Delivered</p>
-         </div>
-
-       </div>
-     </div>
-    </ScrollTrigger>
-  )
+    <div ref={counterRef} className="w-full bg-gradient-to-br from-[#033e8a] to-[#016FB9] py-16 ">
+      <div className="container mx-auto">
+        <motion.h2 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-4xl font-bold text-center text-white mb-10"
+        >
+          Our Achievements
+        </motion.h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {counterItems.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.2 }}
+              className="p-8 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.3 + index * 0.2 }}
+                className="text-7xl font-extrabold text-[#ff9505] mb-4"
+              >
+                {counterOn && (
+                  <CountUp
+                    start={0}
+                    end={item.end}
+                    duration={3}
+                    separator=","
+                  />
+                )}
+                <span className="text-5xl">+</span>
+              </motion.div>
+              <p className="text-xl font-medium text-white">{item.text}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

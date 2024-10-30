@@ -1,123 +1,193 @@
-"use client"
+import React, { useMemo, useState } from 'react';
 import axios from 'axios';
-import { useEffect } from 'react';
-// import  { useEffect, useState } from 'react'
-import { TbLoaderQuarter } from 'react-icons/tb';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
-import {Helmet} from "react-helmet";
+import { Helmet } from "react-helmet";
+import { motion, AnimatePresence } from 'framer-motion';
+import {  BsArrowRightShort, BsSearch } from "react-icons/bs";
+import logeselsarh from "../../assets/images/logoElsarh.png";
+const ProjectCard = ({ item, index }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 100 }}
+      transition={{ duration: 0.5,}}
+      className="group relative  dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300  "
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative overflow-hidden w-full ">
+        <motion.img
+          src={item.imageUrls[0]}
+          alt={item.name}
+          className="w-full h-52 object-cover transition-transform duration-300"
+          animate={{ scale: isHovered ? 1.1 : 1 }}
+        />
+        <motion.div
+          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-300"
+          animate={{ opacity: isHovered ? 1 : 0 }}
+        >
+          <BsSearch className="text-white text-4xl" />
+        </motion.div>
+        
+      </div>
+      <motion.div
+        className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold ${
+          item.available === "available" ? "bg-[#ff9505]" : "bg-[#353531] border border-white/30"
+        } text-white`}
+        initial={{ opacity: 1, x: 1 }}
+        animate={{ opacity:isHovered ? 1: 0 }}
+        transition={{ duration: 0.3}}
+      >
+        {item.available}
+        
+      </motion.div>
+      <div className='px-4 pt-3 '>
+          <h2 className="text-2xl font-bold text-[#353531] dark:text-white  truncate">{item.name}</h2>
+          <p className="text-[#353531]/70 dark:text-gray-300 mb-4 line-clamp-1">{item.description}</p>
+        </div>
+      <div className="p-3 pt-0 ">
+        
+        <Link to={`/Projects/${item.slug}`} className="">
+          <motion.div 
+            className="flex items-center justify-center  bg-[#016FB9] border text-white py-3 px-6 rounded-xl transition-all"
+            whileHover={{ scale: 1.02,  }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span className="mr-2">Explore Project</span>
+            <BsArrowRightShort className='text-2xl' />
+          </motion.div>
+        </Link>
+      </div>
+    </motion.div>
+  );
+};
+
 export default function Project() {
+  const [searchTerm, setSearchTerm] = useState("");
 
-  function getDataProjects() {
-    return axios.get('/api/listing/getPages?limit=200');
+  const getDataProjects = async () => {
+    const response = await axios.get('/api/listing/getPages?limit=200');
+    return response.data.listings;
+  };
 
-  }
+  const { data: projects, isLoading, error } = useQuery("dataProjects", getDataProjects);
 
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    
+    const lowercasedTerm = searchTerm.toLowerCase().trim();
+  
+    return projects.filter(project => {
+      const projectName = project.name ? project.name.toLowerCase() : '';
+      const projectDescription = project.description ? project.description.toLowerCase() : '';
+  
+      return projectName.includes(lowercasedTerm) || projectDescription.includes(lowercasedTerm);
+    });
+  }, [projects, searchTerm]);
 
-  const { data, isLoading, error } = useQuery("dataProjects", getDataProjects);
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
   if (isLoading) {
     return (
-      <div className="w-full h-screen flex justify-center items-center flex-col">
-        <div className="">
-          <TbLoaderQuarter className="text-4xl animate-spin text-gray-500" />
+      <div 
+        className="w-full h-screen flex justify-center items-center flex-col bg-stone-100 "
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="animate-pulse text-4xl mb-4">
+         <img src={logeselsarh} alt="logeselsarh" className='w-60'/> 
         </div>
-        <p className="text-gray-500">loading...</p>
       </div>
     );
   }
 
   if (error) {
-    return <p>Error: {error.message}</p>;
+    return (
+      <motion.div 
+        className="w-full h-screen flex justify-center items-center bg-red-100"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <p className="text-red-500 text-2xl">Error: {error.message}</p>
+      </motion.div>
+    );
   }
 
-  const SectionShow = data?.data?.listings || [];
-
-
-
-    
-          
-          
-          
-
-
-  // const [SectionShow, setSectionShow] = useState(false)
-  // const [loading, setLoading] = useState(true);
-  // useEffect(() => {
-  //     try{
-  //        const fetchSectionShowProjects = async () =>{
-  //          const res = await fetch(`/api/listing/getPages?limit=200`);
-  //             const data = await res.json();
-  //             if(res.ok){
-  //                 setLoading(true)
-  //                 setSectionShow(data.listings);
-  //                 setLoading(false)
-  //             }
-  //        }
-  //        fetchSectionShowProjects()
-  //     }catch(error){
-  //        console.log(error)
-  //     }
-  // }, [])
-  return <>
-    <Helmet>
-      <title>Our Projects - elsarh real estate</title>
-      <meta name="description" content="Discover our amazing properties, luxurious homes, and unique experiences." />
-      <link rel="shortcut icon" href="../../../public/favicon.ico" type="image/x-icon" />
-    </Helmet>
-  <div className='bg-stone-100 dark:bg-stone-800'>
-      <div className="container mx-auto py-4 space-y-6 ">
-  <div className=" p-4 border-b-2">
-    <div className="flex items-center justify-between">
-      <h4 className="text-4xl font-bold">Our Projects</h4>
-
-    </div>
-  </div>
-
-  <div className="  rounded-3xl  dark:border-gray-700">
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-      {SectionShow &&
-        SectionShow.map((item, index) => (
-          <div
-            key={index}
-            className="group/edit flex flex-col bg-white dark:bg-stone-900 border dark:border-stone-600 rounded-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 hover:shadow-lg"
+  return (
+    <>
+      <Helmet>
+        <title>Stunning Projects - ElSarh Real Estate</title>
+        <meta name="description" content="Explore our breathtaking collection of luxurious properties and unique real estate opportunities." />
+      </Helmet>
+      <div className='pb-8  px-2 md:px-4 bg-stone-100 overflow-hidden dark:from-gray-800 dark:to-gray-900 min-h-screen pt-5'>
+        <div className=" container mx-auto space-y-7">
+          <motion.div 
+            className="p-3 md:p-4 lg:p-6 bg-white  text-black  border-t border-b-4 border-b-[#ff9505] shadow overflow-hidden relative"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <div className="relative">
-              <Link to={`/Projects/${item.slug}`}>
-                <img
-                  src={item.imageUrls[0]}
-                  alt={item.name}
-                  className="w-full h-60 object-cover rounded-t-2xl"
-                />
-              </Link>
-              <div
-                className={`absolute top-4 left-4 px-3 py-1 rounded-full shadow-lg text-sm font-semibold -translate-x-20 -translate-y-20 group-hover/edit:-translate-y-0 group-hover/edit:-translate-x-0 transition-transform ${
-                  item.available === "available" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                }`}
-              >
-                {item.available}
-              </div>
-            </div>
-            <div className="p-4 flex flex-col justify-between flex-grow">
-              <div>
-                <h5 className="text-xl font-bold text-[#033e8a] ">{item.name}</h5>
-                <p className="text-gray-700 dark:text-gray-300 truncate">
-                  {item.description}
-                </p>
-              </div>
-              <Link
-                to={`/Projects/${item.slug}`}
-                className="mt-4 bg-[#033e8a] text-white py-2 text-center rounded-full hover:from-blue-600 hover:to-blue-800 transition-all"
-              >
-                Read More
-              </Link>
-            </div>
-          </div>
-        ))}
-    </div>
-  </div>
-</div>
-  </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 0.1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="absolute top-0 right-0 w-64 h-64"
+            >
+            </motion.div>
+            <h1 className="text-4xl md:text-4xl font-bold mb-4 relative text-[#002E66] z-10">Discover Our Projects</h1>
+            <p className="text-xl font-light max-w-2xl relative z-10 text-[#353531]">Explore a world of luxurious properties and innovative real estate solutions designed to exceed your expectations.</p>
+           
+            <motion.div 
+            className="relative mt-5"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <input
+              type="text"
+              placeholder="Search projects . . ."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full px-6 py-4 text-lg bg-stone-100 dark:bg-gray-700 rounded-2xl focus:bg-white border-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#353531] dark:text-white"
+            />
+            <BsSearch className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+          </motion.div>
 
-</>
+          </motion.div>
 
+
+          <AnimatePresence>
+            <motion.div 
+              className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
+              layout
+            >
+              {filteredProjects.map((item, index) => (
+                <ProjectCard key={item.id || index} item={item} index={index} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+
+          {filteredProjects.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center py-12"
+            >
+              <p className="text-2xl text-gray-600 dark:text-gray-300">No projects found. Try a different search term.</p>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    </>
+  );
 }

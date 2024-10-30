@@ -1,23 +1,21 @@
-import { BsArrowUp, BsTelephone } from "react-icons/bs";
-import { BsEnvelope } from "react-icons/bs";
+import { useState } from "react";
+import {  BsChevronLeft, BsEnvelope , BsTelephone } from "react-icons/bs";
+import { FaEllipsisH } from "react-icons/fa";
 export default function ButtonTop() {
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    };
-
+  let [contactBtn , setContactBtn] = useState(false)
   return (
     <>
-    <div onClick={scrollToTop} className="bg-stone-300 hover:bg-[#ff9505] hover:scale-y-110 transition-transform fixed bottom-5 left-3 p-2 z-50 flex items-center cursor-pointer"><span>ButtonTop</span><BsArrowUp className="text-xl"/></div>
-    <div className="">
-        <div className="fixed bottom-16 z-50 left-3 space-y-1">
-            <a href="tel:+201212622210"className=" bg-green-400 border border-black/20 rounded p-1 px-2 flex flex-col justify-center items-center " target="_blank" rel="noopener noreferrer" >
-                <BsTelephone/>
-                <span>phone</span>
-            </a>
-            <a href="mailto:elsarhegypt@gmail.com" className="bg-blue-400 border border-black/20 rounded p-1 px-2 flex flex-col justify-center items-center" target="_blank" rel="noopener noreferrer">
-            <BsEnvelope/>
-            <span>Email</span>
-            </a>
+    <div className={` ${contactBtn? 'left-5':'-left-[75px]'} transition-all duration-300 ease-in-out fixed bottom-4 z-40  p-2  flex  items-center justify-between`}>
+        <div className={`${contactBtn? 'scale-100':' scale-0'} ease-in-out shadow transition-all duration-300 space-y-2 rounded-full bg-white p-2 `}>
+          <a href="tel:+201212622210" className="w-12 h-12 rounded-full bg-[#8fbc8f] hover:bg-[#8fbc8f]/80 transition-colors border border-black/10 shadow p-1 px-2 flex flex-col justify-center items-center" target="_blank" rel="noopener noreferrer" >
+            <BsTelephone className="text-3xl text-stone-700"/>
+          </a>
+          <a href="mailto:elsarhegypt@gmail.com" className="w-12 h-12 rounded-full bg-[#779ecb] hover:bg-[#779ecb]/80 transition-colors border border-black/10 shadow  p-1 px-2 flex flex-col justify-center items-center" target="_blank" rel="noopener noreferrer">
+            <BsEnvelope className="text-3xl text-stone-700"/>
+          </a>
+        </div>        
+        <div onClick={()=>setContactBtn(!contactBtn)} className={` transition-transform duration-300 p-2 translate-x-2 bg-stone-300 cursor-pointer hover:scale-110 rounded-full`}>
+            <FaEllipsisH className={`${contactBtn?" rotate-0":"rotate-180"} text-3xl text-stone-700`}/>
         </div>
     </div>
     </>

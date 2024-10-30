@@ -1,81 +1,121 @@
-import { BsTelephone } from "react-icons/bs";
-import { BsEnvelope } from "react-icons/bs";
-import { BsGeoAlt } from "react-icons/bs";
-import SocialMediaLink from "../SocialMedia/SocialMediaLink";
-import {Helmet} from "react-helmet";
+import React from 'react';
+import { motion } from 'framer-motion';
+import { BsPeople, BsTelephone, BsEnvelope, BsGeoAlt } from "react-icons/bs";
+import { SocialMediaLinkTow } from "../SocialMedia/SocialMediaLink.jsx";
+import { Helmet } from "react-helmet";
+import FormContact from './FormContact';
+
 function Contact() {
-  return (<>
- 
-    <Helmet>
-      <title>Contact Us | El Sarh Real Estate Investment Company</title>
-      <meta name="description" content="Contact El Sarh Real Estate Investment Company for more information about residential, commercial, or investment properties." />
-      <link rel="shortcut icon" href="../../../public/favicon.ico" type="image/x-icon" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      
-    </Helmet>
-    <div className=" dark:bg-gray-900 py-8">
-    <div className="container mx-auto space-y-6">
-        <div className="text-center space-y-3 mb-8">
-            <h1 className="text-4xl font-bold text-[#034078] dark:text-blue-500">Contact Us</h1>
-            <div className="w-24 h-1 bg-[#016FB9] mx-auto"></div>
-        </div>
-        <div className="px-4 py-6 bg-white dark:bg-gray-800  rounded-lg border border-gray-200 dark:border-gray-700">
-            <p className="font-medium text-gray-800 dark:text-gray-300">
-                At El Sarh Real Estate Investment Company, we are committed to delivering exceptional service and addressing all your real estate needs. Whether you’re interested in residential, commercial, or investment properties, or simply have a question or concern, our dedicated team is here to assist you.
+  const fadeIn = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6 }
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Contact Us | El Sarh Real Estate Investment Company</title>
+        <meta name="description" content="Contact El Sarh Real Estate Investment Company for more information about residential, commercial, or investment properties." />
+        <link rel="shortcut icon" href="../../../public/favicon.ico" type="image/x-icon" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Helmet>
+
+      <div className="dark:bg-gray-900  bg-stone-100 py-5 overflow-hidden ">
+        <div className=" space-y-5 container mx-auto">
+
+
+          <motion.div
+            className="bg-white border dark:bg-gray-800 p-6 py-16 border-b-4 border-b-[#ff9505] shadow-md"
+            {...fadeIn}
+          >
+            <h2 className="text-3xl font-bold text-[#002E66] dark:text-gray-300 mb-2">Stay in touch with ElSarh company</h2>
+            <p className="text-[#353531] dark:text-gray-400 text-lg">
+              At El Sarh Real Estate Investment Company, we are committed to delivering exceptional service and addressing all your real estate needs. Whether you're interested in residential, commercial, or investment properties, or simply have a question or concern, our dedicated team is here to assist you.
             </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+            
+            <motion.div
+              className="bg-white dark:bg-gray-800 shadow-lg rounded-xl border overflow-hidden flex flex-col"
+              {...fadeIn}
+            >
+              <div className="p-6 border-b dark:border-gray-700">
+                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-4">Contact Information</h3>
+                <p className="text-[#353531]/80 dark:text-gray-400 mb-2">We are open 7 days a week, from 9:00 AM to 5:00 PM.</p>
+                <p className="text-[#353531]/80 dark:text-gray-400">Please let us know if you have any questions or need assistance.</p>
+              </div>
+              <div className="flex-grow">
+                <motion.a
+                  href="mailto:example@elsarh.com"
+                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
+                  whileHover={{ x: 10 }}
+                >
+                  <BsEnvelope className="text-3xl text-[#ff9505] mr-4" />
+                  <p className="text-gray-800 dark:text-gray-300">elsarhegypt@gmail.com</p>
+                </motion.a>
+                <motion.a
+                  href="tel:+201212622210"
+                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
+                  whileHover={{ x: 10 }}
+                >
+                  <BsTelephone className="text-3xl text-[#ff9505] mr-4" />
+                  <p className="text-gray-800 dark:text-gray-300">+201212622210</p>
+                </motion.a>
+                <motion.a
+                  href="https://maps.app.goo.gl/yv9HDSAdmwAT2Lft8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
+                  whileHover={{ x: 10 }}
+                >
+                  <BsGeoAlt className="text-3xl text-[#ff9505] mr-4" />
+                  <div>
+                    <p className="text-gray-800 dark:text-gray-300">14 El Mokhtar Street from Nasr Street
+                    New Maadi, Cairo</p>
+                    <p className="text-red-600">Go to Google Map</p>
+                  </div>
+                </motion.a>
+              </div>
+              <div className="border-t bg-stone-50 p-3 flex justify-center">
+                <SocialMediaLinkTow />
+              </div>
+            </motion.div>
+            
+            <motion.div
+              className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl border overflow-hidden"
+              {...fadeIn}
+            >
+              <div className="p-5">
+                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-6">Get In Touch</h3>
+                
+                <FormContact/>
+              </div>
+            </motion.div>
+
+          </div>
+
+          <motion.div
+            className="w-full rounded-xl border overflow-hidden shadow-lg p-3 bg-white"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1728.0818356095576!2d31.274256562161206!3d29.974725938862846!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145839b32f2e71d1%3A0x9758140509ccd109!2z2LTYsdmD2Kkg2KfZhNi12LHYrSDZhNmE2KfYs9iq2KvZhdin2LEg2KfZhNi52YLYp9ix2Yo!5e0!3m2!1sen!2seg!4v1727772284728!5m2!1sen!2seg" 
+              className='w-full rounded-md'
+              height="400"
+              allowfullscreen="" 
+              loading="lazy" 
+              referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+          </motion.div>
         </div>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-300">Contact Information</h3>
-                <div className="space-y-4">
-                    <p className="text-gray-600 dark:text-gray-400">We are open 7 days a week, from 9:00 AM to 5:00 PM.</p>
-                    <p className="text-gray-600 dark:text-gray-400">Please let us know if you have any questions or need assistance.</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <a href="mailto:example@elsarh.com" className="flex items-center justify-center p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
-                        <BsEnvelope className="text-3xl text-[#016FB9] mr-3"/>
-                        <p className="text-gray-800 dark:text-gray-300">example@elsarh.com</p>
-                    </a>
-                    <a href="tel:+201212622210" className="flex items-center justify-center p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
-                        <BsTelephone className="text-3xl text-[#016FB9] mr-3"/>
-                        <p className="text-gray-800 dark:text-gray-300">+201212622210</p>
-                    </a>
-                    <a href="https://maps.app.goo.gl/yv9HDSAdmwAT2Lft8" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
-                        <BsGeoAlt className="text-3xl text-[#016FB9] mr-3"/>
-                        <div className="text-gray-800 dark:text-gray-300">
-                            <p>123 Main St, City, State, Zip</p>
-                            <p className="text-red-600">Go to Google Map</p>
-                        </div>
-                    </a>
-                    <div className="flex items-center justify-center p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md">
-                        <SocialMediaLink/>
-                    </div>
-                </div>
-            </div>
-            <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-300">Get In Touch</h3>
-                <form className="space-y-6 p-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-md">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <input type="text" placeholder="Your Name" className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#016FB9]"/>
-                        <input type="text" placeholder="Your Phone Number" className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#016FB9]"/>
-                    </div>
-                    <input type="email" placeholder="Your Email" className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#016FB9]"/>
-                    <textarea placeholder="Your Message" className="w-full h-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#016FB9]"/>
-                    <button type="submit" className="w-full px-4 py-2 bg-[#016FB9] text-white rounded-md hover:bg-[#014f7f] transition-colors duration-300">Send Message</button>
-                </form>
-            </div>
-        </div>
-        <div className="w-full mt-6">
-            <div className="mapouter">
-                <div className="gmap_canvas">
-                    <iframe className="w-full" height="400" id="gmap_canvas" src="https://maps.google.com/maps?q=%D8%A9%20%D8%A7%D9%84%D8%B5%D8%B1%D8%AD%20%D9%84%D9%84%D8%A7%D8%B3%D8%AA%D8%AB%D9%85%D8%A7%D8%B1%20%D8%A7%D9%84%D8%B9%D9%82%D8%A7%D8%B1&t=&z=16&ie=UTF8&iwloc=&output=embed" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0"></iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-</>
-  )
+      </div>
+    </>
+  );
 }
 
-export default Contact
+export default Contact;

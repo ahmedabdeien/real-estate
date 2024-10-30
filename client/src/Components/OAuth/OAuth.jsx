@@ -44,7 +44,7 @@ export default function OAuth() {
   };
   return (
     <button  onClick={handleGoogleClick} type='button'
-    className=' hover:shadow text-black py-2 rounded border-2 hover:bg-white bg-gray-100 active:ring-offset-0 flex justify-center items-center'>
+    className=' w-full hover:shadow text-black py-[6px] rounded-md border-2 hover:bg-white bg-gray-100 active:ring-offset-0 flex justify-center items-center'>
         <FcGoogle className='mx-1 text-lg '/>
         <span>Google</span>
     </button>

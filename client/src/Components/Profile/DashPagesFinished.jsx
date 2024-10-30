@@ -1,175 +1,206 @@
-
-import { Badge, Button, Modal, Table } from "flowbite-react";
-import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
-import { TbLoaderQuarter } from "react-icons/tb";
-
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Badge, Button, Modal, Table, TextInput, Dropdown } from "flowbite-react";
 import { Link } from "react-router-dom";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
-
-
+import { HiOutlineExclamationCircle, HiSearch, HiAdjustments, HiRefresh } from "react-icons/hi";
+import { TbLoaderQuarter } from "react-icons/tb";
+import { Helmet } from "react-helmet";
 export default function DashPagesFinished() {
-    const {currentUser} = useSelector(state => state.user)
-    const [userPages,setUserPages] = useState([])
-    const [showMore,setShowMore] = useState(true)
-    const [showModal,setShowModal] = useState(false)
-    const [pageIdToDelete,setPageIdToDelete]= useState('')
+    const { currentUser } = useSelector(state => state.user);
+    const [userPages, setUserPages] = useState([]);
+    const [showMore, setShowMore] = useState(true);
+    const [showModal, setShowModal] = useState(false);
+    const [pageIdToDelete, setPageIdToDelete] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterAvailable, setFilterAvailable] = useState('all');
+    const [sortBy, setSortBy] = useState('updatedAt');
+    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() =>{
-       const fatchPages = async () =>{
-         try {
-            const res = await fetch(`/api/listing/getPages?userId=${currentUser._id}`)
+    useEffect(() => {
+        if (currentUser.isAdmin) {
+            fetchPages();
+        }
+    }, [currentUser.isAdmin, currentUser._id]);
+
+    const fetchPages = async (startIndex = 0) => {
+        setIsLoading(true);
+        try {
+            const res = await fetch(`/api/listing/getPages?userId=${currentUser._id}&startIndex=${startIndex}&sortBy=${sortBy}`);
             const data = await res.json();
             
-            if(res.ok){
-                setUserPages(data.listings)
-                if(data.listings.length < 10){
-                    setShowMore(false)
-                }
-            }
-         } catch (error) {
-            console.log(error.message);
-         }
-         
-       };
-       if(currentUser.isAdmin){
-           fatchPages()
-       }
-    },[currentUser.isAdmin,currentUser._id]);
-
-    const handleShowMore = async () => {
-       const startIndex = userPages.length;
-       try{
-          const res = await fetch(`/api/listing/getPages?userId=${currentUser._id}&startIndex=${startIndex}`)
-          const data = await res.json();
-            if(res.ok){
-                setUserPages([...userPages,...data.listings])
-                if(data.listings.length < 10){
-                    setShowMore(false)
-                }
-            }
-        }catch (error){
-          console.log(error.massage)
-       }
-    }
-    const handleDeletePage = async () => {
-        setShowModal(false)
-        try {
-            const res = await fetch(`/api/listing/deletePage/${pageIdToDelete}/${currentUser._id}`,{
-                method:"DELETE"
-            })
-            const data = await res.json();
-            if(!res.ok){
-                console.log(data.message)
-            }else{
-                setUserPages((prev)=>
-                  prev.filter(page => page._id!== pageIdToDelete)
-                )
+            if (res.ok) {
+                setUserPages(prevPages => startIndex === 0 ? data.listings : [...prevPages, ...data.listings]);
+                setShowMore(data.listings.length === 10);
             }
         } catch (error) {
-            console.log(error.message)
+            console.error("Error fetching pages:", error);
+        } finally {
+            setIsLoading(false);
         }
-    }
-  return (
-    <>
-    <div className=" ">
-        {currentUser.isAdmin && userPages.length > 0 ? (
-            <>
-            <div className="overflow-x-auto shadow-md table-auto rounded-none scrollbar scrollbar-track-gray-100 
-             dark:scrollbar-track-gray-900 scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
-                <Table className="divide-y dark:divide-gray-600 drop-shadow-none">
-                <Table.Head>
-                    <Table.HeadCell>Date updated</Table.HeadCell>
-                    <Table.HeadCell>Title</Table.HeadCell>
-                    <Table.HeadCell>Location</Table.HeadCell>
-                    <Table.HeadCell>Available Or Not</Table.HeadCell>
-                    <Table.HeadCell>Number Floors</Table.HeadCell>
-                    <Table.HeadCell>Property Size</Table.HeadCell>
-                    <Table.HeadCell>Image Cover </Table.HeadCell>
-                    <Table.HeadCell>Image Plans</Table.HeadCell>
-                    <Table.HeadCell>Image Apartments</Table.HeadCell>
-                    <Table.HeadCell>Title Apartments</Table.HeadCell>
-                    <Table.HeadCell><span>Edit</span></Table.HeadCell>
-                    <Table.HeadCell><span>Delete</span></Table.HeadCell>
-                    <Table.HeadCell><span>View</span></Table.HeadCell>
-                </Table.Head>
-                {userPages.map((page,index) => (
-                    <Table.Body key={index} className="divide-x dark:divide-gray-600 font-normal hover:bg-gray-100 dark:hover:bg-gray-700/70">
-                        <Table.Cell className="p-2">{new Date(page.updatedAt).toLocaleDateString()}
-                        </Table.Cell>
-                        <Table.Cell className="p-2 font-medium text-[#016FB9]">{page.name}</Table.Cell>
-                        <Table.Cell className="p-2 bg-gray-50/70 dark:bg-gray-900/50">{page.address}</Table.Cell>
-                        <Table.Cell className={`p-2 ${page.available=='available'?"text-green-600":"text-red-600"}`}><Badge color={`${page.available=='available'?"success":"failure"}`} className="rounded-full">{page.available}</Badge></Table.Cell>
-                        <Table.Cell className='p-2'>{page.numberFloors}</Table.Cell>
-                        <Table.Cell className="p-2 bg-indigo-50/20 dark:bg-indigo-50/5 ">{page.propertySize} m</Table.Cell>
-                        <Table.Cell className="p-2 group/itemss">
-                            <Link to={`/Projects/${page.slug}`} className="flex -space-x-6">
-                             {page.imageUrls.map((image,index) => (
-                                <img className="w-10 h-10 rounded-full border-2 dark:border-gray-800 border-white object-cover" src={image} alt={image} key={index} />
-                             ))}
-                            </Link>
-                        </Table.Cell>
-                        <Table.Cell className="p-2">
-                            <Link to={`/Projects/${page.slug}`} className="flex justify-center">
-                                <img className="w-10 h-10 rounded-full border-2 dark:border-gray-800 border-white object-cover" src={page.imagePlans} alt={page.imagePlans} key={index} />
-                            </Link>
-                        </Table.Cell>
-                        <Table.Cell className="p-2">
-                            <Link to={`/Projects/${page.slug}`} className="flex -space-x-6">
-                             {page.imageApartments.map((image,index) => (
-                                <img className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 object-cover" src={image} alt={image} key={index} />
-                             ))}
-                            </Link>
-                        </Table.Cell>
-                        <Table.Cell className="p-2">{page.titleApartments}</Table.Cell>
-                        <Table.Cell className="p-2 relative overflow-hidden">
-                            <Link to={`/Update-Page/${page._id}`} className="absolute top-0 left-0 w-full h-full font-medium text-[#016FB9] hover:bg-blue-100 dark:hover:bg-[#016FB9] dark:hover:text-blue-100 flex justify-center items-center">Edit</Link>
-                        </Table.Cell>
-                        <Table.Cell className="p-2 relative">
-                            <div onClick={()=>{setShowModal(true);setPageIdToDelete(page._id) }} className="absolute top-0 left-0 w-full h-full cursor-pointer font-medium text-red-500 hover:bg-red-100 dark:hover:bg-red-600 dark:hover:text-red-100 flex justify-center items-center">Delete</div></Table.Cell>
-                        <Table.Cell className="p-2 relative"><Link to={`/Projects/${page.slug}`} className="absolute top-0 left-0 w-full h-full  font-medium text-green-500 hover:bg-green-100 dark:hover:bg-green-600 dark:hover:text-green-100 flex justify-center items-center">View</Link></Table.Cell>
-                    </Table.Body>
-                ))}
-            </Table> 
-            </div>
-           <div className="p-4 flex justify-center">
-            {showMore && <button 
-            className=" bg-[#016FB9] hover:bg-[#016FB9]/95 dark:bg-[#016FB9] text-white py-3 w-full rounded-md" 
-            onClick={handleShowMore}>Show More</button>}
-           </div>
-            </>
-        ) : (
-            <div className="w-full h-screen flex justify-center items-center flex-col">
-                <div className="">
-                <TbLoaderQuarter  className="text-4xl animate-spin text-gray-500 "></TbLoaderQuarter>
+    };
+
+    const handleShowMore = () => fetchPages(userPages.length);
+
+    const handleDeletePage = async () => {
+        setShowModal(false);
+        try {
+            const res = await fetch(`/api/listing/deletePage/${pageIdToDelete}/${currentUser._id}`, {
+                method: "DELETE"
+            });
+            if (res.ok) {
+                setUserPages(prev => prev.filter(page => page._id !== pageIdToDelete));
+            } else {
+                console.error("Failed to delete page");
+            }
+        } catch (error) {
+            console.error("Error deleting page:", error);
+        }
+    };
+
+    const filteredPages = userPages.filter(page =>
+        (page.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         page.address.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (filterAvailable === 'all' || page.available === filterAvailable)
+    );
+
+    const handleRefresh = () => {
+        setUserPages([]);
+        fetchPages(0);
+    };
+
+    return (
+        <>
+        <Helmet>
+            <title>Pages Manage  | Property Finder</title>
+        </Helmet>
+        <div className="p-4  dark:bg-gray-800 min-h-screen border-t">
+            <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Manage Pages</h1>
+            
+            <div className="mb-4 flex flex-wrap gap-2 items-center justify-between">
+                <div className="flex flex-wrap gap-2 items-center">
+                    <div className="relative">
+                        <TextInput
+                            type="text"
+                            placeholder="Search pages..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            icon={HiSearch}
+                        />
+                    </div>
+                    <Dropdown label="Filter" icon={HiAdjustments}>
+                        <Dropdown.Item onClick={() => setFilterAvailable('all')}>All</Dropdown.Item>
+                        <Dropdown.Item onClick={() => setFilterAvailable('available')}>Available</Dropdown.Item>
+                        <Dropdown.Item onClick={() => setFilterAvailable('not available')}>Not Available</Dropdown.Item>
+                    </Dropdown>
+                    <Dropdown label="Sort By" icon={HiAdjustments}>
+                        <Dropdown.Item onClick={() => setSortBy('updatedAt')}>Last Updated</Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortBy('name')}>Name</Dropdown.Item>
+                        <Dropdown.Item onClick={() => setSortBy('propertySize')}>Property Size</Dropdown.Item>
+                    </Dropdown>
                 </div>
-                <p className="text-gray-500">loading...</p>
+                <Button color="blue" onClick={handleRefresh}>
+                    <HiRefresh className="mr-2 h-5 w-5" />
+                    Refresh
+                </Button>
             </div>
-        )}
-    </div>
-    <Modal
-show={showModal}
-onClose={() => setShowModal(false)}
-popup dark={false}
-size="md"
-className="">
-   <Modal.Header className='bg-stone-200 ' />
-   <Modal.Body className='' >
-      <div className="flex flex-col items-center space-y-3 pt-3">
-        <div className="flex ">
-        <HiOutlineExclamationCircle className="text-[#b01c1c] me-2 text-4xl " />
-        <h1 className="text-[#000000] font-semibold text-xl">
-          Are you sure you want to delete this page?
-        </h1></div>
-        <div className=" flex gap-2">
-        <Button color="failure" onClick={handleDeletePage}>
-          Delete page
-        </Button>
-        <Button color="light"  onClick={() => setShowModal(false)}>Cancel</Button>
+
+            {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                    <TbLoaderQuarter className="text-4xl animate-spin text-blue-500" />
+                </div>
+            ) : filteredPages.length > 0 ? (
+                <div className="overflow-x-auto shadow-md rounded-lg">
+                    <Table hoverable>
+                        <Table.Head>
+                            <Table.HeadCell>Date Updated</Table.HeadCell>
+                            <Table.HeadCell>Title</Table.HeadCell>
+                            <Table.HeadCell>Location</Table.HeadCell>
+                            <Table.HeadCell>Status</Table.HeadCell>
+                            <Table.HeadCell>Floors</Table.HeadCell>
+                            <Table.HeadCell>Size (m²)</Table.HeadCell>
+                            <Table.HeadCell>Images</Table.HeadCell>
+                            <Table.HeadCell>Actions</Table.HeadCell>
+                        </Table.Head>
+                        <Table.Body className="divide-y">
+                            {filteredPages.map((page) => (
+                                <Table.Row key={page._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                                    <Table.Cell>{new Date(page.updatedAt).toLocaleDateString()}</Table.Cell>
+                                    <Table.Cell className="font-medium text-gray-900 dark:text-white">{page.name}</Table.Cell>
+                                    <Table.Cell>{page.address}</Table.Cell>
+                                    <Table.Cell>
+                                        <Badge color={page.available === 'available' ? "success" : "failure"}>
+                                            {page.available}
+                                        </Badge>
+                                    </Table.Cell>
+                                    <Table.Cell>{page.numberFloors}</Table.Cell>
+                                    <Table.Cell>{page.propertySize}</Table.Cell>
+                                    <Table.Cell>
+                                        <div className="flex -space-x-5 w-28">
+                                            {page.imageUrls.slice(0, 3).map((image, index) => (
+                                                <img key={index} className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800" src={image} alt={`Page image ${index + 1}`} />
+                                            ))}
+                                            {page.imageUrls.length > 3 && (
+                                                <div className="flex items-center justify-center w-10 h-10 text-xs font-medium text-white bg-gray-700 rounded-full border-2 border-white hover:bg-gray-600 dark:border-gray-800">
+                                                    +{page.imageUrls.length - 3}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                        <div className="flex space-x-2">
+                                            <Link to={`/Update-Page/${page._id}`}>
+                                                <Button size="sm" color="info">Edit</Button>
+                                            </Link>
+                                            <Button size="sm" color="failure" onClick={() => {
+                                                setShowModal(true);
+                                                setPageIdToDelete(page._id);
+                                            }}>
+                                                Delete
+                                            </Button>
+                                            <Link to={`/Projects/${page.slug}`}>
+                                                <Button size="sm" color="success">View</Button>
+                                            </Link>
+                                        </div>
+                                    </Table.Cell>
+                                </Table.Row>
+                            ))}
+                        </Table.Body>
+                    </Table>
+                </div>
+            ) : (
+                <div className="text-center py-4">
+                    <p className="text-gray-500 dark:text-gray-400">No pages found</p>
+                </div>
+            )}
+
+            {showMore && (
+                <div className="mt-4 flex justify-center">
+                    <Button color="light" onClick={handleShowMore}>
+                        Load More
+                    </Button>
+                </div>
+            )}
+
+            <Modal show={showModal} size="md" onClose={() => setShowModal(false)} popup>
+                <Modal.Header />
+                <Modal.Body>
+                    <div className="text-center">
+                        <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+                        <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+                            Are you sure you want to delete this page?
+                        </h3>
+                        <div className="flex justify-center gap-4">
+                            <Button color="failure" onClick={handleDeletePage}>
+                                Yes, delete it
+                            </Button>
+                            <Button color="gray" onClick={() => setShowModal(false)}>
+                                No, cancel
+                            </Button>
+                        </div>
+                    </div>
+                </Modal.Body>
+            </Modal>
         </div>
-      </div>
-   </Modal.Body>
-</Modal>
-    </>
-  )
+        </>
+    );
 }
