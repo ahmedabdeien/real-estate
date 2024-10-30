@@ -47,6 +47,7 @@ export default function CustomizedProfile() {
     setUpdateUserSuccess("Profile updated successfully!");
   };
 
+<<<<<<< HEAD
   return (
     <div className="bg-gradient-to-b from-stone-100 to-stone-200 min-h-screen py-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
@@ -54,6 +55,23 @@ export default function CustomizedProfile() {
           <h1 className="text-3xl font-bold mb-2">Personal Information</h1>
           <p className="text-xl">Welcome, <span className="font-semibold">{currentUser.name}!</span></p>
         </div>
+=======
+ 
+
+  return <>
+    <div>
+      <h2 className='text-2xl font-bold py-2 text-white w-full bg-[#023E8A]  text-center'>Profile page</h2>
+    </div>
+
+      <div className="col-span-1 lg:col-span-2 justify-center flex items-center text-2xl font-bold shadow py-3 mb-3 lg:mb-0">
+        <h2>
+          Helloo <span className="text-blue-600">{currentUser.name}</span>
+        </h2>
+      </div>
+    <div className='grid grid-cols-1 lg:gap-2 lg:grid-cols-2 md:px-10 p-4  '>
+
+      <div className=''>
+>>>>>>> 0ea3d3ab38f1a6f93b269704f997aea5d29a010f
         
         <div className="p-6">
           <div className="flex flex-col md:flex-row gap-8">
@@ -98,6 +116,19 @@ export default function CustomizedProfile() {
                 {currentUser.isAdmin ? 'Admin' : currentUser.isBroker ? 'Broker' : 'User'}
               </Badge>
             </div>
+<<<<<<< HEAD
+=======
+          
+         </div>
+         <p className="text-sm text-stone-600 mt-2 text-center">click for input change name and email and phone number and password ahd avatar </p>
+      </div>
+      <div className="mt-8 border-t-2 pt-4 lg:mt-0 lg:border-none lg:pt-0"> 
+          <div className="flex justify-center items-center relative border rounded py-2 overflow-hidden">
+          <svg className="absolute top-0 left-0 -z-10 animate-pulse" id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(1) rotate(65)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(0,0%,100%,1)'/><path d='M3.25 10h13.5M10 3.25v13.5'  stroke='hsla(259, 0%, 92%, 1)' fill='none'/></pattern></defs><rect width='800%' height='800%' transform='translate(-1,-2)' fill='url(#a)'/></svg>
+        <Link to={"/create-page"} className="group/acss bg-green-600 font-semibold text-white p-5 rounded  hover:bg-green-800 hover:scale-105 transition-all flex justify-center items-center">
+          <FaPlus className="me-1"/>
+          <span>Create Page</span>  
+>>>>>>> 0ea3d3ab38f1a6f93b269704f997aea5d29a010f
             
             <div className="md:w-2/3">
               <form onSubmit={handleSubmit} className="space-y-4">
