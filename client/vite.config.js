@@ -7,7 +7,7 @@ export default defineConfig({
   server:{
     proxy:{
       '/api':{
-        target:'http://localhost:3000',
+        target:'https://elsarh.netlify.app/',
         secure:false,
         changeOrigin: true,
       }
