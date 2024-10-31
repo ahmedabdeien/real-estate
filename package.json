@@ -1,13 +1,13 @@
 {
-  "name": "new-projects",
+  "name": "real-estate",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon api/index.js",
-  "start": "node api/index.js",
-  "build": "npm install --prefix client && npm run build --prefix client"
+    "start": "node api/index.js",
+    "build": "npm install --prefix client && npm run build --prefix client"
   },
   "keywords": [],
   "author": "",
