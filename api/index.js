@@ -10,11 +10,9 @@ import path from "path";
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGO)
-    .then(() => {
+mongoose.connect(process.env.MONGO).then(() => {
         console.log('MongoDB is connected!!');
-    })
-    .catch((err) => {
+    }).catch((err) => {
         console.error('MongoDB connection error:', err);
     });
 
