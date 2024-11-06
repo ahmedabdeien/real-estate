@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { HiOutlineExclamationCircle, HiSearch, HiAdjustments, HiRefresh } from "react-icons/hi";
 import { TbLoaderQuarter } from "react-icons/tb";
 import { Helmet } from "react-helmet";
+
 export default function DashPagesFinished() {
     const { currentUser } = useSelector(state => state.user);
     const [userPages, setUserPages] = useState([]);
@@ -25,13 +26,18 @@ export default function DashPagesFinished() {
     const fetchPages = async (startIndex = 0) => {
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/listing/getPages?userId=${currentUser._id}&startIndex=${startIndex}&sortBy=${sortBy}`);
+            const res = await fetch(`/api/listing/getPages?limit=1000&startIndex=${startIndex}&sortBy=${sortBy}`);
             const data = await res.json();
             
             if (res.ok) {
                 setUserPages(prevPages => startIndex === 0 ? data.listings : [...prevPages, ...data.listings]);
-                setShowMore(data.listings.length === 10);
+                setShowMore(data.listings.length === 8); // Show 'Load More' if there are more listings
+            } else {
+                console.error("Failed to fetch pages:", res.statusText);
             }
+
+            console.log("Fetched pages:", data.listings); // Debug: Log fetched pages
+            console.log("Total pages loaded:", startIndex + data.listings.length);
         } catch (error) {
             console.error("Error fetching pages:", error);
         } finally {
@@ -50,7 +56,7 @@ export default function DashPagesFinished() {
             if (res.ok) {
                 setUserPages(prev => prev.filter(page => page._id !== pageIdToDelete));
             } else {
-                console.error("Failed to delete page");
+                console.error("Failed to delete page:", res.statusText);
             }
         } catch (error) {
             console.error("Error deleting page:", error);
@@ -71,22 +77,22 @@ export default function DashPagesFinished() {
     return (
         <>
         <Helmet>
-            <title>Pages Manage  | Property Finder</title>
+            <title>Pages Manage | Property Finder</title>
         </Helmet>
-        <div className="p-4  dark:bg-gray-800 min-h-screen border-t">
-            <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Manage Pages</h1>
+        <div className="p-4 dark:bg-gray-800 min-h-screen border-t">
+            <div className='bg-[#004483]/20 px-4 py-6 mb-4 rounded-lg'>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Manage Pages</h1>
+            </div>
             
-            <div className="mb-4 flex flex-wrap gap-2 items-center justify-between">
-                <div className="flex flex-wrap gap-2 items-center">
-                    <div className="relative">
-                        <TextInput
-                            type="text"
-                            placeholder="Search pages..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            icon={HiSearch}
-                        />
-                    </div>
+            <div className="mb-4 flex flex-wrap gap-4 items-center justify-between p-4 border rounded-lg">
+                <div className="flex flex-wrap gap-2 items-center ">
+                    <TextInput
+                        type="text"
+                        placeholder="Search pages..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        icon={HiSearch}
+                    />
                     <Dropdown label="Filter" icon={HiAdjustments}>
                         <Dropdown.Item onClick={() => setFilterAvailable('all')}>All</Dropdown.Item>
                         <Dropdown.Item onClick={() => setFilterAvailable('available')}>Available</Dropdown.Item>
@@ -109,9 +115,9 @@ export default function DashPagesFinished() {
                     <TbLoaderQuarter className="text-4xl animate-spin text-blue-500" />
                 </div>
             ) : filteredPages.length > 0 ? (
-                <div className="overflow-x-auto shadow-md rounded-lg">
+                <div className="overflow-x-auto rounded-lg border">
                     <Table hoverable>
-                        <Table.Head>
+                        <Table.Head className=' border-b'>
                             <Table.HeadCell>Date Updated</Table.HeadCell>
                             <Table.HeadCell>Title</Table.HeadCell>
                             <Table.HeadCell>Location</Table.HeadCell>
@@ -125,12 +131,16 @@ export default function DashPagesFinished() {
                             {filteredPages.map((page) => (
                                 <Table.Row key={page._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
                                     <Table.Cell>{new Date(page.updatedAt).toLocaleDateString()}</Table.Cell>
-                                    <Table.Cell className="font-medium text-gray-900 dark:text-white">{page.name}</Table.Cell>
+                                    <Table.Cell className="font-medium text-gray-900 dark:text-white bg-gray-50">{page.name}</Table.Cell>
                                     <Table.Cell>{page.address}</Table.Cell>
                                     <Table.Cell>
-                                        <Badge color={page.available === 'available' ? "success" : "failure"}>
-                                            {page.available}
-                                        </Badge>
+                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        page.available === 'available'
+                                       ? 'bg-green-100 text-green-800'
+                                       : 'bg-red-100 text-red-800'
+                                          }`}>
+                                          {page.available}
+                                       </span>
                                     </Table.Cell>
                                     <Table.Cell>{page.numberFloors}</Table.Cell>
                                     <Table.Cell>{page.propertySize}</Table.Cell>
@@ -149,16 +159,11 @@ export default function DashPagesFinished() {
                                     <Table.Cell>
                                         <div className="flex space-x-2">
                                             <Link to={`/Update-Page/${page._id}`}>
-                                                <Button size="sm" color="info">Edit</Button>
+                                                <button className=' bg-blue-100 text-blue-600 hover:bg-blue-200 px-6 py-2 rounded-md'>Edit</button>
                                             </Link>
-                                            <Button size="sm" color="failure" onClick={() => {
-                                                setShowModal(true);
-                                                setPageIdToDelete(page._id);
-                                            }}>
-                                                Delete
-                                            </Button>
+                                            <button className=' bg-red-100 text-red-600 hover:bg-red-200 px-6 py-2 rounded-md' onClick={() => {setShowModal(true); setPageIdToDelete(page._id);}}>Delete</button>
                                             <Link to={`/Projects/${page.slug}`}>
-                                                <Button size="sm" color="success">View</Button>
+                                                <button className=' bg-green-100 text-green-600 hover:bg-green-200 px-6 py-2 rounded-md'>View</button>
                                             </Link>
                                         </div>
                                     </Table.Cell>

@@ -131,9 +131,10 @@ export default function DashUsers() {
             <title>User Management</title>
         </Helmet>
         <div className="p-4 bg-white dark:bg-gray-800 min-h-screen border-t">
-            <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">User Management</h1>
-
-            <div className="mb-4 flex flex-wrap gap-2 items-center justify-between">
+          <div className='bg-[#004483]/20 px-4 py-6 mb-4 rounded-lg'>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">User Management</h1>
+          </div>
+            <div className="mb-4 flex flex-wrap gap-2 items-center justify-between p-4 border rounded-lg">
                 <div className="flex flex-wrap gap-2 items-center">
                     <Dropdown label={`Role: ${role.charAt(0).toUpperCase() + role.slice(1)}`} inline>
                         <Dropdown.Item onClick={() => setRole("admin")}>Admin</Dropdown.Item>
@@ -170,11 +171,12 @@ export default function DashUsers() {
                     <TbLoaderQuarter className="text-4xl animate-spin text-blue-500" />
                 </div>
             ) : filteredUsers.length > 0 ? (
-                <div className="overflow-x-auto shadow-lg rounded-lg">
+                <div className="overflow-x-auto border rounded-lg">
                     <Table hoverable>
-                        <Table.Head>
+                        <Table.Head className='border-b'>
                             <Table.HeadCell>User</Table.HeadCell>
                             <Table.HeadCell>Email</Table.HeadCell>
+                            <Table.HeadCell>Phone Number</Table.HeadCell>
                             <Table.HeadCell>Role</Table.HeadCell>
                             <Table.HeadCell>Status</Table.HeadCell>
                             {role === "admin" && <Table.HeadCell>Actions</Table.HeadCell>}
@@ -190,6 +192,7 @@ export default function DashUsers() {
                                         </div>
                                     </Table.Cell>
                                     <Table.Cell>{user.email}</Table.Cell>
+                                    <Table.Cell>{user.number}</Table.Cell>
                                     <Table.Cell>
                                         <Badge color={user.isAdmin ? "success" : user.isBroker ? "info" : "gray"}>
                                             {user.isAdmin ? "Admin" : user.isBroker ? "Broker" : "User"}

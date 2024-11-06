@@ -5,11 +5,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import Logoelsarh from '../../assets/images/logoElsarh.png'
 import LogoelsarhTwo from '../../assets/images/logo_e_w.png'
 import { Avatar, Dropdown } from "flowbite-react";
-import { HiChartPie, HiCog, HiDocumentAdd, HiLogout, HiMoon, HiSun, HiUser } from "react-icons/hi";
 import { logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice';
 import { toggleTheme } from '../redux/theme/themeSlice';
-import { BsBrightnessHigh, BsChatLeftTextFill, BsInboxes, BsMailbox, BsMoon, BsOutlet, BsPatchCheck, BsPieChart, BsSliders, BsWindowStack } from "react-icons/bs";
-import { BsSearch,BsToggles  } from "react-icons/bs";
+import { BsSearch } from "react-icons/bs";
+import { FaComments ,FaColumns,FaCoins ,FaCogs,FaDoorOpen,FaMoon ,FaUser ,FaSun } from "react-icons/fa";
 
 export default function Header() {
   const [showNavbar, setShowNavbar] = useState(false);
@@ -151,19 +150,19 @@ export default function Header() {
                       <span className="block text-sm">{currentUser.name}</span>
                       <span className="block truncate text-sm font-medium">{currentUser.email}</span>
                     </Dropdown.Header>
-                    <Link to={"/Dashboard?tab=Profile"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsPatchCheck className='me-2 text-lg'/><span>Profile</span></div></Dropdown.Item></Link>
+                    <Link to={"/Dashboard?tab=Profile"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaUser className='me-2 text-base'/><span>Profile</span></div></Dropdown.Item></Link>
                     {currentUser.isAdmin &&<div>
-                    <Link to={"/CreatePage"} className='group/anmit'> <Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsWindowStack className='me-2 text-lg'/><span>Create Page</span></div> </Dropdown.Item></Link>
-                    <Link to={"/Dashboard?tab=dashbordData"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} ><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsPieChart className='me-2 text-lg'/><span>Dashboard</span></div></Dropdown.Item> </Link>
+                    <Link to={"/CreatePage"} className='group/anmit'> <Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaColumns  className='me-2 text-lg'/><span>Create Page</span></div> </Dropdown.Item></Link>
+                    <Link to={"/Dashboard?tab=dashbordData"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} ><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaCoins className='me-2 text-lg'/><span>Dashboard</span></div></Dropdown.Item> </Link>
                     </div>}
                     {currentUser.isBroker &&
                     <div>
-                    <Link to={"/PageBroker"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsInboxes className='me-2 text-lg'/><span>Contact List</span></div></Dropdown.Item></Link>
+                    <Link to={"/PageBroker"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaComments  className='me-2 text-lg'/><span>Contact List</span></div></Dropdown.Item></Link>
                     </div>}
-                    <Dropdown.Item onClick={()=>dispatchTheme(toggleTheme())} className='group/anmit'> <div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'>{theme === "light" ?  <BsMoon className='me-2 text-lg'/>:<BsBrightnessHigh className='me-2 text-lg'/>}<span>{theme === "light" ?'Dark Mode':"Light Mode"}</span></div></Dropdown.Item>
-                    <Link to={"/Settings"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} className='group/anmit'><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsSliders  className='me-2 text-lg'/><span>Settings</span></div></Dropdown.Item></Link>
+                    <Dropdown.Item onClick={()=>dispatchTheme(toggleTheme())} className='group/anmit'> <div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'>{theme === "light" ?  <FaMoon  className='me-2 text-base'/>:<FaSun className='me-2 text-lg'/>}<span>{theme === "light" ?'Dark Mode':"Light Mode"}</span></div></Dropdown.Item>
+                    <Link to={"/Settings"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} className='group/anmit'><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaCogs  className='me-2 text-lg'/><span>Settings</span></div></Dropdown.Item></Link>
                     <Dropdown.Divider />
-                    <Dropdown.Item onClick={()=>{setMenuActions(false) ,handleSignout()}} className='group/anmit '><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-red-500 dark:group-hover/anmit:text-red-400'><BsOutlet className='me-2 text-lg'/><span>Sign out</span></div></Dropdown.Item>
+                    <Dropdown.Item onClick={()=>{setMenuActions(false) ,handleSignout()}} className='group/anmit '><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-red-500 dark:group-hover/anmit:text-red-400'><FaDoorOpen className='me-2 text-lg'/><span>Sign out</span></div></Dropdown.Item>
                   </Dropdown>
                 </li>
                 :<li className='absolute top-2 left-4 md:static md:ms-2'>
@@ -232,19 +231,19 @@ export default function Header() {
                         <span className="block text-sm font-bold">{currentUser.name}</span>
                         <span className="block truncate text-sm font-medium">{currentUser.email}</span>
                       </Dropdown.Header>
-                      <Link to={"/Dashboard?tab=Profile"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsPatchCheck className='me-2 text-lg'/><span>Profile</span></div></Dropdown.Item></Link>
+                      <Link to={"/Dashboard?tab=Profile"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaUser className='me-2 text-base'/><span>Profile</span></div></Dropdown.Item></Link>
                       {currentUser.isAdmin &&<div>
-                      <Link to={"/CreatePage"} className='group/anmit'> <Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsWindowStack className='me-2 text-lg'/><span>Create Page</span></div> </Dropdown.Item></Link>
-                      <Link to={"/Dashboard?tab=dashbordData"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} ><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsPieChart  className='me-2 text-lg'/><span>Dashboard</span></div></Dropdown.Item> </Link>
+                      <Link to={"/CreatePage"} className='group/anmit'> <Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaColumns  className='me-2 text-lg'/><span>Create Page</span></div> </Dropdown.Item></Link>
+                      <Link to={"/Dashboard?tab=dashbordData"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} ><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaCoins  className='me-2 text-lg '/><span>Dashboard</span></div></Dropdown.Item> </Link>
                       </div>}
                       {currentUser.isBroker &&
                       <div>
-                      <Link to={"/PageBroker"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsInboxes  className='me-2 text-lg'/><span>Contact List</span></div></Dropdown.Item></Link>
+                      <Link to={"/PageBroker"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaComments   className='me-2 text-lg'/><span>Contact List</span></div></Dropdown.Item></Link>
                       </div>}
-                      <Dropdown.Item onClick={()=>dispatchTheme(toggleTheme())} className='group/anmit'> <div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'>{theme === "light" ?  <BsMoon className='me-2 text-lg'/>:<BsBrightnessHigh className='me-2 text-lg'/>}<span>{theme === "light" ?'Dark Mode':"Light Mode"}</span></div></Dropdown.Item>
-                      <Link to={"/Settings"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} className='group/anmit'><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><BsSliders className='me-2 text-lg'/><span>Settings</span></div></Dropdown.Item></Link>
+                      <Dropdown.Item onClick={()=>dispatchTheme(toggleTheme())} className='group/anmit'> <div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'>{theme === "light" ?  <FaMoon  className='me-2 text-base'/>:<FaSun className='me-2 text-lg'/>}<span>{theme === "light" ?'Dark Mode':"Light Mode"}</span></div></Dropdown.Item>
+                      <Link to={"/Settings"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} className='group/anmit'><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaCogs className='me-2 text-lg'/><span>Settings</span></div></Dropdown.Item></Link>
                       <Dropdown.Divider />
-                      <Dropdown.Item onClick={()=>{setMenuActions(false) ,handleSignout()}} className='group/anmit '><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-red-500 dark:group-hover/anmit:text-red-400'><BsOutlet className='me-2 text-lg'/><span>Sign out</span></div></Dropdown.Item>
+                      <Dropdown.Item onClick={()=>{setMenuActions(false) ,handleSignout()}} className='group/anmit '><div className='group-hover/anmit:translate-x-6 transition-transform flex items-center group-hover/anmit:text-red-500 dark:group-hover/anmit:text-red-400'><FaDoorOpen className='me-2 text-lg'/><span>Sign out</span></div></Dropdown.Item>
                     </Dropdown>
                   </li>
                   :<li className='absolute top-2 left-4 md:static md:ms-2'>
