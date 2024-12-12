@@ -19,7 +19,7 @@ import ShowPage from "./Components/CreatePage/ShowPage.jsx";
 import Contact from "./Components/Contact/Contact.jsx";
 import Settings from "./Components/Settings/Settings.jsx";
 import ButtonTop from "./Components/ButtonTop/ButtonTop.jsx";
-import ShowHomeList from "./Components/Home/ShowHomeList.jsx";
+
  
 function App() {
  
@@ -33,7 +33,7 @@ function App() {
      <div className="relative">
       <ButtonTop/>
      </div>
-     <ShowHomeList/>
+
             <Routes>
          <Route path="/" element={<Home/>}/>
          <Route path="/Signin" element={<SingIn/>}/>
