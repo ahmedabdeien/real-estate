@@ -35,7 +35,7 @@ function SectionShowProjects() {
 
   return (
     <AnimatePresence>
-    <div className="bg-stone-100 dark:bg-stone-900 overflow-hidden">
+    <div dir="rtl" className="bg-stone-100 dark:bg-stone-900 overflow-hidden">
       <div  className="py-8 space-y-3 container ">
         <div className="px-2 flex justify-center items-center">
           <div className=" mb-5 flex justify-center items-center flex-col">

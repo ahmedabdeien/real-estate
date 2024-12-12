@@ -48,18 +48,18 @@ function Signin() {
   };
 
   return (
-    <section className=" md:min-h-screen bg-stone-100 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+    <section dir="rtl" className=" md:min-h-screen bg-stone-100 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full space-y-8 bg-white border p-10 rounded-xl shadow-sm">
         <div>
           <h2 className=" text-center text-3xl font-extrabold text-gray-900">
-            Sign In
+          تسجيل الدخول
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
-                Email address
+              عنوان البريد الإلكتروني
               </label>
               <input
                 id="email"
@@ -67,13 +67,13 @@ function Signin() {
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder=" البريد الإلكتروني"
                 onChange={handleChange}
               />
             </div>
             <div className="relative">
               <label htmlFor="password" className="sr-only">
-                Password
+              كلمة المرور
               </label>
               <input
                 id="password"
@@ -81,12 +81,12 @@ function Signin() {
                 type={visible ? "text" : "password"}
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Password"
+                placeholder="كلمة المرور"
                 onChange={handleChange}
               />
               <div
                 onClick={() => setVisible(!visible)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
+                className="absolute inset-y-0 z-20 left-0 pe-3 flex items-center text-sm leading-5 cursor-pointer"
               >
                 {visible ? (
                   <FaEyeSlash className="h-5 w-5 text-gray-500" />
@@ -103,7 +103,7 @@ function Signin() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#033e8a] hover:bg-[#033e8a]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
             </button>
           </div>
 
@@ -113,7 +113,7 @@ function Signin() {
                 to="/signup"
                 className="font-medium text-[#033e8a] hover:text-[#033e8a]/80"
               >
-                Don't have an account? Sign Up
+                ليس لديك حساب؟ قم بالتسجيل
               </Link>
             </div>
           </div>
@@ -126,7 +126,7 @@ function Signin() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white text-gray-500">
-                Or continue with
+              أو الاستمرار مع
               </span>
             </div>
           </div>

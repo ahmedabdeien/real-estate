@@ -1,17 +1,16 @@
 import { Carousel } from "flowbite-react";
 import { PhotoProvider } from "react-photo-view";
 import photosOne from "../../assets/images/realestateimages.jpg";
-import photostwo from "../../assets/images/image_fx.jpg";
 import photosthree from "../../assets/images/image_fx2.jpeg";
 import { BsArrowLeft, BsArrowRight } from "react-icons/bs";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function SectionCarousel() {
-  const sections = [photosOne, photostwo, photosthree];
+  const sections = [photosOne, photosthree];
   const datatext = [
-    "Choosing Elsarh Investment Real Estate means getting the ideal partner who ensures success in all aspects of your real estate investments.",
-    "We offer properties in prime locations that ensure value appreciation over time.",
-    "We provide the highest standards of quality in construction and design, ensuring you long-lasting comfort and luxury.",
+    "نحن نقدم أعلى معايير الجودة في البناء والتصميم، لضمان لك الراحة والفخامة على المدى الطويل.",
+    "اختيار شركة الصرح للاستثمار العقاري يعني الحصول على الشريك المثالي الذي يضمن لك النجاح في كافة جوانب استثماراتك العقارية.",
   ];
 
   const [showNavbarCarousel, setShowNavbarCarousel] = useState(false);
@@ -37,11 +36,11 @@ function SectionCarousel() {
     <div
       className={`${
         showNavbarCarousel ? "scale-100 " : "scale-95"
-      } bg-white transition-all duration-300 `}
+      } bg-white transition-all duration-300`}
     >
       <div
         className={`${
-          showNavbarCarousel ? "rounded-none" : "rounded-xl"
+          showNavbarCarousel ? "rounded-none" : "rounded-2xl"
         }  overflow-hidden transition-all`}
       >
         <PhotoProvider>
@@ -59,18 +58,21 @@ function SectionCarousel() {
             }
           >
             {sections.map((image, index) => (
-              <div key={index} className="relative">
+              <div key={index} className="relative bg-slate-500">
                 <img
                   src={image}
                   alt={`Real estate image ${index + 1}`}
-                  className="w-full md:h-96 h-72 object-cover"
+                  className="w-full md:h-[30rem] h-72"
                 />
-                <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-start ps-6 md:ps-16">
-                  <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 text-black font-semibold hidden md:block md:w-96 lg:w-1/3 rounded-2xl">
-                    <p className="text-sm lg:text-base">{datatext[index]}</p>
+                <div className="absolute top-0 right-0-0 w-full h-full flex flex-col justify-center items-end pe-6 md:pe-16">
+                  <div className="bg-white/90 backdrop-blur-sm p-4 md:p-6 text-black  hidden md:block md:w-96 lg:w-1/3 rounded-2xl">
+                    <p className="text-sm lg:text-base text-end">{datatext[index]}</p>
+                    <div className="mt-4 flex justify-end "> 
+                    <Link to='/Projects/sarayat-abdeen-compound'><button className='bg-[#004483] font-medium transition-all text-white py-2 px-4 rounded-lg hover:bg-white hover:outline hover:text-[#004483]'>عرض المزيد</button></Link>
+                    </div>
                     <div className="mt-2">
-                      <h1 className="text-xs font-bold text-[#ff9505]  py-1 rounded">
-                        Section {index + 1}/3
+                      <h1 className="text-xs text-center font-bold text-[#ff9505]  py-1 rounded">
+                       قسم {index + 1}/2 
                       </h1>
                     </div>
                   </div>

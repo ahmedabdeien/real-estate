@@ -20,6 +20,7 @@ const ProjectCard = ({ item, index }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      <Link to={`/Projects/${item.slug}`} className="">
       <div className="relative overflow-hidden w-full ">
         <motion.img
           src={item.imageUrls[0]}
@@ -34,9 +35,9 @@ const ProjectCard = ({ item, index }) => {
           <BsSearch className="text-white text-4xl" />
         </motion.div>
         
-      </div>
+      </div></Link>
       <motion.div
-        className={`absolute top-4 left-4 px-3 py-1 rounded-full text-sm font-semibold ${
+        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold ${
           item.available === "available" ? "bg-[#ff9505]" : "bg-[#353531] border border-white/30"
         } text-white`}
         initial={{ opacity: 1, x: 1 }}
@@ -58,8 +59,9 @@ const ProjectCard = ({ item, index }) => {
             whileHover={{ scale: 1.02,  }}
             whileTap={{ scale: 0.95 }}
           >
-            <span className="mr-2">Explore Project</span>
             <BsArrowRightShort className='text-2xl' />
+            <span className="ms-1">عرض المشروع</span>
+            
           </motion.div>
         </Link>
       </div>
@@ -128,7 +130,7 @@ export default function Project() {
         <title>Stunning Projects - ElSarh Real Estate</title>
         <meta name="description" content="Explore our breathtaking collection of luxurious properties and unique real estate opportunities." />
       </Helmet>
-      <div className='pb-8  px-2 md:px-4 bg-stone-100 overflow-hidden dark:from-gray-800 dark:to-gray-900 min-h-screen pt-5'>
+      <div dir="rtl" className='pb-8 px-2 md:px-4 bg-stone-100 overflow-hidden dark:from-gray-800 dark:to-gray-900 min-h-screen pt-5'>
         <div className=" container mx-auto space-y-7">
           <motion.div 
             className="p-3 md:p-4 lg:p-6 bg-white  text-black  border-t border-b-4 border-b-[#ff9505] shadow overflow-hidden relative"
@@ -143,8 +145,8 @@ export default function Project() {
               className="absolute top-0 right-0 w-64 h-64"
             >
             </motion.div>
-            <h1 className="text-4xl md:text-4xl font-bold mb-4 relative text-[#002E66] z-10">Discover Our Projects</h1>
-            <p className="text-xl font-light max-w-2xl relative z-10 text-[#353531]">Explore a world of luxurious properties and innovative real estate solutions designed to exceed your expectations.</p>
+            <h1 className="text-4xl md:text-4xl font-bold mb-2 relative text-[#002E66] z-10"> مشاريعنا</h1>
+            <p className="text-xl font-light max-w-2xl relative z-10 text-[#353531]">اكتشف عالمًا من العقارات الفاخرة والحلول العقارية المبتكرة المصممة لتتجاوز توقعاتك.</p>
            
             <motion.div 
             className="relative mt-5"
@@ -154,12 +156,12 @@ export default function Project() {
           >
             <input
               type="text"
-              placeholder="Search projects . . ."
+              placeholder="البحث عن المشاريع . . ."
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-full px-6 py-4 text-lg bg-stone-100 dark:bg-gray-700 rounded-2xl focus:bg-white border-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#353531] dark:text-white"
             />
-            <BsSearch className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
+            <BsSearch className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
           </motion.div>
 
           </motion.div>
@@ -183,7 +185,7 @@ export default function Project() {
               transition={{ duration: 0.5 }}
               className="text-center py-12"
             >
-              <p className="text-2xl text-gray-600 dark:text-gray-300">No projects found. Try a different search term.</p>
+              <p className="text-2xl text-gray-600 dark:text-gray-300">لم يتم العثور على أي مشاريع. جرّب مصطلح بحث مختلفًا.</p>
             </motion.div>
           )}
         </div>

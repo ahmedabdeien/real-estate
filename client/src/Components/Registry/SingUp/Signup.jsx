@@ -70,11 +70,11 @@ function Signup() {
   };
 
   return (
-    <section className="md:min-h-screen bg-stone-100 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+    <section dir="rtl" className="md:min-h-screen bg-stone-100 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl w-full space-y-8 p-10  bg-white border rounded-xl shadow">
         <div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+          إنشاء حساب جديد
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -89,7 +89,7 @@ function Signup() {
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Name"
+                placeholder="اسمك"
                 onChange={handleChange}
               />
             </div>
@@ -103,7 +103,7 @@ function Signup() {
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Username"
+                placeholder="اسم المستخدم@"
                 onChange={handleChange}
               />
             </div>
@@ -117,7 +117,7 @@ function Signup() {
                 type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                placeholder=" البريد الإلكتروني"
                 onChange={handleChange}
               />
             </div>
@@ -131,7 +131,7 @@ function Signup() {
                 type="number"
                 number="number"
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Phone Number"
+                placeholder="رقم الموبايل"
                 onChange={handleChange}
               />
             </div>
@@ -145,12 +145,12 @@ function Signup() {
                 type={visible ? "text" : "password"}
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="Password"
+                placeholder="كلمة المرور"
                 onChange={handleChange}
               />
               <div
                 onClick={() => setVisible(!visible)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 cursor-pointer"
+                className="absolute inset-y-0 left-0 pe-3 z-20 flex items-center text-sm leading-5 cursor-pointer"
               >
                 {visible ? (
                   <FaEyeSlash className="h-5 w-5 text-gray-500" />
@@ -167,7 +167,7 @@ function Signup() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#033e8a] hover:bg-[#033e8a]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing Up..." : "Sign Up"}
+              {loading ? "جاري التسجيل..." : "تسجيل"}
             </button>
           </div>
         </form>
@@ -179,7 +179,7 @@ function Signup() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white text-gray-500">
-                Or continue with
+              أو الاستمرار مع
               </span>
             </div>
           </div>
@@ -190,12 +190,12 @@ function Signup() {
         </div>
 
         <div className="flex justify-center items-center mt-6">
-          <p className="text-sm text-gray-600">Already have an account?</p>
+          <p className="text-sm text-gray-600">هل لديك حساب بالفعل؟</p>
           <Link
             to="/signin"
-            className="ml-1 font-medium text-[#033e8a] hover:text-[#033e8a]/80"
+            className="ms-1 font-medium text-[#033e8a] hover:text-[#033e8a]/80"
           >
-            Sign In
+            تسجيل الدخول
           </Link>
         </div>
 

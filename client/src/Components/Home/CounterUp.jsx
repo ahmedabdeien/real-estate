@@ -22,13 +22,13 @@ export default function CounterUp() {
   }, []);
 
   const counterItems = [
-    { end: 280, text: "Our Projects" },
-    { end: 30, text: "Projects Under Construction" },
-    { end: 3570, text: "Units Delivered" },
+    { end: 90, text: "مشاريعنا" },
+    { end: 8, text: "مشاريع تحت الإنشاء" },
+    { end: 1160, text: "الوحدات التي تم تسليمها" },
   ];
 
   return (
-    <div ref={counterRef} className="w-full bg-gradient-to-br from-[#033e8a] to-[#016FB9] py-16 ">
+    <div ref={counterRef} className="w-full bg-gradient-to-br from-[#033e8a] to-[#016FB9] py-16 text-center">
       <div className="container mx-auto">
         <motion.h2 
           initial={{ opacity: 0, y: -20 }}
@@ -36,7 +36,7 @@ export default function CounterUp() {
           transition={{ duration: 0.6 }}
           className="text-4xl font-bold text-center text-white mb-10"
         >
-          Our Achievements
+          إنجازاتنا
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {counterItems.map((item, index) => (
@@ -45,7 +45,7 @@ export default function CounterUp() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              className="p-8 rounded-2xl bg-white/10 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+              className="p-8 font-sans rounded-xl bg-white/10 backdrop-blur-md shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
             >
               <motion.div
                 initial={{ scale: 0 }}

@@ -4,12 +4,12 @@ import { BsStarFill, BsStarHalf, BsStar } from "react-icons/bs";
 
 export default function Reviews() {
   const reviews = [
-    { name: "Dr. Essam Mohamed", review: "I dealt with 'El Sarh' to buy my first home, and the experience was beyond amazing. The quality of construction and exceptional service made me feel confident in my choice.", rating: 5 },
-    { name: "Eng. Mohammed", review: "A professional company in every sense! I purchased an apartment through 'El Sarh,' and they were committed to on-time delivery with a design that exceeded expectations.", rating: 4.5 },
-    { name: "Prof. Ali Ahmed", review: "What sets 'El Sarh' apart is their attention to the smallest details. From the start of the project to its completion, they provided us with a smooth and comfortable experience.", rating: 4 },
-    { name: "Eng. Khaled Tawfiq", review: "'El Sarh's' projects are always of high quality. The team was very helpful and assisted me in finding the perfect home.", rating: 4.5 },
-    { name: "Prof. Nadia Mohammed", review: "If you're looking for a reliable and reputable real estate company, I highly recommend 'El Sarh.' Their modern designs and excellent service make them the best.", rating: 4.5 },
-    { name: "Dr. Emad Al-Sayed", review: "It was an exceptional experience with 'El Sarh.' The community atmosphere they create in their projects is unique, and I am very happy with my decision to buy a home through them.", rating: 4.5 },
+    { name: "د. عصام محمد", review: 'تعاملت مع شركة "الصرح" لشراء منزلي الأول، وكانت التجربة أكثر من رائعة، جودة البناء والخدمة المتميزة جعلتني أشعر بالثقة في اختياري.', rating: 5 },
+    { name: "م. محمد", review: "شركة محترفة بكل ما تحمله الكلمة من معنى، اشتريت شقة من خلال شركة 'الصرح'، وكانوا ملتزمين بالتسليم في الموعد المحدد وبتصميم فاق التوقعات.", rating: 4.5 },
+    { name: "ا. علي احمد", review: "ما يميز 'الصرح' هو اهتمامهم بأدق التفاصيل، فمنذ بداية المشروع وحتى اكتماله، قدموا لنا تجربة سلسة ومريحة.", rating: 4 },
+    { name: "م. خالد توفيق", review: "مشاريع 'الصرح' دائما ما تكون ذات جودة عالية، وكان الفريق متعاونا للغاية وساعدني في العثور على المنزل المثالي.", rating: 4.5 },
+    { name: "ا. نادية محمد", review: "إذا كنت تبحث عن شركة عقارية موثوقة وذات سمعة طيبة، أنصحك بشدة بشركة 'الصرح' حيث أن تصاميمها الحديثة وخدماتها الممتازة تجعلها الأفضل.", rating: 4.5 },
+    { name: "د. عماد السيد", review: "كانت تجربة استثنائية مع 'الصرح'، فالأجواء المجتمعية التي يخلقونها في مشاريعهم فريدة من نوعها، وأنا سعيدة جدًا بقرار شراء منزل من خلالهم.", rating: 4.5 },
   ];
 
   // Shuffle function
@@ -26,7 +26,7 @@ export default function Reviews() {
   const shuffledReviews = shuffle([...reviews]);
 
   return (
-    <div className='py-8  overflow-hidden bg-stone-100 dark:from-gray-900 dark:to-indigo-900'>
+    <div dir="rtl" className='py-8  overflow-hidden bg-stone-100 dark:from-gray-900 dark:to-indigo-900'>
       <div className=" container mx-auto">
         <motion.h2 
           className="text-3xl font-bold text-center mb-8 text-[#353531] "
@@ -34,7 +34,7 @@ export default function Reviews() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          What Our Clients Say
+          ماذا يقول عملاؤنا
         </motion.h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {shuffledReviews.slice(0, 3).map((review, index) => (
@@ -50,7 +50,7 @@ export default function Reviews() {
                   <img
                     src={`https://api.dicebear.com/6.x/initials/svg?seed=${review.name}`}
                     alt={review.name}
-                    className="w-12 h-12 rounded-full mr-4"
+                    className="w-12 h-12 rounded-full me-4"
                   />
                   <h3 className="text-lg font-semibold text-[#353531] dark:text-indigo-300">
                     {review.name}
@@ -62,15 +62,13 @@ export default function Reviews() {
                     {Array.from({ length: 5 }, (_, i) => {
                       if (i + 1 <= Math.floor(review.rating)) {
                         return <BsStarFill key={i} className="text-yellow-400" />;
-                      } else if (i < review.rating && i + 1 > Math.floor(review.rating)) {
-                        return <BsStarHalf key={i} className="text-yellow-400" />;
                       } else {
                         return <BsStar key={i} className="text-yellow-400" />;
                       }
                     })}
                   </div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {review.rating} stars
+                  <span className="text-sm  text-gray-500 dark:text-gray-400">
+                    {review.rating} النجوم
                   </span>
                 </div>
               </div>

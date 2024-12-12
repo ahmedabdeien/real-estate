@@ -21,17 +21,17 @@ function Contact() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Helmet>
 
-      <div className="dark:bg-gray-900  bg-stone-100 py-5 overflow-hidden ">
-        <div className=" space-y-5 container mx-auto">
+      <div dir="rtl" className="dark:bg-gray-900  bg-stone-100 py-5 overflow-hidden ">
+        <div className=" space-y-5 container  mx-auto">
 
 
-          <motion.div
-            className="bg-white border dark:bg-gray-800 p-6 py-16 border-b-4 border-b-[#ff9505] shadow-md"
+          <motion.div 
+            className="bg-white border dark:bg-gray-800 p-6 py-8 border-b-4 border-b-[#ff9505]  shadow-md"
             {...fadeIn}
           >
-            <h2 className="text-3xl font-bold text-[#002E66] dark:text-gray-300 mb-2">Stay in touch with ElSarh company</h2>
-            <p className="text-[#353531] dark:text-gray-400 text-lg">
-              At El Sarh Real Estate Investment Company, we are committed to delivering exceptional service and addressing all your real estate needs. Whether you're interested in residential, commercial, or investment properties, or simply have a question or concern, our dedicated team is here to assist you.
+            <h2 className="text-3xl font-bold text-[#002E66] dark:text-gray-300 mb-2 ">ابقى على تواصل مع شركة الصرح</h2>
+            <p className="text-[#353531] dark:text-gray-400 text-lg ">
+            في شركة الصرح للاستثمار العقاري، نحن ملتزمون بتقديم خدمة استثنائية وتلبية جميع احتياجاتك العقارية. سواء كنت مهتمًا بالعقارات السكنية أو التجارية أو الاستثمارية، أو لديك سؤال أو استفسار، فإن فريقنا المتخصص موجود لمساعدتك .
             </p>
           </motion.div>
 
@@ -43,9 +43,9 @@ function Contact() {
               {...fadeIn}
             >
               <div className="p-6 border-b dark:border-gray-700">
-                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-4">Contact Information</h3>
-                <p className="text-[#353531]/80 dark:text-gray-400 mb-2">We are open 7 days a week, from 9:00 AM to 5:00 PM.</p>
-                <p className="text-[#353531]/80 dark:text-gray-400">Please let us know if you have any questions or need assistance.</p>
+                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-4">معلومات الاتصال</h3>
+                <p className="text-[#353531]/80 dark:text-gray-400 mb-2">نحن مفتوحون 6 أيام في الأسبوع، من الساعة 10:00 صباحًا حتى 5:00 مساءً.</p>
+                <p className="text-[#353531]/80 dark:text-gray-400">يرجى إعلامنا إذا كان لديك أي أسئلة أو تحتاج إلى مساعدة.</p>
               </div>
               <div className="flex-grow">
                 <motion.a
@@ -53,16 +53,16 @@ function Contact() {
                   className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
                   whileHover={{ x: 10 }}
                 >
-                  <BsEnvelope className="text-3xl text-[#ff9505] mr-4" />
-                  <p className="text-gray-800 dark:text-gray-300">elsarhegypt@gmail.com</p>
+                  <BsEnvelope className="text-3xl text-[#ff9505]" />
+                  <p className="text-gray-800 dark:text-gray-300 mr-2">elsarhegypt@gmail.com</p>
                 </motion.a>
                 <motion.a
                   href="tel:+201212622210"
                   className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
                   whileHover={{ x: 10 }}
                 >
-                  <BsTelephone className="text-3xl text-[#ff9505] mr-4" />
-                  <p className="text-gray-800 dark:text-gray-300">+201212622210</p>
+                  <BsTelephone className="text-3xl text-[#ff9505] " />
+                  <p className="text-gray-800 dark:text-gray-300 mr-2">01212622210</p>
                 </motion.a>
                 <motion.a
                   href="https://maps.app.goo.gl/yv9HDSAdmwAT2Lft8"
@@ -71,11 +71,24 @@ function Contact() {
                   className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
                   whileHover={{ x: 10 }}
                 >
-                  <BsGeoAlt className="text-3xl text-[#ff9505] mr-4" />
+                  <BsGeoAlt className="text-3xl text-[#ff9505] me-2" />
                   <div>
-                    <p className="text-gray-800 dark:text-gray-300">14 El Mokhtar Street from Nasr Street
-                    New Maadi, Cairo</p>
-                    <p className="text-red-600">Go to Google Map</p>
+                    <p className="text-gray-800 dark:text-gray-300">14 شارع المختار من شارع النصر
+                    المعادى الجديدة, القاهرة</p>
+                    <p className="text-red-600">انتقل إلى خريطة </p>
+                  </div>
+                </motion.a>
+                <motion.a
+                  href="https://maps.app.goo.gl/ypNfngvXQSosxsXM9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
+                  whileHover={{ x: 10 }}
+                >
+                  <BsGeoAlt className="text-3xl text-[#ff9505] me-2" />
+                  <div>
+                    <p className="text-gray-800 dark:text-gray-300"> شارع محمد حميدة فوق بنك مصر, بني سويف</p>
+                    <p className="text-red-600">انتقل إلى خريطة </p>
                   </div>
                 </motion.a>
               </div>
@@ -89,7 +102,7 @@ function Contact() {
               {...fadeIn}
             >
               <div className="p-5">
-                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-6">Get In Touch</h3>
+                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-6">تواصل معنا</h3>
                 
                 <FormContact/>
               </div>

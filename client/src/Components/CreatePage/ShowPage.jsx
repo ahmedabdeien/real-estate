@@ -76,11 +76,11 @@ function ShowPage() {
     <main className=" w-full bg-stone-100 dark:bg-gray-800 ">
       
       {currentUser?.isAdmin && ( // Add a safe check here
-        <div className="fixed top-1/2 left-0 z-50">
-          <button className="hover:scale-150 hover:translate-x-5 transition-transform ">
+        <div className="fixed top-1/2 right-0 z-50">
+          <button className="hover:scale-125 hover:-translate-x-5 transition-transform ">
             <Link to={`/Update-Page/${pages._id}`} className="p-3 bg-[#ff9505] text-[#353531] flex items-center justify-center space-x-1">
               <span>
-                Edit Page
+              تعديل الصفحة
               </span>
               <BsGear className="size-6 animate-pulse"/>
             </Link>
@@ -104,7 +104,7 @@ function ShowPage() {
           </PhotoProvider>
         </div>      
     </div>
-    <div className=" container py-5">
+    <div dir="rtl" className=" container py-5">
       <div className="bg-white rounded-2xl shadow border">
         <div className=" space-y-2 py-5 ">
         <div className="px-5">
@@ -128,40 +128,40 @@ function ShowPage() {
       <div className={`dark:bg-gray-700 grid ${pages.imagePlans && pages.imagePlans.length > 0 ? "lg:grid-cols-2": "lg:grid-cols-1"}  gap-4 py-4`}>
          <div className="bg-white shadow p-5 rounded-2xl">
         <h5 className=" text-[#353531] pb-2 dark:text-white dark:border-gray-600">
-          <span className="text-2xl font-bold">Project Details</span>
+          <span className="text-2xl font-bold">تفاصيل المشروع</span>
         </h5>
         <div className=" ">
           <div className="divide-y border-y dark:divide-gray-600 dark:border-gray-600  dark:bg-gray-700 ">
           <div className="flex items-center justify-between space-x-3 py-1">
-          <h4 className="text-lg">The Project Size: </h4>
+          <h4 className="text-lg">مساحة المشروع: </h4>
           <p className="font-bold"><span className="text-[#016FB9] ">{pages && pages.propertySize} m<sup>2</sup></span></p>
           <FaBorderStyle className="text-[#ff9505]"/>
          </div>
          <div className="flex items-center justify-between space-x-3 py-1">
-            <h4 className="text-lg">Number Floors:</h4>
+            <h4 className="text-lg">عدد الادوار:</h4>
            <p className="font-bold"><span className="text-[#016FB9] ">{pages && pages.numberFloors}</span></p>
             <FaBuilding className="text-[#ff9505]"/>
          </div>
          <div className="flex items-center justify-between space-x-3 py-1">
-            <h4 className="text-lg">Apartments:</h4>
-           <p className="font-bold translate-x-5"><span className={`${pages && pages.available == "available"? 'text-green-500':"text-red-500"} `}>{pages && pages.available}</span></p>
+            <h4 className="text-lg">الشقق:</h4>
+           <p className="font-bold -translate-x-5"><span className={`${pages && pages.available == "available"? 'text-green-500':"text-red-500"} `}>{pages && pages.available}</span></p>
            {pages && pages.available == "available"? <FaCheck className="text-[#016FB9]"/> :<FaTimes className="text-[#ff9505]"/>}
          </div>
          <div className="flex flex-wrap items-center justify-between space-x-3 py-1 ">
-            <h4 className="text-lg">Size Apartments:</h4>
+            <h4 className="text-lg">حجم الشقق:</h4>
             <div>
-             {sizeApartments.map((size,index)=> <ul key={index} className="text-sm text-[#016FB9]">{size && <li>Apartment {index+1} : {size} m<sup>2</sup></li>}</ul>)}
+             {sizeApartments.map((size,index)=> <ul key={index} className="text-sm text-[#016FB9]">{size && <li>شقة {index+1} : {size} م<sup>2</sup></li>}</ul>)}
             </div>
            <FaDrawPolygon className="text-[#ff9505] hidden md:block"/>
          </div>
           </div>
          <div>
-         <span className="text-sm">{pages && new Date(pages.createdAt).toLocaleDateString()} Page created</span>
+         <span className="text-sm">{pages && new Date(pages.createdAt).toLocaleDateString()} تم إنشاء الصفحة</span>
          </div>
 
          <div className={`${showNew?"hidden w-0  ":''} bg-stone-100 dark:bg-blue-950/50 border rounded-xl mt-4 dark:border-blue-900 w-full `}>
           <div className=" flex justify-between items-center p-2">
-            <h4 className="text-lg font-semibold flex items-center space-x-1 dark:text-blue-200"><span>new</span><BsStars className="text-[#ff9505]"/>            </h4>
+            <h4 className="text-lg font-semibold flex items-center space-x-1 dark:text-blue-200"><span>جديد</span><BsStars className="text-[#ff9505]"/>            </h4>
             <FaTimes onClick={()=> setShowNew(!showNew)} className=" hover:text-red-500 cursor-pointer"/>
           </div>
           <div className="border-t mt-1 p-2 dark:border-blue-900">
@@ -173,7 +173,7 @@ function ShowPage() {
 {pages.imagePlans && pages.imagePlans.length > 0 ? 
   <div className="bg-white shadow p-5 rounded-2xl ">
      <h5 className=" text-[#353531] dark:text-white  dark:border-gray-600 text-2xl font-bold">
-        Project Details
+        تصميم الداخلي للمشروع
         </h5>
     <div className=" dark:border-gray-600 w-full bg-stone-100 border mt-3 overflow-hidden ">
       <div className=" bg-stone-200 dark:bg-gray-900 w-full font-bold dark:border-gray-600">
@@ -195,7 +195,7 @@ function ShowPage() {
   <div className="p-5 bg-white rounded-2xl dark:bg-gray-700/40">
     <div className="">
       <h5 className="text-[#353531] dark:text-white ">
-        <span className="text-2xl font-bold">Apartments</span>
+        <span className="text-2xl font-bold">تقسييم الشقق</span>
       </h5>
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
         <PhotoProvider>
@@ -207,10 +207,10 @@ function ShowPage() {
                 </div>
               </PhotoView>
               <div className="flex justify-between w-full p-3 border bg-stone-200">
-                <h5>Apartment {index + 1}</h5>
+                <h5>شقة {index + 1}</h5>
                 <p>
                   {sizeApartments[index] && (
-                    <span>Size <span className="text-[#ff9505]">{sizeApartments[index]} m<sup>2</sup></span></span>
+                    <span>مساحة <span className="text-[#ff9505]">{sizeApartments[index]} م<sup>2</sup></span></span>
                   )}
                 </p>
               </div>

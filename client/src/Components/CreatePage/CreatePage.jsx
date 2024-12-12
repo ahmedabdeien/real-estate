@@ -1,3 +1,4 @@
+
 import { useRef, useState } from "react";
 import {
   getStorage,
@@ -13,6 +14,7 @@ import { Alert } from "flowbite-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { HiArchive } from "react-icons/hi";
+
 
 function CreatePage() {
   const navigate = useNavigate();
@@ -94,11 +96,11 @@ function CreatePage() {
           setUploading(false);
         })
         .catch(() => {
-          setImageUploadError("Image upload failed (2 MB max size per image)");
+          setImageUploadError("فشل تحميل الصورة (الحد الأقصى لحجم الصورة الواحدة هو 2 ميجا بايت)");
           setUploading(false);
         });
     } else {
-      setImageUploadError("You can only upload 6 images");
+      setImageUploadError("يمكنك تحميل 6 صور فقط");
       setUploading(false);
     }
   };
@@ -122,12 +124,12 @@ function CreatePage() {
         })
         .catch(() => {
           setImageUploadErrorPlan(
-            "Image upload failed (2 MB max size per image)"
+            "فشل تحميل الصورة (الحد الأقصى لحجم الصورة الواحدة هو 2 ميجا بايت)"
           );
           setUploadingPlan(false);
         });
     } else {
-      setImageUploadErrorPlan("You can only upload 1 image");
+      setImageUploadErrorPlan("يمكنك تحميل صورة واحدة فقط");
       setUploadingPlan(false);
     }
   };
@@ -150,12 +152,12 @@ function CreatePage() {
         })
         .catch(() => {
           setImageUploadErrorApartment(
-            "Image upload failed (2 MB max size per image)"
+            "فشل تحميل الصورة (الحد الأقصى لحجم الصورة الواحدة هو 2 ميجا بايت)"
           );
           setUploadingApartment(false);
         });
     } else {
-      setImageUploadErrorApartment("You can only upload 8 images");
+      setImageUploadErrorApartment("يمكنك تحميل 8 صور فقط");
       setUploadingApartment(false);
     }
   };
@@ -182,11 +184,11 @@ function CreatePage() {
     });
   };
   const handleChange = (e) => {
-    if(e.target.id === 'available' || e.target.id === 'notAvailable'){
+    if (e.target.id === 'متاح' || e.target.id === 'غير متاح') {
       setFormData({
         ...formData,
-        available: e.target.id
-      })
+        available: e.target.id,
+      });
     }
     if(e.target.type === 'number' || e.target.type === 'text'||e.target.type === "textarea"){
         setFormData({
@@ -201,7 +203,7 @@ function CreatePage() {
     e.preventDefault();
     try {
         if(formData.imageUrls.length < 1){
-            setError('Please upload at least one image');
+            setError('يرجى تحميل صورة واحدة على الأقل');
             return;
         }
         setLoading(true);
@@ -230,27 +232,28 @@ function CreatePage() {
   } 
   let styleIuput = "w-full p-3 border-gray-200 border-2 dark:bg-gray-800/30 dark:border-gray-500 dark:placeholder:text-gray-300 rounded-lg focus:transition-shadow focus:duration-300 focus:ring-0 focus:border-white focus:shadow-[0_0px_0px_2px] focus:shadow-blue-600 dark:focus:border-gray-700";
   return (
+   <div dir="rtl">
     <div className=" w-full bg-gradient-to-r from-gray-50 via-amber-50 to-blue-50 dark:from-gray-800 dark:via-amber-800/20 dark:to-blue-800/30 py-6"> 
        <div className="w-full  ">
         <div className="container mb-6">
           <h1 className=" text-3xl font-bold flex items-center text-black dark:text-white ">
-          <HiArchive className="me-2 text-blue-600"/><span>Create New Page</span>
+          <HiArchive className="me-2 text-blue-600"/><span>انشاء صفحة جديدة</span>
           </h1>
           <p className=" text-gray-500 dark:text-gray-400">
-            Please fill out the form below to create your page
+          يرجى ملء النموذج أدناه لإنشاء صفحتك
           </p>
-        </div>
+      </div>
       
 
-      <div className="md:container">
+      <div className="container">
         <div className="bg-white dark:bg-gray-700 p-5 rounded-2xl shadow-sm">
            <form onSubmit={handleSubmit} className=" grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="w-full space-y-2">
             <div>
-              <label htmlFor="name">Title</label>
+              <label htmlFor="name">اسم المشروع</label>
               <input
                 type="text"
-                placeholder="Title"
+                placeholder="أسم المشروع"
                 id="name"
                 maxLength={60}
                 minLength={3}
@@ -261,10 +264,10 @@ function CreatePage() {
               />
             </div>
             <div>
-              <label htmlFor="address">Address</label>
+              <label htmlFor="address">عنوان المشروع</label>
               <input
                 type="text"
-                placeholder="Address"
+                placeholder="عنوان المشروع"
                 id="address"
                 required
                 className={styleIuput}
@@ -273,10 +276,10 @@ function CreatePage() {
               />
             </div>
             <div>
-              <label htmlFor="description">Description</label>
+              <label htmlFor="description">تفاصيل المشروع</label>
               <textarea
                 type="text"
-                placeholder="Description"
+                placeholder="تفاصيل المشروع"
                 id="description"
                 required
                 className={`${styleIuput} max-h-48 min-h-14`}
@@ -285,22 +288,34 @@ function CreatePage() {
               />
             </div>
             <div className="w-full dark:bg-gray-700 dark:placeholder:text-gray-300 rounded-lg">
-              <p>There are apartments</p>
-              <div  className={`${styleIuput} p-1 flex space-x-5`}>
-                <div className="space-x-2 has-[:checked]:bg-blue-100 has-[:checked]:text-blue-800 has-[:checked]:ring-blue-500 flex items-center p-3 rounded-md">
-                  <input type="checkbox" name="" id="available" checked={formData.available === 'available'} onChange={handleChange}/>
-                  <label htmlFor="available">Available</label>
-                </div>
-                <div className="space-x-2 has-[:checked]:bg-red-100 has-[:checked]:text-red-800 has-[:checked]:ring-red-500 flex items-center p-3 rounded-md">
-                  <input className="checked:bg-red-600 checked:ring-red-600" type="checkbox" id="notAvailable" checked={formData.available === 'notAvailable'} onChange={handleChange}/>
-                  <label htmlFor="notAvailable">Not Available</label>
-                </div>
-              </div>
-            
-            </div>
+    <p>اختار هل؟متاح ام غير متاح شقق</p>
+    <div className={`${styleIuput} p-1 flex space-x-5`}>
+      <div className=" has-[:checked]:bg-blue-100 has-[:checked]:text-blue-800 has-[:checked]:ring-blue-500 flex items-center p-3 rounded-md">
+        <input
+          type="checkbox"
+          name=""
+          id="متاح"
+          checked={formData.available === 'متاح'}
+          onChange={handleChange}
+          className="me-2"
+        />
+        <label htmlFor="متاح">متاح</label>
+      </div>
+      <div className=" has-[:checked]:bg-red-100 has-[:checked]:text-red-800 has-[:checked]:ring-red-500 flex items-center p-3 rounded-md">
+        <input
+          className="checked:bg-red-600 me-2 checked:ring-red-600"
+          type="checkbox"
+          id="غير متاح"
+          checked={formData.available === 'غير متاح'}
+          onChange={handleChange}
+        />
+        <label htmlFor="غير متاح">غير متاح</label>
+      </div>
+    </div>
+  </div>
             <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-2">
               <div>
-                <label htmlFor="numberFloors">Number Floors</label>
+                <label htmlFor="numberFloors">عدد الادوار</label>
                 <input
                   type="number"
                   placeholder="Number Floors"
@@ -314,10 +329,10 @@ function CreatePage() {
                 />
               </div>
               <div>
-                <label htmlFor="Property Size">Property Size</label>
+                <label htmlFor="Property Size">مساحة المشروع</label>
                 <input
                   type="number"
-                  placeholder="Property Size"
+                  placeholder="مساحة المشروع"
                   id="propertySize"
                   min={1}
                   required
@@ -330,8 +345,8 @@ function CreatePage() {
 
             <div className="w-full pt-7">
               <p className="">
-                <span className="font-bold text-black dark:text-white">Image Plan:</span> The
-                first image will be the cover (max 1)
+                <span className="font-bold text-black dark:text-white">تقسييم الدخلي الصورة:</span> 
+                الصورة الأولى ستكون الغلاف (حد أقصى 1)
               </p>
               <input
                 type="file"
@@ -349,14 +364,14 @@ function CreatePage() {
                 <span className="absolute top-0 left-0 w-full h-full cursor-pointer"></span>
                 <div className="flex justify-center items-center flex-col p-3 h-40">
                   <HiPhotograph  className="text-5xl text-blue-600" />
-                  <p>Upload Image Plan</p>
+                  <p>تحميل تقسييم الداخلي الصورة</p>
                   <div
                     className={` mt-2`}
                   >
                     {filesPlan.length ? (
                       <Alert color={`${filesPlan.length > 1?"failure":"success"}`} icon={HiCursorClick}>
                         <span>{filesPlan.length}</span>
-                        <span>images selected</span>
+                        <span>الصور المختارة</span>
                        </Alert>
                     ) : (
                       ""
@@ -391,7 +406,7 @@ function CreatePage() {
                                 onClick={handleRemoveImagePlan(index)}
                                 className=" bg-red-600 text-red-100 font-semibold py-1 p-3 w-full"
                               >
-                                delete
+                                مسح
                               </button>
                             </div>
                           </div>
@@ -408,14 +423,14 @@ function CreatePage() {
                 onClick={handleImageSubmitPlan}
                 className="bg-blue-600 rounded-lg mt-4 font-bold text-white p-3 w-full hover:shadow-lg flex justify-center items-center disabled:bg-blue-600/50 disabled:shadow-none"
               >
-                {uploadingPlan ? "Uploading..." : "Upload"}
+                {uploadingPlan ? "جاري التحميل..." : "رفع الصورة"}
               </button>
             </div>
 
             <div className="w-full pt-7">
               <p className="">
-                <span className="font-bold text-black dark:text-white">Image Apartments:</span>{" "}
-                The first image will be the cover (max 8)
+                <span className="font-bold text-black dark:text-white">صور الشقق:</span>{" "}
+                الصورة الأولى ستكون الغلاف (بحد أقصى 8)
               </p>
               <input type="file" id="imageApartments" onChange={(e) => setFilesApartment(Array.from(e.target.files))} ref={fileRefApartment} className="hidden" accept="image/*" multiple />
               <div onClick={() => fileRefApartment.current.click()}
@@ -423,14 +438,14 @@ function CreatePage() {
                 <span className="absolute top-0 left-0 w-full h-full cursor-pointer"></span>
                 <div className="flex justify-center items-center flex-col p-3 h-40 ">
                   <HiPhotograph  className={` text-5xl text-blue-600`}/>
-                  <p>Upload Image Apartment</p>
+                  <p>تحميل صورة الشقة</p>
                   <div
                     className='mt-2'
                   >
                     {filesApartment.length ? (
                         <Alert color={`${filesApartment.length > 8 ?"failure":"success"}`} icon={HiCursorClick}>
                         <span>{filesApartment.length}</span>
-                        <span>images selected</span>
+                        <span>الصور المختارة</span>
                        </Alert>
                     ) : (
                       ""
@@ -458,7 +473,7 @@ function CreatePage() {
                                 onClick={handleRemoveImageApartment(index)}
                                 className=" bg-red-600 text-red-100 font-semibold py-1 p-3 w-full"
                               >
-                                delete
+                                مسح
                               </button>
                             </div>
                           </div>
@@ -482,95 +497,95 @@ function CreatePage() {
                 onClick={handleImageSubmitApartment}
                 className="bg-blue-600 rounded-lg mt-4 font-bold text-white p-3 w-full hover:shadow-lg flex justify-center items-center disabled:bg-blue-600/50 disabled:shadow-none"
               >
-                {uploadingApartment ? "Uploading..." : "Upload"}
+                {uploadingApartment ? "جاري التحميل..." : "رفع الصور"}
               </button>
             </div>
 
 
             <div className="grid grid-cols-4 gap-3">
             <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (1)</label>
+              <label htmlFor="titleApartments">مساحة شقة (1)</label>
               <input
                 type="number"
                 id="sizeApartmentsOne"
-                placeholder="Size Apartment 1"
+                placeholder="مساحة شقة (1)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsOne}
               />
             </div>
             <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (2)</label>
+              <label htmlFor="titleApartments">مساحة شقة (2)</label>
               <input
                 type="number"
                 id="sizeApartmentsTwo"
-                placeholder="Size Apartment 2"
+                placeholder="مساحة شقة (2)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsTwo}
               />
             </div>
             <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (3)</label>
+              <label htmlFor="titleApartments">مساحة شقة (3)</label>
               <input
                 type="number"
                 id="sizeApartmentsThree"
-                placeholder="Size Apartment 3"
+                placeholder="مساحة شقة (3)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsThree}
               />
               </div>
               <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (4)</label>
+              <label htmlFor="titleApartments">مساحة شقة (4)</label>
               <input
                 type="number"
                 id="sizeApartmentsFour"
-                placeholder="Size Apartment 4"
+                placeholder="مساحة شقة (4)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsFour}
               />
               </div>
               <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (5)</label>
+              <label htmlFor="titleApartments">مساحة شقة (5)</label>
               <input
                 type="number"
                 id="sizeApartmentsFive"
-                placeholder="Size Apartment 5"
+                placeholder="مساحة شقة (5)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsFive}
               />
               </div>
               <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (6)</label>
+              <label htmlFor="titleApartments">مساحة شقة (6)</label>
               <input
                 type="number"
                 id="sizeApartmentsSix"
-                placeholder="Size Apartment 6"
+                placeholder="مساحة شقة (6)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsSix}
               />
               </div>
               <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (7)</label>
+              <label htmlFor="titleApartments">مساحة شقة (7)</label>
               <input
                 type="number"
                 id="sizeApartmentsSeven"
-                placeholder="Size Apartment 7"
+                placeholder="مساحة شقة (7)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsSeven}
                 />
                 </div>
                 <div className="w-full">
-              <label htmlFor="titleApartments">Size Apartment (8)</label>
+              <label htmlFor="titleApartments">مساحة شقة (8)</label>
               <input
                 type="number"
                 id="sizeApartmentsEight"
-                placeholder="Size Apartment 8"
+                placeholder="مساحة شقة (8)"
                 className={styleIuput}
                 onChange={handleChange}
                 value={formData.sizeApartmentsEight}
@@ -586,8 +601,7 @@ function CreatePage() {
           <div className=" order-first md:order-2">
             <div className="sticky top-16 w-full  ">
             <p className="mb-2">
-              <span className="font-bold text-black dark:text-white">Images:</span> The first
-              image will be the cover (max 6)
+              <span className="font-bold text-black dark:text-white">الصور:</span> الصورة الأولى ستكون الغلاف (بحد أقصى 6)
             </p>
             <input
               onChange={(e) => setFiles(Array.from(e.target.files))}
@@ -605,14 +619,14 @@ function CreatePage() {
               <span className="absolute top-0 left-0 w-full h-full"></span>
               <div className="flex justify-center items-center flex-col p-3 h-80 ">
                 <HiPhotograph  className="text-7xl text-blue-600" />
-                <p>Upload Image Cover</p>
+                <p>تحميل صورة الغلاف</p>
                 <div
                   className={`mt-2`}
                 >
                   {files.length ? (
                     <Alert color={`${files.length > 6 ?"failure":"success"}`} icon={HiCursorClick}>
                     <span>{files.length}</span>
-                    <span>images selected</span>
+                    <span>الصور المختارة</span>
                    </Alert>
                   ) : (
                     ""
@@ -643,7 +657,7 @@ function CreatePage() {
                               onClick={handleRemoveImage(index)}
                               className=" bg-red-600 text-red-100 font-semibold py-1 p-3 w-full"
                             >
-                              delete
+                              مسح
                             </button>
                           </div>
                         </div>
@@ -667,7 +681,7 @@ function CreatePage() {
               onClick={handleImageSubmit}
               className="bg-blue-600 rounded-lg mt-4 font-bold text-white p-3 w-full hover:shadow-lg flex justify-center items-center disabled:bg-blue-600/50 disabled:shadow-none"
             >
-              {uploading ? "uploading..." :"Upload"}
+              {uploading ? "جاري التحميل..." :"رفع الصور"}
             </button>
             </div>
           </div>
@@ -678,7 +692,7 @@ function CreatePage() {
 
           <div className="order-last">
             <button disabled={loading || uploading == uploadingApartment == uploadingPlan} className="bg-green-600 dark:bg-green-600 disabled:bg-green-700/60 disabled:hover:-skew-y-0 uppercase hover:-skew-y-1 transition-all font-bold text-white rounded-lg active:scale-95 active:transition-all p-4 w-full hover:shadow-lg my-3">
-               {loading ? <FaCircleNotch className="animate-spin" /> : "Publish New Page"}
+               {loading ? <FaCircleNotch className="animate-spin" /> : "نشر صفحة جديدة"}
             </button>
             
             {error && <Alert color="failure" icon={HiInformationCircle}>{error}</Alert> }
@@ -689,7 +703,7 @@ function CreatePage() {
       </div>
     </div>
     </div>
-   
+    </div>
   );
 }
 
