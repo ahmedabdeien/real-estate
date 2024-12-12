@@ -35,11 +35,11 @@ function SectionShowProjects() {
 
   return (
     <AnimatePresence>
-    <div dir="rtl" className="bg-stone-100 dark:bg-stone-900 overflow-hidden">
+    <div dir="rtl"  className="bg-stone-100 dark:bg-stone-900 overflow-hidden">
       <div  className="py-8 space-y-3 container ">
         <div className="px-2 flex justify-center items-center">
           <div className=" mb-5 flex justify-center items-center flex-col">
-            <h1 className="text-4xl font-bold text-[#353531] dark:text-white">Our Projects</h1>
+            <h1 className="text-4xl font-bold text-[#353531] dark:text-white">بعض من مشاريعنا</h1>
           </div>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -61,14 +61,14 @@ function SectionShowProjects() {
                   <h5 className="text-lg font-semibold text-[#033e8a] dark:text-[#FF9505]">{item.name}</h5>
                   <p className="truncate text-gray-700 dark:text-gray-300">{item.description}</p>
                 </div>
-                <Link to={`/Projects/${item.slug}`} className="bg-[#016FB9] text-white p-2 text-center rounded-lg transition-all duration-300 hover:bg-[#002E66] ">Read More</Link>
+                <Link to={`/Projects/${item.slug}`} className="bg-[#016FB9] text-white p-2 text-center rounded-lg transition-all duration-300 hover:bg-[#002E66] ">اقرأ المزيد</Link>
               </div>
             </div>
           ))}
         </div>
         <div className="flex justify-center items-center py-6 relative pt-10">
           <div className="border-b w-full dark:border-stone-700"></div>
-          <Link to="/Project" className="absolute bg-stone-100 dark:bg-stone-900 hover:scale-110 transition-transform text-[#002E66] p-3 px-5  text-center rounded-full">View All Projects</Link>
+          <Link to="/Project" className="absolute bg-stone-100 dark:bg-stone-900 hover:scale-110 transition-transform text-[#002E66] p-3 px-5  text-center rounded-full">عرض جميع المشاريع</Link>
         </div>
       </div>
     </div>
