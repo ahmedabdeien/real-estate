@@ -22,9 +22,9 @@ export default function CounterUp() {
   }, []);
 
   const counterItems = [
-    { end: 90, text: "مشاريعنا" },
-    { end: 8, text: "مشاريع تحت الإنشاء" },
-    { end: 1160, text: "الوحدات التي تم تسليمها" },
+    { end: 12, text: "مشاريع تحت الإنشاء" },
+    { end: 138, text: "مشروعات تم تسلمها" },
+    { end: 150, text: "مشروعات الشركة" },
   ];
 
   return (
