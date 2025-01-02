@@ -19,7 +19,7 @@ import ShowPage from "./Components/CreatePage/ShowPage.jsx";
 import Contact from "./Components/Contact/Contact.jsx";
 import Settings from "./Components/Settings/Settings.jsx";
 import ButtonTop from "./Components/ButtonTop/ButtonTop.jsx";
-import Zohoverify from "../zohoverify/verifyforzoho.hmtl";
+import Zohoverify from "../zohoverify/verifyforzoho.html";
 function App() {
  
   return (
