@@ -19,7 +19,7 @@ import ShowPage from "./Components/CreatePage/ShowPage.jsx";
 import Contact from "./Components/Contact/Contact.jsx";
 import Settings from "./Components/Settings/Settings.jsx";
 import ButtonTop from "./Components/ButtonTop/ButtonTop.jsx";
-import Zohoverify from "../zohoverify/verifyforzoho.html";
+
 function App() {
  
   return (
@@ -51,7 +51,7 @@ function App() {
           
            <Route  path="/Update-Page/:pageId" element={<UpdatePage/>}/>
            <Route  path="/CreatePage" element={<CreatePage/>}/>
-           <Route  path="/zohoverify/verifyforzoho.html" element={<Zohoverify/>}/>
+           <Route  path="/zohoverify/verifyforzoho.html"/>
 
          </Route>
          <Route element={<BrokerPrivateRoute/>}>
