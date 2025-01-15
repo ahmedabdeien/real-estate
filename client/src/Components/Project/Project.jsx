@@ -124,6 +124,20 @@ export default function Project() {
     );
   }
 
+  let dataPro_eq = [
+    {namePro_eq:"برج بنك مصر",titlePro:" يتكون البرج من 9 طوابق بمدينة بني سويف "},
+    {namePro_eq:"برج الحياة",titlePro:" يتكون البرج من 8 طوابق بمدينة بني سويف "},
+    {namePro_eq:"برج الصفوة",titlePro:" يتكون البرج من 7 طوابق بمدينة بني سويف "},
+    {namePro_eq:"برج سكاي",titlePro:" يتكون البرج من 8 طوابق بمدينة بني سويف "},
+    {namePro_eq:"برج لامي",titlePro:" يتكون البرج من 7 طوابق بالقاهرة "},
+    {namePro_eq:"برج بارق",titlePro:" يتكون البرج من 8 طوابق بمدينة القاهرة "},
+    {namePro_eq:"برج الفيروز",titlePro:" يتكون البرج من 8 طوابق بمدينة بني سويف "},
+    {namePro_eq:'فيلا الحي الغربي',titlePro:" يتكون الفيلا من 3 طوابق بمدينة بني سويف "},
+    {namePro_eq:"فيلا حي الترفيهي",titlePro:" يتكون الفيلا من 4 طوابق بمدينة بني سويف "},
+    {namePro_eq:"فيلا الحي الازهري",titlePro:" يتكون الفيلا من 3 طوابق بمدينة بني سويف "},
+    {namePro_eq:"فيلا ريفيد",titlePro:" يتكون الفيلا من 3 طوابق بمدينة القاهرة "},
+  ]
+
   return (
     <>
       <Helmet>
@@ -188,6 +202,21 @@ export default function Project() {
               <p className="text-2xl text-gray-600 dark:text-gray-300">لم يتم العثور على أي مشاريع. جرّب مصطلح بحث مختلفًا.</p>
             </motion.div>
           )}
+
+<div>
+              <h2 className='text-2xl font-bold dark:text-white  truncate text-center mb-5'>المشاريع القديمة</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {dataPro_eq.map( ( d_pro, index ) => (
+                  <div key={index} className='w-full h-80  bg-white border rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex justify-center items-center' >
+                      <div className='px-4 pt-3'>
+                        <h2 className='text-2xl font-bold text-[#004483] dark:text-white  truncate'>{d_pro.namePro_eq}</h2>
+                       <p className="text-[#353531]/70 dark:text-gray-300 mb-4 line-clamp-1">{d_pro.titlePro}</p>
+                      </div>
+                  </div>
+                ))}
+            </div>
+            </div>
+            
         </div>
       </div>
     </>

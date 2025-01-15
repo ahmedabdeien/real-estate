@@ -102,7 +102,7 @@ export default function Header() {
         <h2 className='font-medium'>
         <Link to="/" className='text-stone-700 '>
         <div className=''>
-         <img src={showNavbar ? LogoelsarhTwo: Logoelsarh} alt="Logoelsarh" className='w-28 sm:w-[100px] p-2 transition-colors' title='Elsarh Real Estate' />
+         <img src={showNavbar ? LogoelsarhTwo: Logoelsarh} alt="Logoelsarh" className='w-28 sm:w-[50px] p-2 transition-colors' title='Elsarh Real Estate' />
         </div>
         </Link>
         </h2>
@@ -188,7 +188,7 @@ export default function Header() {
           <h2 className='font-bold'>
           <Link to="/" className='text-stone-700 '>
           <div className=''>
-           <img src={showNavbar ? LogoelsarhTwo: Logoelsarh} alt="Logoelsarh" className='w-28 sm:w-[100px]  transition-colors' title='Elsarh Real Estate' />
+           <img src={showNavbar ? LogoelsarhTwo: Logoelsarh} alt="Logoelsarh" className='w-28 sm:w-[50px]  transition-colors' title='Elsarh Real Estate' />
           </div>
           </Link>
           </h2>

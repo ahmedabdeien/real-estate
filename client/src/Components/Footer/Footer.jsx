@@ -64,7 +64,7 @@ export default function Footer() {
           <ul className="space-y-1 text-gray-700 dark:text-gray-400/90">
             <li>14 شارع المختار من شارع النصر</li>
             <li>المعادي الجديدة، القاهرة</li>
-            <li><a href="mailto:elsarhegypt@gmail.com" className='hover:text-[#ff9505] transition-colors duration-200'>elsarhegypt@gmail.com</a></li>
+            <li><a href="mailto:admin@elsarhegypt.com" className='hover:text-[#ff9505] transition-colors duration-200'>admin@elsarhegypt.com</a></li>
             <li><a href="tel:+0227547988" className='hover:text-[#ff9505] transition-colors duration-200'>0227547988</a></li>
           </ul>
         </div>

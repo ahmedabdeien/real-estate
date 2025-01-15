@@ -49,12 +49,12 @@ function Contact() {
               </div>
               <div className="flex-grow">
                 <motion.a
-                  href="mailto:example@elsarh.com"
+                  href="mailto:admin@elsarhegypt.com"
                   className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
                   whileHover={{ x: 10 }}
                 >
                   <BsEnvelope className="text-3xl text-[#ff9505]" />
-                  <p className="text-gray-800 dark:text-gray-300 mr-2">elsarhegypt@gmail.com</p>
+                  <p className="text-gray-800 dark:text-gray-300 mr-2">admin@elsarhegypt.com</p>
                 </motion.a>
                 <motion.a
                   href="tel:+201212622210"
