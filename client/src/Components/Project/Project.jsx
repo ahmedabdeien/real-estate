@@ -1,222 +1,265 @@
-import React, { useMemo, useState } from 'react';
-import axios from 'axios';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { motion, AnimatePresence } from 'framer-motion';
-import {  BsArrowRightShort, BsSearch } from "react-icons/bs";
-import logeselsarh from "../../assets/images/logoElsarh.png";
-const ProjectCard = ({ item, index }) => {
+import { BsArrowRightShort, BsSearch } from "react-icons/bs";
+
+// Constants
+const API_ENDPOINT = '/api/listing/getPages';
+const QUERY_KEY = 'dataProjects';
+const ITEMS_PER_PAGE = 12;
+
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: 20 },
+  transition: { duration: 0.3 }
+};
+
+const ProjectCard = React.memo(({ item }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const isAvailable = item.available === "available";
+
+  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 100 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 100 }}
-      transition={{ duration: 0.5,}}
-      className="group relative  dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300  "
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      {...fadeInUp}
+      className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <Link to={`/Projects/${item.slug}`} className="">
-      <div className="relative overflow-hidden w-full ">
-        <motion.img
-          src={item.imageUrls[0]}
-          alt={item.name}
-          className="w-full h-52 object-cover transition-transform duration-300"
-          animate={{ scale: isHovered ? 1.1 : 1 }}
-        />
-        <motion.div
-          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-300"
-          animate={{ opacity: isHovered ? 1 : 0 }}
-        >
-          <BsSearch className="text-white text-4xl" />
-        </motion.div>
-        
-      </div></Link>
-      <motion.div
+      <Link to={`/Projects/${item.slug}`} className="block">
+        <div className="relative overflow-hidden aspect-video">
+          <motion.img
+            src={item.imageUrls[0]}
+            alt={item.name}
+            className="w-full h-full object-cover"
+            animate={{ scale: isHovered ? 1.1 : 1 }}
+            transition={{ duration: 0.3 }}
+            loading="lazy"
+          />
+          <motion.div
+            className="absolute inset-0 bg-black/50 flex items-center justify-center"
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <BsSearch className="text-white text-4xl" />
+          </motion.div>
+        </div>
+      </Link>
+
+      <motion.span
         className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold ${
-          item.available === "available" ? "bg-[#ff9505]" : "bg-[#353531] border border-white/30"
+          isAvailable ? "bg-[#ff9505]" : "bg-[#353531] border border-white/30"
         } text-white`}
-        initial={{ opacity: 1, x: 1 }}
-        animate={{ opacity:isHovered ? 1: 0 }}
-        transition={{ duration: 0.3}}
+        animate={{ opacity: isHovered ? 1 : 0 }}
       >
         {item.available}
+      </motion.span>
+
+      <div className="p-4">
+        <h2 className="text-2xl font-bold text-[#353531] dark:text-white truncate">
+          {item.name}
+        </h2>
+        <p className="text-[#353531]/70 dark:text-gray-300 mb-4 line-clamp-2">
+          {item.description}
+        </p>
         
-      </motion.div>
-      <div className='px-4 pt-3 '>
-          <h2 className="text-2xl font-bold text-[#353531] dark:text-white  truncate">{item.name}</h2>
-          <p className="text-[#353531]/70 dark:text-gray-300 mb-4 line-clamp-1">{item.description}</p>
-        </div>
-      <div className="p-3 pt-0 ">
-        
-        <Link to={`/Projects/${item.slug}`} className="">
-          <motion.div 
-            className="flex items-center justify-center  bg-[#016FB9] border text-white py-3 px-6 rounded-xl transition-all"
-            whileHover={{ scale: 1.02,  }}
+        <Link to={`/Projects/${item.slug}`}>
+          <motion.button 
+            className="w-full flex items-center justify-center bg-[#016FB9] text-white py-3 px-6 rounded-xl transition-all"
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
           >
-            <BsArrowRightShort className='text-2xl' />
+            <BsArrowRightShort className="text-2xl" />
             <span className="ms-1">عرض المشروع</span>
-            
-          </motion.div>
+          </motion.button>
         </Link>
       </div>
     </motion.div>
   );
-};
+});
+
+const LoadingSkeleton = () => (
+  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {[...Array(8)].map((_, i) => (
+      <div key={i} className="w-full h-80 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden">
+        <div className="h-48 w-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="p-4">
+          <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse" />
+          <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const OldProjectsList = ({ projects }) => (
+  <div className="mt-12">
+    <h2 className="text-2xl font-bold dark:text-white text-center mb-5">
+      المشاريع القديمة
+    </h2>
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {projects.map((project, index) => (
+        <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl h-80 shadow-lg p-6 flex flex-col justify-center">
+          <h3 className="text-2xl font-bold text-[#004483] dark:text-white truncate mb-2">
+            {project.namePro_eq}
+          </h3>
+          <p className="text-[#353531]/70 dark:text-gray-300">
+            {project.titlePro}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 export default function Project() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const getDataProjects = async () => {
-    const response = await axios.get('/api/listing/getPages?limit=200');
-    return response.data.listings;
-  };
-
-  const { data: projects, isLoading, error } = useQuery("dataProjects", getDataProjects);
+  const { data: projects, isLoading, error } = useQuery(
+    QUERY_KEY,
+    async () => {
+      const response = await fetch(`${API_ENDPOINT}?limit=200`);
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      const data = await response.json();
+      return data.listings;
+    },
+    {
+      staleTime: 300000, // 5 minutes
+      cacheTime: 3600000, // 1 hour
+      retry: 3
+    }
+  );
 
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
     
     const lowercasedTerm = searchTerm.toLowerCase().trim();
+    if (!lowercasedTerm) return projects;
   
     return projects.filter(project => {
-      const projectName = project.name ? project.name.toLowerCase() : '';
-      const projectDescription = project.description ? project.description.toLowerCase() : '';
-  
-      return projectName.includes(lowercasedTerm) || projectDescription.includes(lowercasedTerm);
+      const projectName = project.name?.toLowerCase() ?? '';
+      const projectDescription = project.description?.toLowerCase() ?? '';
+      return projectName.includes(lowercasedTerm) || 
+             projectDescription.includes(lowercasedTerm);
     });
   }, [projects, searchTerm]);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  const paginatedProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProjects, currentPage]);
 
-  if (isLoading) {
-    return (
-      <div 
-        className="w-full h-screen flex justify-center items-center flex-col bg-stone-100 "
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="animate-pulse text-4xl mb-4">
-         <img src={logeselsarh} alt="logeselsarh" className='w-60'/> 
-        </div>
-      </div>
-    );
-  }
+  const handleSearchChange = useCallback((e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page on new search
+  }, []);
 
   if (error) {
     return (
       <motion.div 
-        className="w-full h-screen flex justify-center items-center bg-red-100"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        className="w-full min-h-[40vh] flex justify-center items-center"
+        {...fadeInUp}
       >
-        <p className="text-red-500 text-2xl">Error: {error.message}</p>
+        <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-xl">
+          <p className="text-red-500 dark:text-red-400 text-lg">
+            عذراً، حدث خطأ أثناء تحميل المشاريع. يرجى المحاولة مرة أخرى لاحقاً.
+          </p>
+        </div>
       </motion.div>
     );
   }
 
-  let dataPro_eq = [
-    {namePro_eq:"برج بنك مصر",titlePro:" يتكون البرج من 9 طوابق بمدينة بني سويف "},
-    {namePro_eq:"برج الحياة",titlePro:" يتكون البرج من 8 طوابق بمدينة بني سويف "},
-    {namePro_eq:"برج الصفوة",titlePro:" يتكون البرج من 7 طوابق بمدينة بني سويف "},
-    {namePro_eq:"برج سكاي",titlePro:" يتكون البرج من 8 طوابق بمدينة بني سويف "},
-    {namePro_eq:"برج لامي",titlePro:" يتكون البرج من 7 طوابق بالقاهرة "},
-    {namePro_eq:"برج بارق",titlePro:" يتكون البرج من 8 طوابق بمدينة القاهرة "},
-    {namePro_eq:"برج الفيروز",titlePro:" يتكون البرج من 8 طوابق بمدينة بني سويف "},
-    {namePro_eq:'فيلا الحي الغربي',titlePro:" يتكون الفيلا من 3 طوابق بمدينة بني سويف "},
-    {namePro_eq:"فيلا حي الترفيهي",titlePro:" يتكون الفيلا من 4 طوابق بمدينة بني سويف "},
-    {namePro_eq:"فيلا الحي الازهري",titlePro:" يتكون الفيلا من 3 طوابق بمدينة بني سويف "},
-    {namePro_eq:"فيلا ريفيد",titlePro:" يتكون الفيلا من 3 طوابق بمدينة القاهرة "},
-  ]
-
   return (
     <>
       <Helmet>
-        <title>Stunning Projects - ElSarh Real Estate</title>
-        <meta name="description" content="Explore our breathtaking collection of luxurious properties and unique real estate opportunities." />
+        <title>مشاريع مميزة - ElSarh Real Estate</title>
+        <meta 
+          name="description" 
+          content="اكتشف مجموعتنا المذهلة من العقارات الفاخرة وفرص الاستثمار العقاري الفريدة." 
+        />
       </Helmet>
-      <div dir="rtl" className='pb-8 px-2 md:px-4 bg-stone-100 overflow-hidden dark:from-gray-800 dark:to-gray-900 min-h-screen pt-5'>
-        <div className=" container mx-auto space-y-7">
-          <motion.div 
-            className="p-3 md:p-4 lg:p-6 bg-white  text-black  border-t border-b-4 border-b-[#ff9505] shadow overflow-hidden relative"
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 0.1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.2 }}
-              className="absolute top-0 right-0 w-64 h-64"
+
+      <div dir="rtl" className="min-h-screen bg-stone-100 dark:from-gray-800 dark:to-gray-900 py-8 px-4">
+        <div className="container mx-auto space-y-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border-t border-b-4 border-b-[#ff9505] shadow-lg">
+            <motion.h1 
+              className="text-4xl font-bold text-[#002E66] mb-4"
+              {...fadeInUp}
             >
-            </motion.div>
-            <h1 className="text-4xl md:text-4xl font-bold mb-2 relative text-[#002E66] z-10"> مشاريعنا</h1>
-            <p className="text-xl font-light max-w-2xl relative z-10 text-[#353531]">اكتشف عالمًا من العقارات الفاخرة والحلول العقارية المبتكرة المصممة لتتجاوز توقعاتك.</p>
-           
-            <motion.div 
-            className="relative mt-5"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <input
-              type="text"
-              placeholder="البحث عن المشاريع . . ."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full px-6 py-4 text-lg bg-stone-100 dark:bg-gray-700 rounded-2xl focus:bg-white border-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#353531] dark:text-white"
-            />
-            <BsSearch className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
-          </motion.div>
-
-          </motion.div>
-
-
-          <AnimatePresence>
-            <motion.div 
-              className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
-              layout
+              مشاريعنا
+            </motion.h1>
+            <motion.p 
+              className="text-xl text-[#353531] dark:text-gray-300 max-w-2xl mb-6"
+              {...fadeInUp}
             >
-              {filteredProjects.map((item, index) => (
-                <ProjectCard key={item.id || index} item={item} index={index} />
-              ))}
-            </motion.div>
-          </AnimatePresence>
+              اكتشف عالمًا من العقارات الفاخرة والحلول العقارية المبتكرة المصممة لتتجاوز توقعاتك.
+            </motion.p>
 
-          {filteredProjects.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="text-center py-12"
-            >
-              <p className="text-2xl text-gray-600 dark:text-gray-300">لم يتم العثور على أي مشاريع. جرّب مصطلح بحث مختلفًا.</p>
-            </motion.div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="البحث عن المشاريع..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="w-full py-4 px-6 text-lg bg-stone-100 dark:bg-gray-700 rounded-xl focus:ring-2 focus:ring-[#016FB9] focus:outline-none"
+              />
+              <BsSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
+            </div>
+          </div>
+
+          {isLoading ? (
+            <LoadingSkeleton />
+          ) : (
+            <>
+              <AnimatePresence mode="wait">
+                {paginatedProjects.length > 0 ? (
+                  <motion.div 
+                    className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
+                    layout
+                  >
+                    {paginatedProjects.map((item) => (
+                      <ProjectCard key={item.id} item={item} />
+                    ))}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    className="text-center py-12"
+                    {...fadeInUp}
+                  >
+                    <p className="text-2xl text-gray-600 dark:text-gray-300">
+                      لم يتم العثور على أي مشاريع. جرّب مصطلح بحث مختلفًا.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {filteredProjects.length > ITEMS_PER_PAGE && (
+                <div className="flex justify-center gap-2 mt-8">
+                  {[...Array(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`px-4 py-2 rounded ${
+                        currentPage === i + 1
+                          ? 'bg-[#016FB9] text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            </>
           )}
-
-<div>
-              <h2 className='text-2xl font-bold dark:text-white  truncate text-center mb-5'>المشاريع القديمة</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {dataPro_eq.map( ( d_pro, index ) => (
-                  <div key={index} className='w-full h-80  bg-white border rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 flex justify-center items-center' >
-                      <div className='px-4 pt-3'>
-                        <h2 className='text-2xl font-bold text-[#004483] dark:text-white  truncate'>{d_pro.namePro_eq}</h2>
-                       <p className="text-[#353531]/70 dark:text-gray-300 mb-4 line-clamp-1">{d_pro.titlePro}</p>
-                      </div>
-                  </div>
-                ))}
-            </div>
-            </div>
-            
         </div>
       </div>
     </>
