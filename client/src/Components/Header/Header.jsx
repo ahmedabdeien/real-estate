@@ -1,187 +1,239 @@
 "use client";
-import  { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { useEffect, useState } from 'react';
+import { Link, NavLink } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import Logoelsarh from '../../assets/images/logoElsarh.png'
-import LogoelsarhTwo from '../../assets/images/logo_e_w.png'
 import { Avatar, Dropdown } from "flowbite-react";
-
-
+import Logoelsarh from '../../assets/images/logoElsarh.png';
+import { 
+  FaComments, FaColumns, FaCoins, FaCogs, 
+  FaDoorOpen, FaMoon, FaUser, FaSun 
+} from "react-icons/fa";
 import { logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice';
 import { toggleTheme } from '../redux/theme/themeSlice';
-import { FaComments ,FaColumns,FaCoins ,FaCogs,FaDoorOpen,FaMoon ,FaUser ,FaSun } from "react-icons/fa";
 
 export default function Header() {
-  const [showNavbar, setShowNavbar] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme } = useSelector(state => state.theme);
+  const { currentUser } = useSelector(state => state.user);
+  const dispatch = useDispatch();
 
-  // Function to handle scroll events
-  const handleScroll = () => {
-    const scrollPosition = window.scrollY;
-    if (scrollPosition > 300  && scrollPosition < 10000) {
-      setShowNavbar(true); 
-      
-    } else {
-      setShowNavbar(false);
-    }
-  };
-  
-  // Scroll event listener
+  const navLinks = [
+    { title: 'الصفحة الرئيسية', path: '/' },
+    { title: 'المشروعات', path: '/Project' },
+    { title: 'معلومات عنا', path: '/About' },
+    { title: 'تواصل معنا', path: '/contact' },
+  ];
+
+  // Scroll handler
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 300);
     };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const dispatchTheme = useDispatch();
-    const [searchTerm, setSearchTerm] = useState('');
-    useEffect(() => {
-      const timeoutId = setTimeout(() => {
-        if (searchTerm) {
-          console.log(searchTerm);
-        }
-      }, 500);
-      return () => clearTimeout(timeoutId);
-    }, [searchTerm]);
+  // Body overflow control for mobile menu
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? 'hidden' : 'auto';
+  }, [isMenuOpen]);
 
-    const {theme} = useSelector(state => state.theme);
-    let styleIconMenu =  `w-8 h-1 bg-[#000] rounded-full transition-transform duration-200 ease-in`
-    let [menuActions,setMenuActions] = useState(false);
-    useEffect(()=>{
-      if(menuActions){
-        document.body.style.overflow = 'hidden';
-      }else{
-        document.body.style.overflow = 'auto'
-      }
-    },[menuActions])
-
-    const titleLikeNavbar = [
-      {title:'الصفحة الرئيسية',path:'/',style:'' ,},
-      {title:'المشروعات',path:'/Project',style:''},
-      {title:'معلومات عنا',path:'/About',style:''},
-      {title:'تواصل معنا',path:'/contact',style:''},
-    ]
-    const styleNavLink = ({isActive}) => {
-       return {
-
-         background: isActive ? (theme === "dark" ? '' : (theme === "light" && showNavbar  ? "#033e8a" :'#033e8a')) : '',
-          position: isActive ? 'relative' : 'relative',
-          color: isActive ? (theme === "dark" ? '#fff' : (theme === "light" ? '#fff' : '#000')) : (theme === "dark" ? '#fefcfb' :''),
-         
-       }
+  // Sign out handler
+  const handleSignout = async () => {
+    try {
+      dispatch(logOutUserStart());
+      const res = await fetch('/api/user/signout', { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      dispatch(logOutUserSuccess());
+    } catch (error) {
+      dispatch(logOutUserFailure(error.message));
     }
-    const {currentUser} = useSelector(state => state.user)
+  };
 
-//Sign Out function
-   const dispatch = useDispatch();
-  const handleSignout = async () =>{
-      try {
-        dispatch(logOutUserStart());
-        const res = await fetch('/api/user/signout',{
-          method:"POST",
-        })
-        const data = await res.json();
-        if(!res.ok){
-          dispatch(logOutUserFailure(data.message));
-        }else{
-          dispatch(logOutUserSuccess());
-        }
-      } catch (error) {
-        dispatch(logOutUserFailure());
-      }
-   }
-   
+  // Active link style handler
+  const getNavLinkStyle = ({ isActive }) => ({
+    backgroundColor: isActive ? '#033e8a' : '',
+    color: isActive ? '#fff' : theme === 'dark' ? '#fefcfb' : '#333',
+  });
+
   return (
-        <>
-  
-    
-    <header  className={`
-         w-full z-40 py-2
-        transition-all duration-300 ease-in-out 
-        ${showNavbar ? ' sticky top-0 bg-slate-500 shadow-sm' : '  opacity-100 relative  py-4 '}
-          dark:bg-stone-950 bg-white/90 backdrop-blur-md
-      `}>
-          <div className=' container flex justify-between items-center '>
-          <h2 className='font-bold'>
-          <Link to="/" className='text-stone-700 '>
-          <div className=''>
-           <img src={Logoelsarh} alt="Logoelsarh" className='w-[50px]  transition-colors' title='Elsarh Real Estate' />
-          </div>
-          </Link>
-          </h2>
-           {/* icon navbar on phone  */}
-           <nav className={`${menuActions? 'translate-x-[0%] ease-out':' ease-in -translate-x-[105%]'}  bg-white/90 backdrop-blur-md top-0 left-0 w-full h-screen transition-transform duration-200  fixed right-0 md:shadow-none dark:bg-gray-900 md:translate-x-0 md:static md:w-auto md:h-auto md:bg-transparent dark:md:bg-transparent flex justify-center items-center`}>
-            <ul className=' w-full md:p-0 text-center text-lg space-y-0 flex-row-reverse md:w-auto md:space-y-0  md:flex items-center justify-center '>
-               {titleLikeNavbar.map((link)=><li key={link.path} className=''>
-                <NavLink onClick={()=>setMenuActions(false)} style={styleNavLink} className={`py-3 md:mx-1  md:px-2 md:py-1  hoverLink md:border-none md:bg-transparent border-b border-black/20 flex justify-center items-center md:rounded-full hover:bg-[#033e8a] duration-200 transition-colors hover:text-white `} to={link.path}>{link.icons} {link.title}</NavLink></li>)}
+    <header className={`
+      w-full z-40 py-4
+      transition-all duration-300 ease-in-out
+      ${isScrolled ? 'sticky top-0 bg-white/90 dark:bg-stone-950 shadow-md backdrop-blur-lg' : 'relative'}
+    `}>
+      <div className="container flex justify-between items-center">
+        {/* Logo */}
+        <Link to="/" className="z-50">
+          <img 
+            src={Logoelsarh} 
+            alt="Elsarh Logo" 
+            className="w-12 hover:scale-105 transition-transform"
+          />
+        </Link>
 
-            </ul>
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-4">
+          {navLinks.map(link => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              style={getNavLinkStyle}
+              className="px-4 py-2 rounded-lg hover:bg-blue-900/10 dark:hover:bg-white/10 transition-colors"
+            >
+              {link.title}
+            </NavLink>
+          ))}
         </nav>
-  
-          <div onClick={()=>setMenuActions(!menuActions)} className='order-3 lg:order-none block md:hidden z-50 cursor-pointer text-[#fefcfb]'>
-          {menuActions?
-            <div className='-space-y-1'>
-              <div className="s w-8 h-1 -rotate-45 rounded-full bg-black transition-transform duration-200 ease-in"></div>
-              <div className='w-8 h-1 -translate-x-5 opacity-0  transition-[transform_opacity]'></div>
-              <div className='w-8 h-1 rotate-45 rounded-full bg-black transition-transform duration-200 ease-in'></div>
+
+        {/* User Controls */}
+        <div className="flex items-center gap-4">
+          {/* Theme Toggle */}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            {theme === 'light' ? (
+              <FaMoon className="text-xl text-gray-800" />
+            ) : (
+              <FaSun className="text-xl text-yellow-400" />
+            )}
+          </button>
+
+          {/* User Avatar */}
+          {currentUser ? (
+            <Dropdown
+              arrowIcon={false}
+              inline
+              label={
+                <Avatar 
+                  img={currentUser.avatar}
+                  alt="User"
+                  rounded
+                  className="border-2 border-transparent hover:border-blue-500 transition-colors"
+                />
+              }
+            >
+              <Dropdown.Header>
+                <span className="block text-sm font-semibold">{currentUser.name}</span>
+                <span className="block text-sm text-gray-500 truncate">{currentUser.email}</span>
+              </Dropdown.Header>
+              
+              <UserMenuItems 
+                currentUser={currentUser}
+                onCloseMenu={() => setIsMenuOpen(false)}
+                onSignout={handleSignout}
+              />
+            </Dropdown>
+          ) : (
+            <NavLink
+              to="/Signin"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              تسجيل الدخول
+            </NavLink>
+          )}
+
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <div className={`w-6 h-0.5 bg-current transition-transform ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`} />
+            <div className={`w-6 h-0.5 bg-current my-1.5 ${isMenuOpen ? 'opacity-0' : ''}`} />
+            <div className={`w-6 h-0.5 bg-current transition-transform ${isMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`} />
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className={`
+          fixed top-0 left-0 w-full h-screen bg-black/50 backdrop-blur-sm
+          transition-opacity duration-300 md:hidden
+          ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}
+        `}>
+          <nav className={`
+            absolute top-0 right-0 w-3/4 h-full bg-white dark:bg-gray-900
+            transform transition-transform duration-300
+            ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+          `}>
+            <div className="p-6 space-y-4">
+              {navLinks.map(link => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsMenuOpen(false)}
+                  style={getNavLinkStyle}
+                  className="block p-3 rounded-lg hover:bg-blue-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  {link.title}
+                </NavLink>
+              ))}
             </div>
-            :
-            <div className='space-y-1'>
-              <div className={styleIconMenu}></div>
-              <div className={styleIconMenu}></div>
-              <div className={styleIconMenu}></div>
-            </div>}
-    
-          </div> 
-  
-          <nav className={`${menuActions? 'translate-x-[0%] ease-out':' ease-in -translate-x-[105%]'} bg-white/90 backdrop-blur-md top-0 left-0 w-full h-screen transition-transform duration-200  fixed right-0 md:shadow-none dark:bg-gray-900 md:translate-x-0 md:static md:w-auto md:h-auto md:bg-transparent dark:md:bg-transparent flex justify-center items-center`}>
-              <ul className=' w-full md:p-0 text-center space-y-0 md:w-auto md:space-y-0  md:flex items-center justify-center  '>
-                 {titleLikeNavbar.map((link)=><li key={link.path} className='md:hidden'>
-                  <NavLink onClick={()=>setMenuActions(false)} style={styleNavLink} className={`py-3 md:mx-1  md:px-2 md:py-2  hoverLink font-medium md:border-none md:bg-transparent border-b border-black/20 flex justify-center  items-center md:rounded-full hover:bg-[#016FB9]/20 `} to={link.path}>{link.icons} {link.title}</NavLink></li>)}
-  
-                  {currentUser?
-                  <li className='absolute border-none top-2 left-4 md:static'>
-                    
-                    <Dropdown className=' w-64  md:w-auto ' 
-                    arrowIcon={false} 
-                    inline 
-                    label={
-                    <Avatar  className='border-[3px] rounded-full object-cover focus:border-[#FF9505] focus:ring-[#FF9505]' 
-                    alt='user' 
-                    img={currentUser.avatar}
-                    size={'md'}
-                    rounded
-                    />}>
-                      <Dropdown.Header className=' '>
-                        <span className="block text-sm font-bold">{currentUser.name}</span>
-                        <span className="block truncate text-sm font-medium">{currentUser.email}</span>
-                      </Dropdown.Header>
-                      <div dir="rtl">
-                      <Link to={"/Dashboard?tab=Profile"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaUser className='me-2 text-base'/><span>حسابي</span></div></Dropdown.Item></Link>
-                      {currentUser.isAdmin &&<div>
-                      <Link to={"/CreatePage"} className='group/anmit'> <Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaColumns  className='me-2 text-lg'/><span>إنشاء صفحة</span></div> </Dropdown.Item></Link>
-                      <Link to={"/Dashboard?tab=dashbordData"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} ><div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaCoins  className='me-2 text-lg '/><span>لوحة المعلومات</span></div></Dropdown.Item> </Link>
-                      </div>}
-                      {currentUser.isBroker &&
-                      <div>
-                      <Link to={"/PageBroker"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)}><div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaComments   className='me-2 text-lg'/><span>قائمة الرسائل</span></div></Dropdown.Item></Link>
-                      </div>}
-                      <Dropdown.Item onClick={()=>dispatchTheme(toggleTheme())} className='group/anmit'> <div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'>{theme === "light" ?  <FaMoon  className='me-2 text-base'/>:<FaSun className='me-2 text-lg'/>}<span>{theme === "light" ?'الوضع المظلم':"وضع الضوء"}</span></div></Dropdown.Item>
-                      <Link to={"/Settings"} className='group/anmit'><Dropdown.Item onClick={()=>setMenuActions(false)} className='group/anmit'><div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-[#FF9505]'><FaCogs className='me-2 text-lg'/><span>إعدادات</span></div></Dropdown.Item></Link>
-                      <Dropdown.Divider />
-                      <Dropdown.Item onClick={()=>{setMenuActions(false) ,handleSignout()}} className='group/anmit '><div className='group-hover/anmit:-translate-x-6 transition-transform flex items-center group-hover/anmit:text-red-500 dark:group-hover/anmit:text-red-400'><FaDoorOpen className='me-2 text-lg'/><span>تسجيل الخروج</span></div></Dropdown.Item>
-                      </div>
-                    </Dropdown>
-                  </li>
-                  :<li className='absolute top-2 left-4 md:static md:ms-2'>
-                          <NavLink onClick={()=>setMenuActions(false)} className={`  px-3 py-2 rounded hover:scale-110 transition-all block text-black ring-black/25 ring-1 shadow-md  dark:bg-gray-700`} to='/Signin'>تسجيل الدخول</NavLink></li>}
-              </ul>
           </nav>
-          </div>
-      </header>
-
-      
-
-    </>
-  )
+        </div>
+      </div>
+    </header>
+  );
 }
+
+// Extracted User Menu Items component
+const UserMenuItems = ({ currentUser, onCloseMenu, onSignout }) => (
+  <div dir="rtl" className="space-y-1">
+    <Dropdown.Item onClick={onCloseMenu}>
+      <Link to="/Dashboard?tab=Profile" className="flex items-center gap-2 hover:text-blue-600">
+        <FaUser className="text-lg" />
+        <span>حسابي</span>
+      </Link>
+    </Dropdown.Item>
+
+    {currentUser.isAdmin && (
+      <>
+        <Dropdown.Item onClick={onCloseMenu}>
+          <Link to="/CreatePage" className="flex items-center gap-2 hover:text-blue-600">
+            <FaColumns className="text-lg" />
+            <span>إنشاء صفحة</span>
+          </Link>
+        </Dropdown.Item>
+        <Dropdown.Item onClick={onCloseMenu}>
+          <Link to="/Dashboard?tab=dashbordData" className="flex items-center gap-2 hover:text-blue-600">
+            <FaCoins className="text-lg" />
+            <span>لوحة المعلومات</span>
+          </Link>
+        </Dropdown.Item>
+      </>
+    )}
+
+    {currentUser.isBroker && (
+      <Dropdown.Item onClick={onCloseMenu}>
+        <Link to="/PageBroker" className="flex items-center gap-2 hover:text-blue-600">
+          <FaComments className="text-lg" />
+          <span>قائمة الرسائل</span>
+        </Link>
+      </Dropdown.Item>
+    )}
+
+    <Dropdown.Item onClick={onCloseMenu}>
+      <Link to="/Settings" className="flex items-center gap-2 hover:text-blue-600">
+        <FaCogs className="text-lg" />
+        <span>إعدادات</span>
+      </Link>
+    </Dropdown.Item>
+
+    <Dropdown.Divider />
+
+    <Dropdown.Item 
+      onClick={() => {
+        onCloseMenu();
+        onSignout();
+      }}
+      className="hover:text-red-600 dark:hover:text-red-400"
+    >
+      <div className="flex items-center gap-2">
+        <FaDoorOpen className="text-lg" />
+        <span>تسجيل الخروج</span>
+      </div>
+    </Dropdown.Item>
+  </div>
+);

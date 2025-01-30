@@ -2,8 +2,8 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Helmet } from "react-helmet";
-import { motion, AnimatePresence } from 'framer-motion';
-import { BsArrowRightShort, BsSearch } from "react-icons/bs";
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { BsArrowRightShort, BsSearch, BsClock } from "react-icons/bs";
 
 // Constants
 const API_ENDPOINT = '/api/listing/getPages';
@@ -11,111 +11,120 @@ const QUERY_KEY = 'dataProjects';
 const ITEMS_PER_PAGE = 12;
 
 // Animation variants
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 20 },
-  transition: { duration: 0.3 }
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  exit: { opacity: 0, y: -20 }
+};
+
+const hoverEffect = {
+  scale: 1.02,
+  y: -5,
+  transition: { type: 'spring', stiffness: 300 }
 };
 
 const ProjectCard = React.memo(({ item }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const isAvailable = item.available === "available";
-
-  const handleMouseEnter = useCallback(() => setIsHovered(true), []);
-  const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
   return (
     <motion.div
-      {...fadeInUp}
-      className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      variants={cardVariants}
+      className="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+      layout
     >
       <Link to={`/Projects/${item.slug}`} className="block">
         <div className="relative overflow-hidden aspect-video">
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent"
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
           <motion.img
             src={item.imageUrls[0]}
             alt={item.name}
             className="w-full h-full object-cover"
-            animate={{ scale: isHovered ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
+            initial={{ scale: 1 }}
+            whileHover={{ scale: 1.1 }}
+            transition={{ duration: 0.4 }}
             loading="lazy"
           />
-          <motion.div
-            className="absolute inset-0 bg-black/50 flex items-center justify-center"
-            animate={{ opacity: isHovered ? 1 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <BsSearch className="text-white text-4xl" />
-          </motion.div>
         </div>
       </Link>
 
-      <motion.span
-        className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold ${
-          isAvailable ? "bg-[#ff9505]" : "bg-[#353531] border border-white/30"
-        } text-white`}
-        animate={{ opacity: isHovered ? 1 : 0 }}
-      >
-        {item.available}
-      </motion.span>
+      <div className="absolute top-4 left-4 flex items-center gap-2">
+        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+          isAvailable 
+            ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500"
+            : "bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500"
+        }`}>
+          {item.available}
+        </span>
+        {!isAvailable && (
+          <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 text-sm font-medium">
+            <BsClock className="inline-block ml-1" />مشاريعنا
+          </span>
+        )}
+      </div>
 
-      <div className="p-4">
-        <h2 className="text-2xl font-bold text-[#353531] dark:text-white truncate">
+      <div className="p-5">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2 truncate">
           {item.name}
         </h2>
-        <p className="text-[#353531]/70 dark:text-gray-300 mb-4 line-clamp-2">
+        <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed">
           {item.description}
         </p>
         
-        <Link to={`/Projects/${item.slug}`}>
-          <motion.button 
-            className="w-full flex items-center justify-center bg-[#016FB9] text-white py-3 px-6 rounded-xl transition-all"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <BsArrowRightShort className="text-2xl" />
-            <span className="ms-1">عرض المشروع</span>
-          </motion.button>
-        </Link>
+        <motion.div whileHover="hover" className="overflow-hidden rounded-lg">
+          <Link to={`/Projects/${item.slug}`} className="block">
+            <motion.div
+              className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition-colors"
+              variants={{ hover: { x: 5 } }}
+            >
+              <BsArrowRightShort className="text-xl" />
+              <span className="ms-2 font-medium">عرض تفاصيل المشروع</span>
+            </motion.div>
+          </Link>
+        </motion.div>
       </div>
     </motion.div>
   );
 });
 
 const LoadingSkeleton = () => (
-  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+  <motion.div 
+    className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+    variants={containerVariants}
+    initial="hidden"
+    animate="show"
+  >
     {[...Array(8)].map((_, i) => (
-      <div key={i} className="w-full h-80 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden">
-        <div className="h-48 w-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-        <div className="p-4">
-          <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse" />
-          <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+      <motion.div
+        key={i}
+        variants={cardVariants}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden"
+      >
+        <div className="aspect-video bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="p-5 space-y-4">
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse" />
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5 animate-pulse" />
+          <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
         </div>
-      </div>
+      </motion.div>
     ))}
-  </div>
-);
-
-const OldProjectsList = ({ projects }) => (
-  <div className="mt-12">
-    <h2 className="text-2xl font-bold dark:text-white text-center mb-5">
-      المشاريع القديمة
-    </h2>
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {projects.map((project, index) => (
-        <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl h-80 shadow-lg p-6 flex flex-col justify-center">
-          <h3 className="text-2xl font-bold text-[#004483] dark:text-white truncate mb-2">
-            {project.namePro_eq}
-          </h3>
-          <p className="text-[#353531]/70 dark:text-gray-300">
-            {project.titlePro}
-          </p>
-        </div>
-      ))}
-    </div>
-  </div>
+  </motion.div>
 );
 
 export default function Project() {
@@ -127,140 +136,148 @@ export default function Project() {
     async () => {
       const response = await fetch(`${API_ENDPOINT}?limit=200`);
       if (!response.ok) throw new Error('Failed to fetch projects');
-      const data = await response.json();
-      return data.listings;
+      return (await response.json()).listings;
     },
-    {
-      staleTime: 300000, // 5 minutes
-      cacheTime: 3600000, // 1 hour
-      retry: 3
-    }
+    { staleTime: 300000, cacheTime: 3600000, retry: 3 }
   );
 
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
-    
-    const lowercasedTerm = searchTerm.toLowerCase().trim();
-    if (!lowercasedTerm) return projects;
-  
-    return projects.filter(project => {
-      const projectName = project.name?.toLowerCase() ?? '';
-      const projectDescription = project.description?.toLowerCase() ?? '';
-      return projectName.includes(lowercasedTerm) || 
-             projectDescription.includes(lowercasedTerm);
-    });
+    const term = searchTerm.toLowerCase().trim();
+    return term 
+      ? projects.filter(p => 
+          p.name?.toLowerCase().includes(term) || 
+          p.description?.toLowerCase().includes(term)
+        )
+      : projects;
   }, [projects, searchTerm]);
 
   const paginatedProjects = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredProjects.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProjects.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredProjects, currentPage]);
 
-  const handleSearchChange = useCallback((e) => {
+  const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setCurrentPage(1);
   }, []);
 
-  if (error) {
-    return (
-      <motion.div 
-        className="w-full min-h-[40vh] flex justify-center items-center"
-        {...fadeInUp}
-      >
-        <div className="p-6 bg-red-50 dark:bg-red-900/20 rounded-xl">
-          <p className="text-red-500 dark:text-red-400 text-lg">
-            عذراً، حدث خطأ أثناء تحميل المشاريع. يرجى المحاولة مرة أخرى لاحقاً.
-          </p>
-        </div>
-      </motion.div>
-    );
-  }
+  if (error) return (
+    <motion.div 
+      className="min-h-[60vh] flex items-center justify-center p-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="max-w-md text-center bg-red-50 dark:bg-red-900/20 p-8 rounded-2xl">
+        <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">
+          فشل تحميل البيانات
+        </h3>
+        <p className="text-red-500 dark:text-red-300">
+          يرجى التحقق من اتصال الشبكة أو المحاولة مرة أخرى لاحقًا
+        </p>
+      </div>
+    </motion.div>
+  );
 
   return (
     <>
       <Helmet>
-        <title>مشاريع مميزة - ElSarh Real Estate</title>
-        <meta 
-          name="description" 
-          content="اكتشف مجموعتنا المذهلة من العقارات الفاخرة وفرص الاستثمار العقاري الفريدة." 
-        />
+        <title>المشاريع العقارية - ElSarh Real Estate</title>
+        <meta name="description" content="اكتشف مجموعة مشاريعنا العقارية الفريدة واستثمر في مستقبل ناجح مع نخبة من التصاميم المعمارية المتميزة." />
       </Helmet>
 
-      <div dir="rtl" className="min-h-screen bg-stone-100 dark:from-gray-800 dark:to-gray-900 py-8 px-4">
-        <div className="container mx-auto space-y-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border-t border-b-4 border-b-[#ff9505] shadow-lg">
-            <motion.h1 
-              className="text-4xl font-bold text-[#002E66] mb-4"
-              {...fadeInUp}
-            >
-              مشاريعنا
-            </motion.h1>
-            <motion.p 
-              className="text-xl text-[#353531] dark:text-gray-300 max-w-2xl mb-6"
-              {...fadeInUp}
-            >
-              اكتشف عالمًا من العقارات الفاخرة والحلول العقارية المبتكرة المصممة لتتجاوز توقعاتك.
-            </motion.p>
-
-            <div className="relative">
+      <div dir="rtl" className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <motion.div 
+          className="max-w-7xl mx-auto space-y-12"
+          initial="hidden"
+          animate="show"
+        >
+          {/* Header Section */}
+          <motion.div 
+            className="space-y-6 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+              مشاريعنا العقارية
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              استكشف مجموعة مختارة من أبرز المشاريع العقارية التي تجمع بين الرفاهية والابتكار في التصميم
+            </p>
+            
+            <div className="relative max-w-xl mx-auto">
               <input
                 type="text"
-                placeholder="البحث عن المشاريع..."
+                placeholder="ابحث عن مشروع..."
                 value={searchTerm}
-                onChange={handleSearchChange}
-                className="w-full py-4 px-6 text-lg bg-stone-100 dark:bg-gray-700 rounded-xl focus:ring-2 focus:ring-[#016FB9] focus:outline-none"
+                onChange={handleSearch}
+                className="w-full px-5 py-3.5 text-lg bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-14"
               />
-              <BsSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl" />
+              <BsSearch className="absolute top-1/2 right-5 -translate-y-1/2 text-gray-400 text-xl" />
             </div>
-          </div>
+          </motion.div>
 
-          {isLoading ? (
-            <LoadingSkeleton />
-          ) : (
-            <>
-              <AnimatePresence mode="wait">
-                {paginatedProjects.length > 0 ? (
+          {/* Projects Grid */}
+          <LayoutGroup>
+            {isLoading ? (
+              <LoadingSkeleton />
+            ) : (
+              <>
+                <AnimatePresence mode="popLayout">
+                  {paginatedProjects.length > 0 ? (
+                    <motion.div
+                      className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="show"
+                      exit="hidden"
+                      layout
+                    >
+                      {paginatedProjects.map((item) => (
+                        <ProjectCard key={item.id} item={item} />
+                      ))}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      className="text-center py-20"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <p className="text-xl text-gray-600 dark:text-gray-400">
+                        لا توجد مشاريع مطابقة لبحثك
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Pagination */}
+                {filteredProjects.length > ITEMS_PER_PAGE && (
                   <motion.div 
-                    className="grid md:grid-cols-2 lg:grid-cols-4 gap-4"
+                    className="flex justify-center gap-2"
                     layout
                   >
-                    {paginatedProjects.map((item) => (
-                      <ProjectCard key={item.id} item={item} />
+                    {[...Array(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))].map((_, i) => (
+                      <motion.button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`w-12 h-12 flex items-center justify-center rounded-lg ${
+                          currentPage === i + 1
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {i + 1}
+                      </motion.button>
                     ))}
                   </motion.div>
-                ) : (
-                  <motion.div
-                    className="text-center py-12"
-                    {...fadeInUp}
-                  >
-                    <p className="text-2xl text-gray-600 dark:text-gray-300">
-                      لم يتم العثور على أي مشاريع. جرّب مصطلح بحث مختلفًا.
-                    </p>
-                  </motion.div>
                 )}
-              </AnimatePresence>
-
-              {filteredProjects.length > ITEMS_PER_PAGE && (
-                <div className="flex justify-center gap-2 mt-8">
-                  {[...Array(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`px-4 py-2 rounded ${
-                        currentPage === i + 1
-                          ? 'bg-[#016FB9] text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </LayoutGroup>
+        </motion.div>
       </div>
     </>
   );

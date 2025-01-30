@@ -1,84 +1,186 @@
-import { BsArrowUpCircle } from "react-icons/bs";
-import { FaRegWindowMinimize } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import SocialMediaLink from "../SocialMedia/SocialMediaLink";
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { BsArrowUpShort   } from 'react-icons/bs';
+import { FiClock, FiMapPin, FiMail, FiPhone } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { SocialMediaSecondary } from '../SocialMedia/SocialMediaLink';
+import { useEffect, useState } from 'react';
+
+const FooterSection = ({ title, children }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className="space-y-4"
+  >
+    <h6 className="text-xl font-semibold text-gray-800 dark:text-gray-200 relative pb-2 after:absolute after:bottom-0 after:right-0 after:w-12 after:h-1 after:bg-[#ff9505]">
+      {title}
+    </h6>
+    <ul className="space-y-3 text-gray-600 dark:text-gray-400">
+      {children}
+    </ul>
+  </motion.div>
+);
 
 export default function Footer() {
   const [showButton, setShowButton] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Function to handle scroll events
   const handleScroll = () => {
-    if (window.scrollY > 500) {
-      setShowButton(true);
-    } else {
-      setShowButton(false);
-    }
+    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (window.scrollY / totalHeight) * 100;
+    setScrollProgress(progress);
+    setShowButton(window.scrollY > 500);
   };
 
-  // Scroll event listener
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
   return (
-    <footer dir="rtl" className='text-sm'>
+    <footer dir="rtl" className="relative bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
       {/* Scroll to Top Button */}
-      {showButton &&
-      <div onClick={scrollToTop} 
-           className={`${showButton ? 'scale-100' : ' scale-50 transition-all'} fixed bottom-6 right-6 bg-[#ff9505] hover:bg-[#033e8a] text-white rounded-full p-3 cursor-pointer shadow-lg transition-all duration-300`}>
-        <BsArrowUpCircle className="text-3xl" />
-      </div>}
+      <AnimatePresence>
+        {showButton && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <motion.button
+              onClick={scrollToTop}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="relative group p-2 bg-gradient-to-br from-[#ff9505] to-[#ff6b00] rounded-full shadow-xl hover:shadow-2xl transition-all"
+              aria-label="Scroll to top"
+            >
+              <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping-slow" />
+              
+              {/* Progress Ring */}
+              <svg className="w-12 h-12 transform -rotate-90">
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="20"
+                  className="stroke-current text-white/20"
+                  strokeWidth="2"
+                  fill="transparent"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="20"
+                  className="stroke-current text-white"
+                  strokeWidth="2"
+                  fill="transparent"
+                  strokeDasharray="125.6"
+                  strokeDashoffset={125.6 - (125.6 * scrollProgress) / 100}
+                />
+              </svg>
+
+              <BsArrowUpShort   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl text-white transform group-hover:-translate-y-1 transition-transform" />
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer Content */}
-      <div className='p-8 grid md:grid-cols-3 gap-8 bg-white border-t text-black-300 dark:bg-stone-950'>
+      <div className="container mx-auto px-6 py-12 grid md:grid-cols-3 gap-8">
         {/* Work Hours Section */}
-        <div>
-          <h6 className='text-xl font-semibold mb-3 text-black underline underline-offset-8'>ساعات العمل</h6>
-          <ul className="space-y-1 text-gray-700 dark:text-gray-400/90">
-            <li className='flex items-center'><span>السبت</span><FaRegWindowMinimize className="mx-2"/><span> الخميس</span></li>
-            <li className='flex items-center'><span>10am</span><FaRegWindowMinimize className="mx-2"/><span>5pm</span></li>
-          </ul>
-        </div>
+        <FooterSection title="ساعات العمل">
+          <motion.li 
+            className="flex items-center space-x-2"
+            whileHover={{ x: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <FiClock className="text-[#ff9505]" />
+            <span>السبت - الخميس: 10 صباحاً - 5 مساءً</span>
+          </motion.li>
+        </FooterSection>
 
         {/* Quick Links Section */}
-        <div>
-          <h6 className='text-xl font-semibold mb-3 text-black underline underline-offset-8'>روابط سريعة</h6>
-          <ul className="space-y-2 text-gray-700 dark:text-gray-400/90">
-            <li><Link to="/Home" className='hover:text-[#ff9505] transition-colors duration-200'>الصفحة الرئيسية</Link></li>
-            <li><Link to="/Project" className='hover:text-[#ff9505] transition-colors duration-200'>المشاريع</Link></li>
-            <li><Link to="/About" className='hover:text-[#ff9505] transition-colors duration-200'>عن الصرح</Link></li>
-            <li><Link to="/Signin" className='hover:text-[#ff9505] transition-colors duration-200'>تسجيل الدخول</Link></li>
-          </ul>
-        </div>
+        <FooterSection title="روابط سريعة">
+          {['الصفحة الرئيسية', 'المشاريع', 'عن الصرح', 'تسجيل الدخول'].map((link, index) => (
+            <motion.li
+              key={index}
+              whileHover={{ x: 5 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Link
+                to={`/${link === 'الصفحة الرئيسية' ? '' : link}`}
+                className="hover:text-[#ff9505] transition-colors duration-200 flex items-center"
+              >
+                <span className="w-2 h-2 bg-[#ff9505] rounded-full mr-2" />
+                {link}
+              </Link>
+            </motion.li>
+          ))}
+        </FooterSection>
 
         {/* Contact Section */}
-        <div>
-          <h6 className='text-xl font-semibold mb-3 text-black underline underline-offset-8'>اتصل بنا </h6>
-          <ul className="space-y-1 text-gray-700 dark:text-gray-400/90">
-            <li>14 شارع المختار من شارع النصر</li>
-            <li>المعادي الجديدة، القاهرة</li>
-            <li><a href="mailto:admin@elsarhegypt.com" className='hover:text-[#ff9505] transition-colors duration-200'>admin@elsarhegypt.com</a></li>
-            <li><a href="tel:+0227547988" className='hover:text-[#ff9505] transition-colors duration-200'>0227547988</a></li>
-          </ul>
-        </div>
+        <FooterSection title="اتصل بنا">
+          <motion.li 
+            className="flex items-start space-x-2"
+            whileHover={{ x: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <FiMapPin className="text-[#ff9505] mt-1" />
+            <div>
+              <p>14 شارع المختار من شارع النصر</p>
+              <p>المعادي الجديدة، القاهرة</p>
+            </div>
+          </motion.li>
+          <motion.li 
+            className="flex items-center space-x-2"
+            whileHover={{ x: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <FiMail className="text-[#ff9505]" />
+            <a href="mailto:elsarhegypt@gmail.com" className="hover:text-[#ff9505] transition-colors">
+              elsarhegypt@gmail.com
+            </a>
+          </motion.li>
+          <motion.li 
+            className="flex items-center space-x-2"
+            whileHover={{ x: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <FiPhone className="text-[#ff9505]" />
+            <a href="tel:+0227547988" className="hover:text-[#ff9505] transition-colors">
+              0227547988
+            </a>
+          </motion.li>
+        </FooterSection>
       </div>
 
       {/* Footer Bottom Section */}
-      <div className=' border-t bg-[#004483] py-4 px-8 md:col-span-3 flex justify-between items-center text-white dark:text-gray-400/90'>
-        <p>
-          © 2021 <a className="hover:underline" href="#">الصرح للاستثمار العقاري</a> جميع الحقوق محفوظة.
-        </p>
-        <div className="flex space-x-4">
-          <SocialMediaLink />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="border-t border-gray-100 dark:border-gray-800 bg-[#004483] dark:bg-gray-800"
+      >
+        <div className="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <p className="text-white dark:text-gray-300 text-center md:text-left">
+            © {new Date().getFullYear()}{' '}
+            <a href="#" className="hover:underline hover:text-[#ff9505] transition-colors">
+              الصرح للاستثمار العقاري
+            </a>
+            . جميع الحقوق محفوظة
+          </p>
+          
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="flex space-x-4"
+          >
+            <SocialMediaSecondary />
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </footer>
   );
 }

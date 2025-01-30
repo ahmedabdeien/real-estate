@@ -89,25 +89,20 @@ export const deletePage = async (req,res,next) =>{
 }
 
 export const updatePage = async (req,res,next) =>{
-    try{
-
     const updatePage = await Listing.findById(req.params.id);
     if(!updatePage){
         return next(errorHandler(404,"page not found"));
     }
-    if(!req.user.isAdmin && req.user.id !== updatePage.userId.toString()){
+    if(!req.user.isAdmin || req.user.id !== updatePage.userId){
         return next(errorHandler(403,"you are not allowed to update a page"));
     }
-    const updatedPage = await Listing.findByIdAndUpdate(
-        req.params.id,
-        {$set: req.body},
-        {new:true});
-    res.status(200).json(updatedPage);
-    }
-    catch(error){
+    try{
+        const updatedPage = await Listing.findByIdAndUpdate(req.params.id,{$set: req.body},{new:true});
+        res.status(200).json(updatedPage);
+    }catch(error){
         next(error);
     }
-}
+};
 
 export const getPage = async (req,res,next) =>{
     try{

@@ -1,7 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from "react-helmet";
 import { BsSearch } from 'react-icons/bs';
-import { FaEnvelope,FaPhoneAlt,FaRegCalendarAlt  } from "react-icons/fa";
+import { FaEnvelope, FaPhoneAlt, FaRegCalendarAlt } from "react-icons/fa";
+import { motion, AnimatePresence } from 'framer-motion';
+import { TbLoader, TbAlertCircle } from 'react-icons/tb';
+
+
+
+
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+  hover: { y: -5, scale: 1.02 }
+};
+
 export default function PageBroker() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,117 +35,164 @@ export default function PageBroker() {
   const [sortBy, setSortBy] = useState('date');
 
   useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const response = await fetch('/api/contact');
+        if (!response.ok) throw new Error('Failed to fetch contacts');
+        const data = await response.json();
+        setContacts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchContacts();
   }, []);
-
-  const fetchContacts = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/contact');
-      if (!response.ok) {
-        throw new Error('Failed to fetch contacts');
-      }
-      const data = await response.json();
-      setContacts(data);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
-
 
   const filteredContacts = contacts
     .filter(contact => 
       contact.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contact.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a, b) => {
-      if (sortBy === 'date') {
-        return new Date(b.date) - new Date(a.date);
-      } else if (sortBy === 'name') {
-        return a.fullName.localeCompare(b.fullName);
-      }
-      return 0;
-    });
+    .sort((a, b) => sortBy === 'date' ? 
+      new Date(b.date) - new Date(a.date) : 
+      a.fullName.localeCompare(b.fullName)
+    );
 
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <TbLoader className="text-4xl animate-spin text-blue-500" />
+    </div>
+  );
   
   if (error) return (
-    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-      <strong className="font-bold">Error!</strong>
-      <span className="block sm:inline"> {error}</span>
-    </div>
+    <motion.div 
+      className="max-w-md mx-auto mt-8 p-4 bg-red-50 border border-red-200 rounded-xl"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="flex items-center gap-2 text-red-600">
+        <TbAlertCircle className="text-xl" />
+        <span className="font-medium">{error}</span>
+      </div>
+    </motion.div>
   );
 
   return (
     <>
-    <Helmet>
-    <title>Contact List</title>
-    <meta name="description" content="Explore our breathtaking collection of luxurious properties and unique real estate opportunities." />
-  </Helmet>
-    <div dir='rtl' className="px-4 py-8 bg-gradient-to-br from-stone-100 to-stone-200">
-    <div className="container mx-auto ">
-      <h2 className="text-4xl font-bold mb-8 text-center text-gray-800 animate-fade-in">قائمة الرسايل</h2>
-      <div className="mb-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 shadow border-[#353531]/20 p-3 bg-white rounded-xl">
-        <div className="relative w-full sm:w-96">
-          <input
-            type="text"
-            placeholder="البحث عن جهات الاتصال..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full ps-10 pe-4 py-4 border-none  rounded-xl focus:outline-none focus:border-[#016FB9] bg-stone-100 focus:ring-0"
-          />
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <BsSearch className="w-5 h-5 text-purple-800/75" />
-          </span>
-        </div>
-        <div className="flex items-center ">
-          <label htmlFor="sortBy" className="text-gray-700 font-medium me-2">فرز حسب:</label>
-          <select
-            id="sortBy"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-8 w-40 py-4 rounded-xl border-none  focus:border-[#016FB9] bg-stone-100 focus:ring-0"
+      <Helmet>
+        <title>Contact List</title>
+        <meta name="description" content="Manage and organize your contact messages" />
+      </Helmet>
+
+      <div dir='rtl' className="min-h-screen container bg-gradient-to-br from-stone-100 to-stone-50 dark:from-gray-800 dark:to-gray-900">
+        <div className="container mx-auto px-4 py-8">
+          <motion.h2 
+            className="text-4xl font-bold mb-8 text-center text-gray-800 dark:text-white"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            <option value="date">تاريخ</option>
-            <option value="name">اسم</option>
-          </select>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredContacts.map((contact) => (
-          <div key={contact._id} className="flex flex-col justify-between bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all  transform hover:-translate-y-1">
-            <div className="flex flex-col justify-between">
-              <div className='p-3 border-b bg-gradient-to-r from-[#a1c4fd] to-[#c2e9fb] '>
-                <h3 className="font-bold text-2xl text-black ">{contact.fullName}</h3>
+            قائمة الرسائل
+          </motion.h2>
+
+          {/* Controls Section */}
+          <motion.div 
+            className="mb-6 p-4 bg-white dark:bg-gray-700 rounded-xl shadow-sm border border-gray-100 dark:border-gray-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="البحث عن جهات الاتصال..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full ps-10 pe-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-600 border-none focus:ring-2 focus:ring-blue-500"
+                />
+                <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300" />
               </div>
-              <div className="space-y-2 p-3 py-4">
-                <p className="text-[#353531] flex items-center">
-                  <span className='bg-[#016FB9] rounded-md p-1 me-2 text-white'> 
-                    <FaEnvelope className="" />
-                  </span>
-                  <span className="font-medium"></span> {contact.email}
-                </p>
-                <p className="text-[#353531] flex items-center">
-                <span className='bg-green-500 rounded-md p-1 me-2 text-white'> 
-                  <FaPhoneAlt  className="" />
-                  </span>
-                  <span className="font-medium"></span>{contact.phoneNumber}
-                </p>
-                <p className="text-gray-700 border-s-4 p-2 font-semibold italic">{contact.massage}</p>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-gray-600 dark:text-gray-300">فرز حسب:</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-600 border-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="date">تاريخ</option>
+                  <option value="name">اسم</option>
+                </select>
               </div>
             </div>
-            <p className="text-sm text-[#353531] flex items-center bg-stone-50 px-3 py-1">
-                <FaRegCalendarAlt className="me-2 text-[#3921d5]" />
-                 {new Date(contact.date).toLocaleString()}
-              </p>
-          </div>
-        ))}
+          </motion.div>
+
+          {/* Contact Cards */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <AnimatePresence>
+              {filteredContacts.map((contact) => (
+                <motion.div
+                  key={contact._id}
+                  variants={cardVariants}
+                  whileHover="hover"
+                  className="bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden"
+                >
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 opacity-10" />
+                    <div className="p-4 border-b border-gray-100 dark:border-gray-600">
+                      <h3 className="text-xl font-bold text-gray-800 dark:text-white">
+                        {contact.fullName}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                      <span className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                        <FaEnvelope className="text-blue-500" />
+                      </span>
+                      <span className="truncate">{contact.email}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                      <span className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                        <FaPhoneAlt className="text-green-500" />
+                      </span>
+                      <span>{contact.phoneNumber}</span>
+                    </div>
+
+                    <p className="p-3 bg-gray-50 dark:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-300 text-sm border-l-4 border-blue-500">
+                      {contact.message}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-gray-50 dark:bg-gray-600 text-sm flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <FaRegCalendarAlt className="flex-shrink-0" />
+                    <span>{new Date(contact.date).toLocaleString()}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+
+          {filteredContacts.length === 0 && (
+            <motion.div 
+              className="text-center py-8 text-gray-500 dark:text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              لا توجد نتائج مطابقة
+            </motion.div>
+          )}
+        </div>
       </div>
-    </div>
-  </div>
-  </>
+    </>
   );
 }

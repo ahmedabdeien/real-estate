@@ -1,23 +1,82 @@
 import { useState } from "react";
-import {  BsChevronLeft, BsEnvelope , BsTelephone } from "react-icons/bs";
+import { motion, AnimatePresence } from "framer-motion";
+import { BsEnvelope, BsTelephone } from "react-icons/bs";
 import { FaEllipsisH } from "react-icons/fa";
-export default function ButtonTop() {
-  let [contactBtn , setContactBtn] = useState(false)
+
+export default function FloatingContact() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const buttonVariants = {
+    hidden: { x: -20, opacity: 0 },
+    visible: { x: 0, opacity: 1 },
+    hover: { scale: 1.1 },
+    tap: { scale: 0.95 }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
   return (
-    <>
-    <div className={` ${contactBtn? 'left-5':'-left-[75px]'} transition-all duration-300 ease-in-out fixed bottom-4 z-40  p-2  flex  items-center justify-between`}>
-        <div className={`${contactBtn? 'scale-100':' scale-0'} ease-in-out shadow transition-all duration-300 space-y-2 rounded-full bg-white p-2 `}>
-          <a href="tel:+201212622210" className="w-12 h-12 rounded-full bg-[#8fbc8f] hover:bg-[#8fbc8f]/80 transition-colors border border-black/10 shadow p-1 px-2 flex flex-col justify-center items-center" target="_blank" rel="noopener noreferrer" >
-            <BsTelephone className="text-3xl text-stone-700"/>
-          </a>
-          <a href="mailto:elsarhegypt@gmail.com" className="w-12 h-12 rounded-full bg-[#779ecb] hover:bg-[#779ecb]/80 transition-colors border border-black/10 shadow  p-1 px-2 flex flex-col justify-center items-center" target="_blank" rel="noopener noreferrer">
-            <BsEnvelope className="text-3xl text-stone-700"/>
-          </a>
-        </div>        
-        <div onClick={()=>setContactBtn(!contactBtn)} className={` transition-transform duration-300 p-2 translate-x-2 bg-stone-300 cursor-pointer hover:scale-110 rounded-full`}>
-            <FaEllipsisH className={`${contactBtn?" rotate-0":"rotate-180"} text-3xl text-stone-700`}/>
-        </div>
+    <div className="fixed bottom-6 left-6 z-50">
+      <motion.div
+        className="flex items-center gap-2"
+        initial={true}
+        animate={isOpen ?  "visible" :"visible" }
+        variants={containerVariants}
+      >
+        <AnimatePresence>
+          {isOpen && (
+            <>
+              <motion.a
+                key="phone"
+                href="tel:+201212622210"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                className="w-12 h-12 rounded-full bg-green-600 shadow-lg flex items-center justify-center backdrop-blur-sm bg-opacity-90 hover:bg-green-700 transition-colors"
+                aria-label="Make phone call"
+              >
+                <BsTelephone className="text-2xl text-white" />
+              </motion.a>
+
+              <motion.a
+                key="email"
+                href="mailto:elsarhegypt@gmail.com"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+                className="w-12 h-12 rounded-full bg-blue-600 shadow-lg flex items-center justify-center backdrop-blur-sm bg-opacity-90 hover:bg-blue-700 transition-colors"
+                aria-label="Send email"
+              >
+                <BsEnvelope className="text-2xl text-white" />
+              </motion.a>
+            </>
+          )}
+        </AnimatePresence>
+
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+          aria-label="Contact options"
+        >
+          <motion.span
+            animate={{ rotate: isOpen ? 0 : 180 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <FaEllipsisH className="text-2xl text-gray-700" />
+          </motion.span>
+        </motion.button>
+      </motion.div>
     </div>
-    </>
-  )
+  );
 }

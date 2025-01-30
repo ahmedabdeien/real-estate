@@ -1,98 +1,113 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import { Helmet } from "react-helmet";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronUp } from 'lucide-react';
-import LogoelsarhTwo from '../../assets/images/logo_e_w.png'
-// Theme configuration
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ChevronUp, Building, Home, Briefcase, Leaf, Award, ShieldCheck } from 'lucide-react';
+import LogoelsarhTwo from '../../assets/images/logo_e_w.png';
+import TeamMembers from './TeamMembers'; // New component
+import Testimonials from './Testimonials'; // New component
+
+// Enhanced theme configuration with CSS variables
 const THEME = {
   colors: {
     primary: {
-      default: '#033E8A',
-      dark: '#022a5e'
+      default: 'var(--primary)',
+      dark: 'var(--primary-dark)'
     },
     secondary: {
-      default: '#FF9505',
-      dark: '#cc7704'
+      default: 'var(--secondary)',
+      dark: 'var(--secondary-dark)'
     },
     accent: {
-      default: '#a98105',
-      dark: '#846404'
+      default: 'var(--accent)',
+      dark: 'var(--accent-dark)'
     }
   }
 };
 
-// Animation variants
-const animations = {
-  fadeIn: {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-    transition: { duration: 0.6 }
-  },
-  slideIn: {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 },
-    transition: { duration: 0.6 }
-  },
-  scale: {
-    initial: { scale: 0.95, opacity: 0 },
-    animate: { scale: 1, opacity: 1 },
-    exit: { scale: 0.95, opacity: 0 },
-    transition: { type: "spring", stiffness: 300 }
+// Responsive image configuration
+const IMAGE_CONFIG = {
+  services: {
+    sizes: "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
+    loading: "lazy",
+    format: "webp"
   }
 };
 
+// Enhanced animations with reduced motion support
+const createAnimations = (reduceMotion) => ({
+  fadeIn: {
+    initial: { opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : -20 },
+    transition: { duration: 0.6 }
+  },
+  slideIn: {
+    initial: { opacity: reduceMotion ? 1 : 0, x: reduceMotion ? 0 : 20 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: reduceMotion ? 1 : 0, x: reduceMotion ? 0 : -20 },
+    transition: { duration: 0.6 }
+  },
+  scale: {
+    initial: { scale: reduceMotion ? 1 : 0.95, opacity: reduceMotion ? 1 : 0 },
+    animate: { scale: 1, opacity: 1 },
+    exit: { scale: reduceMotion ? 1 : 0.95, opacity: reduceMotion ? 1 : 0 },
+    transition: { type: "spring", stiffness: 300 }
+  }
+});
+
+// Enhanced services data with responsive images
 const SERVICES = [
   {
     title: "سكني",
-    image: "/images/residential.jpg",
+    images: {
+      webp: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      jpg: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
     alt: "صورة للمشاريع السكنية",
-    description: "مشاريع سكنية فاخرة تلبي احتياجات العائلة العصرية"
+    description: "مشاريع سكنية فاخرة تلبي احتياجات العائلة العصرية",
+    icon: <Home aria-hidden="true" />
   },
   {
     title: "إداري",
-    image: "/images/administrative.jpg",
+    images: {
+      webp: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      jpg: "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
     alt: "صورة للمشاريع الإدارية",
-    description: "مساحات مكتبية حديثة مصممة للإنتاجية والراحة"
+    description: "مساحات مكتبية حديثة مصممة للإنتاجية والراحة",
+    icon: <Briefcase aria-hidden="true" />
   },
   {
     title: "تجاري",
-    image: "/images/commercial.jpg",
+    images: {
+      webp: "https://images.pexels.com/photos/27452443/pexels-photo-27452443/free-photo-of-a-large-shopping-mall-with-escalators-and-glass-doors.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      jpg: "https://images.pexels.com/photos/27452443/pexels-photo-27452443/free-photo-of-a-large-shopping-mall-with-escalators-and-glass-doors.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+    },
     alt: "صورة للمشاريع التجارية",
-    description: "مراكز تسوق وأسواق تجارية بمواقع استراتيجية"
+    description: "مراكز تسوق وأسواق تجارية بمواقع استراتيجية",
+    icon: <Building aria-hidden="true" />
   }
 ];
 
+// Enhanced features with proper icons
 const FEATURES = [
   {
     title: "جودة لا مثيل لها",
     description: "معايير بناء استثنائية تضمن الجودة والمتانة",
-    icon: "🏗️"
+    icon: <ShieldCheck size={32} aria-hidden="true" />
   },
   {
     title: "تصاميم مبتكرة",
     description: "أساليب معمارية معاصرة تجمع بين الجمال والوظيفة",
-    icon: "✨"
-  },
-  {
-    title: "وحدات متنوعة",
-    description: "خيارات متعددة تلبي مختلف الاحتياجات والأذواق",
-    icon: "🏠"
-  },
-  {
-    title: "مجتمعات نابضة",
-    description: "مرافق متكاملة ووسائل راحة عصرية",
-    icon: "🌟"
+    icon: <Award size={32} aria-hidden="true" />
   },
   {
     title: "استدامة بيئية",
     description: "ممارسات صديقة للبيئة وحلول مستدامة",
-    icon: "🌱"
+    icon: <Leaf size={32} aria-hidden="true" />
   }
 ];
 
-// Scroll to top button component
 const ScrollToTop = React.memo(() => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -113,100 +128,114 @@ const ScrollToTop = React.memo(() => {
     <AnimatePresence>
       {isVisible && (
         <motion.button
-          className="fixed bottom-8 right-8 p-3 bg-primary/90 text-white rounded-full shadow-lg hover:bg-primary transition-colors duration-300"
+          className="fixed bottom-8 right-8 p-3 bg-primary/90 text-white rounded-full shadow-lg hover:bg-primary transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           onClick={scrollToTop}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           whileHover={{ scale: 1.1 }}
+          whileFocus={{ scale: 1.1 }}
           aria-label="العودة إلى الأعلى"
         >
-          <ChevronUp size={24} />
+          <ChevronUp size={24} aria-hidden="true" />
         </motion.button>
       )}
     </AnimatePresence>
   );
 });
 
-const ServiceCard = React.memo(({ image, title, description, alt }) => {
+const ServiceCard = React.memo(({ images, title, description, alt, icon }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   return (
+    
     <motion.article
-      className="group relative border rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300"
-      whileHover={{ scale: 1.02 }}
+      className="group relative rounded-lg  overflow-hidden hover:shadow-xl transition-shadow duration-300"
+      whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverStart={() => !prefersReducedMotion && setIsHovered(true)}
+      onHoverEnd={() => !prefersReducedMotion && setIsHovered(false)}
+      role="region"
+      aria-labelledby={`service-${title}`}
     >
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out"
-        style={{ 
-          backgroundImage: `url(${image})`,
-          transform: isHovered ? 'scale(1.1)' : 'scale(1)'
-        }}
-        role="img"
-        aria-label={alt}
-      />
-      <motion.div 
-        className="relative w-full h-80 backdrop-blur-sm"
-        initial={{ backgroundColor: 'rgba(3, 62, 138, 0.8)' }}
-        animate={{ 
-          backgroundColor: isHovered ? 'rgba(3, 62, 138, 0.9)' : 'rgba(3, 62, 138, 0.8)'
-        }}
-      >
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-          <motion.h3 
-            className="text-4xl font-semibold text-white mb-4"
-            animate={{ scale: isHovered ? 1.1 : 1 }}
-            transition={{ duration: 0.3 }}
-          >
+      <div className="relative h-80">
+        
+        <picture>
+          <source srcSet={images.webp} type="image/webp" />
+          <div className='bg-black/50  absolute inset-0 z-10 flex items-center justify-center'></div>
+          <img
+            src={images.jpg}
+            alt={alt}
+            loading={IMAGE_CONFIG.services.loading}
+            sizes={IMAGE_CONFIG.services.sizes}
+            className="w-full h-full object-cover transition-transform duration-500 ease-out  "
+            style={{ transform: isHovered && !prefersReducedMotion ? 'scale(1.1)' : 'scale(1)' }}
+          />
+        </picture>
+        <div className="absolute inset-0 z-20 bg-primary/90 flex flex-col items-center justify-center p-6 text-center space-y-4">
+          <div className="text-white" aria-hidden="true">
+            {icon}
+          </div>
+          <h3 id={`service-${title}`} className="text-3xl font-semibold text-white">
             {title}
-          </motion.h3>
-          <motion.p
-            className="text-white/90 text-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 20 }}
-            transition={{ duration: 0.3 }}
-          >
+          </h3>
+          <p className="text-white/90 text-lg transition-opacity duration-300">
             {description}
-          </motion.p>
+          </p>
         </div>
-      </motion.div>
+      </div>
     </motion.article>
   );
 });
 
-const FeatureCard = React.memo(({ title, description, icon }) => (
-  <motion.div 
-    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
-    whileHover={{ y: -5 }}
-  >
-    <span className="text-4xl mb-4 block" role="img" aria-label={title}>
-      {icon}
-    </span>
-    <h4 className="text-xl font-semibold text-primary dark:text-secondary mb-2">
-      {title}
-    </h4>
-    <p className="text-zinc-700 dark:text-gray-300">
-      {description}
-    </p>
-  </motion.div>
-));
+const FeatureCard = React.memo(({ title, description, icon }) => {
+  const prefersReducedMotion = useReducedMotion();
+  
+  return (
+    <motion.div 
+      className="bg-white dark:bg-gray-800 p-6 rounded-lg border hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center"
+      whileHover={prefersReducedMotion ? {} : { y: -5 }}
+      role="region"
+      aria-labelledby={`feature-${title}`}
+    >
+      <div className="text-primary dark:text-secondary mb-4" aria-hidden="true">
+        {icon}
+      </div>
+      <h4 id={`feature-${title}`} className="text-xl font-semibold mb-2">
+        {title}
+      </h4>
+      <p className="text-zinc-700 dark:text-gray-300">
+        {description}
+      </p>
+    </motion.div>
+  );
+});
 
-const ContentSection = React.memo(({ title, children, className = "" }) => (
-  <motion.section 
-    {...animations.slideIn}
-    className={`bg-white dark:bg-gray-700 rounded-lg shadow-md p-8 mb-6 space-y-6 ${className}`}
-  >
-    <h2 className="text-3xl font-bold text-primary dark:text-secondary">
-      {title}
-    </h2>
-    {children}
-  </motion.section>
-));
+const ContentSection = React.memo(({ title, children, className = "", id }) => {
+  const prefersReducedMotion = useReducedMotion();
+  const animations = createAnimations(prefersReducedMotion);
+
+  return (
+    <motion.section 
+      {...animations.slideIn}
+      className={`bg-white dark:bg-gray-700 rounded-lg shadow-md p-8 mb-6 space-y-6 ${className}`}
+      id={id}
+      role="region"
+      aria-labelledby={`section-${id}`}
+    >
+      <h2 id={`section-${id}`} className="text-3xl font-bold text-primary dark:text-secondary">
+        {title}
+      </h2>
+      {children}
+    </motion.section>
+  );
+});
 
 function About() {
+  const prefersReducedMotion = useReducedMotion();
+  const animations = useMemo(() => createAnimations(prefersReducedMotion), [prefersReducedMotion]);
+
   return (
     <>
       <Helmet>
@@ -218,40 +247,35 @@ function About() {
         <meta property="og:title" content="شركة الصرح للاستثمار العقاري - من نحن" />
         <meta property="og:type" content="website" />
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        
+        {/* Schema.org structured data */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "شركة الصرح للاستثمار العقاري",
+            "description": "شركة رائدة في مجال التطوير العقاري في مصر",
+            "logo": LogoelsarhTwo,
+            "founders": [],
+            "foundingDate": "2004",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "مصر"
+            }
+          })}
+        </script>
       </Helmet>
       
       <main 
         dir="rtl" 
-        className="bg-stone-100  dark:from-gray-900 dark:to-gray-800 py-8 min-h-screen"
+        className="bg-stone-100 dark:bg-gray-900 py-8 min-h-screen"
         role="main"
       >
         <div className="container mx-auto px-4 max-w-7xl">
           <motion.div {...animations.fadeIn}>
-            <header className="mb-12">
-              <motion.div 
-                className="relative h-64 rounded-2xl overflow-hidden shadow-xl"
-                {...animations.scale}
-              >
-                <div className="absolute inset-0 bg-[#033e8a] " />
-                <div className="relative h-full flex flex-col justify-center items-center text-center p-8">
-                  <motion.div 
-                    className="  p-8 rounded-2xl flex justify-center items-center flex-col"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <img 
-                      src={LogoelsarhTwo}
-                      alt="شعار شركة الصرح"
-                      className="w-32 h-auto object-contain mb-6"
-                      loading="eager"
-                    />
-                  </motion.div>
-                </div>
-              </motion.div>
-            </header>
 
             <div className="space-y-12">
-              <ContentSection title="عن الصرح">
+              <ContentSection title="عن الصرح" id="about">
                 <div className="prose dark:prose-invert max-w-none">
                   <p className="text-xl leading-relaxed">
                     شركة الصرح للاستثمار العقاري خبرة اكثرمن 20 عـامًا  ذات إستراتيجية شاملة لمستقبل المعمــار فـي مصـر تعتمـد علـى الدراسات العلميـة والتكنولوجيـا المتطـورة التـى تواكب النهضـة العقارية  العالمية 
@@ -263,6 +287,7 @@ function About() {
                   </blockquote>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                    
                     {FEATURES.map((feature, index) => (
                       <FeatureCard key={index} {...feature} />
                     ))}
@@ -270,18 +295,29 @@ function About() {
                 </div>
               </ContentSection>
 
-              <ContentSection title="رؤيتنا">
+              <ContentSection title="رؤيتنا" id="vision">
                 <p className="text-xl text-zinc-700 dark:text-gray-300 leading-relaxed">
                   تهدف شركه الصرح الي تلبية كافه متطلبات عملائها من خلال بناء مشاريع بجودة عالية ذات مستويات عاليه من الامان وبأرقي وأحدث التصميمات الاحترافيه وفي أقل وقت ممكن، كما تقدم الشركه خدمات التشطيب لكل من الشقق السكنيه والفلل والقصور والمنازل والشركات والمحلات تجاريه والمطاعم، وغيره من أعمال التشطيبات الداخلية الإبداعية، كما تهدف الشركة إلي تحقيق أعلي درجات النجاح وإرضاء العميل معتمدين في ذلك على الالتزام بالتنفيذ في الوقت المحدد وكذلك يتم تنفيذ جميع الأعمال بواسطة مهندسين وفنيين محترفين.
                 </p>
               </ContentSection>
 
-              <ContentSection title="خدماتنا">
+              <ContentSection title="خدماتنا" id="services">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  
                   {SERVICES.map((service, index) => (
                     <ServiceCard key={index} {...service} />
                   ))}
                 </div>
+              </ContentSection>
+
+              {/* New Team Section */}
+              <ContentSection title="فريقنا" id="team">
+                <TeamMembers />
+              </ContentSection>
+
+              {/* New Testimonials Section */}
+              <ContentSection title="آراء العملاء" id="testimonials">
+                <Testimonials />
               </ContentSection>
             </div>
           </motion.div>

@@ -7,7 +7,7 @@ import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 import ThemeProvider from './Components/PrivateRoute/ThemeProvider.jsx'
 import {QueryClient, QueryClientProvider} from 'react-query'
-
+import 'swiper/css/bundle';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={new QueryClient()}>
   <Provider store={store}>

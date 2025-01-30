@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./Components/Home/Home";
 import SingIn from "./Components/Registry/SingIn/Signin";
+import ForgotPassword from "./Components/Registry/SingIn/ForgotPassword.jsx";
 import SignUp from "./Components/Registry/SingUp/Signup";
 import About from "./Components/About/About";
 import Project from "./Components/Project/Project";
@@ -20,6 +21,7 @@ import Contact from "./Components/Contact/Contact";
 import Settings from "./Components/Settings/Settings";
 import ButtonTop from "./Components/ButtonTop/ButtonTop";
 import Loading from "./Loading.jsx"; // Import the Loading component
+import ResetPassword from "./Components/Registry/SingIn/ResetPassword.jsx";
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -47,6 +49,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/Signin" element={<SingIn />} />
+        <Route path="/Forgot-Password" element={<ForgotPassword />} />
+        <Route path="/ResetPassword" element={<ResetPassword />} />
         <Route path="/Signup" element={<SignUp />} />
         <Route path="/About" element={<About />} />
         <Route path="/Project" element={<Project />} />

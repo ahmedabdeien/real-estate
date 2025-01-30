@@ -1,7 +1,29 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import OAuth from '../../OAuth/OAuth';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { TbLoader } from "react-icons/tb";
+import { HiInformationCircle } from "react-icons/hi";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      staggerChildren: 0.1,
+      when: "beforeChildren"
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 }
+};
 
 function Signup() {
   const [visible, setVisible] = useState(false);
@@ -12,34 +34,34 @@ function Signup() {
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-  const egyptianPhonePattern = /^(01)[0125][0-9]{8}$/;
+  const egyptianPhonePattern = /^01[0125][0-9]{8}$/;
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.id]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+    if(error) setError(null);
   };
 
   const validateForm = () => {
     const { email, password, number } = formData;
-    let validationError = '';
+    const errors = [];
 
     if (!emailPattern.test(email)) {
-      validationError = 'Invalid email format.';
-    } else if (!passwordPattern.test(password)) {
-      validationError = 'Password must be at least 8 characters long and contain at least one letter and one number.';
-    } else if (number && !egyptianPhonePattern.test(number)) {
-      validationError = 'Invalid phone number. Must be a valid Egyptian phone number.';
+      errors.push('البريد الإلكتروني غير صحيح');
+    }
+    if (!passwordPattern.test(password)) {
+      errors.push('كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل وتشمل أرقام وحروف');
+    }
+    if (number && !egyptianPhonePattern.test(number)) {
+      errors.push('رقم الهاتف يجب أن يكون رقم مصري صحيح (11 رقم)');
     }
 
-    return validationError;
+    return errors.length > 0 ? errors.join('\n') : null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validateForm();
-
+    
     if (validationError) {
       setError(validationError);
       return;
@@ -49,164 +71,193 @@ function Signup() {
       setLoading(true);
       const res = await fetch('/api/auth/signUp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
+
       const data = await res.json();
-      if (data.success === false) {
-        setError(data.message);
-        setLoading(false);
-        return;
+      
+      if (!res.ok) {
+        throw new Error(data.message || 'حدث خطأ أثناء التسجيل');
       }
-      setLoading(false);
-      setError(null);
+
       navigate('/signin');
     } catch (error) {
-      setLoading(false);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <section dir="rtl" className="md:min-h-screen bg-stone-100 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl w-full space-y-8 p-10  bg-white border rounded-xl shadow">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          إنشاء حساب جديد
+    <motion.section
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      dir="rtl"
+      className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 dark:from-gray-900 dark:to-gray-800 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8"
+    >
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-md w-full space-y-6 bg-white dark:bg-gray-700 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-600"
+      >
+        <motion.div variants={itemVariants} className="text-center">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
+            إنشاء حساب جديد
           </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <p className="mt-2 text-gray-600 dark:text-gray-300">
+            ابدأ رحلتك معنا بإنشاء حساب
+          </p>
+        </motion.div>
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <motion.div variants={itemVariants} className="space-y-3">
             <div>
-              <label htmlFor="name" className="sr-only">
-                Name
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                الاسم الكامل
               </label>
               <input
                 id="name"
-                name="name"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="اسمك"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder="أحمد محمد"
                 onChange={handleChange}
               />
             </div>
+
             <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                اسم المستخدم
               </label>
               <input
                 id="username"
-                name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="اسم المستخدم@"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder="username@"
                 onChange={handleChange}
               />
             </div>
+
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                البريد الإلكتروني
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder=" البريد الإلكتروني"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder="example@domain.com"
                 onChange={handleChange}
               />
             </div>
+
             <div>
-              <label htmlFor="number" className="sr-only">
-                Phone Number
+              <label htmlFor="number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                رقم الهاتف 
               </label>
               <input
                 id="number"
-                name="number"
-                type="number"
-                number="number"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="رقم الموبايل"
+                type="tel"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder="01234567890"
                 onChange={handleChange}
+                pattern="01[0125][0-9]{8}"
               />
             </div>
-            <div className="relative">
-              <label htmlFor="password" className="sr-only">
-                Password
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                كلمة المرور
               </label>
-              <input
-                id="password"
-                name="password"
-                type={visible ? "text" : "password"}
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none ocus:ring-[#016FB9] focus:border-[#016FB9] focus:z-10 sm:text-sm"
-                placeholder="كلمة المرور"
-                onChange={handleChange}
-              />
-              <div
-                onClick={() => setVisible(!visible)}
-                className="absolute inset-y-0 left-0 pe-3 z-20 flex items-center text-sm leading-5 cursor-pointer"
-              >
-                {visible ? (
-                  <FaEyeSlash className="h-5 w-5 text-gray-500" />
-                ) : (
-                  <FaEye className="h-5 w-5 text-gray-500" />
-                )}
+              <div className="relative">
+                <input
+                  id="password"
+                  type={visible ? "text" : "password"}
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="••••••••"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setVisible(!visible)}
+                  className="absolute inset-y-0 left-0 px-3 text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  aria-label="Toggle password visibility"
+                >
+                  {visible ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div>
+          <motion.div variants={itemVariants}>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#033e8a] hover:bg-[#033e8a]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loading ? "جاري التسجيل..." : "تسجيل"}
+              {loading ? (
+                <>
+                  <TbLoader className="animate-spin w-5 h-5" />
+                  جاري التسجيل...
+                </>
+              ) : (
+                "إنشاء حساب"
+              )}
             </button>
-          </div>
+          </motion.div>
         </form>
 
-        <div className="mt-6">
+        <motion.div variants={itemVariants} className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
-              أو الاستمرار مع
+            <div className="relative flex justify-center">
+              <span className="px-4 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm">
+                أو التسجيل باستخدام
               </span>
             </div>
           </div>
-
           <div className="mt-6">
             <OAuth />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="flex justify-center items-center mt-6">
-          <p className="text-sm text-gray-600">هل لديك حساب بالفعل؟</p>
+        <motion.div variants={itemVariants} className="text-center text-sm text-gray-600 dark:text-gray-400">
+          لديك حساب بالفعل؟{' '}
           <Link
             to="/signin"
-            className="ms-1 font-medium text-[#033e8a] hover:text-[#033e8a]/80"
+            className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
           >
             تسجيل الدخول
           </Link>
-        </div>
+        </motion.div>
 
-        {error && (
-          <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Error! </strong>
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
-      </div>
-    </section>
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3 text-red-700 dark:text-red-400"
+            >
+              <HiInformationCircle className="flex-shrink-0 w-5 h-5 mt-0.5" />
+              <div className="space-y-1">
+                {error.split('\n').map((line, index) => (
+                  <p key={index} className="text-sm">{line}</p>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </motion.section>
   );
 }
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BsPeople, BsTelephone, BsEnvelope, BsGeoAlt } from "react-icons/bs";
-import { SocialMediaLinkTow } from "../SocialMedia/SocialMediaLink.jsx";
+import { SocialMediaPrimary } from "../SocialMedia/SocialMediaLink.jsx";
 import { Helmet } from "react-helmet";
 import FormContact from './FormContact';
 
@@ -26,7 +26,7 @@ function Contact() {
 
 
           <motion.div 
-            className="bg-white border dark:bg-gray-800 p-6 py-8 border-b-4 border-b-[#ff9505]  shadow-md"
+            className="text-center p-6 py-8"
             {...fadeIn}
           >
             <h2 className="text-3xl font-bold text-[#002E66] dark:text-gray-300 mb-2 ">ابقى على تواصل مع شركة الصرح</h2>
@@ -49,12 +49,12 @@ function Contact() {
               </div>
               <div className="flex-grow">
                 <motion.a
-                  href="mailto:admin@elsarhegypt.com"
+                  href="mailto:example@elsarh.com"
                   className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
                   whileHover={{ x: 10 }}
                 >
                   <BsEnvelope className="text-3xl text-[#ff9505]" />
-                  <p className="text-gray-800 dark:text-gray-300 mr-2">admin@elsarhegypt.com</p>
+                  <p className="text-gray-800 dark:text-gray-300 mr-2">elsarhegypt@gmail.com</p>
                 </motion.a>
                 <motion.a
                   href="tel:+201212622210"
@@ -93,7 +93,7 @@ function Contact() {
                 </motion.a>
               </div>
               <div className="border-t bg-stone-50 p-3 flex justify-center">
-                <SocialMediaLinkTow />
+                <SocialMediaPrimary />
               </div>
             </motion.div>
             

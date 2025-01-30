@@ -1,30 +1,79 @@
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa";
+import { motion } from 'framer-motion';
 
-export default function SocialMediaLink() {
+const socialLinks = [
+  {
+    icon: <FaFacebookF />,
+    href: "http://www.facebook.com/elsarh.eg",
+    label: "Facebook"
+  },
+  {
+    icon: <FaInstagram />,
+    href: "https://www.instagram.com/elsarh.eg",
+    label: "Instagram"
+  },
+  {
+    icon: <FaLinkedinIn />,
+    href: "https://www.linkedin.com/company/elsarh/",
+    label: "LinkedIn"
+  },
+  {
+    icon: <FaWhatsapp />,
+    href: "http://wa.me/201000554192",
+    label: "WhatsApp"
+  }
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { scale: 0 },
+  visible: { scale: 1 }
+};
+
+export const SocialMediaLinks = ({ variant = 'primary' }) => {
+  const isPrimary = variant === 'primary';
+  
   return (
-    <div className='flex items-center text-[#016FB9] space-x-3'>
-    <a href="http://www.facebook.com/elsarh.eg" target="_blank" rel="noopener noreferrer" className='bg-gray-100 text-[#033e8a] p-1 rounded-full me-3'>
-  <FaFacebookF/></a>
-  <a href="https://www.instagram.com/elsarh.eg?igsh=MTdjem1weDNvZXlicA%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className='bg-gray-100 text-[#033e8a] p-1 rounded-full'>
-  <FaInstagram/></a>
-  <a href="https://www.linkedin.com/company/elsarh/" target="_blank" rel="noopener noreferrer" className='bg-gray-100 text-[#033e8a] p-1 rounded-full'>
-  <FaLinkedinIn/></a>
-  <a href="http://wa.me/201000554192" target="_blank" rel="noopener noreferrer" className='bg-gray-100 text-[#033e8a] p-1 rounded-full'>
-  <FaWhatsapp/></a>
-  </div>
-  )
-}
-export function SocialMediaLinkTow(){
-  return (
-    <div className='flex items-center space-x-3 text-3xl text-white w-full'>
-    <a href="http://www.facebook.com/elsarh.eg" target="_blank" rel="noopener noreferrer" className='bg-[#016FB9] rounded-full hover:opacity-90  p-2 flex justify-center items-center h-full w-1/4 transition-all me-3'>
-  <FaFacebookF/></a>
-  <a href="https://www.instagram.com/elsarh.eg?igsh=MTdjem1weDNvZXlicA%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className='bg-[#016FB9] rounded-full hover:opacity-80  p-2 flex justify-center items-center h-full'>
-  <FaInstagram/></a>
-  <a href="http://www.linkedin.com/company/elsarh/" target="_blank" rel="noopener noreferrer" className='bg-[#016FB9] rounded-full hover:opacity-90  p-2 flex justify-center items-center h-full'>
-  <FaLinkedinIn/></a>
-  <a href="http://wa.me/201000554192" target="_blank" rel="noopener noreferrer" className='bg-[#016FB9] rounded-full hover:opacity-90  p-2 flex justify-center items-center h-full'>
-  <FaWhatsapp/></a>
-  </div>
-  )
-}
+    <motion.div
+      className={`flex items-center gap-3 ${isPrimary ? 'text-[#016FB9]' : 'text-white'}`}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {socialLinks.map((link, index) => (
+        <motion.a
+          key={index}
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={link.label}
+          variants={itemVariants}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className={`p-2 rounded-full transition-all duration-300 ${
+            isPrimary 
+              ? 'bg-gray-100 hover:bg-gray-200 text-[#033e8a]' 
+              : 'bg-[#016FB9] hover:bg-[#01508a]'
+          }`}
+        >
+          <motion.span className="block text-xl">
+            {link.icon}
+          </motion.span>
+        </motion.a>
+      ))}
+    </motion.div>
+  );
+};
+
+// Predefined variants for convenience
+export const SocialMediaPrimary = () => <SocialMediaLinks variant="primary" />;
+export const SocialMediaSecondary = () => <SocialMediaLinks variant="secondary" />;
