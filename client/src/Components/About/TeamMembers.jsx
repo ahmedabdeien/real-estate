@@ -3,17 +3,17 @@ import { motion } from 'framer-motion';
 
 const team = [
   {
-    name: "محمد أحمد",
-    role: "المدير التنفيذي",
-    bio: "خبير في الإدارة العقارية مع أكثر من 15 عامًا من الخبرة",
-    image: "https://images.pexels.com/photos/7648478/pexels-photo-7648478.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+    name: "حسين عابدين",
+    role: "رئيس مجلس الإدارة ومالك شركة الصرح",
+    bio: " مهندس مدني خبير في الإدارة العقارية مع أكثر من 25 عامًا من الخبرة",
+    image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
   },
   {
-    name: "علي محمود",
-    role: "كبير المهندسين",
-    bio: "مهندس معماري معتمد مع خبرة في التصميمات المستدامة",
-    image: "https://images.pexels.com/photos/8353832/pexels-photo-8353832.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-  }
+    name: " زين الانصاري",
+    role: " المدير التنفيذي",
+    bio: " مهندس معماري معتمد مع خبرة في الادارة",
+    image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+  },
 ];
 
 const TeamMembers = () => (

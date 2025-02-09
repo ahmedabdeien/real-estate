@@ -61,7 +61,7 @@ const InputField = React.memo(({
         htmlFor={id}
         className={`absolute right-3 transition-all duration-300 pointer-events-none ${
           (isFocused || value) ? 
-          '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f]' : 
+          '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f] dark:text-gray-300' : 
           'top-3.5 text-gray-500'
         } ${error ? 'text-red-500' : ''}`}
       >
@@ -180,9 +180,9 @@ export default function FormContact() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl "
+      className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl "
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="grid gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InputField
             id="name"

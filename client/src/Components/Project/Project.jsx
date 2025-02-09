@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from "react-helmet";
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { BsArrowRightShort, BsSearch, BsClock } from "react-icons/bs";
-
+// src/Components/Project.jsx
 // Constants
 const API_ENDPOINT = '/api/listing/getPages';
 const QUERY_KEY = 'dataProjects';
@@ -36,13 +36,13 @@ const hoverEffect = {
 
 const ProjectCard = React.memo(({ item }) => {
   const isAvailable = item.available === "available";
-
   return (
     <motion.div
       variants={cardVariants}
       className="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
       layout
     >
+
       <Link to={`/Projects/${item.slug}`} className="block">
         <div className="relative overflow-hidden aspect-video">
           <motion.div

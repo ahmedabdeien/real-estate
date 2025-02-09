@@ -1,129 +1,160 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BsPeople, BsTelephone, BsEnvelope, BsGeoAlt } from "react-icons/bs";
+import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import { SocialMediaPrimary } from "../SocialMedia/SocialMediaLink.jsx";
 import { Helmet } from "react-helmet";
 import FormContact from './FormContact';
 
-function Contact() {
-  const fadeIn = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  };
+const fadeIn = {
+  initial: { opacity: 0, y: 40 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.8 }
+};
 
+const stagger = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const ContactMethod = ({ icon: Icon, title, children, link }) => (
+  <motion.div 
+    className="group p-6 bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-xl  duration-300"
+    whileHover={{ scale: 1.02 }}
+  >
+    <div className="flex items-start gap-4">
+      <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg text-white">
+        <Icon className="text-2xl" />
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{title}</h4>
+        {link ? (
+          <a href={link} className="text-gray-600 dark:text-gray-300 hover:text-blue-500 transition-colors">
+            {children}
+          </a>
+        ) : (
+          <p className="text-gray-600 dark:text-gray-300">{children}</p>
+        )}
+      </div>
+    </div>
+  </motion.div>
+);
+
+function Contact() {
   return (
     <>
       <Helmet>
-        <title>Contact Us | El Sarh Real Estate Investment Company</title>
-        <meta name="description" content="Contact El Sarh Real Estate Investment Company for more information about residential, commercial, or investment properties." />
-        <link rel="shortcut icon" href="../../../public/favicon.ico" type="image/x-icon" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>تواصل معنا | شركة الصرح للاستثمار العقاري</title>
       </Helmet>
 
-      <div dir="rtl" className="dark:bg-gray-900  bg-stone-100 py-5 overflow-hidden ">
-        <div className=" space-y-5 container  mx-auto">
-
-
+      <div dir="rtl" className="min-h-screen bg-gradient-to-b container from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-16">
+          {/* Hero Section */}
           <motion.div 
-            className="text-center p-6 py-8"
+            className="text-center mb-16"
             {...fadeIn}
           >
-            <h2 className="text-3xl font-bold text-[#002E66] dark:text-gray-300 mb-2 ">ابقى على تواصل مع شركة الصرح</h2>
-            <p className="text-[#353531] dark:text-gray-400 text-lg ">
-            في شركة الصرح للاستثمار العقاري، نحن ملتزمون بتقديم خدمة استثنائية وتلبية جميع احتياجاتك العقارية. سواء كنت مهتمًا بالعقارات السكنية أو التجارية أو الاستثمارية، أو لديك سؤال أو استفسار، فإن فريقنا المتخصص موجود لمساعدتك .
+            <motion.h1 
+              className="text-4xl md:text-5xl font-bold text-blue-600 mb-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              تواصل مع فريق الصرح
+            </motion.h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              نحن هنا لمساعدتك في كل خطوة من رحلتك العقارية. تواصل معنا اليوم وستحصل على رد خلال 24 ساعة.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-
-            
-            <motion.div
-              className="bg-white dark:bg-gray-800 shadow-lg rounded-xl border overflow-hidden flex flex-col"
-              {...fadeIn}
-            >
-              <div className="p-6 border-b dark:border-gray-700">
-                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-4">معلومات الاتصال</h3>
-                <p className="text-[#353531]/80 dark:text-gray-400 mb-2">نحن مفتوحون 6 أيام في الأسبوع، من الساعة 10:00 صباحًا حتى 5:00 مساءً.</p>
-                <p className="text-[#353531]/80 dark:text-gray-400">يرجى إعلامنا إذا كان لديك أي أسئلة أو تحتاج إلى مساعدة.</p>
-              </div>
-              <div className="flex-grow">
-                <motion.a
-                  href="mailto:example@elsarh.com"
-                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
-                  whileHover={{ x: 10 }}
-                >
-                  <BsEnvelope className="text-3xl text-[#ff9505]" />
-                  <p className="text-gray-800 dark:text-gray-300 mr-2">elsarhegypt@gmail.com</p>
-                </motion.a>
-                <motion.a
-                  href="tel:+201212622210"
-                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
-                  whileHover={{ x: 10 }}
-                >
-                  <BsTelephone className="text-3xl text-[#ff9505] " />
-                  <p className="text-gray-800 dark:text-gray-300 mr-2">01212622210</p>
-                </motion.a>
-                <motion.a
-                  href="https://maps.app.goo.gl/yv9HDSAdmwAT2Lft8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
-                  whileHover={{ x: 10 }}
-                >
-                  <BsGeoAlt className="text-3xl text-[#ff9505] me-2" />
-                  <div>
-                    <p className="text-gray-800 dark:text-gray-300">14 شارع المختار من شارع النصر
-                    المعادى الجديدة, القاهرة</p>
-                    <p className="text-red-600">انتقل إلى خريطة </p>
-                  </div>
-                </motion.a>
-                <motion.a
-                  href="https://maps.app.goo.gl/ypNfngvXQSosxsXM9"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center p-4 hover:bg-stone-100 dark:hover:bg-gray-700 transition-colors duration-300"
-                  whileHover={{ x: 10 }}
-                >
-                  <BsGeoAlt className="text-3xl text-[#ff9505] me-2" />
-                  <div>
-                    <p className="text-gray-800 dark:text-gray-300"> شارع محمد حميدة فوق بنك مصر, بني سويف</p>
-                    <p className="text-red-600">انتقل إلى خريطة </p>
-                  </div>
-                </motion.a>
-              </div>
-              <div className="border-t bg-stone-50 p-3 flex justify-center">
-                <SocialMediaPrimary />
-              </div>
-            </motion.div>
-            
-            <motion.div
-              className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl border overflow-hidden"
-              {...fadeIn}
-            >
-              <div className="p-5">
-                <h3 className="text-2xl font-semibold text-[#353531] dark:text-gray-300 mb-6">تواصل معنا</h3>
-                
-                <FormContact/>
-              </div>
-            </motion.div>
-
-          </div>
-
-          <motion.div
-            className="w-full rounded-xl border overflow-hidden shadow-lg p-3 bg-white"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+          {/* Contact Grid */}
+          <motion.div 
+            className="grid md:grid-cols-2 gap-8 mb-16"
+            variants={stagger}
           >
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1728.0818356095576!2d31.274256562161206!3d29.974725938862846!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145839b32f2e71d1%3A0x9758140509ccd109!2z2LTYsdmD2Kkg2KfZhNi12LHYrSDZhNmE2KfYs9iq2KvZhdin2LEg2KfZhNi52YLYp9ix2Yo!5e0!3m2!1sen!2seg!4v1727772284728!5m2!1sen!2seg" 
-              className='w-full rounded-md'
-              height="400"
-              allowfullscreen="" 
-              loading="lazy" 
-              referrerpolicy="no-referrer-when-downgrade">
-              </iframe>
+            {/* Left Column - Contact Methods */}
+            <motion.div 
+              className="space-y-3"
+              {...fadeIn}
+            >
+              <ContactMethod 
+                icon={FiMapPin} 
+                title="المقر الرئيسي"
+                link="https://maps.app.goo.gl/yv9HDSAdmwAT2Lft8"
+              >
+                14 شارع المختار، المعادي الجديدة، القاهرة
+              </ContactMethod>
+
+              <ContactMethod 
+                icon={FiMapPin} 
+                title="فرع بني سويف"
+                link="https://maps.app.goo.gl/ypNfngvXQSosxsXM9"
+              >
+                شارع محمد حميدة فوق بنك مصر، بني سويف
+              </ContactMethod>
+
+              <ContactMethod 
+                icon={FiPhone} 
+                title="الاتصال المباشر"
+                link="tel:+201212622210"
+              >
+                01212622210
+              </ContactMethod>
+
+              <ContactMethod 
+                icon={FiMail} 
+                title="البريد الإلكتروني"
+                link="mailto:elsarhegypt@gmail.com"
+              >
+                elsarhegypt@gmail.com
+              </ContactMethod>
+
+              <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ساعات العمل</h3>
+                <div className="space-y-2 text-gray-600 dark:text-gray-300">
+                  <p>السبت - الخميس: ١٠ صباحًا - ٥ مساءً</p>
+                  <p>الجمعة : مغلق</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Right Column - Contact Form */}
+            <motion.div 
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
+              {...fadeIn}
+            >
+              <h2 className="text-2xl font-bold mb-8 text-gray-800 dark:text-white">
+                أرسل رسالتك
+              </h2>
+              <FormContact />
+            </motion.div>
+          </motion.div>
+
+          {/* Map Section */}
+          <motion.div 
+            className="rounded-2xl overflow-hidden shadow-2xl border dark:border-gray-700 relative"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-[#6366f1]/20 to-[#a855f7]/20 pointer-events-none" />
+            <iframe
+              title="Company Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1728.0818356095576!2d31.274256562161206!3d29.974725938862846!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145839b32f2e71d1%3A0x9758140509ccd109!2z2LTYsdmD2Kkg2KfZhNi12LHYrSDZhNmE2KfYs9iq2KvZhdin2LEg2KfZhNi52YLYp9ix2Yo!5e0!3m2!1sen!2seg!4v1727772284728!5m2!1sen!2seg"
+              className="w-full h-96"
+              allowFullScreen
+              loading="lazy"
+            />
+          </motion.div>
+
+          {/* Social Media Floating Section */}
+          <motion.div 
+            className="fixed right-6 bottom-6 bg-white dark:bg-gray-800 p-4 rounded-full shadow-xl"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.5 }}
+          >
+            <SocialMediaPrimary className="flex gap-3" iconClass="text-2xl hover:text-[#6366f1] transition-colors" />
           </motion.div>
         </div>
       </div>

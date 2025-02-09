@@ -311,7 +311,7 @@ function About() {
               </ContentSection>
 
               {/* New Team Section */}
-              <ContentSection title="فريقنا" id="team">
+              <ContentSection title="الصرح للاستثمار العقاري" id="team">
                 <TeamMembers />
               </ContentSection>
 

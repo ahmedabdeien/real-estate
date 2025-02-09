@@ -5,6 +5,7 @@ import { Navigation, Autoplay, EffectFade } from 'swiper/modules';
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
 import photosOne from "../../assets/images/realestateimages.jpg";
 import photosthree from "../../assets/images/image_fx2.jpeg";
+import photostwo from "../../assets/images/photoTwo.jpg";
 
 // Import Swiper styles
 import 'swiper/css';
@@ -12,10 +13,11 @@ import 'swiper/css/navigation';
 import 'swiper/css/effect-fade';
 
 function SectionCarousel() {
-  const sections = [photosOne, photosthree];
+  const sections = [photosOne, photosthree,photostwo];
   const datatext = [
     "نحن نقدم أعلى معايير الجودة في البناء والتصميم، لضمان لك الراحة والفخامة على المدى الطويل.",
     "اختيار شركة الصرح للاستثمار العقاري يعني الحصول على الشريك المثالي الذي يضمن لك النجاح في كافة جوانب استثماراتك العقارية.",
+    "طريقك أسهل  لبيتك مع شركة الصرح للاستثمار العقاري"
   ];
 
   const navigationPrevRef = useRef(null);
