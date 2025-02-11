@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import { SocialMediaPrimary } from "../SocialMedia/SocialMediaLink.jsx";
@@ -21,7 +21,7 @@ const stagger = {
 
 const ContactMethod = ({ icon: Icon, title, children, link }) => (
   <motion.div 
-    className="group p-6 bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-xl  duration-300"
+    className="group p-6 bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-xl duration-300"
     whileHover={{ scale: 1.02 }}
   >
     <div className="flex items-start gap-4">
@@ -42,11 +42,64 @@ const ContactMethod = ({ icon: Icon, title, children, link }) => (
   </motion.div>
 );
 
+const CONFIGURATION = {
+  locations: [
+    {
+      title: "شركة الصرح للاستثمار العقاري",
+      address1: "طريق الكورنيش",
+      address2: "بني سويف, بني سويف, Egypt",
+      coords: { lat: 29.0747265, lng: 31.1152361 },
+      placeId: "ChIJ_6fjLqKoAgoRw5FuY64T8Ec"
+    },
+    {
+      title: "شركة الصرح للاستثمار العقاري",
+      address1: "شارع المختار من النصر بجوار جاندوفلي",
+      address2: "المعادي, القاهرة, Egypt",
+      coords: { lat: 29.9742116, lng: 31.2742488 },
+      placeId: "ChIJ0XEuL7M5WBQRCdHMCQUUWJc"
+    }
+  ],
+  mapOptions: {
+    center: { lat: 29.0747265, lng: 31.1152361 },
+    fullscreenControl: true,
+    mapTypeControl: false,
+    streetViewControl: false,
+    zoom: 12,
+    zoomControl: true,
+    maxZoom: 17
+  },
+  mapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY",
+  capabilities: {
+    input: true,
+    autocomplete: true,
+    directions: false,
+    distanceMatrix: true,
+    details: false,
+    actions: false
+  }
+};
+
 function Contact() {
+  useEffect(() => {
+    const initializeMap = async () => {
+      await customElements.whenDefined('gmpx-store-locator');
+      const locator = document.querySelector('gmpx-store-locator');
+      if (locator) {
+        locator.configureFromQuickBuilder(CONFIGURATION);
+      }
+    };
+
+    initializeMap();
+  }, []);
+
   return (
     <>
       <Helmet>
         <title>تواصل معنا | شركة الصرح للاستثمار العقاري</title>
+        <script 
+          type="module" 
+          src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"
+        />
       </Helmet>
 
       <div dir="rtl" className="min-h-screen bg-gradient-to-b container from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
@@ -133,17 +186,34 @@ function Contact() {
 
           {/* Map Section */}
           <motion.div 
-            className="rounded-2xl overflow-hidden shadow-2xl border dark:border-gray-700 relative"
+            className="rounded-2xl overflow-hidden shadow-2xl border dark:border-gray-700 relative h-[600px]"
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-[#6366f1]/20 to-[#a855f7]/20 pointer-events-none" />
-            <iframe
-              title="Company Location"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1728.0818356095576!2d31.274256562161206!3d29.974725938862846!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x145839b32f2e71d1%3A0x9758140509ccd109!2z2LTYsdmD2Kkg2KfZhNi12LHYrSDZhNmE2KfYs9iq2KvZhdin2LEg2KfZhNi52YLYp9ix2Yo!5e0!3m2!1sen!2seg!4v1727772284728!5m2!1sen!2seg"
-              className="w-full h-96"
-              allowFullScreen
-              loading="lazy"
+            <gmpx-api-loader 
+              key={CONFIGURATION.mapsApiKey}
+              solution-channel="GMP_QB_locatorplus_v11_cABD"
+            />
+            <gmpx-store-locator 
+              map-id="DEMO_MAP_ID"
+              style={{
+                width: '100%',
+                height: '100%',
+                '--gmpx-color-surface': '#fff',
+                '--gmpx-color-on-surface': '#212121',
+                '--gmpx-color-on-surface-variant': '#757575',
+                '--gmpx-color-primary': '#1967d2',
+                '--gmpx-color-outline': '#e0e0e0',
+                '--gmpx-fixed-panel-width-row-layout': '28.5em',
+                '--gmpx-fixed-panel-height-column-layout': '65%',
+                '--gmpx-font-family-base': 'Roboto, sans-serif',
+                '--gmpx-font-family-headings': 'Roboto, sans-serif',
+                '--gmpx-font-size-base': '0.875rem',
+                '--gmpx-hours-color-open': '#188038',
+                '--gmpx-hours-color-closed': '#d50000',
+                '--gmpx-rating-color': '#ffb300',
+                '--gmpx-rating-color-empty': '#e0e0e0'
+              }}
             />
           </motion.div>
 
@@ -154,7 +224,7 @@ function Contact() {
             animate={{ scale: 1 }}
             transition={{ type: "spring", delay: 0.5 }}
           >
-            <SocialMediaPrimary className="flex gap-3" iconClass="text-2xl hover:text-[#6366f1] transition-colors" />
+            <SocialMediaPrimary className="flex gap-3" iconClass="text-2xl hover:text-blue-500 transition-colors" />
           </motion.div>
         </div>
       </div>
