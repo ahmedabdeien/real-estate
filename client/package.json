@@ -42,6 +42,7 @@
     "react-scripts": "^5.0.1",
     "react-scroll-trigger": "^0.6.14",
     "react-switch": "^7.0.0",
+    "real-estate": "file:..",
     "recharts": "^2.12.7",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
