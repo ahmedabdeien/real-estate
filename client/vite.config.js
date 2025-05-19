@@ -1,26 +1,26 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-// https://vitejs.dev/config/
+// دعم __dirname في ESM
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 export default defineConfig({
   plugins: [react()],
-  server:{
-    proxy:{
-      '/api':{
-        target:'https://elsarh.netlify.app/',
-        secure:false,
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://elsarh.netlify.app/', // أو أي API backend شغال
+        secure: false,
         changeOrigin: true,
-      }
-    }
+      },
+    },
   },
-  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
 })
-// vite.config.js
-import path from 'path'
-
-
