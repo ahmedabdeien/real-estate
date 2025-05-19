@@ -7,12 +7,15 @@ import listingRouter from './routes/listing.route.js';
 import contactRouter from './routes/contact.route.js';
 import cookieParser from "cookie-parser";
 import path from "path";
+import cors from "cors";
+import { fileURLToPath } from "url";
 
+// Setup
 dotenv.config();
+const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-
-
-
+// MongoDB connection
 mongoose.connect(process.env.MONGO)
     .then(() => {
         console.log('MongoDB is connected!!');
@@ -21,33 +24,27 @@ mongoose.connect(process.env.MONGO)
         console.error('MongoDB connection error:', err);
     });
 
-    const __dirname = path.resolve();
-
-
+// Middlewares
 app.use(express.json());
-import cors from "cors";
-
 app.use(cors({
   origin: ["https://elsarhegypt.com", "https://www.elsarhegypt.com"],
   credentials: true
 }));
-
 app.use(cookieParser());
 
-app.listen(3000, () => {
-    console.log('Server is running on port 3000!!');
-});
-
+// Routes
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/listing", listingRouter);
 app.use('/api/contact', contactRouter);
 
-app.use(express.static(path.join(__dirname, "./client/dist")))
-app.get("*",(req,res)=>{
-    res.sendFile(path.join(__dirname, 'client','dist','index.html'));
-})
+// Serve frontend
+app.use(express.static(path.join(__dirname, "./client/dist")));
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "./client/dist/index.html"));
+});
 
+// Global error handler
 app.use((err, req, res, next) => {
     console.error('Global error handler:', err);
     const statusCode = err.statusCode || 500;
@@ -57,4 +54,10 @@ app.use((err, req, res, next) => {
         statusCode,
         message,
     });
+});
+
+// Start server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}!!`);
 });
