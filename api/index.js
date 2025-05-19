@@ -9,7 +9,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 
 dotenv.config();
-const cors = require("cors");
+
 
 
 
@@ -23,12 +23,15 @@ mongoose.connect(process.env.MONGO)
 
     const __dirname = path.resolve();
 
-const app = express();
+
+app.use(express.json());
+import cors from "cors";
+
 app.use(cors({
   origin: ["https://elsarhegypt.com", "https://www.elsarhegypt.com"],
   credentials: true
 }));
-app.use(express.json());
+
 app.use(cookieParser());
 
 app.listen(3000, () => {
