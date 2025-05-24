@@ -5,11 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-  "dev": "nodemon index.js",
-  "start": "node index.js",
-  "build": "npm install && npm install --prefix client && npm run build --prefix client"
-}
-,
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "build": "npm install && npm install --prefix client && npm run build --prefix client"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -33,7 +32,6 @@
     "tailwind-scrollbar": "^3.1.0"
   },
   "engines": {
-  "node": "20.11.1"
-}
-
+    "node": "20.11.1"
+  }
 }
