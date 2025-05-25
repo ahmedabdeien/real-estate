@@ -48,7 +48,6 @@
     "redux-persist": "^6.0.0",
     "swiper": "^11.2.1",
     "video-react": "^0.16.0"
-    
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
@@ -64,6 +63,6 @@
     "prettier-plugin-tailwindcss": "^0.5.12",
     "tailwind-scrollbar": "^3.1.0",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.0.8"
+    "vite": "^5.4.19"
   }
 }
