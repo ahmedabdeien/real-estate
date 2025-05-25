@@ -1,8 +1,13 @@
 [build]
-base = ""                              # الجذر
+base = ""
 command = "npm run build"
-publish = "client/dist"               # مجلد النشر من داخل client
+publish = "client/dist"
 
 [build.environment]
 NODE_VERSION = "20.11.1"
 NODE_ENV = "production"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200

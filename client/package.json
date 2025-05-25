@@ -48,12 +48,12 @@
     "redux-persist": "^6.0.0",
     "swiper": "^11.2.1",
     "video-react": "^0.16.0",
-        "vite": "^5.0.8"
+    "vite": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
-    "@vitejs/plugin-react-swc": "^3.5.0",
+    "@vitejs/plugin-react-swc": "^3.10.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.55.0",
     "eslint-plugin-react": "^7.33.2",
