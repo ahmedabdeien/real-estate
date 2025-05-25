@@ -1,6 +1,6 @@
 [build]
-base = "" # خليها فاضية عشان يشتغل من جذر المشروع
-command = "npm install && npm install --prefix client && npm run build --prefix client"
+base = ""
+command = "npm install && cd client && npm install && npm run build" # Changed this line
 publish = "client/dist"
 
 [build.environment]
