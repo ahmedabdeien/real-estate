@@ -32,7 +32,7 @@ const statusVariants = {
 
 function SectionShowProjects() {
   const { data, isLoading, error } = useQuery("dataProject", 
-    () => axios.get('/api/listing/getPages?limit=4')
+    () => axios.get(`${import.meta.env.VITE_API_BASE_URL}/listing/getPages?limit=4`)
   );
 
   if (isLoading) {

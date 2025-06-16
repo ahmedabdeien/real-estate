@@ -6,7 +6,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { BsArrowRightShort, BsSearch, BsClock } from "react-icons/bs";
 // src/Components/Project.jsx
 // Constants
-const API_ENDPOINT = '/api/listing/getPages';
+const API_ENDPOINT = `${import.meta.env.VITE_API_BASE_URL}/listing/getPages`;
 const QUERY_KEY = 'dataProjects';
 const ITEMS_PER_PAGE = 12;
 

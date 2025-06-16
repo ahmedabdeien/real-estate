@@ -31,7 +31,6 @@ import {
   BsStars,
   BsGrid3X3Gap
 } from "react-icons/bs";
-import { IconContext } from "react-icons";
 import NewElsarh from "./NewElsarh";
 import SectionShowProjects from './SectionShowProjects';
 import 'react-photo-view/dist/react-photo-view.css';
@@ -58,7 +57,7 @@ function ShowPage() {
     const fetchPage = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/listing/getPages?slug=${pageSlug}`);
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/listing/getPages?slug=${pageSlug}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to load project');
         setPages(data.listings[0]);
