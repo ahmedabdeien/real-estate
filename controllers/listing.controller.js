@@ -66,7 +66,7 @@ export const getListing = async (req,res,next) =>{
             
         );
         const lastMonthPages = await Listing.countDocuments({
-            createAt: {
+            createdAt: {
                 $gte: oneMonthAgo
             }
         });

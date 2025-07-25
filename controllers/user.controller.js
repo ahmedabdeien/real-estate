@@ -10,7 +10,7 @@ export const test = (req,res) => {
 }
 
 export const updateUser = async (req,res,next) =>{
-    if(req.user.id !== req.params.useId){
+    if(req.user.id !== req.params.userId){
        return next(errorHandler(403,'you are not allowed to update this user!'))
     }
     if(req.body.password) {
@@ -56,7 +56,7 @@ export const updateUser = async (req,res,next) =>{
         }
     }
     try{
-        const updatedUser = await User.findByIdAndUpdate(req.params.useId,{
+        const updatedUser = await User.findByIdAndUpdate(req.params.userId,{
             $set:{
                 name:req.body.name,
                 username: req.body.username,
@@ -93,19 +93,19 @@ export const signout = async (req,res,next) =>{
         return next(error)}
 }
 
-export const getUserListing = async (req,res,next) =>{
-    if(req.userId._id === req.params._id){
-       try {
-         const listings = await Listing.find({userRef:req.params._id})
-         res.status(200).json(listings);
-       } catch (error) {
-        next(error );
-       }
-    }else{
-        return next(errorHandler(401,'You can only view your own listings!'))
+export const getUserListing = async (req, res, next) => {
+    if (req.user.id === req.params.id) {
+        try {
+            const listings = await Listing.find({ userRef: req.params.id });
+            res.status(200).json(listings);
+        } catch (error) {
+            next(error);
+        }
+    } else {
+        return next(errorHandler(401, 'You can only view your own listings!'));
     }
-     
-}
+
+};
 
 export const getUsers = async (req,res,next) =>{
     if(!req.user.isAdmin){
