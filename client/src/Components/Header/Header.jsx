@@ -79,8 +79,8 @@ export default function Header() {
               <h1 className="text-xl font-heading font-black tracking-tight text-primary-900 dark:text-white leading-none">
                 الصرح
               </h1>
-              <p className="text-[10px] uppercase tracking-widest text-accent-600 font-bold mt-1">
-                للاسمتار العقاري
+              <p className="text-[10px] uppercase tracking-widest text-accent-600 font-bold mt-0.5">
+                للاستثمار العقاري
               </p>
             </div>
           </Link>
@@ -124,7 +124,7 @@ export default function Header() {
                     <p className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[100px]">
                       {currentUser.name}
                     </p>
-                    <p className="text-[10px] text-slate-400 capitalize">
+                    <p className="text-[10px] text-slate-400 capitalize font-medium">
                       {currentUser.isAdmin ? 'Admin' : 'Member'}
                     </p>
                   </div>
@@ -189,7 +189,7 @@ export default function Header() {
                   key={link.path}
                   to={link.path}
                   className={({ isActive }) => `
-                    block text-2xl font-heading font-black transition-all
+                    block text-xl font-heading font-bold transition-all
                     ${isActive ? 'text-accent-600' : 'text-slate-800 dark:text-white'}
                   `}
                   onClick={() => setIsMenuOpen(false)}

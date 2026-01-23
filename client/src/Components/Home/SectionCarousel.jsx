@@ -15,10 +15,19 @@ import 'swiper/css/effect-fade';
 
 function SectionCarousel() {
   const sections = [photosOne, photosthree, photostwo];
-  const datatext = [
-    "معايير عالمية في البناء والتصاميم العقارية المبتكرة لضمان استثمار آمن ومستقبل مشرق.",
-    "التميز في الالتزام والجودة هو ما يجعل شركة الصرح الشريك العقاري المفضل في مصر.",
-    "مساحتك الخاصة، بتصميمات عصرية تلبي طموحاتك في شركة الصرح للاستثمار العقاري."
+  const heroSlides = [
+    {
+      title: "معايير عالمية في البناء",
+      desc: "تصاميم عقارية مبتكرة لضمان استثمار آمن ومستقبل مشرق."
+    },
+    {
+      title: "التميز في الالتزام",
+      desc: "الجودة هي ما يجعل شركة الصرح الشريك العقاري المفضل في مصر."
+    },
+    {
+      title: "مساحتك الخاصة",
+      desc: "بتصميمات عصرية تلبي طموحاتك في شركة الصرح للاستثمار العقاري."
+    }
   ];
 
   const navigationPrevRef = useRef(null);
@@ -48,7 +57,7 @@ function SectionCarousel() {
               <motion.img
                 initial={{ scale: 1.1 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 10, ease: "linear" }}
+                transition={{ duration: 6, ease: "linear" }}
                 src={image}
                 alt={`Premium Real Estate Slide ${index + 1}`}
                 className="w-full h-full object-cover"
@@ -70,9 +79,12 @@ function SectionCarousel() {
                     <span className="inline-block px-4 py-1.5 bg-accent-600/20 text-accent-500 rounded-full text-xs font-black uppercase tracking-widest mb-6">
                       تميز عقاري بلا حدود
                     </span>
-                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-heading font-black text-white leading-[1.2] mb-8">
-                      {datatext[index]}
+                    <h2 className="text-4xl md:text-6xl font-heading font-black text-white leading-tight mb-4">
+                      {heroSlides[index].title}
                     </h2>
+                    <p className="text-lg md:text-xl text-slate-300 mb-8 max-w-2xl ml-auto">
+                      {heroSlides[index].desc}
+                    </p>
 
                     <div className="flex flex-col sm:flex-row-reverse items-center justify-start gap-6">
                       <Link

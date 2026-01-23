@@ -33,7 +33,7 @@ function App() {
     // Simulate a loading time (e.g., fetching resources)
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000); // Adjust duration as needed
+    }, 800); // Snappier loading
 
     return () => clearTimeout(timer);
   }, []);
