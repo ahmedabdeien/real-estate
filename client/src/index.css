@@ -7,7 +7,11 @@
 @layer base {
   :root {
     --primary: #0f172a;
+    --primary-dark: #020617;
+    --secondary: #64748b;
+    --secondary-dark: #334155;
     --accent: #d97706;
+    --accent-dark: #92400e;
     --surface: #f8fafc;
   }
 
@@ -18,7 +22,12 @@
     scroll-behavior: smooth;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading tracking-tight;
   }
 
@@ -29,13 +38,15 @@
 
 @layer components {
   .btn-premium {
-    @apply px-6 py-3 rounded-lg font-medium transition-all duration-300 
-           hover:shadow-premium-lg active:scale-[0.98]
-           focus:ring-2 focus:ring-offset-2;
+    @apply px-8 py-4 rounded-2xl font-heading font-black transition-all duration-500 inline-flex items-center justify-center gap-3 hover:shadow-[0_20px_40px_-15px_rgba(0, 0, 0, 0.3)] active:scale-[0.95] focus:ring-2 focus:ring-offset-2 relative overflow-hidden;
   }
-  
+
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-premium;
+    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-premium-xl;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -58,40 +69,40 @@
 
 /* Existing utility classes preserved/modernized */
 .noneScroll {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
 .noneScroll::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .bg-img-createPage {
-    background-image: url("../src/assets/images/pattern.svg");
-    background-size: auto;
-    background-position: center top;
+  background-image: url("../src/assets/images/pattern.svg");
+  background-size: auto;
+  background-position: center top;
 }
 
 .loading-screen {
-    @apply fixed inset-0 bg-white flex flex-col justify-center items-center z-[1000];
+  @apply fixed inset-0 bg-white flex flex-col justify-center items-center z-[1000];
 }
 
 .spinner {
-    @apply w-12 h-12 border-4 border-primary-900 border-t-transparent rounded-full animate-spin;
+  @apply w-12 h-12 border-4 border-primary-900 border-t-transparent rounded-full animate-spin;
 }
 
 @keyframes pulse-slow {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .animate-pulse-slow {
-    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-
-
-
-
-
-
-
-  

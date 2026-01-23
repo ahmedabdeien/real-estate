@@ -3,9 +3,9 @@ import CountUp from 'react-countup';
 import { motion, useInView } from "framer-motion";
 
 const counterItems = [
-  { end: 12, text: "مشاريع قيد الإنشاء" },
-  { end: 138, text: "مشروعاً تم تسليمه" },
-  { end: 150, text: "إجمالي مشاريع الشركة" },
+  { end: 12, text: "مشاريع قيد الإنشاء", label: "Active" },
+  { end: 138, text: "مشروعاً تم تسليمه", label: "Delivered" },
+  { end: 150, text: "إجمالي مشاريع الشركة", label: "Total" },
 ];
 
 export default function CounterUp() {
@@ -18,54 +18,51 @@ export default function CounterUp() {
   }, [isInView]);
 
   return (
-    <div ref={ref} className="w-full bg-primary-950 py-24 relative overflow-hidden">
-      {/* Dynamic Background Pattern */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgwek0yMCAyMHYyMGgyMFYyMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')] shadow-inner" />
+    <section ref={ref} className="w-full bg-primary-950 py-32 relative overflow-hidden">
+      {/* Cinematic Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070')] bg-cover bg-fixed opacity-5 grayscale" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary-950 via-primary-950/90 to-primary-950" />
       </div>
 
       <div className="container mx-auto px-6 lg:px-12 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-20"
-        >
-          <span className="text-accent-500 font-black uppercase tracking-[0.3em] text-[10px]">إنجازاتنا بالأرقام</span>
-          <h2 className="text-4xl md:text-5xl font-heading font-black text-white mt-4">
-            ثقة تبنى على الواقع
-          </h2>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-24">
           {counterItems.map((item, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
-              className="group text-center"
+              transition={{ duration: 0.8, delay: index * 0.2 }}
+              className="relative group flex flex-col items-center text-center"
             >
-              <div className="relative inline-block mb-6 pt-10 px-10">
-                <div className="absolute inset-0 bg-accent-600/10 rounded-full blur-3xl scale-150 group-hover:scale-200 transition-transform duration-700" />
-                <span className="text-6xl md:text-8xl font-heading font-black text-accent-600 relative rtl:flex rtl:justify-center">
-                  {startAnimation && (
-                    <CountUp start={0} end={item.end} duration={4} />
-                  )}
-                  <span className="text-4xl text-accent-500/50 mr-1">+</span>
-                </span>
+              <div className="absolute -top-10 -left-10 text-[120px] font-black text-white/[0.03] pointer-events-none select-none uppercase tracking-tighter">
+                {item.label}
               </div>
 
-              <div className="h-0.5 w-16 bg-accent-600 mx-auto mb-6 group-hover:w-24 transition-all duration-500" />
+              <div className="relative mb-8">
+                <div className="absolute inset-0 bg-accent-600/20 rounded-full blur-[50px] group-hover:blur-[70px] transition-all duration-700" />
+                <div className="relative flex items-end justify-center">
+                  <span className="text-7xl md:text-9xl font-heading font-black text-white tracking-tighter flex items-center">
+                    {startAnimation && (
+                      <CountUp start={0} end={item.end} duration={5} />
+                    )}
+                    <span className="text-3xl md:text-4xl text-accent-600 ml-2 mb-4 font-black">+</span>
+                  </span>
+                </div>
+              </div>
 
-              <p className="text-xl md:text-2xl font-heading font-bold text-white tracking-wide">
+              <div className="h-1 w-20 bg-accent-600 mb-8 rounded-full transform origin-right group-hover:scale-x-150 transition-transform duration-700" />
+
+              <p className="text-2xl font-heading font-black text-slate-100 uppercase tracking-widest max-w-[200px] leading-tight">
                 {item.text}
               </p>
+
+              <p className="text-xs text-slate-500 mt-4 uppercase tracking-[0.4em] font-bold">Excellent Service</p>
             </motion.div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
