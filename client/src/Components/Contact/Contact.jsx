@@ -20,7 +20,7 @@ const stagger = {
 };
 
 const ContactMethod = ({ icon: Icon, title, children, link }) => (
-  <motion.div 
+  <motion.div
     className="group p-6 bg-white dark:bg-gray-800/50 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-xl duration-300"
     whileHover={{ scale: 1.02 }}
   >
@@ -68,7 +68,7 @@ const CONFIGURATION = {
     zoomControl: true,
     maxZoom: 17
   },
-  mapsApiKey: "YOUR_GOOGLE_MAPS_API_KEY",
+  mapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   capabilities: {
     input: true,
     autocomplete: true,
@@ -96,8 +96,8 @@ function Contact() {
     <>
       <Helmet>
         <title>تواصل معنا | شركة الصرح للاستثمار العقاري</title>
-        <script 
-          type="module" 
+        <script
+          type="module"
           src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"
         />
       </Helmet>
@@ -105,11 +105,11 @@ function Contact() {
       <div dir="rtl" className="min-h-screen bg-gradient-to-b container from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto px-4 py-16">
           {/* Hero Section */}
-          <motion.div 
+          <motion.div
             className="text-center mb-16"
             {...fadeIn}
           >
-            <motion.h1 
+            <motion.h1
               className="text-4xl md:text-5xl font-bold text-blue-600 mb-4"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -122,41 +122,41 @@ function Contact() {
           </motion.div>
 
           {/* Contact Grid */}
-          <motion.div 
+          <motion.div
             className="grid md:grid-cols-2 gap-8 mb-16"
             variants={stagger}
           >
             {/* Left Column - Contact Methods */}
-            <motion.div 
+            <motion.div
               className="space-y-3"
               {...fadeIn}
             >
-              <ContactMethod 
-                icon={FiMapPin} 
+              <ContactMethod
+                icon={FiMapPin}
                 title="المقر الرئيسي"
                 link="https://maps.app.goo.gl/yv9HDSAdmwAT2Lft8"
               >
                 14 شارع المختار، المعادي الجديدة، القاهرة
               </ContactMethod>
 
-              <ContactMethod 
-                icon={FiMapPin} 
+              <ContactMethod
+                icon={FiMapPin}
                 title="فرع بني سويف"
                 link="https://maps.app.goo.gl/ypNfngvXQSosxsXM9"
               >
                 شارع محمد حميدة فوق بنك مصر، بني سويف
               </ContactMethod>
 
-              <ContactMethod 
-                icon={FiPhone} 
+              <ContactMethod
+                icon={FiPhone}
                 title="الاتصال المباشر"
                 link="tel:+201212622210"
               >
                 01212622210
               </ContactMethod>
 
-              <ContactMethod 
-                icon={FiMail} 
+              <ContactMethod
+                icon={FiMail}
                 title="البريد الإلكتروني"
                 link="mailto:elsarhegypt@gmail.com"
               >
@@ -173,7 +173,7 @@ function Contact() {
             </motion.div>
 
             {/* Right Column - Contact Form */}
-            <motion.div 
+            <motion.div
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
               {...fadeIn}
             >
@@ -185,16 +185,16 @@ function Contact() {
           </motion.div>
 
           {/* Map Section */}
-          <motion.div 
+          <motion.div
             className="rounded-2xl overflow-hidden shadow-2xl border dark:border-gray-700 relative h-[600px]"
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <gmpx-api-loader 
+            <gmpx-api-loader
               key={CONFIGURATION.mapsApiKey}
               solution-channel="GMP_QB_locatorplus_v11_cABD"
             />
-            <gmpx-store-locator 
+            <gmpx-store-locator
               map-id="DEMO_MAP_ID"
               style={{
                 width: '100%',
@@ -218,7 +218,7 @@ function Contact() {
           </motion.div>
 
           {/* Social Media Floating Section */}
-          <motion.div 
+          <motion.div
             className="fixed right-6 bottom-6 bg-white dark:bg-gray-800 p-4 rounded-full shadow-xl"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}

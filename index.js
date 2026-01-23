@@ -27,7 +27,7 @@ mongoose.connect(process.env.MONGO)
 // Middlewares
 app.use(express.json());
 app.use(cors({
-  origin: ["https://elsarhegypt.com", "https://www.elsarhegypt.com"],
+  origin: ["https://elsarhegypt.com", "https://www.elsarhegypt.com", "https://elsarh.co", "https://www.elsarh.co"],
   credentials: true
 }));
 app.use(cookieParser());

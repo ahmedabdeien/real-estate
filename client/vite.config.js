@@ -19,9 +19,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: isProduction
-          ? 'https://elsarh.onrender.com' // 🔁 استخدم رابط Render هنا
-          : 'http://localhost:3000', // التطوير المحلي
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
