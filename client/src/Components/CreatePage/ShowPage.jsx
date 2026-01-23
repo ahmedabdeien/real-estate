@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { PhotoProvider, PhotoView } from 'react-photo-view';
 import { useSelector } from "react-redux";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -299,6 +299,35 @@ function ShowPage() {
                 </motion.div>
               ))}
             </motion.section>
+
+            {/* Unit Sizes */}
+            {sizeApartments.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="space-y-8"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-8 w-1.5 bg-accent-600 rounded-full" />
+                  <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white">
+                    المساحات المتاحة
+                  </h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  {sizeApartments.map((size, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.05 }}
+                      className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-3 shadow-premium transition-all"
+                    >
+                      <TbRulerMeasure size={32} className="text-accent-600" />
+                      <span className="font-heading font-black text-xl text-primary-900 dark:text-white">{size} م²</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.section>
+            )}
 
             {/* Floor Plans */}
             {pages.imagePlans?.length > 0 && (

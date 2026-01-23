@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import Home from "./Components/Home/Home";
 import SingIn from "./Components/Registry/SingIn/Signin";
 import ForgotPassword from "./Components/Registry/SingIn/ForgotPassword.jsx";
