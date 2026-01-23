@@ -149,7 +149,7 @@ const ServiceCard = React.memo(({ images, title, description, alt, icon }) => {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    
+
     <motion.article
       className="group relative rounded-lg  overflow-hidden hover:shadow-xl transition-shadow duration-300"
       whileHover={prefersReducedMotion ? {} : { scale: 1.02 }}
@@ -160,7 +160,7 @@ const ServiceCard = React.memo(({ images, title, description, alt, icon }) => {
       aria-labelledby={`service-${title}`}
     >
       <div className="relative h-80">
-        
+
         <picture>
           <source srcSet={images.webp} type="image/webp" />
           <div className='bg-black/50  absolute inset-0 z-10 flex items-center justify-center'></div>
@@ -191,9 +191,9 @@ const ServiceCard = React.memo(({ images, title, description, alt, icon }) => {
 
 const FeatureCard = React.memo(({ title, description, icon }) => {
   const prefersReducedMotion = useReducedMotion();
-  
+
   return (
-    <motion.div 
+    <motion.div
       className="bg-white dark:bg-gray-800 p-6 rounded-lg border hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center"
       whileHover={prefersReducedMotion ? {} : { y: -5 }}
       role="region"
@@ -217,7 +217,7 @@ const ContentSection = React.memo(({ title, children, className = "", id }) => {
   const animations = createAnimations(prefersReducedMotion);
 
   return (
-    <motion.section 
+    <motion.section
       {...animations.slideIn}
       className={`bg-white dark:bg-gray-700 rounded-lg shadow-md p-8 mb-6 space-y-6 ${className}`}
       id={id}
@@ -237,95 +237,161 @@ function About() {
   const animations = useMemo(() => createAnimations(prefersReducedMotion), [prefersReducedMotion]);
 
   return (
-    <>
+    <div dir="rtl" className="bg-white dark:bg-slate-900 overflow-hidden pb-24">
       <Helmet>
-        <title>شركة الصرح للاستثمار العقاري - من نحن</title>
-        <meta
-          name="description"
-          content="تعرف على شركة الصرح للاستثمار العقاري، شركة رائدة في مجال التطوير العقاري في مصر"
-        />
-        <meta property="og:title" content="شركة الصرح للاستثمار العقاري - من نحن" />
-        <meta property="og:type" content="website" />
-        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-        
-        {/* Schema.org structured data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "شركة الصرح للاستثمار العقاري",
-            "description": "شركة رائدة في مجال التطوير العقاري في مصر",
-            "logo": LogoelsarhTwo,
-            "founders": [],
-            "foundingDate": "2004",
-            "address": {
-              "@type": "PostalAddress",
-              "addressCountry": "مصر"
-            }
-          })}
-        </script>
+        <title>عن الصرح | خبرة 20 عاماً في الاستثمار العقاري</title>
+        <meta name="description" content="تعرف على شركة الصرح للاستثمار العقاري، شركة رائدة في مجال التطوير العقاري في مصر بخبرة تمتد لأكثر من 20 عاماً." />
       </Helmet>
-      
-      <main 
-        dir="rtl" 
-        className="bg-stone-100 dark:bg-gray-900 py-8 min-h-screen"
-        role="main"
-      >
-        <div className="container mx-auto px-4 max-w-7xl">
-          <motion.div {...animations.fadeIn}>
 
-            <div className="space-y-12">
-              <ContentSection title="عن الصرح" id="about">
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-xl leading-relaxed">
-                    شركة الصرح للاستثمار العقاري خبرة اكثرمن 20 عـامًا  ذات إستراتيجية شاملة لمستقبل المعمــار فـي مصـر تعتمـد علـى الدراسات العلميـة والتكنولوجيـا المتطـورة التـى تواكب النهضـة العقارية  العالمية 
-                    شركة تهدف إلى إحداث تطور معمارى غير مسبوق فى مصر يضاهـي التطـور الـذي تشهده في كافة المجالات الأخرى.
-                  </p>
-                  
-                  <blockquote className="text-xl font-medium text-primary dark:text-secondary border-r-4 border-primary dark:border-secondary pr-6 my-8">
-                    شركة الصرح ليست مجرد شركة عقارية، بل هي قوة ثاقبة تعمل على تغيير وجه مصر وصياغة مساحات معيشية تتجاوز التوقعات.
-                  </blockquote>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                    
-                    {FEATURES.map((feature, index) => (
-                      <FeatureCard key={index} {...feature} />
-                    ))}
-                  </div>
-                </div>
-              </ContentSection>
-
-              <ContentSection title="رؤيتنا" id="vision">
-                <p className="text-xl text-zinc-700 dark:text-gray-300 leading-relaxed">
-                  تهدف شركه الصرح الي تلبية كافه متطلبات عملائها من خلال بناء مشاريع بجودة عالية ذات مستويات عاليه من الامان وبأرقي وأحدث التصميمات الاحترافيه وفي أقل وقت ممكن، كما تقدم الشركه خدمات التشطيب لكل من الشقق السكنيه والفلل والقصور والمنازل والشركات والمحلات تجاريه والمطاعم، وغيره من أعمال التشطيبات الداخلية الإبداعية، كما تهدف الشركة إلي تحقيق أعلي درجات النجاح وإرضاء العميل معتمدين في ذلك على الالتزام بالتنفيذ في الوقت المحدد وكذلك يتم تنفيذ جميع الأعمال بواسطة مهندسين وفنيين محترفين.
-                </p>
-              </ContentSection>
-
-              <ContentSection title="خدماتنا" id="services">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  
-                  {SERVICES.map((service, index) => (
-                    <ServiceCard key={index} {...service} />
-                  ))}
-                </div>
-              </ContentSection>
-
-              {/* New Team Section */}
-              <ContentSection title="الصرح للاستثمار العقاري" id="team">
-                <TeamMembers />
-              </ContentSection>
-
-              {/* New Testimonials Section */}
-              <ContentSection title="آراء العملاء" id="testimonials">
-                <Testimonials />
-              </ContentSection>
-            </div>
-          </motion.div>
+      {/* Hero Header */}
+      <div className="bg-primary-950 py-32 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgwek0yMCAyMHYyMGgyMFYyMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')] " />
         </div>
 
-        <ScrollToTop />
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-accent-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block"
+          >
+            تاريخ من الإنجازات
+          </motion.span>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-6xl font-heading font-black text-white mb-8"
+          >
+            من نحن
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-2xl mx-auto text-slate-400 text-lg leading-relaxed"
+          >
+            نحن القوة التي تساهم في صياغة مستقبل العقار في مصر، نجمع بين الخبرة العريقة والتكنولوجيا الحديثة لنقدم لك مساحات معيشية تتجاوز أحلامك.
+          </motion.p>
+        </div>
+      </div>
+
+      <main className="container mx-auto px-6 lg:px-12 -mt-12 relative z-20 space-y-24">
+
+        {/* Story Section */}
+        <section className="bg-white dark:bg-slate-800 p-12 md:p-20 rounded-[48px] shadow-premium border border-slate-100 dark:border-slate-700">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="space-y-8">
+              <h2 className="text-3xl md:text-5xl font-heading font-black text-primary-900 dark:text-white leading-tight">
+                خبرة أكثر من <span className="text-accent-600">20 عاماً</span> <br />في قلب السوق المصري
+              </h2>
+              <p className="text-xl text-slate-600 dark:text-slate-400 leading-loose text-justify">
+                شركة الصرح هي شركة ذات إستراتيجية شاملة لمستقبل العمار في مصر، تعتمد على الدراسات العلمية والتكنولوجيا المتطورة التي تواكب النهضة العقارية العالمية. منذ عام 2004 ونحن نهدف إلى إحداث تطور معماري غير مسبوق في مصر يضاهي التطور العالمي في كافة المجالات.
+              </p>
+              <div className="pt-6">
+                <blockquote className="text-2xl font-black text-primary-950 dark:text-accent-500 border-r-8 border-accent-600 pr-8 italic">
+                  "نحن لا نبني مجرد جدران، نحن نبني إرثاً للأجيال القادمة."
+                </blockquote>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute -inset-4 bg-accent-600/10 rounded-[64px] blur-2xl" />
+              <img
+                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+                alt="Modern Building"
+                className="relative rounded-[56px] shadow-premium-xl w-full h-[500px] object-cover"
+              />
+              <div className="absolute -bottom-8 -left-8 bg-white dark:bg-slate-900 p-10 rounded-[32px] shadow-premium border border-slate-100 dark:border-slate-700 hidden md:block">
+                <p className="text-5xl font-black text-accent-600">+20</p>
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mt-2">سنة من التميز</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Values/Features */}
+        <section className="space-y-16">
+          <div className="text-center">
+            <span className="text-accent-600 font-black uppercase text-xs tracking-widest">قيمنا الجوهرية</span>
+            <h2 className="text-4xl font-heading font-black text-primary-900 dark:text-white mt-4">ما يميز شركة الصرح</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {FEATURES.map((feature, idx) => (
+              <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-12 rounded-[40px] border border-slate-100 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 transition-all duration-500 group shadow-premium hover:shadow-premium-xl">
+                <div className="w-20 h-20 rounded-3xl bg-white dark:bg-slate-900 shadow-premium flex items-center justify-center text-accent-600 mb-8 group-hover:bg-accent-600 group-hover:text-white transition-all duration-500">
+                  {feature.icon}
+                </div>
+                <h3 className="text-2xl font-heading font-black text-primary-900 dark:text-white mb-4">{feature.title}</h3>
+                <p className="text-slate-500 dark:text-slate-400 leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Strategy Section */}
+        <section className="bg-primary-950 rounded-[64px] p-12 md:p-24 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent-600/10 rounded-full blur-[100px] -mr-48 -mt-48" />
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div>
+              <img
+                src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
+                alt="Vision"
+                className="rounded-[48px] shadow-2xl h-[400px] w-full object-cover"
+              />
+            </div>
+            <div className="space-y-8">
+              <span className="text-accent-500 font-black uppercase text-xs tracking-widest">رؤيتنا الإستراتيجية</span>
+              <h2 className="text-4xl font-heading font-black text-white">تحقيق طموحات عملائنا</h2>
+              <p className="text-xl text-slate-300 leading-loose">
+                تهدف شركة الصرح إلى تلبية كافة متطلبات عملائها من خلال بناء مشاريع بجودة عالية ذات مستويات عالية من الأمان وبأرقى وأحدث التصميمات الاحترافية وفي أقل وقت ممكن. كما نقدم خدمات التشطيب الإبداعية للشقق والفلل والشركات، معتمدين على نخبة من المهندسين والفنيين المحترفين.
+              </p>
+              <Link to="/Contact" className="btn-premium bg-accent-600 text-white inline-block">تواصل معنا اليوم</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Services Section */}
+        <section className="space-y-16">
+          <div className="text-center">
+            <span className="text-accent-600 font-black uppercase text-xs tracking-widest">مجالات تخصصنا</span>
+            <h2 className="text-4xl font-heading font-black text-primary-900 dark:text-white mt-4">خدمات وحلول عقارية متكاملة</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {SERVICES.map((service, idx) => (
+              <div key={idx} className="group relative h-[500px] rounded-[48px] overflow-hidden shadow-premium">
+                <img src={service.images.webp} alt={service.title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-950 via-primary-950/40 to-transparent" />
+                <div className="absolute inset-0 flex flex-col justify-end p-12 text-center text-white space-y-4">
+                  <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md mx-auto flex items-center justify-center text-accent-500">
+                    {service.icon}
+                  </div>
+                  <h3 className="text-3xl font-heading font-black">{service.title}</h3>
+                  <p className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-500">{service.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Team Section */}
+        <section className="space-y-16">
+          <div className="text-center">
+            <h2 className="text-4xl font-heading font-black text-primary-900 dark:text-white">فريق العمل</h2>
+          </div>
+          <TeamMembers />
+        </section>
+
+        {/* Testimonials */}
+        <section className="space-y-16">
+          <div className="text-center">
+            <h2 className="text-4xl font-heading font-black text-primary-900 dark:text-white">ثقة عملائنا</h2>
+          </div>
+          <Testimonials />
+        </section>
+
       </main>
-    </>
+      <ScrollToTop />
+    </div>
   );
 }
 

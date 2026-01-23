@@ -3,34 +3,10 @@ import CountUp from 'react-countup';
 import { motion, useInView } from "framer-motion";
 
 const counterItems = [
-  { end: 12, text: "مشاريع تحت الإنشاء" },
-  { end: 138, text: "مشروعات تم تسلمها" },
-  { end: 150, text: "مشروعات الشركة" },
+  { end: 12, text: "مشاريع قيد الإنشاء" },
+  { end: 138, text: "مشروعاً تم تسليمه" },
+  { end: 150, text: "إجمالي مشاريع الشركة" },
 ];
-
-const ProgressRing = ({ progress }) => (
-  <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-    <circle
-      cx="50%"
-      cy="50%"
-      r="45%"
-      className="stroke-current text-white/20"
-      strokeWidth="2"
-      fill="transparent"
-    />
-    <circle
-      cx="50%"
-      cy="50%"
-      r="45%"
-      className="stroke-current text-[#ff9505]"
-      strokeWidth="2"
-      fill="transparent"
-      strokeLinecap="round"
-      strokeDasharray="283"
-      strokeDashoffset={283 - (283 * progress) / 100}
-    />
-  </svg>
-);
 
 export default function CounterUp() {
   const ref = useRef(null);
@@ -38,88 +14,54 @@ export default function CounterUp() {
   const [startAnimation, setStartAnimation] = useState(false);
 
   useEffect(() => {
-    if (isInView) {
-      setStartAnimation(true);
-    }
+    if (isInView) setStartAnimation(true);
   }, [isInView]);
 
   return (
-    <div ref={ref} className="w-full container bg-gradient-to-br from-[#033e8a] to-[#016FB9] py-20 overflow-hidden">
-      <div className="container mx-auto px-4">
-        <motion.h2 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, type: 'spring' }}
-          className="text-4xl md:text-5xl font-bold text-center text-white mb-12 md:mb-16"
+    <div ref={ref} className="w-full bg-primary-950 py-24 relative overflow-hidden">
+      {/* Dynamic Background Pattern */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgwek0yMCAyMHYyMGgyMFYyMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')] shadow-inner" />
+      </div>
+
+      <div className="container mx-auto px-6 lg:px-12 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-20"
         >
-          إنجازاتنا الرقمية
-        </motion.h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <span className="text-accent-500 font-black uppercase tracking-[0.3em] text-[10px]">إنجازاتنا بالأرقام</span>
+          <h2 className="text-4xl md:text-5xl font-heading font-black text-white mt-4">
+            ثقة تبنى على الواقع
+          </h2>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
           {counterItems.map((item, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ 
-                duration: 0.6,
-                delay: index * 0.15,
-                type: 'spring',
-                stiffness: 100,
-                damping: 15
-              }}
-              className="relative group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.2 }}
+              className="group text-center"
             >
-              <div className="relative p-8 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 hover:border-[#ff9505]/30 transition-all duration-300 overflow-hidden">
-                {/* Animated background pattern */}
-                <motion.div 
-                  className="absolute inset-0 opacity-10"
-                  initial={{ rotate: 0 }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                >
-                  <div className="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEyIDIyQzYuNDc3IDIyIDIgMTcuNTIzIDIgMTJTMiAyIDYuNDc3IDIgMTIgNi40NzcgMTIgMTJzNC40NzcgMTAgMTAgMTB6bTAtMkM3LjM5MyAyMCAyIDE0LjYwNyAyIDhTNy4zOTMtMCAxNCAwczEyIDUuMzkzIDEyIDEyLTUuMzkzIDIwLTEyIDIweiIgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIuMSIvPjwvc3ZnPg==')]" />
-                </motion.div>
-
-                {/* Progress ring */}
-                <div className="absolute w-32 h-32 -top-16 -right-16 opacity-20">
-                  <ProgressRing progress={(item.end / 150) * 100} />
-                </div>
-
-                {/* Counter number */}
-                <motion.div 
-                  className="relative z-10 text-center mb-6"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div className="inline-block relative">
-                    <div className="absolute inset-0 bg-[#ff9505] blur-[60px] opacity-30" />
-                    <span className="text-6xl md:text-7xl font-bold text-[#ff9505] relative">
-                      {startAnimation && (
-                        <CountUp
-                          start={0}
-                          end={item.end}
-                          duration={3}
-                          separator=","
-                        />
-                      )}
-                      <span className="text-4xl absolute -top-4 -right-7"> +</span>
-                    </span>
-                  </div>
-                </motion.div>
-
-                {/* Counter text */}
-                <motion.p
-                  className="text-xl text-center text-white/90 font-medium"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 + index * 0.1 }}
-                >
-                  {item.text}
-                </motion.p>
-
-                {/* Hover effect line */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#ff9505] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              <div className="relative inline-block mb-6 pt-10 px-10">
+                <div className="absolute inset-0 bg-accent-600/10 rounded-full blur-3xl scale-150 group-hover:scale-200 transition-transform duration-700" />
+                <span className="text-6xl md:text-8xl font-heading font-black text-accent-600 relative rtl:flex rtl:justify-center">
+                  {startAnimation && (
+                    <CountUp start={0} end={item.end} duration={4} />
+                  )}
+                  <span className="text-4xl text-accent-500/50 mr-1">+</span>
+                </span>
               </div>
+
+              <div className="h-0.5 w-16 bg-accent-600 mx-auto mb-6 group-hover:w-24 transition-all duration-500" />
+
+              <p className="text-xl md:text-2xl font-heading font-bold text-white tracking-wide">
+                {item.text}
+              </p>
             </motion.div>
           ))}
         </div>

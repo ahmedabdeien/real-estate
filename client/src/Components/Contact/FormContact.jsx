@@ -5,19 +5,19 @@ import { motion } from 'framer-motion';
 import { FiCheckCircle, FiAlertCircle, FiSend } from 'react-icons/fi';
 import { useSelector } from 'react-redux';
 
-const InputField = React.memo(({ 
-  id, 
-  name, 
-  type, 
-  value, 
-  onChange, 
+const InputField = React.memo(({
+  id,
+  name,
+  type,
+  value,
+  onChange,
   onBlur,
   error,
   label,
   textarea = false
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -35,9 +35,8 @@ const InputField = React.memo(({
             onBlur(e);
           }}
           onFocus={() => setIsFocused(true)}
-          className={`w-full px-4 py-3 rounded-lg border-2 bg-transparent peer transition-all resize-none min-h-[120px] ${
-            error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-          } ${isFocused ? 'border-[#ff9505] ring-2 ring-[#ff9505]/20' : ''}`}
+          className={`w-full px-4 py-3 rounded-lg border-2 bg-transparent peer transition-all resize-none min-h-[120px] ${error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+            } ${isFocused ? 'border-[#ff9505] ring-2 ring-[#ff9505]/20' : ''}`}
         />
       ) : (
         <input
@@ -51,23 +50,21 @@ const InputField = React.memo(({
             onBlur(e);
           }}
           onFocus={() => setIsFocused(true)}
-          className={`w-full px-4 py-3 rounded-lg border-2 bg-transparent peer transition-all ${
-            error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-          } ${isFocused ? 'border-[#ff9505] ring-2 ring-[#ff9505]/20' : ''}`}
+          className={`w-full px-4 py-3 rounded-lg border-2 bg-transparent peer transition-all ${error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
+            } ${isFocused ? 'border-[#ff9505] ring-2 ring-[#ff9505]/20' : ''}`}
         />
       )}
-      
+
       <label
         htmlFor={id}
-        className={`absolute right-3 transition-all duration-300 pointer-events-none ${
-          (isFocused || value) ? 
-          '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f] dark:text-gray-300' : 
-          'top-3.5 text-gray-500'
-        } ${error ? 'text-red-500' : ''}`}
+        className={`absolute right-3 transition-all duration-300 pointer-events-none ${(isFocused || value) ?
+            '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f] dark:text-gray-300' :
+            'top-3.5 text-gray-500'
+          } ${error ? 'text-red-500' : ''}`}
       >
         {label}
       </label>
-      
+
       {error && (
         <motion.div
           initial={{ opacity: 0, y: -5 }}
@@ -145,7 +142,7 @@ export default function FormContact() {
     setStatus({ type: '', message: '' });
 
     // Validate all fields
-    const validationResults = Object.entries(formData).map(([name, value]) => 
+    const validationResults = Object.entries(formData).map(([name, value]) =>
       validateField(name, value)
     );
 
@@ -155,14 +152,15 @@ export default function FormContact() {
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/contact`, {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+      const res = await fetch(`${API_BASE}/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
       const data = await res.json();
-      
+
       if (res.ok) {
         setStatus({ type: 'success', message: 'تم إرسال رسالتك بنجاح!' });
         setFormData({ name: '', phone: '', email: '', message: '' });
@@ -254,11 +252,10 @@ export default function FormContact() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg flex items-center gap-3 ${
-              status.type === 'error' 
+            className={`p-4 rounded-lg flex items-center gap-3 ${status.type === 'error'
                 ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
                 : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300'
-            }`}
+              }`}
           >
             {status.type === 'error' ? (
               <FiAlertCircle className="shrink-0 text-xl" />

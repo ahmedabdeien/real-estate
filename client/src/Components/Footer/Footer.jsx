@@ -1,186 +1,144 @@
+"use client";
 import { motion, AnimatePresence } from 'framer-motion';
-import { BsArrowUpShort   } from 'react-icons/bs';
+import { BsArrowUpShort, BsChevronRight } from 'react-icons/bs';
 import { FiClock, FiMapPin, FiMail, FiPhone } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { SocialMediaSecondary } from '../SocialMedia/SocialMediaLink';
 import { useEffect, useState } from 'react';
+import Logoelsarh from '../../assets/images/logoElsarh.png';
 
 const FooterSection = ({ title, children }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="space-y-4"
-  >
-    <h6 className="text-xl font-semibold text-gray-800 dark:text-gray-200 relative pb-2 after:absolute after:bottom-0 after:right-0 after:w-12 after:h-1 after:bg-[#ff9505]">
+  <div className="space-y-6">
+    <h4 className="text-lg font-heading font-bold text-white tracking-wide uppercase">
       {title}
-    </h6>
-    <ul className="space-y-3 text-gray-600 dark:text-gray-400">
+    </h4>
+    <div className="space-y-4">
       {children}
-    </ul>
-  </motion.div>
+    </div>
+  </div>
 );
 
 export default function Footer() {
   const [showButton, setShowButton] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  const handleScroll = () => {
-    const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = (window.scrollY / totalHeight) * 100;
-    setScrollProgress(progress);
-    setShowButton(window.scrollY > 500);
-  };
 
   useEffect(() => {
+    const handleScroll = () => setShowButton(window.scrollY > 400);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const footerLinks = [
+    { name: 'الرئيسية', path: '/' },
+    { name: 'المشاريع', path: '/Project' },
+    { name: 'من نحن', path: '/About' },
+    { name: 'تواصل معنا', path: '/contact' },
+  ];
 
   return (
-    <footer dir="rtl" className="relative bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
-      {/* Scroll to Top Button */}
+    <footer dir="rtl" className="bg-primary-950 text-slate-400 font-body border-t border-slate-800">
+      {/* Premium Scroll Top Button */}
       <AnimatePresence>
         {showButton && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            className="fixed bottom-6 right-6 z-50"
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 left-8 z-50 p-3 bg-accent-600 text-white rounded-full shadow-premium-xl hover:bg-accent-500 transition-all hover:-translate-y-1 active:scale-95"
           >
-            <motion.button
-              onClick={scrollToTop}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="relative group p-2 bg-gradient-to-br from-[#ff9505] to-[#ff6b00] rounded-full shadow-xl hover:shadow-2xl transition-all"
-              aria-label="Scroll to top"
-            >
-              <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ping-slow" />
-              
-              {/* Progress Ring */}
-              <svg className="w-12 h-12 transform -rotate-90">
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  className="stroke-current text-white/20"
-                  strokeWidth="2"
-                  fill="transparent"
-                />
-                <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
-                  className="stroke-current text-white"
-                  strokeWidth="2"
-                  fill="transparent"
-                  strokeDasharray="125.6"
-                  strokeDashoffset={125.6 - (125.6 * scrollProgress) / 100}
-                />
-              </svg>
-
-              <BsArrowUpShort   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl text-white transform group-hover:-translate-y-1 transition-transform" />
-            </motion.button>
-          </motion.div>
+            <BsArrowUpShort size={28} />
+          </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Footer Content */}
-      <div className="container mx-auto px-6 py-12 grid md:grid-cols-3 gap-8">
-        {/* Work Hours Section */}
-        <FooterSection title="ساعات العمل">
-          <motion.li 
-            className="flex items-center space-x-2"
-            whileHover={{ x: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <FiClock className="text-[#ff9505]" />
-            <span>السبت - الخميس: 10 صباحاً - 5 مساءً</span>
-          </motion.li>
-        </FooterSection>
+      <div className="container mx-auto px-6 lg:px-12 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
 
-        {/* Quick Links Section */}
-        <FooterSection title="روابط سريعة">
-          {['الصفحة الرئيسية', 'المشاريع', 'عن الصرح', 'تسجيل الدخول'].map((link, index) => (
-            <motion.li
-              key={index}
-              whileHover={{ x: 5 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <Link
-                to={`/${link === 'الصفحة الرئيسية' ? '' : link}`}
-                className="hover:text-[#ff9505] transition-colors duration-200 flex items-center"
-              >
-                <span className="w-2 h-2 bg-[#ff9505] rounded-full mr-2" />
-                {link}
-              </Link>
-            </motion.li>
-          ))}
-        </FooterSection>
-
-        {/* Contact Section */}
-        <FooterSection title="اتصل بنا">
-          <motion.li 
-            className="flex items-start space-x-2"
-            whileHover={{ x: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <FiMapPin className="text-[#ff9505] mt-1" />
-            <div>
-              <p>14 شارع المختار من شارع النصر</p>
-              <p>المعادي الجديدة، القاهرة</p>
+          {/* Brand Info */}
+          <div className="space-y-6">
+            <Link to="/" className="flex items-center gap-3">
+              <img src={Logoelsarh} alt="Logo" className="w-14 brightness-0 invert" />
+              <div>
+                <h2 className="text-xl font-heading font-black text-white leading-none">الصرح</h2>
+                <p className="text-[10px] text-accent-500 font-bold tracking-widest mt-1">للاستثمار العقاري</p>
+              </div>
+            </Link>
+            <p className="text-sm leading-relaxed text-slate-400">
+              شركة الصرح للاستثمار العقاري، خبرة أكثر من 20 عاماً في بناء المستقبل المعماري في مصر باستخدام أحدث التقنيات العالمية.
+            </p>
+            <div className="flex pt-4">
+              <SocialMediaSecondary />
             </div>
-          </motion.li>
-          <motion.li 
-            className="flex items-center space-x-2"
-            whileHover={{ x: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <FiMail className="text-[#ff9505]" />
-            <a href="mailto:elsarhegypt@gmail.com" className="hover:text-[#ff9505] transition-colors">
-              elsarhegypt@gmail.com
-            </a>
-          </motion.li>
-          <motion.li 
-            className="flex items-center space-x-2"
-            whileHover={{ x: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <FiPhone className="text-[#ff9505]" />
-            <a href="tel:+0227547988" className="hover:text-[#ff9505] transition-colors">
-              0227547988
-            </a>
-          </motion.li>
-        </FooterSection>
+          </div>
+
+          {/* Quick Links */}
+          <FooterSection title="روابط سريعة">
+            <ul className="grid grid-cols-1 gap-3">
+              {footerLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className="group flex items-center gap-2 text-sm hover:text-white transition-colors"
+                  >
+                    <BsChevronRight size={10} className="text-accent-600 transition-transform group-hover:translate-x-1" />
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </FooterSection>
+
+          {/* Contact Info */}
+          <FooterSection title="اتصل بنا">
+            <ul className="space-y-4">
+              <li className="flex gap-4">
+                <FiMapPin className="text-accent-600 mt-1 shrink-0" size={18} />
+                <span className="text-sm leading-relaxed">
+                  14 شارع المختار من شارع النصر، المعادي الجديدة، القاهرة
+                </span>
+              </li>
+              <li className="flex items-center gap-4">
+                <FiPhone className="text-accent-600 shrink-0" size={18} />
+                <a href="tel:+201212622210" className="text-sm hover:text-white transition-colors">01212622210</a>
+              </li>
+              <li className="flex items-center gap-4">
+                <FiMail className="text-accent-600 shrink-0" size={18} />
+                <a href="mailto:elsarhegypt@gmail.com" className="text-sm hover:text-white transition-colors">elsarhegypt@gmail.com</a>
+              </li>
+            </ul>
+          </FooterSection>
+
+          {/* Working Hours */}
+          <FooterSection title="ساعات العمل">
+            <div className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800 space-y-3">
+              <div className="flex items-center gap-3">
+                <FiClock className="text-accent-600" />
+                <span className="text-sm font-bold text-white">السبت - الخميس</span>
+              </div>
+              <p className="text-xs text-slate-500">من الساعة 10:00 صباحاً حتى 05:00 مساءً</p>
+              <div className="pt-2 flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                <span className="text-xs text-slate-500">الجمعة عطلة رسمية</span>
+              </div>
+            </div>
+          </FooterSection>
+
+        </div>
       </div>
 
-      {/* Footer Bottom Section */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="border-t border-gray-100 dark:border-gray-800 bg-[#004483] dark:bg-gray-800"
-      >
-        <div className="container mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-white dark:text-gray-300 text-center md:text-left">
-            © {new Date().getFullYear()}{' '}
-            <a href="#" className="hover:underline hover:text-[#ff9505] transition-colors">
-              الصرح للاستثمار العقاري
-            </a>
-            . جميع الحقوق محفوظة
+      {/* Copyright */}
+      <div className="border-t border-slate-800 py-8 bg-black/20">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs tracking-wide">
+            &copy; {new Date().getFullYear()} شركة الصرح للاستثمار العقاري. جميع الحقوق محفوظة.
           </p>
-          
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex space-x-4"
-          >
-            <SocialMediaSecondary />
-          </motion.div>
+          <p className="text-[10px] text-slate-600 uppercase font-black tracking-widest">
+            Expertly Crafted for Excellence
+          </p>
         </div>
-      </motion.div>
+      </div>
     </footer>
   );
 }

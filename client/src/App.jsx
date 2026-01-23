@@ -44,33 +44,45 @@ function App() {
   return (
     <BrowserRouter>
       <Header />
-      <div className="relative">
+      <div className="relative pt-20">
         <ButtonTop />
       </div>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/Signin" element={<SingIn />} />
-        <Route path="/Forgot-Password" element={<ForgotPassword />} />
-        <Route path="/ResetPassword" element={<ResetPassword />} />
-        <Route path="/Signup" element={<SignUp />} />
-        <Route path="/About" element={<About />} />
-        <Route path="/Project" element={<Project />} />
-        <Route path="/Contact" element={<Contact />} />
-        <Route path="/Projects/:pageSlug" element={<ShowPage />} />
-        <Route element={<PrivateRoute />}>
-          <Route path="/Dashboard" element={<Dashboard />} />
-          <Route path="/Settings" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-        <Route element={<OnlyAdminPrivateRoute />}>
-          <Route path="/CreatePage" element={<CreatePage />} />
-          <Route path="/Update-Page/:pageId" element={<UpdatePage />} />
-        </Route>
-        <Route element={<BrokerPrivateRoute />}>
-          <Route path="/PageBroker" element={<PageBroker />} />
-        </Route>
-      </Routes>
+      <main className="min-h-screen">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={window.location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/Signin" element={<SingIn />} />
+              <Route path="/Forgot-Password" element={<ForgotPassword />} />
+              <Route path="/ResetPassword" element={<ResetPassword />} />
+              <Route path="/Signup" element={<SignUp />} />
+              <Route path="/About" element={<About />} />
+              <Route path="/Project" element={<Project />} />
+              <Route path="/Contact" element={<Contact />} />
+              <Route path="/Projects/:pageSlug" element={<ShowPage />} />
+              <Route element={<PrivateRoute />}>
+                <Route path="/Dashboard" element={<Dashboard />} />
+                <Route path="/Settings" element={<Settings />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+              <Route element={<OnlyAdminPrivateRoute />}>
+                <Route path="/CreatePage" element={<CreatePage />} />
+                <Route path="/Update-Page/:pageId" element={<UpdatePage />} />
+              </Route>
+              <Route element={<BrokerPrivateRoute />}>
+                <Route path="/PageBroker" element={<PageBroker />} />
+              </Route>
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
       <Footer />
     </BrowserRouter>
