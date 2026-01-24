@@ -16,33 +16,27 @@ const pageVariants = {
 
 function Home() {
   return (
-    <motion.div
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={pageVariants}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="bg-white overflow-hidden">
       <Helmet>
         <title>الصرح للاستثمار العقاري - الرئيسية</title>
-        <meta 
-          name="description" 
-          content="اكتشف مشاريع الصرح العقارية الفريدة واستثمر في مستقبل ناجح مع نخبة من التصاميم المعمارية المتميزة." 
+        <meta
+          name="description"
+          content="اكتشف مشاريع الصرح العقارية الفريدة واستثمر في مستقبل ناجح مع نخبة من التصاميم المعمارية المتميزة."
         />
       </Helmet>
 
       <SectionCarousel />
-      
+
       <AboutHome />
-      
+
       <CounterUp />
-      
+
       <SectionShowProjects />
-      
+
       <ServiceHome />
-      
+
       <Reviews />
-    </motion.div>
+    </div>
   );
 }
 

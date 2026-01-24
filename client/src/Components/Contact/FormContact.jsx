@@ -58,8 +58,8 @@ const InputField = React.memo(({
       <label
         htmlFor={id}
         className={`absolute right-3 transition-all duration-300 pointer-events-none ${(isFocused || value) ?
-            '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f] dark:text-gray-300' :
-            'top-3.5 text-gray-500'
+          '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f] dark:text-gray-300' :
+          'top-3.5 text-gray-500'
           } ${error ? 'text-red-500' : ''}`}
       >
         {label}
@@ -180,8 +180,8 @@ export default function FormContact() {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl "
     >
-      <form onSubmit={handleSubmit} className="grid gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className="grid gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             id="name"
             name="name"
@@ -227,15 +227,11 @@ export default function FormContact() {
           textarea
         />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="pt-4"
-        >
+        <div className="pt-2">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 px-6 bg-gradient-to-r from-[#ff9505] to-[#ff6b35] text-white rounded-lg font-medium hover:opacity-90 transition-opacity duration-300 flex items-center justify-center gap-2"
+            className="w-full py-4 px-6 bg-primary-600 text-white rounded-xl font-black hover:bg-primary-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isSubmitting ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -246,15 +242,15 @@ export default function FormContact() {
               </>
             )}
           </button>
-        </motion.div>
+        </div>
 
         {status.message && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`p-4 rounded-lg flex items-center gap-3 ${status.type === 'error'
-                ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
-                : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300'
+              ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
+              : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300'
               }`}
           >
             {status.type === 'error' ? (

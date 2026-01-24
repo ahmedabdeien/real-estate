@@ -119,25 +119,17 @@ export default function Header() {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 p-1.5 pr-4 glass-card rounded-full hover:shadow-premium-lg transition-all border border-slate-200 dark:border-slate-700"
+                  className="flex items-center gap-2 p-1 bg-slate-50 dark:bg-slate-800 rounded-full hover:shadow-md transition-all border border-slate-200 dark:border-slate-700"
                 >
-                  <div className="hidden md:block text-right mr-2 rtl:ml-2 rtl:mr-0">
-                    <p className="text-xs font-bold text-slate-800 dark:text-white truncate max-w-[100px]">
-                      {currentUser.name}
-                    </p>
-                    <p className="text-[10px] text-slate-400 capitalize font-medium">
-                      {currentUser.isAdmin ? 'Admin' : 'Member'}
-                    </p>
-                  </div>
                   <Avatar img={currentUser.avatar} rounded size="sm" />
                 </button>
 
                 <AnimatePresence>
                   {isUserMenuOpen && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
                       className="absolute right-0 top-full mt-3 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-premium-xl border border-slate-100 dark:border-slate-700 overflow-hidden"
                     >
                       <div className="p-2" dir="rtl">
@@ -158,7 +150,7 @@ export default function Header() {
               </div>
             ) : (
               <Link to="/Signin">
-                <button className="btn-premium bg-primary-900 text-white hover:bg-slate-800 shadow-premium text-sm py-2 px-6">
+                <button className="px-6 py-2.5 bg-primary-600 text-white font-black rounded-full hover:bg-primary-700 transition-all shadow-md text-sm">
                   دخول
                 </button>
               </Link>

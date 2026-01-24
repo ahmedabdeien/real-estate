@@ -4,15 +4,15 @@ import { motion } from 'framer-motion';
 const team = [
   {
     name: " حسين عابدين",
-    role: "رئيس مجلس الإدارة ومالك شركة الصرح",
-    bio: "مهندس مدني خبير في الإدارة العقارية مع أكثر من 25 عاماً من الخبرة في بناء الصروح السكنية والتجارية.",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070"
+    role: "رئيس مجلس الإدارة",
+    bio: "خبير في الإدارة العقارية والاستثمار، يقود الصرح نحو مستقبل مشرق.",
+    initials: "ح ع"
   },
   {
-    name: "أحمد حسين ",
-    role: "المدير التنفيذي",
-    bio: "مهندس it رائد، يشرف على تطبيق أحدث التكنولوجيا العالمية في التصميم والتنفيذ لضمان تميز مشاريعنا.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
+    name: "أحمد حسين",
+    role: "مدير التكنولوجيا",
+    bio: "يشرف على الأنظمة التقنية والابتكار لضمان أفضل خدمة لعملائنا.",
+    initials: "أ ح"
   },
 ];
 
@@ -27,21 +27,19 @@ const TeamMembers = () => (
         transition={{ delay: index * 0.2 }}
         className="group relative"
       >
-        <div className="relative h-[500px] rounded-[48px] overflow-hidden shadow-premium transition-all duration-700 group-hover:shadow-premium-xl border-4 border-white dark:border-slate-800">
-          <img
-            src={member.image}
-            alt={member.name}
-            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-950 via-primary-950/20 to-transparent" />
+        <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-premium transition-all duration-700 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500/10 to-primary-600/20">
+            <span className="text-8xl font-black text-primary-600/30 select-none">
+              {member.initials}
+            </span>
+          </div>
 
-          <div className="absolute inset-x-0 bottom-0 p-10 text-right">
-            <h3 className="text-3xl font-heading font-black text-white mb-2">
+          <div className="absolute inset-x-0 bottom-0 p-8 text-right bg-gradient-to-t from-white dark:from-slate-900 via-white/80 dark:via-slate-900/80 to-transparent">
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-1">
               {member.name}
             </h3>
-            <p className="text-accent-500 font-black uppercase tracking-widest text-xs mb-6">{member.role}</p>
-            <p className="text-slate-300 text-sm leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+            <p className="text-primary-600 font-black uppercase tracking-widest text-[10px] mb-4">{member.role}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
               {member.bio}
             </p>
           </div>
