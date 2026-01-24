@@ -61,41 +61,42 @@ export default function Header() {
     <header className={`
       fixed top-0 left-0 right-0 z-[100] transition-all duration-500
       ${isScrolled
-        ? 'py-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg shadow-premium border-b border-slate-200/50 dark:border-slate-700/50'
-        : 'py-5 bg-transparent'}
+        ? 'py-3 bg-white/95 backdrop-blur-md shadow-premium border-b border-slate-100'
+        : 'py-6 bg-transparent'}
     `}>
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex justify-between items-center transition-all duration-300">
 
           {/* Brand/Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-4 group">
             <motion.div
-              whileHover={{ rotate: -5, scale: 1.1 }}
+              whileHover={{ rotate: -10, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              className="bg-white p-1 rounded-xl shadow-premium-lg"
             >
-              <img src={Logoelsarh} alt="Logo" className="w-12 md:w-14" />
+              <img src={Logoelsarh} alt="Logo" className="w-10 md:w-12 h-auto object-contain" />
             </motion.div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-heading font-black tracking-tight text-primary-900 dark:text-white leading-none">
+              <h1 className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 leading-none">
                 الصرح
               </h1>
-              <p className="text-[10px] uppercase tracking-widest text-accent-600 font-bold mt-0.5">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-primary-600 font-black mt-1">
                 للاستثمار العقاري
               </p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-1 rtl:space-x-reverse">
+          <nav className="hidden lg:flex items-center gap-2 rtl:space-x-reverse">
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}
                 className={({ isActive }) => `
-                  px-5 py-2.5 rounded-full font-heading font-semibold text-sm transition-all duration-300
+                  px-6 py-2.5 rounded-full font-bold text-sm tracking-tight transition-all duration-300
                   ${isActive
-                    ? 'bg-primary-900 text-white shadow-premium'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}
+                    ? 'bg-primary-500 text-white shadow-premium'
+                    : 'text-slate-700 hover:text-primary-600 hover:bg-primary-50'}
                 `}
               >
                 {link.title}
@@ -104,11 +105,11 @@ export default function Header() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-4">
-            {/* Theme Toggle */}
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle - Keeping it but styling it subtly */}
             <button
               onClick={() => dispatch(toggleTheme())}
-              className="p-2.5 rounded-full glass-card hover:bg-accent-500/10 dark:hover:bg-accent-500/20 transition-all text-slate-700 dark:text-slate-200 shadow-premium border border-slate-200 dark:border-slate-700"
+              className="p-2.5 rounded-full hover:bg-slate-100 transition-all text-slate-500 dark:text-slate-400"
             >
               {theme === 'light' ? <FaMoon size={18} /> : <FaSun size={18} className="text-accent-500" />}
             </button>

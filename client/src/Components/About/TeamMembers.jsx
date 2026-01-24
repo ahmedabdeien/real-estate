@@ -3,16 +3,16 @@ import { motion } from 'framer-motion';
 
 const team = [
   {
-    name: "حسين عابدين",
+    name: " حسين عابدين",
     role: "رئيس مجلس الإدارة ومالك شركة الصرح",
     bio: "مهندس مدني خبير في الإدارة العقارية مع أكثر من 25 عاماً من الخبرة في بناء الصروح السكنية والتجارية.",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974&auto=format&fit=crop"
+    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070"
   },
   {
-    name: "زين الأنصاري",
+    name: "أحمد حسين ",
     role: "المدير التنفيذي",
-    bio: "مهندس معماري رائد، يشرف على تطبيق أحدث التكنولوجيا العالمية في التصميم والتنفيذ لضمان تميز مشاريعنا.",
-    image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=1974&auto=format&fit=crop"
+    bio: "مهندس it رائد، يشرف على تطبيق أحدث التكنولوجيا العالمية في التصميم والتنفيذ لضمان تميز مشاريعنا.",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d"
   },
 ];
 

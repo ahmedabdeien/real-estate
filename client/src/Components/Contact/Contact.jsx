@@ -25,13 +25,13 @@ const ContactMethod = ({ icon: Icon, title, children, link }) => (
     whileHover={{ y: -8 }}
   >
     <div className="flex items-start gap-6">
-      <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 shadow-premium flex items-center justify-center text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-500">
+      <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 shadow-premium flex items-center justify-center text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-500">
         <Icon size={24} />
       </div>
       <div>
         <h4 className="text-xl font-heading font-black text-primary-900 dark:text-white mb-2">{title}</h4>
         {link ? (
-          <a href={link} className="text-slate-500 dark:text-slate-400 hover:text-accent-600 transition-colors font-medium">
+          <a href={link} className="text-slate-500 dark:text-slate-400 hover:text-primary-600 transition-colors font-medium">
             {children}
           </a>
         ) : (
@@ -67,7 +67,7 @@ function Contact() {
       </Helmet>
 
       {/* Hero Header */}
-      <div className="bg-primary-950 py-32 relative overflow-hidden">
+      <div className="bg-slate-900 py-32 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgwek0yMCAyMHYyMGgyMFYyMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')] " />
         </div>
@@ -76,7 +76,7 @@ function Contact() {
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-accent-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block"
+            className="text-primary-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block"
           >
             دعنا نساعدك
           </motion.span>
@@ -148,17 +148,17 @@ function Contact() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-medium">الجمعة</span>
-                  <span className="text-accent-600 font-black uppercase tracking-widest">مغلق</span>
+                  <span className="text-primary-600 font-black uppercase tracking-widest">مغلق</span>
                 </div>
               </div>
             </div>
 
             {/* Social Links */}
-            <div className="bg-primary-950 p-12 rounded-[48px] shadow-premium-xl relative overflow-hidden text-center">
+            <div className="bg-slate-900 p-12 rounded-[48px] shadow-premium-xl relative overflow-hidden text-center">
               <div className="relative z-10 space-y-6">
                 <h3 className="text-2xl font-heading font-black text-white">تابعنا على منصات التواصل</h3>
                 <div className="flex justify-center">
-                  <SocialMediaPrimary className="flex gap-6" iconClass="text-4xl text-white hover:text-accent-600 transition-all duration-300" />
+                  <SocialMediaPrimary className="flex gap-6" iconClass="text-4xl text-white hover:text-primary-500 transition-all duration-300" />
                 </div>
               </div>
             </div>
@@ -167,7 +167,7 @@ function Contact() {
           {/* Form Area */}
           <div className="bg-white dark:bg-slate-800 p-12 md:p-16 rounded-[48px] shadow-premium border border-slate-100 dark:border-slate-700 h-full">
             <div className="mb-12">
-              <span className="text-accent-600 font-black uppercase text-[10px] tracking-widest">نموذج التواصل</span>
+              <span className="text-primary-500 font-black uppercase text-[10px] tracking-widest">نموذج التواصل</span>
               <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white mt-4">أرسل استفسارك الآن</h2>
               <p className="text-slate-500 mt-4 leading-relaxed">سقوم مستشارينا بالتواصل معك في أقرب وقت لتلبية طلبك.</p>
             </div>
@@ -195,7 +195,7 @@ function Contact() {
                 '--gmpx-color-surface': '#fff',
                 '--gmpx-color-on-surface': '#1e293b',
                 '--gmpx-color-on-surface-variant': '#64748b',
-                '--gmpx-color-primary': '#f2a600',
+                '--gmpx-color-primary': '#6cb635',
                 '--gmpx-color-outline': '#f1f5f9',
                 '--gmpx-font-family-base': 'Inter, sans-serif',
               }}

@@ -220,47 +220,69 @@ function ShowPage() {
       </PhotoProvider>
 
       {/* Breadcrumbs & Simple Stats */}
-      <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-        <div className="container py-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <nav className="flex gap-4 text-xs font-black uppercase tracking-widest">
-            <Link to="/" className="text-slate-400 hover:text-accent-600">الرئيسية</Link>
-            <span className="text-slate-300">/</span>
-            <Link to="/Project" className="text-slate-400 hover:text-accent-600">المشاريع</Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-primary-900 dark:text-white">{pages.name}</span>
+      <div className="bg-white border-b border-slate-100">
+        <div className="container py-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <nav className="flex gap-4 text-xs font-bold uppercase tracking-widest">
+            <Link to="/" className="text-slate-400 hover:text-primary-600 transition-colors">الرئيسية</Link>
+            <span className="text-slate-200">/</span>
+            <Link to="/Project" className="text-slate-400 hover:text-primary-600 transition-colors">المشاريع</Link>
+            <span className="text-slate-200">/</span>
+            <span className="text-slate-900">{pages.name}</span>
           </nav>
 
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <span className="w-2 h-2 rounded-full bg-accent-600 shadow-[0_0_10px_rgba(242,166,0,0.8)]" />
-              <span className="text-xs font-black uppercase tracking-widest text-primary-900 dark:text-white">قيد الحجز</span>
-            </div>
-            <div className="h-4 w-px bg-slate-200 dark:bg-slate-700" />
-            <div className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-              تاريخ النشر: {new Date(pages.createdAt).toLocaleDateString('ar-EG')}
-            </div>
+          <div className="flex items-center gap-6">
+            {/* Share Button */}
+            <button
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: pages.name,
+                    text: pages.description,
+                    url: window.location.href,
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert("تم نسخ رابط المشروع!");
+                }
+              }}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary-600 transition-all border border-slate-200 px-4 py-2 rounded-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              مشاركة
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary-600 transition-all border border-slate-200 px-4 py-2 rounded-lg"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              طباعة
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="container py-24 px-6 lg:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-24">
+      <div className="container py-20 px-6 lg:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
 
           {/* Content Column */}
-          <div className="lg:col-span-2 space-y-20">
+          <div className="lg:col-span-2 space-y-16">
 
             {/* Description */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-8"
+              className="space-y-6"
             >
-              <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white border-r-8 border-accent-600 pr-6">
+              <h2 className="text-3xl font-black text-slate-900 border-r-4 border-primary-500 pr-6">
                 نظرة عامة على المشروع
               </h2>
-              <div className="prose dark:prose-invert max-w-none">
-                <p className="text-xl text-slate-600 dark:text-slate-400 leading-loose">
+              <div className="prose max-w-none">
+                <p className="text-lg text-slate-600 leading-relaxed">
                   {pages.description}
                 </p>
               </div>
@@ -272,29 +294,27 @@ function ShowPage() {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-6"
             >
               {[
                 { label: "مساحة المشروع", value: `${pages.propertySize} م²`, icon: TbRulerMeasure },
                 { label: "عدد الأدوار", value: pages.numberFloors, icon: TbBuildingSkyscraper },
-                { label: "حالة توافر الوحدات", value: pages.available === "available" ? "متاح" : "قريباً", icon: BsGrid3X3Gap, accent: true },
-                { label: "موقع متميز", value: pages.address, icon: FaMapMarkerAlt }
+                { label: "حالة التوفر", value: pages.available === "available" ? "متاح للبيع" : "قريباً", icon: BsGrid3X3Gap, accent: true },
+                { label: "الموقع", value: pages.address, icon: FaMapMarkerAlt }
               ].map((stat, idx) => (
                 <motion.div
                   key={idx}
                   variants={itemVariants}
-                  className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-premium group hover:bg-white dark:hover:bg-slate-800 transition-all duration-500"
+                  className="bg-slate-50 p-6 rounded-xl border border-slate-100 flex items-center gap-6 group hover:bg-white hover:shadow-premium-lg transition-all"
                 >
-                  <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 shadow-premium flex items-center justify-center text-accent-600 group-hover:bg-accent-600 group-hover:text-white transition-all duration-500">
-                      <stat.icon size={28} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">{stat.label}</p>
-                      <p className={`text-2xl font-heading font-black ${stat.accent ? 'text-accent-600' : 'text-primary-900 dark:text-white'}`}>
-                        {stat.value}
-                      </p>
-                    </div>
+                  <div className="w-12 h-12 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all">
+                    <stat.icon size={24} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{stat.label}</p>
+                    <p className={`text-lg font-black ${stat.accent ? 'text-primary-600' : 'text-slate-900'}`}>
+                      {stat.value}
+                    </p>
                   </div>
                 </motion.div>
               ))}
@@ -308,22 +328,12 @@ function ShowPage() {
                 viewport={{ once: true }}
                 className="space-y-8"
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-8 w-1.5 bg-accent-600 rounded-full" />
-                  <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white">
-                    المساحات المتاحة
-                  </h2>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <h2 className="text-2xl font-black text-slate-900">المساحات المتاحة</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {sizeApartments.map((size, idx) => (
-                    <motion.div
-                      key={idx}
-                      whileHover={{ scale: 1.05 }}
-                      className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-3 shadow-premium transition-all"
-                    >
-                      <TbRulerMeasure size={32} className="text-accent-600" />
-                      <span className="font-heading font-black text-xl text-primary-900 dark:text-white">{size} م²</span>
-                    </motion.div>
+                    <div key={idx} className="p-4 bg-white border border-slate-100 rounded-lg text-center shadow-sm hover:shadow-md transition-all">
+                      <p className="text-primary-600 font-black text-xl">{size} <span className="text-[10px] text-slate-400">م²</span></p>
+                    </div>
                   ))}
                 </div>
               </motion.section>
@@ -335,30 +345,18 @@ function ShowPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="space-y-10"
+                className="space-y-8"
               >
-                <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white">
-                  المخطط الهندسي
-                </h2>
-                <PhotoProvider>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {pages.imagePlans.map((plan, index) => (
-                      <PhotoView key={index} src={plan}>
-                        <motion.div
-                          whileHover={{ y: -8 }}
-                          className="relative group bg-slate-50 dark:bg-slate-800 rounded-[32px] overflow-hidden shadow-premium cursor-zoom-in border border-slate-100 dark:border-slate-800"
-                        >
-                          <img src={plan} alt={`Floor Plan ${index + 1}`} className="w-full h-80 object-contain p-8" />
-                          <div className="absolute inset-0 bg-primary-950/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="w-14 h-14 rounded-full bg-white text-primary-900 flex items-center justify-center shadow-2xl">
-                              <FaExpand size={20} />
-                            </div>
-                          </div>
-                        </motion.div>
-                      </PhotoView>
-                    ))}
-                  </div>
-                </PhotoProvider>
+                <h2 className="text-2xl font-black text-slate-900">المخطط الهندسي</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {pages.imagePlans.map((plan, index) => (
+                    <PhotoView key={index} src={plan}>
+                      <div className="bg-slate-50 rounded-xl p-8 border border-slate-100 cursor-zoom-in hover:shadow-lg transition-all">
+                        <img src={plan} alt={`Floor Plan ${index + 1}`} className="w-full h-64 object-contain" />
+                      </div>
+                    </PhotoView>
+                  ))}
+                </div>
               </motion.section>
             )}
 
@@ -370,32 +368,16 @@ function ShowPage() {
                 viewport={{ once: true }}
                 className="space-y-10"
               >
-                <div className="flex justify-between items-end">
-                  <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white">
-                    معرض الوحدات
-                  </h2>
-                  <span className="text-accent-600 font-black text-xs uppercase tracking-widest">{pages.imageApartments.length} صورة</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <PhotoProvider>
-                    {pages.imageApartments.map((img, index) => (
-                      <motion.div
-                        key={index}
-                        whileHover={{ scale: 1.05 }}
-                        className="group relative h-64 bg-slate-100 dark:bg-slate-800 rounded-[32px] overflow-hidden shadow-premium cursor-zoom-in"
-                      >
-                        <PhotoView src={img}>
-                          <div className="relative h-full w-full">
-                            <img src={img} alt={`Apartment ${index + 1}`} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-primary-950/60 to-transparent" />
-                            <div className="absolute bottom-6 right-6">
-                              <p className="text-white font-heading font-black text-sm uppercase">وحدة {index + 1}</p>
-                            </div>
-                          </div>
-                        </PhotoView>
-                      </motion.div>
-                    ))}
-                  </PhotoProvider>
+                <h2 className="text-2xl font-black text-slate-900">معرض الوحدات</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {pages.imageApartments.map((img, index) => (
+                    <PhotoView key={index} src={img}>
+                      <div className="relative h-64 bg-slate-50 rounded-xl overflow-hidden cursor-zoom-in group shadow-sm">
+                        <img src={img} alt={`Apartment ${index + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all" />
+                      </div>
+                    </PhotoView>
+                  ))}
                 </div>
               </motion.section>
             )}
@@ -403,8 +385,7 @@ function ShowPage() {
           </div>
 
           {/* Sidebar Area */}
-          <aside className="space-y-12">
-
+          <aside className="space-y-10">
             {/* Contact Card */}
             <div className="bg-primary-950 p-10 rounded-[48px] shadow-premium-xl relative overflow-hidden text-center sticky top-32">
               <div className="absolute inset-0 opacity-10 pointer-events-none">
@@ -448,7 +429,7 @@ function ShowPage() {
       <div className="bg-slate-50 dark:bg-slate-950 py-32">
         <SectionShowProjects />
       </div>
-    </motion.main>
+    </motion.main >
   );
 }
 

@@ -41,20 +41,20 @@ const SectionShowProjects = () => {
             viewport={{ once: true }}
             className="max-w-2xl text-right"
           >
-            <span className="text-accent-600 font-black uppercase tracking-[0.4em] text-xs">واجهات الفخامة</span>
-            <h2 className="text-5xl md:text-7xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
-              مشـاريع <br /><span className="text-slate-400 font-light">تـخطف الأنـظار</span>
+            <span className="text-primary-600 font-black uppercase tracking-[0.4em] text-xs">واجهات الفخامة</span>
+            <h2 className="text-5xl md:text-7xl font-heading font-black text-slate-900 mt-6 leading-tight">
+              مشـاريع <br /><span className="text-slate-400 font-light italic">مـتميزة</span>
             </h2>
           </motion.div>
 
           <Link to="/Project">
-            <button className="btn-premium border-2 border-slate-200 dark:border-slate-800 text-primary-900 dark:text-white hover:border-accent-600 hover:text-accent-600">
+            <button className="px-8 py-4 border-2 border-slate-200 text-slate-900 font-black text-xs uppercase tracking-widest hover:bg-primary-500 hover:border-primary-500 hover:text-white transition-all rounded-lg">
               استكشف جميع الوجهات
             </button>
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {projects.map((project, index) => (
             <motion.div
               key={project._id}
@@ -62,50 +62,72 @@ const SectionShowProjects = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.15 }}
-              className="group relative h-[600px] rounded-[60px] overflow-hidden shadow-premium-xl"
+              className="bg-white rounded-2xl overflow-hidden shadow-premium hover:shadow-premium-xl transition-all duration-500 group border border-slate-100"
             >
-              {/* Image Background */}
-              <motion.img
-                src={project.imageUrls[0]}
-                alt={project.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-              />
+              {/* Image Container */}
+              <div className="relative h-64 overflow-hidden">
+                <img
+                  src={project.imageUrls[0]}
+                  alt={project.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all" />
 
-              {/* Intelligent Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-primary-950 via-primary-950/20 to-transparent" />
-              <div className="absolute inset-0 border-[1.5rem] border-transparent group-hover:border-white/10 transition-all duration-700 pointer-events-none" />
+                {/* Ribbon Tag - Like the demo */}
+                <div className="absolute top-4 left-0 z-10">
+                  <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg rounded-r-md ${project.available === "available" ? "bg-primary-500" : "bg-accent-500"
+                    }`}>
+                    {project.available === "available" ? "للبيــــع" : "للايـجار"}
+                  </span>
+                </div>
 
-              {/* Status Badge */}
-              <div className="absolute top-10 right-10 z-10">
-                <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl ${project.available === "available" ? "bg-accent-600 text-white" : "bg-primary-900 text-white"
-                  }`}>
-                  {project.available === "available" ? "متاح الآن" : "قريباً"}
-                </span>
+                {/* Share Button */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (navigator.share) {
+                      navigator.share({
+                        title: project.name,
+                        text: project.description,
+                        url: `${window.location.origin}/Projects/${project.slug}`,
+                      });
+                    } else {
+                      navigator.clipboard.writeText(`${window.location.origin}/Projects/${project.slug}`);
+                      alert("تم نسخ رابط المشروع!");
+                    }
+                  }}
+                  className="absolute bottom-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-800 hover:bg-primary-500 hover:text-white transition-all shadow-lg active:scale-90"
+                  title="مشاركة المشروع"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                </button>
               </div>
 
               {/* Content Box */}
-              <div className="absolute inset-x-0 bottom-0 p-10 z-10 flex flex-col items-start text-right">
-                <div className="flex items-center gap-2 text-accent-500 mb-4">
-                  <HiOutlineLocationMarker size={18} />
-                  <span className="text-xs font-bold uppercase tracking-widest">القاهرة الجديدة</span>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-primary-600 mb-3">
+                  <HiOutlineLocationMarker size={16} />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">{project.address}</span>
                 </div>
 
-                <h3 className="text-3xl font-heading font-black text-white mb-4 group-hover:text-accent-500 transition-colors">
+                <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-primary-600 transition-colors line-clamp-1">
                   {project.name}
                 </h3>
 
-                <div className="flex items-center gap-6 mb-8 text-white/60">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-slate-500">
                     <HiOutlineArrowsExpand size={16} />
-                    <span className="text-xs">120م - 450م</span>
+                    <span className="text-xs font-medium">{project.propertySize} م²</span>
                   </div>
-                </div>
 
-                <Link to={`/Projects/${project.slug}`} className="w-full">
-                  <button className="w-full py-4 rounded-2xl bg-white text-primary-950 font-black text-xs uppercase tracking-[0.2em] transform translate-y-20 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700 hover:bg-accent-600 hover:text-white">
-                    التـــفاصيل
-                  </button>
-                </Link>
+                  <Link to={`/Projects/${project.slug}`}>
+                    <span className="text-xs font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 underline underline-offset-4">
+                      المزيد
+                    </span>
+                  </Link>
+                </div>
               </div>
             </motion.div>
           ))}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Inter:wght@100..900&family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Inter:wght@100..900&family=Montserrat:wght@100..900&family=Outfit:wght@100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,20 +6,24 @@
 
 @layer base {
   :root {
-    --primary: #0f172a;
-    --primary-dark: #020617;
-    --secondary: #64748b;
-    --secondary-dark: #334155;
-    --accent: #d97706;
-    --accent-dark: #92400e;
+    --primary: #0e8ad9;
+    /* Professional Blue */
+    --primary-dark: #056db2;
+    --secondary: #f37200;
+    /* Realtor Orange */
+    --secondary-dark: #d66400;
+    --accent: #0e8ad9;
+    --accent-dark: #056db2;
     --surface: #f8fafc;
+    --heading-font: 'Montserrat', 'Cairo', 'Inter', sans-serif;
   }
 
   body {
-    @apply font-body bg-slate-50 text-slate-900 antialiased;
+    @apply font-body bg-white text-slate-800 antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    font-family: 'Inter', 'Cairo', sans-serif;
   }
 
   h1,
@@ -28,11 +32,12 @@
   h4,
   h5,
   h6 {
-    @apply font-heading tracking-tight;
+    @apply tracking-tight;
+    font-family: var(--heading-font);
   }
 
   ::selection {
-    @apply bg-accent-100 text-accent-900;
+    @apply bg-primary-500/20 text-primary-500;
   }
 }
 
