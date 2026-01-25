@@ -10,24 +10,24 @@
     --primary: #0e8ad9;
     --primary-light: #3da4e5;
     --primary-dark: #056db2;
-    
+
     --secondary: #f37200;
     --secondary-light: #ff8c33;
     --secondary-dark: #d66400;
 
     --background: #fdfdfd;
     --foreground: #0f172a;
-    
+
     --card: #ffffff;
     --card-foreground: #0f172a;
-    
+
     --border: #e2e8f0;
     --input: #e2e8f0;
     --ring: #0e8ad9;
-    
+
     --muted: #f1f5f9;
     --muted-foreground: #64748b;
-    
+
     --accent: #f8fafc;
     --accent-foreground: #0f172a;
 
@@ -38,16 +38,16 @@
   .dark {
     --background: #020617;
     --foreground: #f8fafc;
-    
+
     --card: #0f172a;
     --card-foreground: #f8fafc;
-    
+
     --border: #1e293b;
     --input: #1e293b;
-    
+
     --muted: #1e293b;
     --muted-foreground: #94a3b8;
-    
+
     --accent: #1e293b;
     --accent-foreground: #f8fafc;
   }
@@ -60,13 +60,18 @@
     font-family: var(--body-font);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply tracking-tight font-bold text-[var(--foreground)];
     font-family: var(--heading-font);
   }
 
   ::selection {
-    @apply bg-primary/20 text-primary;
+    @apply bg-primary-500/20 text-primary-500;
   }
 }
 

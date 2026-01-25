@@ -11,6 +11,7 @@ export default {
     extend: {
       colors: {
         primary: {
+          DEFAULT: '#0e8ad9',
           50: '#f0f7ff',
           100: '#e0effe',
           200: '#bae0fd',
@@ -24,6 +25,7 @@ export default {
           950: '#082741',
         },
         accent: {
+          DEFAULT: '#f37200',
           50: '#fff6ed',
           100: '#ffead5',
           200: '#ffd1a9',
