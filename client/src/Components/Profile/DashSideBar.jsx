@@ -55,9 +55,9 @@ function DashSideBar() {
     };
 
     return (
-        <div className="flex h-full overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-lg">
+        <div className="flex h-full overflow-hidden bg-[var(--card)] border-r border-[var(--border)] shadow-premium transition-colors duration-500">
             {/* Custom Sidebar */}
-            <div className="lg:w-64 w-full h-full dark:bg-gray-800 bg-white  p-4">
+            <div className="lg:w-64 w-full h-full p-4">
                 <div className='h-full w-full'>
                     <div className='space-y-3'>
                         <div className="px-4 py-4">
@@ -92,14 +92,14 @@ function DashSideBar() {
                                 </Link>
                             </>
                         )}
-                        <div className="border-t border-gray-200 my-4"></div>
-                        <div onClick={handleSignout} className="flex items-center p-2 text-red-600 hover:bg-gray-100 cursor-pointer">
-                            <HiArrowSmRight className="mr-2" />
-                            Sign Out
+                        <div className="border-t border-[var(--border)] my-4"></div>
+                        <div onClick={handleSignout} className="flex items-center p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl cursor-pointer transition-all font-semibold">
+                            <HiArrowSmRight className="mr-2 text-xl" />
+                            تسجيل الخروج
                         </div>
-                        <div onClick={() => setShowModal(true)} className="flex items-center p-2 text-red-600 hover:bg-gray-100 cursor-pointer">
-                            <HiOutlineTrash className="mr-2" />
-                            Delete Account
+                        <div onClick={() => setShowModal(true)} className="flex items-center p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl cursor-pointer transition-all font-semibold">
+                            <HiOutlineTrash className="mr-2 text-xl" />
+                            حذف الحساب
                         </div>
                     </div>
                 </div>

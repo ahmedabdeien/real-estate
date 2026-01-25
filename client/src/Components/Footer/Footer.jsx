@@ -37,7 +37,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer dir="rtl" className="bg-primary-950 text-slate-400 font-body border-t border-slate-800">
+    <footer dir="rtl" className="bg-[var(--card)] text-[var(--muted-foreground)] font-body border-t border-[var(--border)] transition-colors duration-500">
       {/* Premium Scroll Top Button */}
       <AnimatePresence>
         {showButton && (
@@ -46,7 +46,7 @@ export default function Footer() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             onClick={scrollToTop}
-            className="fixed bottom-8 left-8 z-50 p-3 bg-accent-600 text-white rounded-full shadow-premium-xl hover:bg-accent-500 transition-all hover:-translate-y-1 active:scale-95"
+            className="fixed bottom-8 left-8 z-50 p-3 bg-primary text-white rounded-full shadow-premium-xl hover:bg-primary-light transition-all hover:-translate-y-1 active:scale-95"
           >
             <BsArrowUpShort size={28} />
           </motion.button>
@@ -59,10 +59,10 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="space-y-6">
             <Link to="/" className="flex items-center gap-3">
-              <img src={Logoelsarh} alt="Logo" className="w-14 brightness-0 invert" />
+              <img src={Logoelsarh} alt="Logo" className="w-14 dark:brightness-0 dark:invert" />
               <div>
-                <h2 className="text-xl font-heading font-black text-white leading-none">الصرح</h2>
-                <p className="text-[10px] text-accent-500 font-bold tracking-widest mt-1">للاستثمار العقاري</p>
+                <h2 className="text-xl font-heading font-black text-[var(--foreground)] leading-none">الصرح</h2>
+                <p className="text-[10px] text-primary font-bold tracking-widest mt-1">للاستثمار العقاري</p>
               </div>
             </Link>
             <p className="text-sm leading-relaxed text-slate-400">
@@ -94,18 +94,18 @@ export default function Footer() {
           <FooterSection title="اتصل بنا">
             <ul className="space-y-4">
               <li className="flex gap-4">
-                <FiMapPin className="text-accent-600 mt-1 shrink-0" size={18} />
-                <span className="text-sm leading-relaxed">
+                <FiMapPin className="text-primary mt-1 shrink-0" size={18} />
+                <span className="text-sm leading-relaxed text-[var(--muted-foreground)]">
                   14 شارع المختار من شارع النصر، المعادي الجديدة، القاهرة
                 </span>
               </li>
               <li className="flex items-center gap-4">
-                <FiPhone className="text-accent-600 shrink-0" size={18} />
-                <a href="tel:+201212622210" className="text-sm hover:text-white transition-colors">01212622210</a>
+                <FiPhone className="text-primary shrink-0" size={18} />
+                <a href="tel:+201212622210" className="text-sm hover:text-primary transition-colors text-[var(--muted-foreground)]">01212622210</a>
               </li>
               <li className="flex items-center gap-4">
-                <FiMail className="text-accent-600 shrink-0" size={18} />
-                <a href="mailto:elsarhegypt@gmail.com" className="text-sm hover:text-white transition-colors">elsarhegypt@gmail.com</a>
+                <FiMail className="text-primary shrink-0" size={18} />
+                <a href="mailto:elsarhegypt@gmail.com" className="text-sm hover:text-primary transition-colors text-[var(--muted-foreground)]">elsarhegypt@gmail.com</a>
               </li>
             </ul>
           </FooterSection>

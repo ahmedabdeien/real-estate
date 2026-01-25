@@ -21,7 +21,7 @@ const About = () => {
   ];
 
   return (
-    <div dir="rtl" className="bg-white overflow-hidden">
+    <div dir="rtl" className="bg-[var(--background)] transition-colors duration-500 overflow-hidden">
       <Helmet>
         <title>عن الصرح | خبرة 20 عاماً في الاستثمار العقاري</title>
       </Helmet>
@@ -58,20 +58,20 @@ const About = () => {
               <div className="w-8 h-1 bg-primary-600 rounded-full" />
               <span className="text-primary-600 font-black uppercase tracking-widest text-xs">قصتنا</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-tight font-heading">
-              خبراتنا ممتدة منذ عام <span className="text-primary-600">2004</span>
+            <h2 className="text-3xl md:text-5xl font-black text-[var(--foreground)] leading-tight font-heading">
+              خبراتنا ممتدة منذ عام <span className="text-primary">2004</span>
             </h2>
-            <p className="text-base text-slate-600 leading-relaxed text-justify">
+            <p className="text-base text-[var(--muted-foreground)] leading-relaxed text-justify">
               تأسست شركة الصرح برؤية طموحة لمواكبة النهضة العمرانية في مصر. نحن نؤمن بأن العقار ليس مجرد جدران، بل هو قيمة استثمارية وإنسانية. نعتمد في مشاريعنا على أفضل الدراسات الهندسية وأحدث التكنولوجيا العالمية لنقدم لعملائنا مساحات حياة متكاملة.
             </p>
             <div className="grid grid-cols-2 gap-6 pt-4">
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-3xl font-black text-primary-600 mb-1">+20</p>
-                <p className="text-xs font-bold text-slate-500">عاماً من الخبرة</p>
+              <div className="p-6 bg-[var(--card)] rounded-2xl border border-[var(--border)]">
+                <p className="text-3xl font-black text-primary mb-1">+20</p>
+                <p className="text-xs font-bold text-[var(--muted-foreground)]">عاماً من الخبرة</p>
               </div>
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-3xl font-black text-primary-600 mb-1">+50</p>
-                <p className="text-xs font-bold text-slate-500">مشروع ناجح</p>
+              <div className="p-6 bg-[var(--card)] rounded-2xl border border-[var(--border)]">
+                <p className="text-3xl font-black text-primary mb-1">+50</p>
+                <p className="text-xs font-bold text-[var(--muted-foreground)]">مشروع ناجح</p>
               </div>
             </div>
           </div>
@@ -119,27 +119,27 @@ const About = () => {
             </div>
             <div className="w-full lg:w-1/2 grid grid-cols-2 gap-4">
               <div className="space-y-4">
-                <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
-                  <ShieldCheck className="text-primary-600 mb-4" size={32} />
+                <div className="p-8 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                  <ShieldCheck className="text-primary mb-4" size={32} />
                   <h4 className="text-white font-bold text-sm mb-1">الأمان والثقة</h4>
-                  <p className="text-[11px] text-slate-500">نلتزم بأعلى معايير السلامة والأمان القانوني.</p>
+                  <p className="text-[11px] text-slate-400">نلتزم بأعلى معايير السلامة والأمان القانوني.</p>
                 </div>
-                <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
-                  <Award className="text-primary-600 mb-4" size={32} />
+                <div className="p-8 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                  <Award className="text-primary mb-4" size={32} />
                   <h4 className="text-white font-bold text-sm mb-1">الجودة</h4>
-                  <p className="text-[11px] text-slate-500">جودة البناء هي أساس سمعتنا الموثوقة.</p>
+                  <p className="text-[11px] text-slate-400">جودة البناء هي أساس سمعتنا الموثوقة.</p>
                 </div>
               </div>
               <div className="space-y-4 pt-8">
-                <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
-                  <Building className="text-primary-600 mb-4" size={32} />
+                <div className="p-8 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                  <Building className="text-primary mb-4" size={32} />
                   <h4 className="text-white font-bold text-sm mb-1">الاستدامة</h4>
-                  <p className="text-[11px] text-slate-500">تصاميم صديقة للبيئة تضمن كفاءة الطاقة.</p>
+                  <p className="text-[11px] text-slate-400">تصاميم صديقة للبيئة تضمن كفاءة الطاقة.</p>
                 </div>
-                <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
-                  <Users className="text-primary-600 mb-4" size={32} />
+                <div className="p-8 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm">
+                  <Users className="text-primary mb-4" size={32} />
                   <h4 className="text-white font-bold text-sm mb-1">العميل أولاً</h4>
-                  <p className="text-[11px] text-slate-500">رضا عملائنا هو المحرك الأساسي لقراراتنا.</p>
+                  <p className="text-[11px] text-slate-400">رضا عملائنا هو المحرك الأساسي لقراراتنا.</p>
                 </div>
               </div>
             </div>
@@ -155,15 +155,15 @@ const About = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-24 text-center relative overflow-hidden bg-slate-50">
-        <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 font-heading">
+      <section className="py-24 text-center relative overflow-hidden bg-[var(--accent)] transition-colors duration-500">
+        <h2 className="text-3xl md:text-5xl font-black text-[var(--foreground)] mb-6 font-heading">
           هل أنت مستعد لتكون جزءاً من قصتنا؟
         </h2>
-        <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto font-medium">
+        <p className="text-lg text-[var(--muted-foreground)] mb-10 max-w-2xl mx-auto font-medium">
           تواصل معنا اليوم لمناقشة فرص الاستثمار العقاري المتاحة والمستقبلية.
         </p>
         <Link to="/contact">
-          <button className="px-12 py-4 bg-primary-600 text-white font-black rounded-full hover:bg-primary-700 transition-all shadow-lg">تواصل معنا الآن</button>
+          <button className="px-12 py-4 bg-primary text-white font-black rounded-full hover:bg-primary-dark transition-all shadow-lg">تواصل معنا الآن</button>
         </Link>
       </section>
     </div>

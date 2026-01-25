@@ -23,6 +23,7 @@ import Settings from "./Components/Settings/Settings";
 import ButtonTop from "./Components/ButtonTop/ButtonTop";
 import Loading from "./Loading.jsx"; // Import the Loading component
 import ResetPassword from "./Components/Registry/SingIn/ResetPassword.jsx";
+import FloatingChat from "./Components/Chat/FloatingChat";
 
 
 
@@ -47,6 +48,7 @@ function App() {
       <Header />
       <div className="relative pt-20">
         <ButtonTop />
+        <FloatingChat />
       </div>
 
       <main className="min-h-screen">

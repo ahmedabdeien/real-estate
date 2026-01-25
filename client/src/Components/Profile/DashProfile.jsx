@@ -108,7 +108,7 @@ const CustomizedDashProfile = () => {
     }
   };
 
- 
+
   // ... (keep existing state and logic)
 
   const containerVariants = {
@@ -127,23 +127,23 @@ const CustomizedDashProfile = () => {
         <title>Profile</title>
         <meta name="description" content="User Profile" />
       </Helmet>
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen bg-gray-50 p-4 md:p-8"
+        className="min-h-screen bg-[var(--background)] p-4 md:p-8 transition-colors duration-500"
       >
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden dark:bg-gray-800"
+          className="max-w-4xl mx-auto bg-[var(--card)] rounded-2xl shadow-premium border border-[var(--border)] overflow-hidden"
         >
           {/* Profile Header */}
-          <div className="bg-gradient-to-r from-[#004483] to-[#016FB9] p-6 text-white">
-            <motion.h1 variants={itemVariants} className="text-3xl font-bold">Profile</motion.h1>
-            <motion.p variants={itemVariants} className="text-lg mt-2">
-              Welcome, <span className="font-semibold">{currentUser.name}</span>
+          <div className="bg-primary p-6 text-white">
+            <motion.h1 variants={itemVariants} className="text-3xl font-black">حسابي</motion.h1>
+            <motion.p variants={itemVariants} className="text-lg mt-2 font-medium">
+              مرحباً، <span className="font-black">{currentUser.name}</span>
             </motion.p>
           </div>
 
@@ -200,13 +200,13 @@ const CustomizedDashProfile = () => {
                   </motion.div>
 
                   <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <label className="block text-sm font-bold text-[var(--muted-foreground)] mb-2">اسم المستخدم</label>
                     <input
                       id="username"
                       type="text"
                       defaultValue={currentUser.username}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#016FB9] focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-medium"
                     />
                   </motion.div>
 
@@ -249,11 +249,10 @@ const CustomizedDashProfile = () => {
                   <motion.div variants={itemVariants} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium text-gray-700">Role:</span>
-                      <span className={`px-3 py-1 rounded-full text-sm ${
-                        currentUser.isAdmin ? 'bg-red-100 text-red-800' :
-                        currentUser.isBroker ? 'bg-amber-100 text-amber-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-sm ${currentUser.isAdmin ? 'bg-red-100 text-red-800' :
+                          currentUser.isBroker ? 'bg-amber-100 text-amber-800' :
+                            'bg-green-100 text-green-800'
+                        }`}>
                         {currentUser.isAdmin ? 'Admin' : currentUser.isBroker ? 'Broker' : 'User'}
                       </span>
                     </div>
@@ -266,10 +265,10 @@ const CustomizedDashProfile = () => {
                 <button
                   type="submit"
                   disabled={imageFileUploading}
-                  className="w-full bg-[#016FB9] hover:bg-[#004483] text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2 transition-all"
+                  className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-black flex items-center justify-center space-x-2 transition-all shadow-premium"
                 >
                   <FaRegSave className="text-lg" />
-                  <span>Update Profile</span>
+                  <span>تحديث البيانات</span>
                 </button>
 
                 <button

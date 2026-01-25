@@ -38,7 +38,7 @@ function Signup() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
-    if(error) setError(null);
+    if (error) setError(null);
   };
 
   const validateForm = () => {
@@ -61,7 +61,7 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationError = validateForm();
-    
+
     if (validationError) {
       setError(validationError);
       return;
@@ -76,7 +76,7 @@ function Signup() {
       });
 
       const data = await res.json();
-      
+
       if (!res.ok) {
         throw new Error(data.message || 'حدث خطأ أثناء التسجيل');
       }
@@ -95,7 +95,7 @@ function Signup() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 dark:from-gray-900 dark:to-gray-800 flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8"
+      className="min-h-screen bg-[var(--background)] flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-500"
     >
       <motion.div
         variants={containerVariants}
@@ -104,10 +104,10 @@ function Signup() {
         className="max-w-md w-full space-y-6 bg-white dark:bg-gray-700 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-600"
       >
         <motion.div variants={itemVariants} className="text-center">
-          <h2 className="text-3xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-3xl font-black text-[var(--foreground)]">
             إنشاء حساب جديد
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-[var(--muted-foreground)] font-medium">
             ابدأ رحلتك معنا بإنشاء حساب
           </p>
         </motion.div>
@@ -158,7 +158,7 @@ function Signup() {
 
             <div>
               <label htmlFor="number" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                رقم الهاتف 
+                رقم الهاتف
               </label>
               <input
                 id="number"
@@ -199,7 +199,7 @@ function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-4 px-6 bg-primary text-white font-black rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-premium"
             >
               {loading ? (
                 <>

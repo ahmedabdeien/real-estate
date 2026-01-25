@@ -61,7 +61,7 @@ export default function Header() {
     <header className={`
       fixed top-0 left-0 right-0 z-[100] transition-all duration-500
       ${isScrolled
-        ? 'py-3 bg-white/95 backdrop-blur-md shadow-premium border-b border-slate-100'
+        ? 'py-3 bg-[var(--card)]/95 backdrop-blur-md shadow-premium border-b border-[var(--border)]'
         : 'py-6 bg-transparent'}
     `}>
       <div className="container mx-auto px-4 lg:px-8">
@@ -72,15 +72,15 @@ export default function Header() {
             <motion.div
               whileHover={{ rotate: -10, scale: 1.1 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              className="bg-white p-1 rounded-xl shadow-premium-lg"
+              className="bg-white dark:bg-slate-800 p-1 rounded-xl shadow-premium-lg border border-slate-100 dark:border-slate-700"
             >
               <img src={Logoelsarh} alt="Logo" className="w-10 md:w-12 h-auto object-contain" />
             </motion.div>
             <div className="hidden sm:block">
-              <h1 className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 leading-none">
+              <h1 className="text-xl md:text-2xl font-black tracking-tighter text-[var(--foreground)] leading-none">
                 الصرح
               </h1>
-              <p className="text-[9px] uppercase tracking-[0.3em] text-primary-600 font-black mt-1">
+              <p className="text-[9px] uppercase tracking-[0.3em] text-primary font-black mt-1">
                 للاستثمار العقاري
               </p>
             </div>
@@ -95,8 +95,8 @@ export default function Header() {
                 className={({ isActive }) => `
                   px-6 py-2.5 rounded-full font-bold text-sm tracking-tight transition-all duration-300
                   ${isActive
-                    ? 'bg-primary-500 text-white shadow-premium'
-                    : 'text-slate-700 hover:text-primary-600 hover:bg-primary-50'}
+                    ? 'bg-primary text-white shadow-premium'
+                    : 'text-[var(--foreground)] hover:text-primary hover:bg-primary/10'}
                 `}
               >
                 {link.title}
@@ -109,9 +109,9 @@ export default function Header() {
             {/* Theme Toggle - Keeping it but styling it subtly */}
             <button
               onClick={() => dispatch(toggleTheme())}
-              className="p-2.5 rounded-full hover:bg-slate-100 transition-all text-slate-500 dark:text-slate-400"
+              className="p-2.5 rounded-full hover:bg-[var(--accent)] transition-all text-[var(--foreground)]"
             >
-              {theme === 'light' ? <FaMoon size={18} /> : <FaSun size={18} className="text-accent-500" />}
+              {theme === 'light' ? <FaMoon size={18} /> : <FaSun size={18} className="text-yellow-400" />}
             </button>
 
             {/* User Logic */}
@@ -174,7 +174,7 @@ export default function Header() {
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            className="fixed inset-y-0 right-0 w-80 bg-white dark:bg-slate-900 shadow-premium-xl z-50 lg:hidden flex flex-col pt-24 px-8"
+            className="fixed inset-y-0 right-0 w-80 bg-[var(--card)] shadow-premium-xl z-50 lg:hidden flex flex-col pt-24 px-8 border-l border-[var(--border)]"
           >
             <div className="space-y-4" dir="rtl">
               {navLinks.map((link) => (
@@ -183,17 +183,17 @@ export default function Header() {
                   to={link.path}
                   className={({ isActive }) => `
                     block text-xl font-heading font-bold transition-all
-                    ${isActive ? 'text-accent-600' : 'text-slate-800 dark:text-white'}
+                    ${isActive ? 'text-primary' : 'text-[var(--foreground)]'}
                   `}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {link.title}
                 </NavLink>
               ))}
-              <div className="my-8 border-t border-slate-100 dark:border-slate-800" />
+              <div className="my-8 border-t border-[var(--border)]" />
               {!currentUser && (
                 <Link to="/Signin" onClick={() => setIsMenuOpen(false)}>
-                  <button className="w-full btn-premium bg-primary-900 text-white">
+                  <button className="w-full btn-premium bg-primary text-white">
                     تسجيل الدخول
                   </button>
                 </Link>

@@ -21,21 +21,21 @@ const stagger = {
 
 const ContactMethod = ({ icon: Icon, title, children, link }) => (
   <motion.div
-    className="group p-10 bg-white dark:bg-slate-800 rounded-[32px] shadow-premium border border-slate-100 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 transition-all duration-500"
+    className="group p-10 bg-[var(--card)] rounded-[32px] shadow-premium border border-[var(--border)] transition-all duration-500"
     whileHover={{ y: -8 }}
   >
     <div className="flex items-start gap-6">
-      <div className="w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-900 shadow-premium flex items-center justify-center text-primary-600 group-hover:bg-primary-500 group-hover:text-white transition-all duration-500">
+      <div className="w-14 h-14 rounded-2xl bg-[var(--accent)] shadow-premium flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
         <Icon size={24} />
       </div>
       <div>
-        <h4 className="text-xl font-heading font-black text-primary-900 dark:text-white mb-2">{title}</h4>
+        <h4 className="text-xl font-heading font-black text-[var(--foreground)] mb-2">{title}</h4>
         {link ? (
-          <a href={link} className="text-slate-500 dark:text-slate-400 hover:text-primary-600 transition-colors font-medium">
+          <a href={link} className="text-[var(--muted-foreground)] hover:text-primary transition-colors font-medium">
             {children}
           </a>
         ) : (
-          <p className="text-slate-500 dark:text-slate-400 font-medium">{children}</p>
+          <p className="text-[var(--muted-foreground)] font-medium">{children}</p>
         )}
       </div>
     </div>
@@ -44,11 +44,19 @@ const ContactMethod = ({ icon: Icon, title, children, link }) => (
 
 function Contact() {
   useEffect(() => {
+    // If CONFIGURATION is defined, initialize map. Otherwise, skip or use a simpler approach.
+    // Simplifying to avoid crash if CONFIGURATION is missing.
     const initializeMap = async () => {
-      await customElements.whenDefined('gmpx-store-locator');
-      const locator = document.querySelector('gmpx-store-locator');
-      if (locator) {
-        locator.configureFromQuickBuilder(CONFIGURATION);
+      try {
+        if (typeof CONFIGURATION !== 'undefined') {
+          await customElements.whenDefined('gmpx-store-locator');
+          const locator = document.querySelector('gmpx-store-locator');
+          if (locator) {
+            locator.configureFromQuickBuilder(CONFIGURATION);
+          }
+        }
+      } catch (error) {
+        console.error("Map initialization failed", error);
       }
     };
 
@@ -165,11 +173,11 @@ function Contact() {
           </div>
 
           {/* Form Area */}
-          <div className="bg-white dark:bg-slate-800 p-12 md:p-16 rounded-[48px] shadow-premium border border-slate-100 dark:border-slate-700 h-full">
+          <div className="bg-[var(--card)] p-12 md:p-16 rounded-[48px] shadow-premium border border-[var(--border)] h-full">
             <div className="mb-12">
-              <span className="text-primary-500 font-black uppercase text-[10px] tracking-widest">نموذج التواصل</span>
-              <h2 className="text-3xl font-heading font-black text-primary-900 dark:text-white mt-4">أرسل استفسارك الآن</h2>
-              <p className="text-slate-500 mt-4 leading-relaxed">سقوم مستشارينا بالتواصل معك في أقرب وقت لتلبية طلبك.</p>
+              <span className="text-primary font-black uppercase text-[10px] tracking-widest">نموذج التواصل</span>
+              <h2 className="text-3xl font-heading font-black text-[var(--foreground)] mt-4">أرسل استفسارك الآن</h2>
+              <p className="text-[var(--muted-foreground)] mt-4 leading-relaxed">سقوم مستشارينا بالتواصل معك في أقرب وقت لتلبية طلبك.</p>
             </div>
             <FormContact />
           </div>

@@ -16,7 +16,7 @@ const pageVariants = {
 
 function Home() {
   return (
-    <div className="bg-white overflow-hidden">
+    <div className="bg-[var(--background)] transition-colors duration-500 overflow-hidden">
       <Helmet>
         <title>الصرح للاستثمار العقاري - الرئيسية</title>
         <meta
