@@ -7,28 +7,11 @@ import OAuth from "../../OAuth/OAuth";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { HiInformationCircle } from "react-icons/hi";
 import { TbLoader } from "react-icons/tb";
-
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      ease: "easeInOut",
-      when: "beforeChildren",
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 }
-};
+import { useTranslation } from 'react-i18next';
 
 function Signin() {
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
   const [visible, setVisible] = useState(false);
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
@@ -58,117 +41,103 @@ function Signin() {
   };
 
   return (
-    <motion.section
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      dir="rtl"
-      className="min-h-screen bg-[var(--background)] flex justify-center items-center py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-500"
-    >
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-md w-full space-y-8 bg-[var(--card)] p-8 rounded-2xl shadow-premium border border-[var(--border)]"
-      >
-        <motion.div variants={itemVariants} className="text-center">
-          <h2 className="text-3xl font-black text-[var(--foreground)]">
-            تسجيل الدخول
+    <div dir={isRtl ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 flex justify-center items-center py-12 px-4 font-body">
+      <div className="max-w-md w-full bg-white p-10 border border-slate-200 shadow-xl rounded-sm">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2 uppercase tracking-tight">
+            {t('sign_in') || 'Sign In'}
           </h2>
-          <p className="mt-2 text-[var(--muted-foreground)] font-medium">
-            مرحبًا بعودتك! الرجاء إدخال بياناتك
+          <p className="text-slate-500 text-sm">
+            {t('signin_subtitle') || 'Enter your credentials to access your account'}
           </p>
-        </motion.div>
+        </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <motion.div variants={itemVariants} className="space-y-4">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                البريد الإلكتروني
+              <label htmlFor="email" className="block text-xs font-bold text-slate-500 uppercase mb-2">
+                {t('email') || 'Email'}
               </label>
               <input
                 id="email"
                 type="email"
                 required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                placeholder="example@domain.com"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:ring-1 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm"
+                placeholder="name@email.com"
                 onChange={handleChange}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                كلمة المرور
+              <label htmlFor="password" className="block text-xs font-bold text-slate-500 uppercase mb-2">
+                {t('password') || 'Password'}
               </label>
               <div className="relative">
                 <input
                   id="password"
                   type={visible ? "text" : "password"}
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all "
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:ring-1 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm"
                   placeholder="••••••••"
                   onChange={handleChange}
                 />
                 <button
                   type="button"
                   onClick={() => setVisible(!visible)}
-                  className="absolute inset-y-0 left-0 px-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className={`absolute inset-y-0 ${isRtl ? 'left-3' : 'right-3'} flex items-center text-slate-400 hover:text-primary-600 transition-colors`}
                 >
-                  {visible ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+                  {visible ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants}>
+          <div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 px-6 bg-primary text-white font-black rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-premium"
+              className="w-full py-4 bg-primary-600 text-white font-bold uppercase text-xs tracking-widest hover:bg-primary-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <TbLoader className="animate-spin w-5 h-5" />
-                  جاري التحقق...
+                  <TbLoader className="animate-spin w-4 h-4" />
+                  {t('loading') || 'Loading...'}
                 </>
               ) : (
-                "تسجيل الدخول"
+                t('sign_in') || 'Sign In'
               )}
             </button>
-          </motion.div>
+          </div>
 
-          <motion.div variants={itemVariants} className="flex items-center justify-between">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
-            >
-              نسيت كلمة المرور؟
-            </Link>
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100">
             <Link
               to="/signup"
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              className="text-xs font-bold text-slate-400 hover:text-primary-600 transition-colors uppercase"
             >
-              ليس لديك حساب؟ <span className="font-medium">سجل الآن</span>
+              {t('no_account_yet') || 'Create Account'}
             </Link>
-          </motion.div>
+            <Link
+              to="/forgot-password"
+              className="text-xs font-bold text-slate-400 hover:text-primary-600 transition-colors uppercase"
+            >
+              {t('forgot_password') || 'Forgot Password?'}
+            </Link>
+          </div>
         </form>
 
-        <motion.div variants={itemVariants} className="mt-8">
-          <div className="relative">
+        <div className="mt-8">
+          <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              <div className="w-full border-t border-slate-200"></div>
             </div>
             <div className="relative flex justify-center">
-              <span className="px-4 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm">
-                أو الدخول باستخدام
+              <span className="px-4 bg-white text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                {t('or_continue_with') || 'Or continue with'}
               </span>
             </div>
           </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-3">
-            <OAuth />
-          </div>
-        </motion.div>
+          <OAuth />
+        </div>
 
         <AnimatePresence>
           {error && (
@@ -176,15 +145,15 @@ function Signin() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3 text-red-700 dark:text-red-400"
+              className="mt-6 p-4 bg-red-50 border border-red-100 rounded-sm flex items-center gap-3 text-red-600"
             >
               <HiInformationCircle className="flex-shrink-0 w-5 h-5" />
-              <span className="text-sm">{error}</span>
+              <span className="text-xs font-bold">{error}</span>
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-    </motion.section>
+      </div>
+    </div>
   );
 }
 

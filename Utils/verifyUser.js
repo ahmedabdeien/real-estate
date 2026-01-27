@@ -14,3 +14,12 @@ export const verifyToken = (req, res, next) => {
     next();
   });
 };
+
+export const verifyRole = (roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(errorHandler(403, 'Forbidden: Insufficient permissions'));
+    }
+    next();
+  };
+};

@@ -1,14 +1,16 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { useQuery } from 'react-query';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { Helmet } from "react-helmet";
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { BsArrowRightShort, BsSearch, BsClock } from "react-icons/bs";
+import { useQuery } from "react-query";
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { BsArrowRightShort, BsSearch, BsClock, BsDoorOpen, BsBuilding, BsPlusCircle } from "react-icons/bs";
 // src/Components/Project.jsx
 // Constants
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-const API_ENDPOINT = `${API_BASE}/listing/getPages`;
-const QUERY_KEY = 'dataProjects';
+const API_ENDPOINT = `${API_BASE}/listing/getListings`;
+const QUERY_KEY = 'dataListings';
 const ITEMS_PER_PAGE = 12;
 
 // Animation variants
@@ -36,80 +38,67 @@ const hoverEffect = {
 };
 
 const ProjectCard = React.memo(({ item }) => {
-  const isAvailable = item.available === "available";
+  const { i18n, t } = useTranslation();
+  const { currentUser } = useSelector(state => state.user);
+  const currentLang = i18n.language;
+  const isAvailable = item.available === true;
+  const name = item.name[currentLang] || item.name['en'] || item.name;
+  const description = item.description[currentLang] || item.description['en'] || item.description;
+
   return (
-    <motion.div
-      variants={cardVariants}
-      whileHover={{ y: -10 }}
-      layout
-      className="bg-white rounded-2xl overflow-hidden shadow-premium hover:shadow-premium-xl transition-all duration-500 border border-slate-100 group flex flex-col h-full"
-    >
-      <div className="relative h-64 overflow-hidden">
+    <div className="bg-white border border-slate-200 hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-sm overflow-hidden group">
+      <div className="relative h-56 overflow-hidden">
         <Link to={`/Projects/${item.slug}`}>
           <img
             src={item.imageUrls[0]}
-            alt={item.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all" />
         </Link>
-
-        {/* Ribbon Tag */}
-        <div className="absolute top-4 left-0 z-10">
-          <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-white shadow-lg rounded-r-md ${isAvailable
-            ? "bg-primary-500"
-            : "bg-accent-500"
-            }`}
-          >
-            {isAvailable ? "للبيــــع" : "للايـجار"}
+        <div className="absolute top-4 left-4">
+          <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm ${isAvailable ? 'bg-primary-600' : 'bg-red-500'}`}>
+            {isAvailable ? t('available') : t('sold')}
           </span>
+          {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
+            <Link to={`/Update-Page/${item._id}`} className="mt-2 block text-center px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-accent-500 rounded-sm hover:bg-accent-600 transition-colors">
+              {t('edit') || 'Edit'}
+            </Link>
+          )}
+          {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
+            <Link to={`/Update-Page/${item._id}`} className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-accent-500 rounded-sm hover:bg-accent-600 transition-colors mt-2 text-center block" style={{ textDecoration: 'none' }}>
+              {t('edit') || 'Edit'}
+            </Link>
+          )}
         </div>
-
-        {/* Share Button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            if (navigator.share) {
-              navigator.share({
-                title: item.name,
-                text: item.description,
-                url: `${window.location.origin}/Projects/${item.slug}`,
-              });
-            } else {
-              navigator.clipboard.writeText(`${window.location.origin}/Projects/${item.slug}`);
-              alert("تم نسخ رابط المشروع!");
-            }
-          }}
-          className="absolute bottom-4 right-4 z-10 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-slate-800 hover:bg-primary-500 hover:text-white transition-all shadow-lg active:scale-90"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-          </svg>
-        </button>
       </div>
 
       <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-primary-600 transition-colors truncate">
-          {item.name}
+        <h3 className="text-lg font-bold text-slate-800 mb-2 truncate group-hover:text-primary-600 transition-colors">
+          {name}
         </h3>
-        <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 mb-6">
-          {item.description}
+        <p className="text-slate-500 text-sm line-clamp-2 mb-6">
+          {description}
         </p>
 
-        <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-400">
-            <BsClock size={14} />
-            <span className="text-[10px] font-bold uppercase">{new Date(item.createdAt).toLocaleDateString('ar-EG')}</span>
+        <div className="flex items-center gap-4 text-xs text-slate-400 mb-6">
+          <div className="flex items-center gap-1">
+            <BsDoorOpen /> <span>{item.rooms} {t('rooms')}</span>
           </div>
-          <Link
-            to={`/Projects/${item.slug}`}
-            className="text-xs font-black uppercase tracking-widest text-primary-600 hover:text-primary-700 underline underline-offset-4"
-          >
-            التفاصيل
+          <div className="flex items-center gap-1 border-l border-slate-200 ml-2 pl-4">
+            <BsBuilding /> <span>{item.propertySize} m²</span>
+          </div>
+        </div>
+
+        <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">
+          <span className="text-primary-600 font-bold text-lg">
+            {item.price?.toLocaleString()} {currentLang === 'ar' ? 'ج.م' : 'EGP'}
+          </span>
+          <Link to={`/Projects/${item.slug}`} className="text-xs font-bold uppercase text-slate-400 hover:text-primary-600 transition-colors flex items-center gap-1">
+            {t('details')} <BsArrowRightShort size={18} />
           </Link>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 
@@ -134,29 +123,45 @@ const LoadingSkeleton = () => (
 );
 
 export default function Project() {
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
+  const isRtl = currentLang === 'ar';
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [rooms, setRooms] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const { data: projects, isLoading, error } = useQuery(
     QUERY_KEY,
     async () => {
       const response = await fetch(`${API_ENDPOINT}?limit=200`);
       if (!response.ok) throw new Error('Failed to fetch projects');
-      return (await response.json()).listings;
+      const json = await response.json();
+      return json.listings || []; // Handle new format
     },
     { staleTime: 300000, cacheTime: 3600000, retry: 3 }
   );
 
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
-    const term = searchTerm.toLowerCase().trim();
-    return term
-      ? projects.filter(p =>
-        p.name?.toLowerCase().includes(term) ||
-        p.description?.toLowerCase().includes(term)
-      )
-      : projects;
-  }, [projects, searchTerm]);
+    return projects.filter(p => {
+      const name = p.name[currentLang]?.toLowerCase() || p.name['en']?.toLowerCase() || '';
+      const description = p.description[currentLang]?.toLowerCase() || p.description['en']?.toLowerCase() || '';
+      const term = searchTerm.toLowerCase().trim();
+
+      const matchesSearch = !term || name.includes(term) || description.includes(term);
+      const matchesType = !propertyType || p.propertyType === propertyType;
+      const matchesMinPrice = !minPrice || p.price >= parseInt(minPrice);
+      const matchesMaxPrice = !maxPrice || p.price <= parseInt(maxPrice);
+      const matchesRooms = !rooms || p.rooms === parseInt(rooms);
+
+      return matchesSearch && matchesType && matchesMinPrice && matchesMaxPrice && matchesRooms;
+    });
+  }, [projects, searchTerm, propertyType, minPrice, maxPrice, rooms, currentLang]);
 
   const paginatedProjects = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -189,113 +194,130 @@ export default function Project() {
   );
 
   return (
-    <div dir="rtl" className="min-h-screen bg-white overflow-hidden pb-24">
+    <div dir={isRtl ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 font-body pb-24">
       <Helmet>
-        <title>دليل المشاريع العقارية | شركة الصرح</title>
-        <meta name="description" content="تصفح قائمة مشاريع شركة الصرح العقارية، وجهتك الفاخرة للسكن والاستثمار في أرقى مناطق مصر." />
+        <title>{t('listings')} | El Sarh</title>
       </Helmet>
 
-      {/* Hero Header */}
-      <div className="bg-slate-900 py-32 relative overflow-hidden">
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-primary-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block"
-          >
-            عقاراتنا المتميزة
-          </motion.span>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-black text-white mb-10"
-          >
-            دليل المشاريع
-          </motion.h1>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-2xl mx-auto relative group"
-          >
-            <input
-              type="text"
-              placeholder="ابحث عن مشروعك المفضل..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full px-8 py-6 text-lg bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all pr-16 shadow-2xl"
-            />
-            <div className="absolute top-1/2 right-6 -translate-y-1/2 w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white shadow-lg">
-              <BsSearch size={18} />
+      {/* Hero Banner - Standardized */}
+      <div className="bg-primary-900 py-24 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-900 to-transparent opacity-90" />
+        </div>
+        <div className="container mx-auto px-4 lg:px-12 relative z-10">
+          <span className="text-accent-500 font-bold uppercase tracking-widest text-xs mb-4 block">
+            {t('world_class_services')}
+          </span>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-8">
+            {t('listings')}
+          </h1>
+
+          {/* Search & Filter Bar */}
+          <div className="max-w-5xl bg-white p-4 rounded-sm shadow-xl flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
+              <BsSearch className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-4' : 'left-4'} text-slate-400`} />
+              <input
+                type="text"
+                placeholder={t('search_placeholder')}
+                value={searchTerm}
+                onChange={handleSearch}
+                className={`w-full ${isRtl ? 'pr-12' : 'pl-12'} py-3 bg-slate-50 border border-slate-200 rounded-sm focus:ring-1 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm`}
+              />
             </div>
-          </motion.div>
+            <div className="flex gap-4 flex-wrap lg:flex-nowrap">
+              <select
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+                className="bg-slate-50 border border-slate-200 rounded-sm p-3 text-sm focus:ring-1 focus:ring-primary-500 outline-none"
+              >
+                <option value="">{t('property_type')}</option>
+                <option value="Apartment">{t('Apartment') || 'Apartment'}</option>
+                <option value="Villa">{t('Villa') || 'Villa'}</option>
+                <option value="Office">{t('Office') || 'Office'}</option>
+              </select>
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="px-6 py-3 bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-slate-200 transition-colors"
+              >
+                {t('advanced_filters')}
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {isFilterOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="max-w-5xl mt-4 bg-white p-6 rounded-sm shadow-lg border-t-4 border-accent-500"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t('price_range')}</label>
+                    <div className="flex gap-2">
+                      <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-sm text-sm" />
+                      <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-sm text-sm" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t('rooms')}</label>
+                    <input type="number" value={rooms} onChange={e => setRooms(e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-sm text-sm" />
+                  </div>
+                  <div className="flex items-end">
+                    <button onClick={() => { setSearchTerm(''); setPropertyType(''); setMinPrice(''); setMaxPrice(''); setRooms(''); }} className="text-red-500 text-xs font-bold uppercase hover:underline">
+                      {t('reset_filters')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 lg:px-12 -mt-12 relative z-20">
-        <LayoutGroup>
-          {isLoading ? (
-            <LoadingSkeleton />
-          ) : (
-            <>
-              <AnimatePresence mode="popLayout">
-                {paginatedProjects.length > 0 ? (
-                  <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="show"
-                    exit="hidden"
-                    layout
-                  >
-                    {paginatedProjects.map((item) => (
-                      <ProjectCard key={item._id} item={item} />
-                    ))}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    className="text-center py-32 bg-white dark:bg-slate-800 rounded-[40px] shadow-premium"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <div className="text-6xl mb-6">🔍</div>
-                    <p className="text-2xl font-heading font-black text-primary-900 dark:text-white">
-                      عذراً، لا توجد مشاريع مطابقة لبحثك
-                    </p>
-                    <p className="text-slate-500 mt-2">جرّب البحث بكلمة مفتاحية أخرى</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      <div className="container mx-auto px-4 lg:px-12 py-16">
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : (
+          <>
+            {paginatedProjects.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {paginatedProjects.map((item) => (
+                  <ProjectCard key={item._id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-24 bg-white border border-slate-200">
+                <p className="text-xl font-bold text-slate-800">{t('no_results_found') || 'No results found'}</p>
+                <button onClick={() => setSearchTerm('')} className="mt-4 text-primary-600 font-bold uppercase text-xs hover:underline">
+                  {t('view_all_properties') || 'View all properties'}
+                </button>
+              </div>
+            )}
 
-              {/* Pagination */}
-              {filteredProjects.length > ITEMS_PER_PAGE && (
-                <motion.div
-                  className="flex justify-center flex-wrap gap-3 mt-20"
-                  layout
-                >
-                  {[...Array(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))].map((_, i) => (
-                    <motion.button
-                      key={i}
-                      onClick={() => {
-                        setCurrentPage(i + 1);
-                        window.scrollTo({ top: 300, behavior: 'smooth' });
-                      }}
-                      className={`w-14 h-14 flex items-center justify-center rounded-2xl font-black text-lg transition-all duration-300 ${currentPage === i + 1
-                        ? 'bg-accent-600 text-white shadow-premium-lg'
-                        : 'bg-white dark:bg-slate-800 text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-700'
-                        }`}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {i + 1}
-                    </motion.button>
-                  ))}
-                </motion.div>
-              )}
-            </>
-          )}
-        </LayoutGroup>
+            {/* Pagination Component */}
+            {filteredProjects.length > ITEMS_PER_PAGE && (
+              <div className="flex justify-center items-center gap-4 mt-16">
+                {[...Array(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      setCurrentPage(i + 1);
+                      window.scrollTo({ top: 400, behavior: 'smooth' });
+                    }}
+                    className={`w-10 h-10 flex items-center justify-center rounded-sm font-bold text-sm transition-all ${currentPage === i + 1
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-white text-slate-400 border border-slate-200 hover:border-primary-500'
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

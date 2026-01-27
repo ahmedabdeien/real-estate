@@ -6,16 +6,16 @@
 
 @layer base {
   :root {
-    /* Main Design Tokens - Premium & Clean */
-    --primary: #0e8ad9;
-    --primary-light: #3da4e5;
-    --primary-dark: #056db2;
+    /* Main Design Tokens - El Sarh Corporate Blue & Teal */
+    --primary: #005B94;
+    --primary-light: #e0f2fe;
+    --primary-dark: #004a79;
 
-    --secondary: #f37200;
-    --secondary-light: #ff8c33;
-    --secondary-dark: #d66400;
+    --accent: #5BC1D7;
+    --accent-light: #ccfbf1;
+    --accent-dark: #0d9488;
 
-    --background: #fdfdfd;
+    --background: #f8fafc;
     --foreground: #0f172a;
 
     --card: #ffffff;
@@ -23,32 +23,29 @@
 
     --border: #e2e8f0;
     --input: #e2e8f0;
-    --ring: #0e8ad9;
+    --ring: #005B94;
 
     --muted: #f1f5f9;
     --muted-foreground: #64748b;
-
-    --accent: #f8fafc;
-    --accent-foreground: #0f172a;
 
     --heading-font: 'Montserrat', 'Cairo', 'Inter', sans-serif;
     --body-font: 'Inter', 'Cairo', sans-serif;
   }
 
   .dark {
-    --background: #020617;
+    --background: #0c1c2c; /* Deep Corporate Navy */
     --foreground: #f8fafc;
 
-    --card: #0f172a;
+    --card: #15293e;
     --card-foreground: #f8fafc;
 
-    --border: #1e293b;
-    --input: #1e293b;
+    --border: #1e3a5a;
+    --input: #1e3a5a;
 
-    --muted: #1e293b;
+    --muted: #1e3a5a;
     --muted-foreground: #94a3b8;
 
-    --accent: #1e293b;
+    --accent: #5BC1D7;
     --accent-foreground: #f8fafc;
   }
 

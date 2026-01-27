@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: true,
     },
-    username:{
+    username: {
         type: String,
         required: true,
         unique: true,
@@ -20,26 +20,26 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    password:{
+    password: {
         type: String,
         required: true,
     },
-    avatar:{
+    avatar: {
         type: String,
         default: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
     },
-    isAdmin:{
-        type: Boolean,
-        default: false,
+    role: {
+        type: String,
+        enum: ['Admin', 'Sales', 'BlogWriter', 'User'],
+        default: 'User',
     },
-    isBroker:{
-        type: Boolean,
-        default: false,
-    },
-    
-    
-    
-},{timestamps:true});
+    favorites: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Listing',
+        }
+    ],
+}, { timestamps: true });
 
 const User = mongoose.model('user', userSchema);
 export default User;

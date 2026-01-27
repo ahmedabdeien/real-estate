@@ -2,22 +2,23 @@
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import './i18n';
 import { persistor, store } from './Components/redux/store.js'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
 import ThemeProvider from './Components/PrivateRoute/ThemeProvider.jsx'
-import {QueryClient, QueryClientProvider} from 'react-query'
+import { QueryClient, QueryClientProvider } from 'react-query'
 import 'swiper/css/bundle';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <QueryClientProvider client={new QueryClient()}>
-  <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
-      <ThemeProvider>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <ThemeProvider>
 
-        <App />
+          <App />
 
-    </ThemeProvider>
-    </PersistGate>
-  </Provider>
+        </ThemeProvider>
+      </PersistGate>
+    </Provider>
   </QueryClientProvider>
 )

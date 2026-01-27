@@ -9,11 +9,24 @@ import chatRouter from './routes/chat.route.js';
 import cookieParser from "cookie-parser";
 import path from "path";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import cmsRouter from './routes/cms.route.js';
+import configRouter from './routes/config.route.js';
 import { fileURLToPath } from "url";
 
 // Setup
 dotenv.config();
 const app = express();
+
+// Security Middlewares
+app.use(helmet());
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // MongoDB connection
@@ -28,7 +41,7 @@ mongoose.connect(process.env.MONGO)
 // Middlewares
 app.use(express.json());
 app.use(cors({
-    origin: ["https://elsarhegypt.com", "https://www.elsarhegypt.com", "https://elsarh.co", "https://www.elsarh.co"],
+    origin: ["http://localhost:5173", "https://elsarhegypt.com", "https://elsarh.co"],
     credentials: true
 }));
 app.use(cookieParser());
@@ -39,6 +52,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/listing", listingRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/cms', cmsRouter);
+app.use('/api/config', configRouter);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "./client/dist")));

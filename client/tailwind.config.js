@@ -1,5 +1,6 @@
+import flowbite from "flowbite-react/tailwind";
+import tailwindScrollbar from 'tailwind-scrollbar';
 
-const flowbite = require("flowbite-react/tailwind");
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -11,32 +12,32 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#0e8ad9',
-          50: '#f0f7ff',
-          100: '#e0effe',
-          200: '#bae0fd',
-          300: '#7cc8fb',
-          400: '#38a9f8',
-          500: '#0e8ad9',
-          600: '#056db2',
-          700: '#035690',
-          800: '#064977',
-          900: '#0c3e62',
-          950: '#082741',
+          DEFAULT: 'var(--primary)', // Corporate Blue
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: 'var(--primary)', // Main Brand Color
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
         },
         accent: {
-          DEFAULT: '#f37200',
-          50: '#fff6ed',
-          100: '#ffead5',
-          200: '#ffd1a9',
-          300: '#ffae71',
-          400: '#ff8137',
-          500: '#f37200',
-          600: '#db5900',
-          700: '#b64100',
-          800: '#903508',
-          900: '#762d0a',
-          950: '#411503',
+          DEFAULT: 'var(--accent)', // Brand Teal
+          50: '#f0fdfa',
+          100: '#ccfbf1',
+          200: '#99f6e4',
+          300: '#5eead4',
+          400: '#2dd4bf',
+          500: 'var(--accent)', // Main Accent
+          600: '#0d9488',
+          700: '#0f766e',
+          800: '#115e59',
+          900: '#134e4a',
+          950: '#042f2e',
         },
         wp: {
           blue: '#2271b1',
@@ -67,8 +68,6 @@ export default {
 
   plugins: [
     flowbite.plugin(),
-    require('tailwind-scrollbar'),
+    tailwindScrollbar,
   ],
 }
-
-

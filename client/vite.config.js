@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const isProduction = process.env.NODE_ENV === 'production';
+// No need for isProduction here, but if needed, use mode in defineConfig
 
 export default defineConfig({
   plugins: [react()],

@@ -5,6 +5,8 @@ import { FiClock, FiMapPin, FiMail, FiPhone } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { SocialMediaSecondary } from '../SocialMedia/SocialMediaLink';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import Logoelsarh from '../../assets/images/logoElsarh.png';
 
 const FooterSection = ({ title, children }) => (
@@ -36,107 +38,86 @@ export default function Footer() {
     { name: 'تواصل معنا', path: '/contact' },
   ];
 
+  const { t, i18n } = useTranslation();
+  const { config } = useSelector((state) => state.config);
+  const isRtl = i18n.language === 'ar';
+
   return (
-    <footer dir="rtl" className="bg-[var(--card)] text-[var(--muted-foreground)] font-body border-t border-[var(--border)] transition-colors duration-500">
-      {/* Premium Scroll Top Button */}
-      <AnimatePresence>
-        {showButton && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 left-8 z-50 p-3 bg-primary text-white rounded-full shadow-premium-xl hover:bg-primary-light transition-all hover:-translate-y-1 active:scale-95"
-          >
-            <BsArrowUpShort size={28} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+    <footer dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 text-slate-600 font-body border-t border-slate-200 pt-16 pb-8">
+      <div className="container mx-auto px-4 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 
-      <div className="container mx-auto px-6 lg:px-12 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
-
-          {/* Brand Info */}
+          {/* Brand & Bio */}
           <div className="space-y-6">
             <Link to="/" className="flex items-center gap-3">
-              <img src={Logoelsarh} alt="Logo" className="w-14 dark:brightness-0 dark:invert" />
+              <img src={config.logo || Logoelsarh} alt={config.siteName} className="w-12 h-auto" />
               <div>
-                <h2 className="text-xl font-heading font-black text-[var(--foreground)] leading-none">الصرح</h2>
-                <p className="text-[10px] text-primary font-bold tracking-widest mt-1">للاستثمار العقاري</p>
+                <h2 className="text-lg font-black text-primary-900 uppercase tracking-tight">{config.siteName || t('welcome_title_1')}</h2>
+                <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Real Estate Investment</span>
               </div>
             </Link>
-            <p className="text-sm leading-relaxed text-slate-400">
-              شركة الصرح للاستثمار العقاري، خبرة أكثر من 20 عاماً في بناء المستقبل المعماري في مصر باستخدام أحدث التقنيات العالمية.
+            <p className="text-sm leading-relaxed text-slate-500">
+              {t('about_desc').substring(0, 100)}...
             </p>
-            <div className="flex pt-4">
-              <SocialMediaSecondary />
+            <div className="flex gap-4 pt-2">
+              <SocialMediaSecondary links={config.socialLinks} />
             </div>
           </div>
 
           {/* Quick Links */}
-          <FooterSection title="روابط سريعة">
-            <ul className="grid grid-cols-1 gap-3">
-              {footerLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className="group flex items-center gap-2 text-sm hover:text-white transition-colors"
-                  >
-                    <BsChevronRight size={10} className="text-accent-600 transition-transform group-hover:translate-x-1" />
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+          <div>
+            <h4 className="font-bold text-primary-900 uppercase tracking-wide text-sm mb-6">{t('quick_links')}</h4>
+            <ul className="space-y-3 text-sm">
+              <li><Link to="/" className="hover:text-primary-600 transition-colors">{t('home')}</Link></li>
+              <li><Link to="/Project" className="hover:text-primary-600 transition-colors">{t('listings')}</Link></li>
+              <li><Link to="/About" className="hover:text-primary-600 transition-colors">{t('about')}</Link></li>
+              <li><Link to="/contact" className="hover:text-primary-600 transition-colors">{t('contact')}</Link></li>
             </ul>
-          </FooterSection>
+          </div>
 
           {/* Contact Info */}
-          <FooterSection title="اتصل بنا">
-            <ul className="space-y-4">
-              <li className="flex gap-4">
-                <FiMapPin className="text-primary mt-1 shrink-0" size={18} />
-                <span className="text-sm leading-relaxed text-[var(--muted-foreground)]">
-                  14 شارع المختار من شارع النصر، المعادي الجديدة، القاهرة
-                </span>
+          <div>
+            <h4 className="font-bold text-primary-900 uppercase tracking-wide text-sm mb-6">{t('contact_us')}</h4>
+            <ul className="space-y-4 text-sm">
+              <li className="flex items-start gap-3">
+                <FiMapPin className="text-primary-600 shrink-0 mt-1" />
+                <span>{config?.contact?.maadiBranchAddress || '14 Mokhtar St, New Maadi, Cairo, Egypt'}</span>
               </li>
-              <li className="flex items-center gap-4">
-                <FiPhone className="text-primary shrink-0" size={18} />
-                <a href="tel:+201212622210" className="text-sm hover:text-primary transition-colors text-[var(--muted-foreground)]">01212622210</a>
+              <li className="flex items-center gap-3">
+                <FiPhone className="text-primary-600 shrink-0" />
+                <a href={`tel:${config?.contact?.phone}`} className="hover:text-primary-600 dir-ltr">{config?.contact?.phone}</a>
               </li>
-              <li className="flex items-center gap-4">
-                <FiMail className="text-primary shrink-0" size={18} />
-                <a href="mailto:elsarhegypt@gmail.com" className="text-sm hover:text-primary transition-colors text-[var(--muted-foreground)]">elsarhegypt@gmail.com</a>
+              <li className="flex items-center gap-3">
+                <FiMail className="text-primary-600 shrink-0" />
+                <a href={`mailto:${config?.contact?.email}`} className="hover:text-primary-600">{config?.contact?.email}</a>
               </li>
             </ul>
-          </FooterSection>
+          </div>
 
-          {/* Working Hours */}
-          <FooterSection title="ساعات العمل">
-            <div className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800 space-y-3">
-              <div className="flex items-center gap-3">
-                <FiClock className="text-accent-600" />
-                <span className="text-sm font-bold text-white">السبت - الخميس</span>
-              </div>
-              <p className="text-xs text-slate-500">من الساعة 10:00 صباحاً حتى 05:00 مساءً</p>
-              <div className="pt-2 flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                <span className="text-xs text-slate-500">الجمعة عطلة رسمية</span>
-              </div>
+          {/* Legal / Hours */}
+          <div>
+            <h4 className="font-bold text-primary-900 uppercase tracking-wide text-sm mb-6">{t('working_hours')}</h4>
+            <div className="text-sm space-y-2 text-slate-500">
+              <p className="flex justify-between border-b border-slate-200 pb-2">
+                <span>{t('saturday')} - {t('thursday')}</span>
+                <span className="font-bold text-slate-700">10:00 - 17:00</span>
+              </p>
+              <p className="flex justify-between pt-2">
+                <span>{t('friday')}</span>
+                <span className="text-red-500 font-bold">{t('closed')}</span>
+              </p>
             </div>
-          </FooterSection>
+          </div>
 
         </div>
-      </div>
 
-      {/* Copyright */}
-      <div className="border-t border-slate-800 py-8 bg-black/20">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs tracking-wide">
-            &copy; {new Date().getFullYear()} شركة الصرح للاستثمار العقاري. جميع الحقوق محفوظة.
-          </p>
-          <p className="text-[10px] text-slate-600 uppercase font-black tracking-widest">
-            Expertly Crafted for Excellence
-          </p>
+        {/* Bottom Bar */}
+        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+          <p>&copy; {new Date().getFullYear()} El Sarh Real Estate. {t('all_rights_reserved')}.</p>
+          <div className="flex gap-6">
+            <Link to="/privacy" className="hover:text-primary-600">{t('privacy_policy')}</Link>
+            <Link to="/terms" className="hover:text-primary-600">{t('terms_conditions')}</Link>
+          </div>
         </div>
       </div>
     </footer>

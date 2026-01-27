@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiCheckCircle, FiAlertCircle, FiSend } from 'react-icons/fi';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 const InputField = React.memo(({
   id,
@@ -80,6 +81,8 @@ const InputField = React.memo(({
 });
 
 export default function FormContact() {
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language;
   const { currentUser } = useSelector((state) => state.user);
   const [status, setStatus] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,17 +106,17 @@ export default function FormContact() {
   }, [currentUser]);
 
   const validations = {
-    name: /^[\p{L}\s\-']{2,50}$/u,
+    name: /^[\u0600-\u06FF\s]+$/, // Strictly Arabic name validation as per requirement
     phone: /^[+0-9\u0660-\u0669\u06F0-\u06F9][0-9\u0660-\u0669\u06F0-\u06F9\s\-()]{9,14}$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
     message: /^[\s\S]{10,500}$/
   };
 
   const errorMessages = {
-    name: "الاسم يجب أن يحتوي على 2-50 حرفًا",
-    phone: "رقم الهاتف يجب أن يكون بين ١٠-١٥ رقماً",
-    email: "البريد الإلكتروني غير صالح",
-    message: "الرسالة يجب أن تكون بين ١٠-٥٠٠ حرف"
+    name: currentLang === 'ar' ? "يرجى إدخال الاسم باللغة العربية" : "Please enter name in Arabic",
+    phone: currentLang === 'ar' ? "رقم الهاتف غير صالح" : "Invalid phone number",
+    email: currentLang === 'ar' ? "البريد الإلكتروني غير صالح" : "Invalid email address",
+    message: currentLang === 'ar' ? "الرسالة قصيرة جداً" : "Message is too short"
   };
 
   const validateField = (name, value) => {
@@ -162,13 +165,13 @@ export default function FormContact() {
       const data = await res.json();
 
       if (res.ok) {
-        setStatus({ type: 'success', message: 'تم إرسال رسالتك بنجاح!' });
+        setStatus({ type: 'success', message: t('success_message') });
         setFormData({ name: '', phone: '', email: '', message: '' });
       } else {
-        setStatus({ type: 'error', message: data.msg || 'حدث خطأ غير متوقع' });
+        setStatus({ type: 'error', message: data.msg || t('error_message') });
       }
     } catch (err) {
-      setStatus({ type: 'error', message: 'فشل الإرسال، يرجى المحاولة لاحقاً' });
+      setStatus({ type: 'error', message: t('error_message') });
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +189,7 @@ export default function FormContact() {
             id="name"
             name="name"
             type="text"
-            label="الاسم الكامل"
+            label={t('name') + (currentLang === 'ar' ? ' (باللغة العربية)' : ' (In Arabic)')}
             value={formData.name}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -197,7 +200,7 @@ export default function FormContact() {
             id="phone"
             name="phone"
             type="tel"
-            label="رقم الهاتف"
+            label={t('phone')}
             value={formData.phone}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -209,7 +212,7 @@ export default function FormContact() {
           id="email"
           name="email"
           type="email"
-          label="البريد الإلكتروني"
+          label={t('email')}
           value={formData.email}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -219,7 +222,7 @@ export default function FormContact() {
         <InputField
           id="message"
           name="message"
-          label="الرسالة"
+          label={t('message')}
           value={formData.message}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -238,7 +241,7 @@ export default function FormContact() {
             ) : (
               <>
                 <FiSend className="text-lg" />
-                <span>إرسال الرسالة</span>
+                <span>{t('send')}</span>
               </>
             )}
           </button>

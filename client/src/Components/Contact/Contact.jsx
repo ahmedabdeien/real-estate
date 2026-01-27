@@ -3,181 +3,144 @@ import { motion } from 'framer-motion';
 import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import { SocialMediaPrimary } from "../SocialMedia/SocialMediaLink.jsx";
 import { Helmet } from "react-helmet";
+import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import FormContact from './FormContact';
 
-const fadeIn = {
-  initial: { opacity: 0, y: 40 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.8 }
-};
-
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+const CONFIGURATION = {
+  mapsApiKey: import.meta.env.VITE_MAP_KEY || ''
 };
 
 const ContactMethod = ({ icon: Icon, title, children, link }) => (
-  <motion.div
-    className="group p-10 bg-[var(--card)] rounded-[32px] shadow-premium border border-[var(--border)] transition-all duration-500"
-    whileHover={{ y: -8 }}
-  >
-    <div className="flex items-start gap-6">
-      <div className="w-14 h-14 rounded-2xl bg-[var(--accent)] shadow-premium flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
-        <Icon size={24} />
+  <div className="bg-white p-8 border border-slate-200 hover:border-primary-500 transition-all duration-300 rounded-sm group shadow-sm">
+    <div className="flex items-start gap-4">
+      <div className="w-12 h-12 bg-slate-50 flex items-center justify-center text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-300 rounded-sm">
+        <Icon size={20} />
       </div>
       <div>
-        <h4 className="text-xl font-heading font-black text-[var(--foreground)] mb-2">{title}</h4>
+        <h4 className="text-sm font-bold text-slate-900 mb-1 uppercase tracking-tight">{title}</h4>
         {link ? (
-          <a href={link} className="text-[var(--muted-foreground)] hover:text-primary transition-colors font-medium">
+          <a href={link} className="text-slate-500 hover:text-primary-600 transition-colors text-sm">
             {children}
           </a>
         ) : (
-          <p className="text-[var(--muted-foreground)] font-medium">{children}</p>
+          <p className="text-slate-500 text-sm leading-relaxed">{children}</p>
         )}
       </div>
     </div>
-  </motion.div>
+  </div>
 );
 
 function Contact() {
+  const { t, i18n } = useTranslation();
+  const { config } = useSelector(state => state.config);
+  const isRtl = i18n.language === 'ar';
+
   useEffect(() => {
-    // If CONFIGURATION is defined, initialize map. Otherwise, skip or use a simpler approach.
-    // Simplifying to avoid crash if CONFIGURATION is missing.
     const initializeMap = async () => {
       try {
-        if (typeof CONFIGURATION !== 'undefined') {
+        if (typeof CONFIGURATION !== 'undefined' && config.mapsApiKey) {
           await customElements.whenDefined('gmpx-store-locator');
           const locator = document.querySelector('gmpx-store-locator');
           if (locator) {
-            locator.configureFromQuickBuilder(CONFIGURATION);
+            locator.configureFromQuickBuilder({ ...CONFIGURATION, mapsApiKey: config.mapsApiKey });
           }
         }
       } catch (error) {
         console.error("Map initialization failed", error);
       }
     };
-
     initializeMap();
-  }, []);
+  }, [config.mapsApiKey]);
 
   return (
-    <div dir="rtl" className="bg-white dark:bg-slate-900 overflow-hidden pb-24">
+    <div dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 font-body pb-24 min-h-screen">
       <Helmet>
-        <title>تواصل معنا | شركة الصرح العقارية</title>
-        <meta name="description" content="نحن هنا لمساعدتك في كل خطوة من رحلتك العقارية. تواصل مع مستشاري شركة الصرح اليوم." />
+        <title>{t('contact_us')} | {config.siteName}</title>
         <script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"
         />
       </Helmet>
 
-      {/* Hero Header */}
-      <div className="bg-slate-900 py-32 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTAgMGg0MHY0MEgwek0yMCAyMHYyMGgyMFYyMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjA1Ii8+PC9zdmc+')] " />
+      {/* Hero Header - Standard Banner Style */}
+      <div className="bg-primary-900 py-24 relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-900 to-transparent opacity-90" />
         </div>
-
-        <div className="container mx-auto px-6 relative z-10 text-center">
-          <motion.span
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-primary-500 font-black uppercase tracking-[0.4em] text-[10px] mb-6 inline-block"
-          >
-            دعنا نساعدك
-          </motion.span>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-heading font-black text-white mb-8"
-          >
-            تواصل معنا
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-2xl mx-auto text-slate-400 text-lg leading-relaxed"
-          >
-            فريق الصرح جاهز دائماً للرد على استفساراتك وتقديم المشورة العقارية المتخصصة التي تناسب تطلعاتك.
-          </motion.p>
+        <div className="container mx-auto px-4 lg:px-12 relative z-10">
+          <span className="text-accent-500 font-bold uppercase tracking-widest text-xs mb-4 block">
+            {t('contact_us')}
+          </span>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            {t('reach_out_to_us_today') || 'Reach out to us today'}
+          </h1>
+          <p className="max-w-2xl text-primary-50 text-base leading-relaxed opacity-80">
+            {t('contact_desc') || 'Our team is here to help you with any questions you may have. Feel free to contact us via any of the methods below.'}
+          </p>
         </div>
       </div>
 
-      <main className="container mx-auto px-6 lg:px-12 -mt-12 relative z-20">
+      <main className="container mx-auto px-4 lg:px-12 -mt-10 relative z-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24">
-
-          {/* Contact Details */}
+          {/* Contact Details & Methods */}
           <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <ContactMethod
                 icon={FiMapPin}
-                title="فرع المعادي"
-                link="https://maps.app.goo.gl/0XEuL7M5WBQRCdHMCQUUWJc"
+                title={t('maadi_branch') || "Maadi"}
+                link={config?.contact?.maadiBranchLink}
               >
-                14 شارع المختار، المعادي الجديدة، القاهرة
+                {config?.contact?.maadiBranchAddress || '14 Mokhtar St, New Maadi, Cairo, Egypt'}
               </ContactMethod>
 
               <ContactMethod
                 icon={FiMapPin}
-                title="فرع بني سويف"
-                link="https://maps.app.goo.gl/ypNfngvXQSosxsXM9"
+                title={t('beni_suef_branch') || "Beni Suef"}
+                link={config?.contact?.beniSuefBranchLink}
               >
-                شارع محمد حميدة فوق بنك مصر، بني سويف
+                {config?.contact?.beniSuefBranchAddress || 'Mohamed Hamida St, Beni Suef'}
               </ContactMethod>
 
               <ContactMethod
                 icon={FiPhone}
-                title="الخط الساخن"
-                link="tel:+201212622210"
+                title={t('hotline') || "Hotline"}
+                link={`tel:${config?.contact?.phone}`}
               >
-                01212622210
+                {config?.contact?.phone}
               </ContactMethod>
 
               <ContactMethod
                 icon={FiMail}
-                title="البريد الإلكتروني"
-                link="mailto:elsarhegypt@gmail.com"
+                title={t('email') || "Email"}
+                link={`mailto:${config?.contact?.email}`}
               >
-                elsarhegypt@gmail.com
+                {config?.contact?.email}
               </ContactMethod>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-12 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-premium">
-              <h3 className="text-2xl font-heading font-black text-primary-900 dark:text-white mb-6">ساعات العمل الرسمية</h3>
+            {/* Working Hours Card */}
+            <div className="bg-white p-10 border border-slate-200 rounded-sm shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900 mb-6 uppercase tracking-tight border-b border-slate-100 pb-4">{t('working_hours')}</h3>
               <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
-                  <span className="text-slate-500 font-medium">السبت - الخميس</span>
-                  <span className="font-black text-primary-900 dark:text-white uppercase tracking-tighter">١٠ صباحًا - ٥ مساءً</span>
-                </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500 font-medium">الجمعة</span>
-                  <span className="text-primary-600 font-black uppercase tracking-widest">مغلق</span>
+                  <span className="text-slate-500 text-sm font-medium">{t('saturday')} - {t('thursday')}</span>
+                  <span className="font-bold text-primary-600 text-sm">10:00 AM - 05:00 PM</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Social Links */}
-            <div className="bg-slate-900 p-12 rounded-[48px] shadow-premium-xl relative overflow-hidden text-center">
-              <div className="relative z-10 space-y-6">
-                <h3 className="text-2xl font-heading font-black text-white">تابعنا على منصات التواصل</h3>
-                <div className="flex justify-center">
-                  <SocialMediaPrimary className="flex gap-6" iconClass="text-4xl text-white hover:text-primary-500 transition-all duration-300" />
+                <div className="flex justify-between items-center border-t border-slate-50 pt-4">
+                  <span className="text-slate-500 text-sm font-medium">{t('friday')}</span>
+                  <span className="text-red-500 font-bold text-xs uppercase tracking-widest">{t('closed')}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Form Area */}
-          <div className="bg-[var(--card)] p-12 md:p-16 rounded-[48px] shadow-premium border border-[var(--border)] h-full">
-            <div className="mb-12">
-              <span className="text-primary font-black uppercase text-[10px] tracking-widest">نموذج التواصل</span>
-              <h2 className="text-3xl font-heading font-black text-[var(--foreground)] mt-4">أرسل استفسارك الآن</h2>
-              <p className="text-[var(--muted-foreground)] mt-4 leading-relaxed">سقوم مستشارينا بالتواصل معك في أقرب وقت لتلبية طلبك.</p>
+          {/* Contact Form Section */}
+          <div className="bg-white p-10 md:p-12 border border-slate-200 rounded-sm shadow-xl border-t-4 border-primary-600">
+            <div className="mb-10">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">{t('send_a_message')}</h2>
+              <p className="text-slate-500 text-sm">{t('form_subtitle') || 'Our advisors will get back to you as soon as possible.'}</p>
             </div>
             <FormContact />
           </div>
@@ -185,32 +148,27 @@ function Contact() {
         </div>
 
         {/* Map Section */}
-        <section className="mt-32 space-y-12">
-          <div className="text-center">
-            <h2 className="text-4xl font-heading font-black text-primary-900 dark:text-white">مواقعنا على الخريطة</h2>
-            <p className="text-slate-500 mt-4">تفضل بزيارتنا في أحد فروعنا الرسمية</p>
-          </div>
-          <div className="rounded-[64px] overflow-hidden shadow-premium-xl border-8 border-white dark:border-slate-800 h-[600px] relative">
-            <gmpx-api-loader
-              key={CONFIGURATION.mapsApiKey}
-              solution-channel="GMP_QB_locatorplus_v11_cABD"
-            />
-            <gmpx-store-locator
-              map-id="DEMO_MAP_ID"
-              style={{
-                width: '100%',
-                height: '100%',
-                '--gmpx-color-surface': '#fff',
-                '--gmpx-color-on-surface': '#1e293b',
-                '--gmpx-color-on-surface-variant': '#64748b',
-                '--gmpx-color-primary': '#6cb635',
-                '--gmpx-color-outline': '#f1f5f9',
-                '--gmpx-font-family-base': 'Inter, sans-serif',
-              }}
-            />
+        <section className="mt-24">
+          <div className="bg-white border border-slate-200 rounded-sm p-4">
+            <div className="h-[500px] relative overflow-hidden bg-slate-100">
+              <gmpx-api-loader
+                key={CONFIGURATION.mapsApiKey}
+                solution-channel="GMP_QB_locatorplus_v11_cABD"
+              />
+              <gmpx-store-locator
+                map-id="DEMO_MAP_ID"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  '--gmpx-color-surface': '#fff',
+                  '--gmpx-color-on-surface': '#1e293b',
+                  '--gmpx-color-primary': '#005B94',
+                  '--gmpx-font-family-base': 'Inter, sans-serif',
+                }}
+              />
+            </div>
           </div>
         </section>
-
       </main>
     </div>
   );
