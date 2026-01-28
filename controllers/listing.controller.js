@@ -3,7 +3,13 @@ import { errorHandler } from '../Utils/error.js';
 
 
 
+import { validationResult } from "express-validator";
+
 export const createListing = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return next(errorHandler(400, errors.array()[0].msg));
+    }
     if (req.user.role !== 'Admin' && req.user.role !== 'Sales') {
         return next(errorHandler(403, "You are not allowed to create a listing"));
     }

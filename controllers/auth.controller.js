@@ -5,7 +5,13 @@ import { errorHandler } from './../Utils/error.js';
 import jwt from 'jsonwebtoken';
 
 
+import { validationResult } from "express-validator";
+
 export const signup = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(errorHandler(400, errors.array()[0].msg));
+  }
   const { name, username, email, number, password } = req.body;
   const hashedPassword = bcryptjs.hashSync(password, 10)
   const newUser = new User({ name, username, email, number, password: hashedPassword, role: req.body.role || 'User' });
@@ -18,6 +24,10 @@ export const signup = async (req, res, next) => {
 
 };
 export const signin = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(errorHandler(400, errors.array()[0].msg));
+  }
   const { email, password } = req.body;
   try {
     const validUser = await User.findOne({ email });

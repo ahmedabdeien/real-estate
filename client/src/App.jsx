@@ -18,6 +18,8 @@ import OnlyAdminPrivateRoute from "./Components/PrivateRoute/OnlyAdminPrivateRou
 import Dashboard from "./Components/Profile/Dashboard";
 import PageBroker from "./Components/Profile/PageBroker";
 import AdminSettings from "./Components/Profile/AdminSettings";
+import PageEditor from "./Components/Profile/PageEditor";
+import BlogEditor from "./Components/Profile/BlogEditor";
 import BrokerPrivateRoute from "./Components/PrivateRoute/BrokerPrivateRoute";
 import ShowPage from "./Components/CreatePage/ShowPage";
 import Contact from "./Components/Contact/Contact";
@@ -28,6 +30,9 @@ import { useDispatch } from "react-redux";
 import { fetchConfigStart, fetchConfigSuccess, fetchConfigFailure } from "./Components/redux/config/configSlice";
 import ResetPassword from "./Components/Registry/SingIn/ResetPassword.jsx";
 import FloatingChat from "./Components/Chat/FloatingChat";
+import GenericPage from "./Components/UI/GenericPage";
+import BlogList from "./Components/UI/BlogList";
+import BlogPage from "./Components/UI/BlogPage";
 
 
 
@@ -109,10 +114,15 @@ function App() {
                 <Route path="/Settings" element={<Settings />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
+              <Route path="/p/:slug" element={<GenericPage />} />
+              <Route path="/Blogs" element={<BlogList />} />
+              <Route path="/blog/:slug" element={<BlogPage />} />
               <Route element={<OnlyAdminPrivateRoute />}>
                 <Route path="/CreatePage" element={<CreatePage />} />
                 <Route path="/Update-Page/:pageId" element={<UpdatePage />} />
                 <Route path="/Admin-Settings" element={<AdminSettings />} />
+                <Route path="/Admin/Page-Editor/:pageId?" element={<PageEditor />} />
+                <Route path="/Admin/Blog-Editor/:blogId?" element={<BlogEditor />} />
               </Route>
               <Route element={<BrokerPrivateRoute />}>
                 <Route path="/PageBroker" element={<PageBroker />} />

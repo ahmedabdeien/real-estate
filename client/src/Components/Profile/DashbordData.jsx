@@ -45,11 +45,11 @@ const DashboardData = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [statsRes, pagesRes] = await Promise.all([
+      const [statsRes, pagesRes, blogsRes, messagesRes] = await Promise.all([
         fetch('/api/user/getusers'),
-        currentUser?.isAdmin ?
-          fetch(`/api/listing/getListings?limit=200&sortBy=${sortBy}`) :
-          Promise.resolve(null)
+        currentUser?.isAdmin ? fetch(`/api/listing/getListings?limit=200&sortBy=${sortBy}`) : Promise.resolve(null),
+        currentUser?.isAdmin ? fetch('/api/cms/blogs') : Promise.resolve(null),
+        currentUser?.isAdmin ? fetch('/api/cms/messages') : Promise.resolve(null)
       ]);
 
       if (!statsRes.ok) throw new Error('Failed to fetch user statistics');
@@ -59,13 +59,28 @@ const DashboardData = () => {
       const brokers = statsData.users?.filter(u => u.isBroker) || [];
       const regularUsers = statsData.users?.filter(u => !u.isAdmin && !u.isBroker) || [];
 
+      let blogsCount = 0;
+      let messagesCount = 0;
+
+      if (blogsRes && blogsRes.ok) {
+        const blogs = await blogsRes.json();
+        blogsCount = blogs.length;
+      }
+
+      if (messagesRes && messagesRes.ok) {
+        const messages = await messagesRes.json();
+        messagesCount = messages.length;
+      }
+
       setUserStats({
         users: statsData.users || [],
         totalUsers: statsData.totalUsers || 0,
         lastMonthUsers: statsData.lastMonthUsers || 0,
         totalAdmins: admins.length,
         totalBrokers: brokers.length,
-        totalRegularUsers: regularUsers.length
+        totalRegularUsers: regularUsers.length,
+        totalBlogs: blogsCount,
+        totalMessages: messagesCount
       });
 
       if (pagesRes) {
@@ -96,7 +111,7 @@ const DashboardData = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
       </div>
     );
   }
@@ -117,16 +132,16 @@ const DashboardData = () => {
   }
 
   const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className="bg-[var(--card)] p-6 rounded-2xl shadow-premium border border-[var(--border)] transition-all hover:shadow-premium-lg">
+    <div className="bg-white p-6 border-b-4 border-primary-500 shadow-sm transition-all hover:shadow-lg">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-[var(--muted-foreground)] mb-1">{title}</h2>
-          <div className="text-3xl font-black text-[var(--foreground)]">
+          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">{title}</h2>
+          <div className="text-3xl font-black text-slate-800">
             {formatNumber(value)}
           </div>
         </div>
-        <div className={`p-4 bg-primary/10 rounded-2xl`}>
-          <Icon className="w-6 h-6 text-primary" />
+        <div className={`p-4 bg-slate-50 rounded-full`}>
+          <Icon className="w-6 h-6 text-primary-600" />
         </div>
       </div>
     </div>
@@ -292,6 +307,18 @@ const DashboardData = () => {
               value={formatNumber(currentUser?.Brokers).length}
               icon={Briefcase}
               color="purple"
+            />
+            <StatCard
+              title="Published Articles"
+              value={userStats.totalBlogs || 0}
+              icon={SlidersHorizontal}
+              color="orange"
+            />
+            <StatCard
+              title="Inbox Messages"
+              value={userStats.totalMessages || 0}
+              icon={User} // Using User icon temporarily or import Mail
+              color="red"
             />
           </div>
 

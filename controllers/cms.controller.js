@@ -1,6 +1,28 @@
 import Page from '../models/page.model.js';
 import Blog from '../models/blog.model.js';
-import { errorHandler } from '../Utils/error.js';
+// Messages (Contact Form Submissions)
+import Contact from '../models/contact.model.js';
+
+export const getMessages = async (req, res, next) => {
+    if (req.user.role !== 'Admin' && req.user.role !== 'Sales') return next(errorHandler(403, 'Unauthorized'));
+    try {
+        // Fetch all contact form submissions
+        const messages = await Contact.find().sort({ createdAt: -1 });
+        res.status(200).json(messages);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteMessage = async (req, res, next) => {
+    if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+    try {
+        await Contact.findByIdAndDelete(req.params.id);
+        res.status(200).json('Message deleted');
+    } catch (error) {
+        next(error);
+    }
+};
 
 // Static Pages
 export const createPage = async (req, res, next) => {
@@ -80,4 +102,37 @@ export const updateBlogStatus = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-};
+    // Deletion
+    export const deletePage = async (req, res, next) => {
+        if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+        try {
+            await Page.findByIdAndDelete(req.params.id);
+            res.status(200).json('Page has been deleted');
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    export const deleteBlog = async (req, res, next) => {
+        if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+        try {
+            await Blog.findByIdAndDelete(req.params.id);
+            res.status(200).json('Blog has been deleted');
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    export const updateBlog = async (req, res, next) => {
+        if (req.user.role !== 'Admin' && req.user.role !== 'BlogWriter') return next(errorHandler(403, 'Unauthorized'));
+        try {
+            const updatedBlog = await Blog.findByIdAndUpdate(
+                req.params.id,
+                { $set: req.body },
+                { new: true }
+            );
+            res.status(200).json(updatedBlog);
+        } catch (error) {
+            next(error);
+        }
+    };

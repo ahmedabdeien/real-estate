@@ -28,22 +28,54 @@ export default function Header() {
   const menuRef = useRef(null);
   const userMenuRef = useRef(null);
 
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === 'ar';
-
-  const navLinks = [
-    { title: t('home'), path: '/' },
-    { title: t('listings'), path: '/Project' },
-    { title: t('about'), path: '/About' },
-    { title: t('contact'), path: '/Contact' },
-    ...(currentUser?.isAdmin ? [{ title: t('admin'), path: '/Dashboard?tab=dashbordData' }] : []),
-  ];
+  const [dynamicPages, setDynamicPages] = useState([]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
+
+    // Fetch generic pages for menu
+    const fetchPages = async () => {
+      try {
+        const res = await fetch('/api/cms/pages');
+        const data = await res.json();
+        if (res.ok) {
+          setDynamicPages(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchPages();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setIsMenuOpen(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setIsUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const { t, i18n } = useTranslation();
+  const isRtl = i18n.language === 'ar';
+  const currentLang = i18n.language;
+
+  const navLinks = [
+    { title: t('home'), path: '/' },
+    { title: t('listings'), path: '/Project' },
+    ...dynamicPages.map(page => ({
+      title: page.title[currentLang] || page.title['en'],
+      path: `/p/${page.slug}`
+    })),
+    { title: 'News & Blog', path: '/Blogs' },
+    { title: t('about'), path: '/About' },
+    { title: t('contact'), path: '/Contact' },
+    ...(currentUser?.isAdmin ? [{ title: t('admin'), path: '/Dashboard?tab=dashbordData' }] : []),
+  ];
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -73,8 +105,12 @@ export default function Header() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={config.logo || Logoelsarh} alt={config.siteName} className="h-12 w-auto object-contain" />
-            <div className={`hidden md:block ${isRtl ? 'text-right' : 'text-left'}`}>
+            <img
+              src={(config.logo && config.logo.startsWith('http')) ? config.logo : Logoelsarh}
+              alt={config.siteName}
+              className="h-12 w-auto object-contain"
+            />
+            <div className="hidden md:block">
               <h1 className="text-xl font-black text-primary-900 leading-none tracking-tight uppercase">
                 {config.siteName?.split(' ')[0] || t('welcome').split(' ')[0]}
               </h1>

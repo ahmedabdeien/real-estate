@@ -41,6 +41,24 @@ export default function Footer() {
   const { t, i18n } = useTranslation();
   const { config } = useSelector((state) => state.config);
   const isRtl = i18n.language === 'ar';
+  const currentLang = i18n.language;
+
+  // Fetch dynamic pages (e.g. Privacy, Terms)
+  const [dynamicPages, setDynamicPages] = useState([]);
+  useEffect(() => {
+    const fetchPages = async () => {
+      try {
+        const res = await fetch('/api/cms/pages');
+        const data = await res.json();
+        if (res.ok) {
+          setDynamicPages(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchPages();
+  }, []);
 
   return (
     <footer dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 text-slate-600 font-body border-t border-slate-200 pt-16 pb-8">
@@ -50,7 +68,11 @@ export default function Footer() {
           {/* Brand & Bio */}
           <div className="space-y-6">
             <Link to="/" className="flex items-center gap-3">
-              <img src={config.logo || Logoelsarh} alt={config.siteName} className="w-12 h-auto" />
+              <img
+                src={(config.logo && config.logo.startsWith('http')) ? config.logo : Logoelsarh}
+                alt={config.siteName}
+                className="w-12 h-auto"
+              />
               <div>
                 <h2 className="text-lg font-black text-primary-900 uppercase tracking-tight">{config.siteName || t('welcome_title_1')}</h2>
                 <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Real Estate Investment</span>
@@ -113,10 +135,13 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
-          <p>&copy; {new Date().getFullYear()} El Sarh Real Estate. {t('all_rights_reserved')}.</p>
+          <p>&copy; {new Date().getFullYear()} {config.siteName || 'El Sarh'}. {t('all_rights_reserved')}.</p>
           <div className="flex gap-6">
-            <Link to="/privacy" className="hover:text-primary-600">{t('privacy_policy')}</Link>
-            <Link to="/terms" className="hover:text-primary-600">{t('terms_conditions')}</Link>
+            {dynamicPages.map(page => (
+              <Link key={page._id} to={`/p/${page.slug}`} className="hover:text-primary-600 transition-colors">
+                {page.title[currentLang] || page.title['en']}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Inter:wght@100..900&family=Montserrat:wght@100..900&family=Outfit:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'styles/variables';
+
+:root {
+  /* Main Design Tokens - El Sarh Corporate Blue & Teal */
+  --primary: #{$primary};
+  --primary-light: #{$primary-light};
+  --primary-dark: #{$primary-dark};
+
+  --accent: #{$accent};
+  --accent-light: #{$accent-light};
+  --accent-dark: #{$accent-dark};
+
+  --background: #{$background};
+  --foreground: #{$foreground};
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #{$primary};
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --heading-font: #{$heading-font};
+  --body-font: #{$body-font};
+}
+
+.dark {
+  --background: #0c1c2c;
+  /* Deep Corporate Navy */
+  --foreground: #f8fafc;
+
+  --card: #15293e;
+  --card-foreground: #f8fafc;
+
+  --border: #1e3a5a;
+  --input: #1e3a5a;
+
+  --muted: #1e3a5a;
+  --muted-foreground: #94a3b8;
+
+  --accent: #5BC1D7;
+  --accent-foreground: #f8fafc;
+}
+
+body {
+  @apply bg-[var(--background)] text-[var(--foreground)] antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  font-family: var(--body-font);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply tracking-tight font-bold text-[var(--foreground)];
+  font-family: var(--heading-font);
+}
+
+::selection {
+  @apply bg-primary-500/20 text-primary-500;
+}
+
+.btn-premium {
+  @apply px-8 py-4 rounded-none font-heading font-black transition-all duration-500 inline-flex items-center justify-center gap-3 active:scale-[0.95] focus:ring-2 focus:ring-offset-2 relative overflow-hidden;
+}
+
+.btn-premium:hover {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card {
+  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-premium-xl;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-400 rounded-full border-2 border-slate-100 border-solid;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-500;
+}
+
+/* Existing utility classes preserved/modernized */
+.noneScroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.noneScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bg-img-createPage {
+  background-image: url("../src/assets/images/pattern.svg");
+  background-size: auto;
+  background-position: center top;
+}
+
+.loading-screen {
+  @apply fixed inset-0 bg-white flex flex-col justify-center items-center z-[1000];
+}
+
+.spinner {
+  @apply w-12 h-12 border-4 border-primary-900 border-t-transparent rounded-full animate-spin;
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

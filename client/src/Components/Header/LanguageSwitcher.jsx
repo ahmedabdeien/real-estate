@@ -13,10 +13,10 @@ const LanguageSwitcher = () => {
     return (
         <button
             onClick={toggleLanguage}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-all text-white font-medium text-sm backdrop-blur-md border border-white/20"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-all text-slate-700 font-bold text-xs uppercase tracking-wider"
         >
-            <Languages size={16} />
-            <span>{i18n.language === 'en' ? 'العربية' : 'English'}</span>
+            <Languages size={14} className="text-primary-600" />
+            <span>{i18n.language === 'en' ? 'عربي' : 'English'}</span>
         </button>
     );
 };

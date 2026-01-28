@@ -40,5 +40,6 @@ i18n.on('languageChanged', (lng) => {
 // Initial check
 document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
 document.documentElement.lang = i18n.language;
+document.body.dir = i18n.language === 'ar' ? 'rtl' : 'ltr'; // Force body dir as well for some CSS frameworks
 
 export default i18n;

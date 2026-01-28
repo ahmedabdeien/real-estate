@@ -108,6 +108,26 @@ function DashSideBar() {
                                         Broker Page (Project View)
                                     </div>
                                 </Link>
+                                <div className="my-2 border-t border-slate-200"></div>
+                                <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4 mb-2">Content Managment</p>
+                                <Link to="/Dashboard?tab=staticPages">
+                                    <div className={`flex items-center p-2 my-2 ${tab === "staticPages" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
+                                        <HiDocumentText className="mr-2" />
+                                        Static Pages (Privacy/Terms)
+                                    </div>
+                                </Link>
+                                <Link to="/Dashboard?tab=blogs">
+                                    <div className={`flex items-center p-2 my-2 ${tab === "blogs" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
+                                        <HiDocumentText className="mr-2" />
+                                        News & Blogs
+                                    </div>
+                                </Link>
+                                <Link to="/Dashboard?tab=messages">
+                                    <div className={`flex items-center p-2 my-2 ${tab === "messages" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
+                                        <HiUserGroup className="mr-2" />
+                                        Inbox Messages
+                                    </div>
+                                </Link>
                             </>
                         )}
                         <div className="border-t border-[var(--border)] my-4"></div>
