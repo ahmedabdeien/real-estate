@@ -61,9 +61,9 @@ export const SocialMediaLinks = ({ variant = 'primary' }) => {
           variants={itemVariants}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className={`p-2 rounded-full transition-all duration-300 ${isPrimary
-              ? 'bg-slate-100 hover:bg-slate-200 text-primary-700'
-              : 'bg-primary-600 hover:bg-primary-700'
+          className={`p-2 rounded-none transition-all duration-300 ${isPrimary
+            ? 'bg-slate-100 hover:bg-slate-200 text-primary-700'
+            : 'bg-primary-600 hover:bg-primary-700'
             }`}
         >
           <motion.span className="block text-xl">

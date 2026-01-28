@@ -7,7 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { BsArrowRightShort, BsSearch, BsClock, BsDoorOpen, BsBuilding, BsPlusCircle } from "react-icons/bs";
 // src/Components/Project.jsx
-// Constants
+import Button from "../UI/Button";
+import Input from "../UI/Input";
+import Spinner from "../UI/Spinner";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 const API_ENDPOINT = `${API_BASE}/listing/getListings`;
 const QUERY_KEY = 'dataListings';
@@ -46,7 +48,7 @@ const ProjectCard = React.memo(({ item }) => {
   const description = item.description[currentLang] || item.description['en'] || item.description;
 
   return (
-    <div className="bg-white border border-slate-200 hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-sm overflow-hidden group">
+    <div className="bg-white border border-slate-200 hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-none overflow-hidden group">
       <div className="relative h-56 overflow-hidden">
         <Link to={`/Projects/${item.slug}`}>
           <img
@@ -56,17 +58,14 @@ const ProjectCard = React.memo(({ item }) => {
           />
         </Link>
         <div className="absolute top-4 left-4">
-          <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white rounded-sm ${isAvailable ? 'bg-primary-600' : 'bg-red-500'}`}>
+          <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white rounded-none ${isAvailable ? 'bg-primary-600' : 'bg-red-500'}`}>
             {isAvailable ? t('available') : t('sold')}
           </span>
           {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
-            <Link to={`/Update-Page/${item._id}`} className="mt-2 block text-center px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-accent-500 rounded-sm hover:bg-accent-600 transition-colors">
-              {t('edit') || 'Edit'}
-            </Link>
-          )}
-          {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
-            <Link to={`/Update-Page/${item._id}`} className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white bg-accent-500 rounded-sm hover:bg-accent-600 transition-colors mt-2 text-center block" style={{ textDecoration: 'none' }}>
-              {t('edit') || 'Edit'}
+            <Link to={`/Update-Page/${item._id}`} className="mt-2 block">
+              <Button variant="primary" size="sm" fullWidth className="text-[10px] uppercase tracking-widest h-auto py-1">
+                {t('edit')}
+              </Button>
             </Link>
           )}
         </div>
@@ -110,7 +109,7 @@ const LoadingSkeleton = () => (
     animate="show"
   >
     {[...Array(8)].map((_, i) => (
-      <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-premium border border-slate-100">
+      <div key={i} className="bg-white rounded-none overflow-hidden shadow-premium border border-slate-100">
         <div className="h-64 bg-slate-50 animate-pulse" />
         <div className="p-6 space-y-4">
           <div className="h-6 bg-slate-50 rounded w-3/4 animate-pulse" />
@@ -149,8 +148,8 @@ export default function Project() {
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
     return projects.filter(p => {
-      const name = p.name[currentLang]?.toLowerCase() || p.name['en']?.toLowerCase() || '';
-      const description = p.description[currentLang]?.toLowerCase() || p.description['en']?.toLowerCase() || '';
+      const name = (typeof p.name === 'object' ? (p.name[currentLang] || p.name['en'] || '') : (p.name || '')).toLowerCase();
+      const description = (typeof p.description === 'object' ? (p.description[currentLang] || p.description['en'] || '') : (p.description || '')).toLowerCase();
       const term = searchTerm.toLowerCase().trim();
 
       const matchesSearch = !term || name.includes(term) || description.includes(term);
@@ -179,14 +178,14 @@ export default function Project() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <div className="max-w-md text-center bg-white p-12 rounded-3xl shadow-premium border border-slate-100">
+      <div className="max-w-md text-center bg-white p-12 rounded-none shadow-premium border border-slate-100">
         <h3 className="text-2xl font-black text-red-600 mb-4">
           عذراً، حدث خطأ ما
         </h3>
         <p className="text-slate-500 mb-8 leading-relaxed">
           لم نتمكن من جلب قائمة المشاريع العقارية حالياً. يرجى محاولة تحديث الصفحة.
         </p>
-        <button onClick={() => window.location.reload()} className="px-8 py-4 bg-primary-500 text-white font-black rounded-lg">
+        <button onClick={() => window.location.reload()} className="px-8 py-4 bg-primary-500 text-white font-black rounded-none">
           تحديث الصفحة
         </button>
       </div>
@@ -213,34 +212,35 @@ export default function Project() {
           </h1>
 
           {/* Search & Filter Bar */}
-          <div className="max-w-5xl bg-white p-4 rounded-sm shadow-xl flex flex-col lg:flex-row gap-4">
+          <div className="max-w-5xl bg-white p-4 rounded-none shadow-xl flex flex-col lg:flex-row gap-4">
             <div className="flex-1 relative">
-              <BsSearch className={`absolute top-1/2 -translate-y-1/2 ${isRtl ? 'right-4' : 'left-4'} text-slate-400`} />
-              <input
+              <Input
                 type="text"
                 placeholder={t('search_placeholder')}
                 value={searchTerm}
                 onChange={handleSearch}
-                className={`w-full ${isRtl ? 'pr-12' : 'pl-12'} py-3 bg-slate-50 border border-slate-200 rounded-sm focus:ring-1 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all text-sm`}
+                suffix={<BsSearch className="text-slate-400" />}
+                className="w-full"
               />
             </div>
             <div className="flex gap-4 flex-wrap lg:flex-nowrap">
               <select
                 value={propertyType}
                 onChange={(e) => setPropertyType(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-sm p-3 text-sm focus:ring-1 focus:ring-primary-500 outline-none"
+                className="bg-slate-50 border border-slate-200 rounded-none p-3 text-sm focus:ring-1 focus:ring-primary-500 outline-none"
               >
                 <option value="">{t('property_type')}</option>
                 <option value="Apartment">{t('Apartment') || 'Apartment'}</option>
                 <option value="Villa">{t('Villa') || 'Villa'}</option>
                 <option value="Office">{t('Office') || 'Office'}</option>
               </select>
-              <button
+              <Button
+                variant="outline"
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="px-6 py-3 bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-slate-200 transition-colors"
+                className="h-[46px] text-xs uppercase tracking-widest"
               >
                 {t('advanced_filters')}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -250,24 +250,24 @@ export default function Project() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="max-w-5xl mt-4 bg-white p-6 rounded-sm shadow-lg border-t-4 border-accent-500"
+                className="max-w-5xl mt-4 bg-white p-6 rounded-none shadow-lg border-t-4 border-accent-500"
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">{t('price_range')}</label>
                     <div className="flex gap-2">
-                      <input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-sm text-sm" />
-                      <input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-sm text-sm" />
+                      <Input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-full" />
+                      <Input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-full" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">{t('rooms')}</label>
-                    <input type="number" value={rooms} onChange={e => setRooms(e.target.value)} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-sm text-sm" />
+                    <Input type="number" value={rooms} onChange={e => setRooms(e.target.value)} className="w-full" />
                   </div>
                   <div className="flex items-end">
-                    <button onClick={() => { setSearchTerm(''); setPropertyType(''); setMinPrice(''); setMaxPrice(''); setRooms(''); }} className="text-red-500 text-xs font-bold uppercase hover:underline">
+                    <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(''); setPropertyType(''); setMinPrice(''); setMaxPrice(''); setRooms(''); }} className="text-red-500 hover:text-red-700">
                       {t('reset_filters')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -306,7 +306,7 @@ export default function Project() {
                       setCurrentPage(i + 1);
                       window.scrollTo({ top: 400, behavior: 'smooth' });
                     }}
-                    className={`w-10 h-10 flex items-center justify-center rounded-sm font-bold text-sm transition-all ${currentPage === i + 1
+                    className={`w-10 h-10 flex items-center justify-center rounded-none font-bold text-sm transition-all ${currentPage === i + 1
                       ? 'bg-primary-600 text-white'
                       : 'bg-white text-slate-400 border border-slate-200 hover:border-primary-500'
                       }`}

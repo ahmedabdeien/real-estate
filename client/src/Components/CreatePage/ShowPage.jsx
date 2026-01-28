@@ -11,7 +11,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'react-photo-view/dist/react-photo-view.css';
 import { useTranslation } from 'react-i18next';
-import { FaBed, FaBath, FaVideo, FaMapMarkerAlt, FaExpand, FaBuilding, FaRegFilePdf } from 'react-icons/fa';
+import { FaBed, FaBath, FaVideo, FaMapMarkerAlt, FaExpand, FaBuilding, FaRegFilePdf, FaPhone } from 'react-icons/fa';
 import { BsArrowLeft, BsArrowRight, BsChevronRight, BsDoorOpen, BsBuilding, BsRulers, BsCalendarCheck } from "react-icons/bs";
 import { TbLoaderQuarter } from "react-icons/tb";
 import SectionShowProjects from './SectionShowProjects';
@@ -67,9 +67,9 @@ function ShowPage() {
     );
   }
 
-  const propertyName = pages.name?.[currentLang] || pages.name?.['en'] || pages.name;
-  const propertyDesc = pages.description?.[currentLang] || pages.description?.['en'] || pages.description;
-  const propertyAddress = pages.address?.[currentLang] || pages.address?.['en'] || pages.address;
+  const propertyName = typeof pages.name === 'object' ? (pages.name[currentLang] || pages.name['en']) : pages.name;
+  const propertyDesc = typeof pages.description === 'object' ? (pages.description[currentLang] || pages.description['en']) : pages.description;
+  const propertyAddress = typeof pages.address === 'object' ? (pages.address[currentLang] || pages.address['en']) : pages.address;
 
   return (
     <div dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 font-body pb-24 min-h-screen">
@@ -103,7 +103,7 @@ function ShowPage() {
                         <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 flex flex-wrap items-center gap-4">
                           {propertyName}
                           {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
-                            <Link to={`/Update-Page/${pages._id}`} className="inline-block px-4 py-1 text-sm bg-accent-500 hover:bg-accent-600 text-white font-bold uppercase tracking-widest rounded-sm transition-colors">
+                            <Link to={`/Update-Page/${pages._id}`} className="inline-block px-4 py-1 text-sm bg-accent-500 hover:bg-accent-600 text-white font-bold uppercase tracking-widest rounded-none transition-colors">
                               {t('edit')}
                             </Link>
                           )}
@@ -200,7 +200,7 @@ function ShowPage() {
           {/* Right: Sidebar */}
           <aside className="space-y-8">
             {/* Inquiry Card */}
-            <div className="bg-primary-900 p-8 text-white rounded-sm shadow-xl border-t-4 border-accent-500">
+            <div className="bg-primary-900 p-8 text-white rounded-none shadow-xl border-t-4 border-accent-500">
               <h3 className="text-xl font-bold mb-4 uppercase tracking-tight">{t('interested_in_this') || 'Interested in this project?'}</h3>
               <p className="text-primary-100 text-sm mb-8 opacity-80 leading-relaxed">
                 {t('contact_cta_desc') || "Our real estate advisors are ready to help you with pricing, floor plans, and investment details."}
@@ -216,7 +216,7 @@ function ShowPage() {
             </div>
 
             {/* Documents */}
-            <div className="bg-white p-8 border border-slate-200 rounded-sm">
+            <div className="bg-white p-8 border border-slate-200 rounded-none">
               <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">{t('documents') || 'Documents'}</h4>
               <button className="flex items-center justify-between w-full p-4 bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200">
                 <div className="flex items-center gap-3">

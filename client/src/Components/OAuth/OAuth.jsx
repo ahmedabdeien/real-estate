@@ -59,7 +59,7 @@ export default function OAuth() {
       <button
         onClick={handleGoogleClick}
         disabled={isLoading}
-        className="w-full py-4 rounded-xl bg-white border-2 border-slate-100 dark:border-slate-800 
+        className="w-full py-4 rounded-none bg-white border-2 border-slate-100 dark:border-slate-800 
           hover:border-primary-500 hover:bg-slate-50 transition-all flex items-center 
           justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed font-black"
       >
@@ -81,7 +81,7 @@ export default function OAuth() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-2xl flex items-start gap-3"
+            className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-none flex items-start gap-3"
           >
             <HiExclamation className="text-red-600 mt-1 flex-shrink-0" size={20} />
             <p className="text-sm text-red-800 dark:text-red-400 font-medium leading-relaxed">

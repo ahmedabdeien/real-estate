@@ -3,24 +3,26 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TbLoader } from 'react-icons/tb';
 import { HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import Button from '../../UI/Button';
+import Input from '../../UI/Input';
 
 // Animation variants
 const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      staggerChildren: 0.1,
-      when: "beforeChildren"
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.4,
+            staggerChildren: 0.1,
+            when: "beforeChildren"
+        }
     }
-  }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
 };
 
 function ForgotPassword() {
@@ -37,7 +39,7 @@ function ForgotPassword() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validateEmail(email)) {
             setError('الرجاء إدخال بريد إلكتروني صحيح');
             return;
@@ -50,10 +52,10 @@ function ForgotPassword() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
-            
+
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || 'حدث خطأ أثناء إرسال الرابط');
-            
+
             setSuccess(true);
             setError(null);
         } catch (error) {
@@ -89,38 +91,31 @@ function ForgotPassword() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <motion.div variants={itemVariants}>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            البريد الإلكتروني
-                        </label>
-                        <input
+                        <Input
                             type="email"
                             id="email"
+                            label="البريد الإلكتروني"
                             required
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                             value={email}
                             onChange={(e) => {
                                 setEmail(e.target.value);
-                                if(error) setError(null);
+                                if (error) setError(null);
                             }}
                             placeholder="example@domain.com"
                         />
                     </motion.div>
 
                     <motion.div variants={itemVariants}>
-                        <button
+                        <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+                            isLoading={loading}
+                            fullWidth
+                            variant="primary"
+                            className="py-3"
                         >
-                            {loading ? (
-                                <>
-                                    <TbLoader className="animate-spin w-5 h-5" />
-                                    جاري الإرسال...
-                                </>
-                            ) : (
-                                "إرسال رابط الاستعادة"
-                            )}
-                        </button>
+                            {loading ? "جاري الإرسال..." : "إرسال رابط الاستعادة"}
+                        </Button>
                     </motion.div>
                 </form>
 
@@ -153,8 +148,8 @@ function ForgotPassword() {
                 </AnimatePresence>
 
                 <motion.div variants={itemVariants} className="text-center text-sm text-gray-600 dark:text-gray-400">
-                    <Link 
-                        to="/signin" 
+                    <Link
+                        to="/signin"
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
                     >
                         العودة إلى صفحة تسجيل الدخول

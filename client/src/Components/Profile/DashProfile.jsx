@@ -8,6 +8,8 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { app } from '../../firebase.js';
 import { updateFailure, updateStart, updateSuccess } from '../redux/user/userSlice.js';
 import { Helmet } from "react-helmet";
+import Button from "../UI/Button";
+import Input from "../UI/Input";
 
 const CustomizedDashProfile = () => {
   const { currentUser, error } = useSelector((state) => state.user);
@@ -137,7 +139,7 @@ const CustomizedDashProfile = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="max-w-4xl mx-auto bg-[var(--card)] rounded-2xl shadow-premium border border-[var(--border)] overflow-hidden"
+          className="max-w-4xl mx-auto bg-[var(--card)] rounded-none shadow-premium border border-[var(--border)] overflow-hidden"
         >
           {/* Profile Header */}
           <div className="bg-primary p-6 text-white">
@@ -165,11 +167,11 @@ const CustomizedDashProfile = () => {
                 <img
                   src={imageFileUrl || currentUser.avatar}
                   alt="Profile"
-                  className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover group-hover:opacity-75 transition-opacity"
+                  className="w-32 h-32 rounded-none border-4 border-white shadow-lg object-cover group-hover:opacity-75 transition-opacity"
                 />
                 <button
                   onClick={() => filePickerRef.current.click()}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded-full transition-opacity"
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded-none transition-opacity"
                 >
                   <FaCamera className="text-2xl text-white" />
                 </button>
@@ -188,70 +190,55 @@ const CustomizedDashProfile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left Column */}
                 <div className="space-y-4">
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                    <input
-                      id="name"
-                      type="text"
-                      defaultValue={currentUser.name}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#016FB9] focus:border-transparent transition-all"
-                    />
-                  </motion.div>
+                  <Input
+                    id="name"
+                    label="Full Name"
+                    type="text"
+                    defaultValue={currentUser.name}
+                    onChange={handleChange}
+                  />
 
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-bold text-[var(--muted-foreground)] mb-2">اسم المستخدم</label>
-                    <input
-                      id="username"
-                      type="text"
-                      defaultValue={currentUser.username}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--accent)] text-[var(--foreground)] focus:ring-2 focus:ring-primary focus:border-transparent transition-all font-medium"
-                    />
-                  </motion.div>
+                  <Input
+                    id="username"
+                    label="اسم المستخدم"
+                    type="text"
+                    defaultValue={currentUser.username}
+                    onChange={handleChange}
+                  />
 
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input
-                      id="email"
-                      type="email"
-                      defaultValue={currentUser.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#016FB9] focus:border-transparent transition-all"
-                    />
-                  </motion.div>
+                  <Input
+                    id="email"
+                    label="Email"
+                    type="email"
+                    defaultValue={currentUser.email}
+                    onChange={handleChange}
+                  />
                 </div>
 
                 {/* Right Column */}
                 <div className="space-y-4">
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                    <input
-                      id="number"
-                      type="tel"
-                      defaultValue={currentUser.number}
-                      onChange={handleChange}
-                      disabled={!currentUser.isAdmin && !currentUser.isBroker}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#016FB9] focus:border-transparent transition-all disabled:opacity-50"
-                    />
-                  </motion.div>
+                  <Input
+                    id="number"
+                    label="Phone Number"
+                    type="tel"
+                    defaultValue={currentUser.number}
+                    onChange={handleChange}
+                    disabled={!currentUser.isAdmin && !currentUser.isBroker}
+                  />
 
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input
-                      id="password"
-                      type="password"
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#016FB9] focus:border-transparent transition-all"
-                    />
-                  </motion.div>
+                  <Input
+                    id="password"
+                    label="Password"
+                    type="password"
+                    onChange={handleChange}
+                  />
 
                   <motion.div variants={itemVariants} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium text-gray-700">Role:</span>
-                      <span className={`px-3 py-1 rounded-full text-sm ${currentUser.isAdmin ? 'bg-red-100 text-red-800' :
-                          currentUser.isBroker ? 'bg-amber-100 text-amber-800' :
-                            'bg-green-100 text-green-800'
+                      <span className={`px-3 py-1 rounded-none text-sm ${currentUser.isAdmin ? 'bg-red-100 text-red-800' :
+                        currentUser.isBroker ? 'bg-amber-100 text-amber-800' :
+                          'bg-green-100 text-green-800'
                         }`}>
                         {currentUser.isAdmin ? 'Admin' : currentUser.isBroker ? 'Broker' : 'User'}
                       </span>
@@ -262,26 +249,30 @@ const CustomizedDashProfile = () => {
 
               {/* Action Buttons */}
               <motion.div variants={itemVariants} className="flex flex-col space-y-4">
-                <button
+                <Button
                   type="submit"
                   disabled={imageFileUploading}
-                  className="w-full bg-primary hover:bg-primary-dark text-white py-4 px-6 rounded-xl font-black flex items-center justify-center space-x-2 transition-all shadow-premium"
+                  isLoading={imageFileUploading}
+                  variant="primary"
+                  fullWidth
+                  className="py-4 font-black"
                 >
-                  <FaRegSave className="text-lg" />
+                  <FaRegSave className="text-lg mr-2" />
                   <span>تحديث البيانات</span>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  className="w-full border-red-500 text-red-500 hover:bg-red-50 py-3"
                   onClick={() => {
                     localStorage.removeItem('token');
                     window.location.reload();
                   }}
-                  className="w-full border border-red-500 text-red-500 hover:bg-red-50 py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2 transition-all"
                 >
-                  <FaSignOutAlt className="text-lg" />
+                  <FaSignOutAlt className="text-lg mr-2" />
                   <span>Logout</span>
-                </button>
+                </Button>
               </motion.div>
             </motion.form>
 
@@ -295,12 +286,12 @@ const CustomizedDashProfile = () => {
                   className="mt-6 space-y-4"
                 >
                   {updateUserSuccess && (
-                    <div className="p-4 bg-green-50 text-green-700 rounded-lg border border-green-200">
+                    <div className="p-4 bg-green-50 text-green-700 rounded-none border border-green-200">
                       {updateUserSuccess}
                     </div>
                   )}
                   {(updateUserError || imageFileUploadError) && (
-                    <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+                    <div className="p-4 bg-red-50 text-red-700 rounded-none border border-red-200">
                       {updateUserError || imageFileUploadError}
                     </div>
                   )}

@@ -3,24 +3,26 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TbLoader } from 'react-icons/tb';
 import { HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import Button from '../../UI/Button';
+import Input from '../../UI/Input';
 
 // Animation variants
 const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.4,
-      staggerChildren: 0.1,
-      when: "beforeChildren"
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.4,
+            staggerChildren: 0.1,
+            when: "beforeChildren"
+        }
     }
-  }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 }
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
 };
 
 function ResetPassword() {
@@ -40,7 +42,7 @@ function ResetPassword() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!validatePassword(password)) {
             setError('كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل وتشمل أرقام وحروف');
             return;
@@ -58,10 +60,10 @@ function ResetPassword() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ password })
             });
-            
+
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || 'حدث خطأ أثناء تحديث كلمة المرور');
-            
+
             setSuccess(true);
             setError(null);
             setTimeout(() => navigate('/signin'), 2000);
@@ -99,18 +101,15 @@ function ResetPassword() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <motion.div variants={itemVariants} className="space-y-3">
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                كلمة المرور الجديدة
-                            </label>
-                            <input
+                            <Input
                                 type="password"
                                 id="password"
+                                label="كلمة المرور الجديدة"
                                 required
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 value={password}
                                 onChange={(e) => {
                                     setPassword(e.target.value);
-                                    if(error) setError(null);
+                                    if (error) setError(null);
                                 }}
                                 aria-describedby="password-requirements"
                             />
@@ -120,38 +119,31 @@ function ResetPassword() {
                         </div>
 
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                تأكيد كلمة المرور
-                            </label>
-                            <input
+                            <Input
                                 type="password"
                                 id="confirmPassword"
+                                label="تأكيد كلمة المرور"
                                 required
-                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 value={confirmPassword}
                                 onChange={(e) => {
                                     setConfirmPassword(e.target.value);
-                                    if(error) setError(null);
+                                    if (error) setError(null);
                                 }}
                             />
                         </div>
                     </motion.div>
 
                     <motion.div variants={itemVariants}>
-                        <button
+                        <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+                            isLoading={loading}
+                            fullWidth
+                            variant="primary"
+                            className="py-3"
                         >
-                            {loading ? (
-                                <>
-                                    <TbLoader className="animate-spin w-5 h-5" />
-                                    جاري التحديث...
-                                </>
-                            ) : (
-                                "تحديث كلمة المرور"
-                            )}
-                        </button>
+                            {loading ? "جاري التحديث..." : "تحديث كلمة المرور"}
+                        </Button>
                     </motion.div>
                 </form>
 

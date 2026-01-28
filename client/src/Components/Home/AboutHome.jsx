@@ -37,7 +37,7 @@ export default function AboutHome() {
           <div className={`space-y-8 ${isRtl ? 'order-last lg:order-first' : ''}`}>
             <div>
               <span className="text-primary-600 font-bold uppercase tracking-widest text-xs mb-2 block">{t('legacy')}</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-800 leading-tight">
+              <h2 className="text-3xl md:text-5xl font-heading font-black text-slate-900 leading-tight">
                 {t('welcome_title_1')} <span className="text-primary-600">{t('welcome_title_2')}</span> {t('welcome_title_3')}
               </h2>
             </div>
@@ -49,7 +49,7 @@ export default function AboutHome() {
             <div className="space-y-6">
               {achievements.map((item, idx) => (
                 <div key={idx} className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-slate-50 border border-slate-100 rounded-sm flex items-center justify-center text-primary-600">
+                  <div className="flex-shrink-0 w-12 h-12 bg-slate-50 border border-slate-100 rounded-none flex items-center justify-center text-primary-600">
                     {item.icon}
                   </div>
                   <div>
@@ -62,7 +62,7 @@ export default function AboutHome() {
 
             <div className="pt-4">
               <Link to="/about">
-                <button className="px-8 py-3 bg-primary-600 text-white font-bold hover:bg-primary-700 transition-colors uppercase tracking-wide text-sm rounded-sm">
+                <button className="px-8 py-3 bg-primary-600 text-white font-bold hover:bg-primary-700 transition-colors uppercase tracking-wide text-sm rounded-none">
                   {t('learn_more')}
                 </button>
               </Link>
@@ -71,7 +71,7 @@ export default function AboutHome() {
 
           {/* Image Content */}
           <div className="relative">
-            <div className="relative rounded-sm overflow-hidden shadow-lg border border-slate-200">
+            <div className="relative rounded-none overflow-hidden shadow-lg border border-slate-200">
               <img
                 src={imgElsarh}
                 alt="About El Sarh"
@@ -79,7 +79,7 @@ export default function AboutHome() {
               />
             </div>
             {/* Simple Achievement Box */}
-            <div className={`absolute bottom-8 ${isRtl ? 'left-8' : 'right-8'} bg-primary-600 p-6 shadow-xl rounded-sm text-white max-w-xs`}>
+            <div className={`absolute bottom-8 ${isRtl ? 'left-8' : 'right-8'} bg-primary-600 p-6 shadow-xl rounded-none text-white max-w-xs`}>
               <div className="flex items-center gap-4">
                 <span className="text-4xl font-black">20+</span>
                 <div>

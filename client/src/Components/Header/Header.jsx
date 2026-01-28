@@ -35,7 +35,8 @@ export default function Header() {
     { title: t('home'), path: '/' },
     { title: t('listings'), path: '/Project' },
     { title: t('about'), path: '/About' },
-    { title: t('contact'), path: '/contact' },
+    { title: t('contact'), path: '/Contact' },
+    ...(currentUser?.isAdmin ? [{ title: t('admin'), path: '/Dashboard?tab=dashbordData' }] : []),
   ];
 
   useEffect(() => {
@@ -87,7 +88,7 @@ export default function Header() {
           <div className="flex items-center gap-6">
 
             {/* Fake Search Bar (Visual Only) */}
-            <div className="hidden lg:flex items-center bg-slate-100 rounded-md px-4 py-2 w-96 border border-slate-200 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all">
+            <div className="hidden lg:flex items-center bg-slate-100 rounded-none px-4 py-2 w-96 border border-slate-200 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all">
               <input
                 type="text"
                 placeholder={t('search_placeholder')}
@@ -111,7 +112,7 @@ export default function Header() {
               {currentUser ? (
                 <div className="relative" ref={userMenuRef}>
                   <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
-                    <Avatar img={currentUser.avatar} rounded size="sm" />
+                    <Avatar img={currentUser.avatar} size="sm" className="rounded-none overflow-hidden [&>img]:rounded-none" />
                   </button>
                   <AnimatePresence>
                     {isUserMenuOpen && (
@@ -119,7 +120,7 @@ export default function Header() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
+                        className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-none shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
                       >
                         <div className="p-2" dir={isRtl ? 'rtl' : 'ltr'}>
                           <UserMenuItem icon={<FaUser />} text={t('favorites')} href="/Dashboard?tab=Favorites" onClick={() => setIsUserMenuOpen(false)} />
@@ -217,7 +218,7 @@ export default function Header() {
                     to={link.path}
                     onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) => `
-                      block px-4 py-4 rounded-sm text-sm font-bold uppercase tracking-widest transition-all
+                      block px-4 py-4 rounded-none text-sm font-bold uppercase tracking-widest transition-all
                       ${isActive
                         ? 'bg-primary-50 text-primary-600 border-r-4 border-primary-600'
                         : 'text-slate-500 hover:bg-slate-50 hover:text-primary-600'}
@@ -235,7 +236,7 @@ export default function Header() {
                 </p>
                 <div className="space-y-4">
                   <a href={`tel:${config?.contact?.phone}`} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-primary-600 shadow-sm border border-slate-100">
+                    <div className="w-8 h-8 rounded-none bg-white flex items-center justify-center text-primary-600 shadow-sm border border-slate-100">
                       <FaDoorOpen size={14} />
                     </div>
                     {config?.contact?.phone}
@@ -253,7 +254,7 @@ export default function Header() {
 const UserMenuItem = ({ icon, text, href, onClick, isRed = false }) => {
   const content = (
     <div className={`
-      flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl cursor-pointer
+      flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-none cursor-pointer
       transition-all duration-200
       ${isRed
         ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10'

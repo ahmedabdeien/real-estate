@@ -35,7 +35,7 @@ export default function Footer() {
     { name: 'الرئيسية', path: '/' },
     { name: 'المشاريع', path: '/Project' },
     { name: 'من نحن', path: '/About' },
-    { name: 'تواصل معنا', path: '/contact' },
+    { name: 'تواصل معنا', path: '/Contact' },
   ];
 
   const { t, i18n } = useTranslation();
@@ -71,7 +71,7 @@ export default function Footer() {
               <li><Link to="/" className="hover:text-primary-600 transition-colors">{t('home')}</Link></li>
               <li><Link to="/Project" className="hover:text-primary-600 transition-colors">{t('listings')}</Link></li>
               <li><Link to="/About" className="hover:text-primary-600 transition-colors">{t('about')}</Link></li>
-              <li><Link to="/contact" className="hover:text-primary-600 transition-colors">{t('contact')}</Link></li>
+              <li><Link to="/Contact" className="hover:text-primary-600 transition-colors">{t('contact')}</Link></li>
             </ul>
           </div>
 

@@ -10,7 +10,7 @@ export default function Reviews() {
   ];
 
   return (
-    <section dir="rtl" className="py-40 bg-slate-50 dark:bg-slate-900 relative overflow-hidden">
+    <section id="reviews" dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
       {/* Dynamic Background Pattern */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent" />
 
@@ -22,7 +22,7 @@ export default function Reviews() {
           viewport={{ once: true }}
         >
           <span className="text-accent-600 font-black uppercase tracking-[0.4em] text-xs">ارتقاء بالثقة</span>
-          <h2 className="text-5xl md:text-7xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
             ماذا يقول <br /><span className="text-slate-400">شركاء النجاح</span>
           </h2>
         </motion.div>
@@ -35,7 +35,7 @@ export default function Reviews() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.15 }}
-              className="group relative bg-white dark:bg-slate-800 p-12 rounded-[60px] shadow-premium hover:shadow-premium-xl transition-all duration-700 border border-slate-100 dark:border-slate-700 hover:border-accent-600/30 overflow-hidden"
+              className="group relative bg-white dark:bg-slate-800 p-12 rounded-none shadow-premium hover:shadow-premium-xl transition-all duration-700 border border-slate-100 dark:border-slate-700 hover:border-accent-600/30 overflow-hidden"
             >
               <div className="absolute -top-10 -left-10 text-accent-600/5 group-hover:text-accent-600/10 transition-colors transform -rotate-12">
                 <BsQuote size={200} />
@@ -51,12 +51,12 @@ export default function Reviews() {
                   ))}
                 </div>
 
-                <p className="text-2xl text-primary-900 dark:text-slate-200 leading-[1.8] font-medium mb-12 italic">
+                <p className="text-xl text-primary-900 dark:text-slate-200 leading-[1.8] font-medium mb-12 italic">
                   "{review.review}"
                 </p>
 
                 <div className="flex items-center gap-6 border-t border-slate-100 dark:border-slate-700 pt-10">
-                  <div className="w-20 h-20 rounded-3xl border-4 border-white dark:border-slate-900 shadow-premium overflow-hidden">
+                  <div className="w-20 h-20 rounded-none border-4 border-white dark:border-slate-900 shadow-premium overflow-hidden">
                     <img
                       src={`https://api.dicebear.com/7.x/initials/svg?seed=${review.name}&backgroundColor=d97706&fontFamily=Inter&fontWeight=700`}
                       alt={review.name}
@@ -64,7 +64,7 @@ export default function Reviews() {
                     />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-heading font-black text-primary-900 dark:text-white leading-tight">
+                    <h3 className="text-lg font-heading font-black text-primary-900 dark:text-white leading-tight">
                       {review.name}
                     </h3>
                     <p className="text-accent-600 text-sm font-black uppercase tracking-widest mt-1">

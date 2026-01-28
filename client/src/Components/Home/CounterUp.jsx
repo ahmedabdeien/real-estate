@@ -36,14 +36,14 @@ export default function CounterUp() {
               transition={{ duration: 0.8, delay: index * 0.2 }}
               className="relative group flex flex-col items-center text-center"
             >
-              <div className="absolute -top-10 -left-10 text-[120px] font-black text-white/[0.03] pointer-events-none select-none uppercase tracking-tighter">
+              <div className="absolute -top-10 -left-10 text-[80px] font-black text-white/[0.03] pointer-events-none select-none uppercase tracking-tighter">
                 {item.label}
               </div>
 
               <div className="relative mb-8">
-                <div className="absolute inset-0 bg-accent-600/20 rounded-full blur-[50px] group-hover:blur-[70px] transition-all duration-700" />
+                <div className="absolute inset-0 bg-accent-600/20 rounded-none blur-[50px] group-hover:blur-[70px] transition-all duration-700" />
                 <div className="relative flex items-end justify-center">
-                  <span className="text-7xl md:text-9xl font-heading font-black text-white tracking-tighter flex items-center">
+                  <span className="text-5xl md:text-7xl font-heading font-black text-white tracking-tighter flex items-center">
                     {startAnimation && (
                       <CountUp start={0} end={item.end} duration={5} />
                     )}
@@ -52,9 +52,9 @@ export default function CounterUp() {
                 </div>
               </div>
 
-              <div className="h-1 w-20 bg-accent-600 mb-8 rounded-full transform origin-right group-hover:scale-x-150 transition-transform duration-700" />
+              <div className="h-1 w-20 bg-accent-600 mb-8 rounded-none transform origin-right group-hover:scale-x-150 transition-transform duration-700" />
 
-              <p className="text-2xl font-heading font-black text-slate-100 uppercase tracking-widest max-w-[200px] leading-tight">
+              <p className="text-lg font-heading font-black text-slate-100 uppercase tracking-widest max-w-[200px] leading-tight">
                 {item.text}
               </p>
 

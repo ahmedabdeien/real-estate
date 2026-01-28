@@ -27,7 +27,7 @@ const TeamMembers = () => (
         transition={{ delay: index * 0.2 }}
         className="group relative"
       >
-        <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-premium transition-all duration-700 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">
+        <div className="relative h-[400px] rounded-none overflow-hidden shadow-premium transition-all duration-700 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700">
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-500/10 to-primary-600/20">
             <span className="text-8xl font-black text-primary-600/30 select-none">
               {member.initials}

@@ -13,10 +13,15 @@ import 'react-quill/dist/quill.snow.css';
 import { Alert } from "flowbite-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { HiArchive } from "react-icons/hi";
+import Button from "../UI/Button";
+import Input from "../UI/Input";
+import Spinner from "../UI/Spinner";
 
 
 function CreatePage() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
   const fileRef = useRef(null);
@@ -36,12 +41,17 @@ function CreatePage() {
   const [loading, setLoading] = useState(false)
 
   const [formData, setFormData] = useState({
-    name: "",
-    description: '',
-    address: "",
-    available: '',
+    name: { en: '', ar: '' },
+    description: { en: '', ar: '' },
+    address: { en: '', ar: '' },
+    city: { en: '', ar: '' },
+    propertyType: 'Apartment',
+    price: 0,
+    available: true,
     numberFloors: 0,
     propertySize: 0,
+    rooms: 0,
+    bathrooms: 0,
     sizeApartmentsOne: 0,
     sizeApartmentsTwo: 0,
     sizeApartmentsThree: 0,
@@ -133,6 +143,7 @@ function CreatePage() {
       setUploadingPlan(false);
     }
   };
+
   const handleImageSubmitApartment = () => {
     if (
       filesApartment.length > 0 &&
@@ -183,22 +194,27 @@ function CreatePage() {
       imageApartments: newImages,
     });
   };
+
   const handleChange = (e) => {
-    if (e.target.id === 'متاح' || e.target.id === 'غير متاح') {
+    const { id, value, type } = e.target;
+
+    if (id.includes('.')) {
+      const [parent, child] = id.split('.');
       setFormData({
         ...formData,
-        available: e.target.id,
+        [parent]: {
+          ...formData[parent],
+          [child]: value
+        }
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [id]: type === 'number' ? parseInt(value) || 0 : value
       });
     }
-    if (e.target.type === 'number' || e.target.type === 'text' || e.target.type === "textarea") {
-      setFormData({
-        ...formData,
-        [e.target.id]: e.target.value,
+  };
 
-      })
-    }
-
-  }
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -222,484 +238,268 @@ function CreatePage() {
       setLoading(false);
       if (data.success === false) {
         setError(data.message)
+      } else {
+        navigate(`/Projects/${data.data.slug}`)
       }
-      navigate(`/Projects/${data.slug}`)
     } catch (error) {
       setError(error.message);
       setLoading(false);
     }
 
   }
-  let styleIuput = "w-full p-3 border-gray-200 border-2 dark:bg-gray-800/30 dark:border-gray-500 dark:placeholder:text-gray-300 rounded-lg focus:transition-shadow focus:duration-300 focus:ring-0 focus:border-white focus:shadow-[0_0px_0px_2px] focus:shadow-blue-600 dark:focus:border-gray-700";
+
   return (
-    <div dir="rtl">
-      <div className=" w-full bg-gradient-to-r from-gray-50 via-amber-50 to-blue-50 dark:from-gray-800 dark:via-amber-800/20 dark:to-blue-800/30 py-6">
-        <div className="w-full  ">
-          <div className="container mb-6">
-            <h1 className=" text-3xl font-bold flex items-center text-black dark:text-white ">
-              <HiArchive className="me-2 text-blue-600" /><span>انشاء صفحة جديدة</span>
-            </h1>
-            <p className=" text-gray-500 dark:text-gray-400">
-              يرجى ملء النموذج أدناه لإنشاء صفحتك
-            </p>
-          </div>
+    <div className="w-full bg-slate-50 py-6">
+      <div className="w-full">
+        <div className="container mb-6">
+          <h1 className="text-3xl font-black flex items-center text-slate-900">
+            <HiArchive className="me-2 text-primary-600" />
+            <span>{t('create_listing')}</span>
+          </h1>
+          <p className="text-slate-500 font-medium">
+            {t('form_subtitle')}
+          </p>
+        </div>
 
+        <div className="md:container">
+          <div className="bg-white p-8 rounded-none shadow-xl border border-slate-100">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              {/* Column 1: Details */}
+              <div className="space-y-8">
+                {/* Multilingual Name */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label={t('project_name_en')}
+                    type="text"
+                    id="name.en"
+                    required
+                    onChange={handleChange}
+                    value={formData.name.en}
+                  />
+                  <Input
+                    label={t('project_name_ar')}
+                    type="text"
+                    id="name.ar"
+                    required
+                    onChange={handleChange}
+                    value={formData.name.ar}
+                  />
+                </div>
 
-          <div className="container">
-            <div className="bg-white dark:bg-gray-700 p-5 rounded-2xl shadow-sm">
-              <form onSubmit={handleSubmit} className=" grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="w-full space-y-2">
-                  <div>
-                    <label htmlFor="name">اسم المشروع</label>
-                    <input
-                      type="text"
-                      placeholder="أسم المشروع"
-                      id="name"
-                      maxLength={60}
-                      minLength={3}
-                      required
-                      className={styleIuput}
-                      onChange={handleChange}
-                      value={formData.name}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="address">عنوان المشروع</label>
-                    <input
-                      type="text"
-                      placeholder="عنوان المشروع"
-                      id="address"
-                      required
-                      className={styleIuput}
-                      onChange={handleChange}
-                      value={formData.address}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="description">تفاصيل المشروع</label>
-                    <textarea
-                      type="text"
-                      placeholder="تفاصيل المشروع"
-                      id="description"
-                      required
-                      className={`${styleIuput} max-h-48 min-h-14`}
-                      onChange={handleChange}
-                      value={formData.description}
-                    />
-                  </div>
-                  <div className="w-full dark:bg-gray-700 dark:placeholder:text-gray-300 rounded-lg">
-                    <p>اختار هل؟متاح ام غير متاح شقق</p>
-                    <div className={`${styleIuput} p-1 flex space-x-5`}>
-                      <div className=" has-[:checked]:bg-blue-100 has-[:checked]:text-blue-800 has-[:checked]:ring-blue-500 flex items-center p-3 rounded-md">
-                        <input
-                          type="checkbox"
-                          name=""
-                          id="متاح"
-                          checked={formData.available === 'متاح'}
-                          onChange={handleChange}
-                          className="me-2"
-                        />
-                        <label htmlFor="متاح">متاح</label>
-                      </div>
-                      <div className=" has-[:checked]:bg-red-100 has-[:checked]:text-red-800 has-[:checked]:ring-red-500 flex items-center p-3 rounded-md">
-                        <input
-                          className="checked:bg-red-600 me-2 checked:ring-red-600"
-                          type="checkbox"
-                          id="غير متاح"
-                          checked={formData.available === 'غير متاح'}
-                          onChange={handleChange}
-                        />
-                        <label htmlFor="غير متاح">غير متاح</label>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-2">
-                    <div>
-                      <label htmlFor="numberFloors">عدد الادوار</label>
-                      <input
-                        type="number"
-                        placeholder="Number Floors"
-                        id="numberFloors"
-                        min={1}
-                        max={20}
-                        required
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.numberFloors}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="Property Size">مساحة المشروع</label>
-                      <input
-                        type="number"
-                        placeholder="مساحة المشروع"
-                        id="propertySize"
-                        min={1}
-                        required
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.propertySize}
-                      />
-                    </div>
-                  </div>
+                {/* Multilingual City */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label={t('city_en')}
+                    type="text"
+                    id="city.en"
+                    required
+                    onChange={handleChange}
+                    value={formData.city.en}
+                  />
+                  <Input
+                    label={t('city_ar')}
+                    type="text"
+                    id="city.ar"
+                    required
+                    onChange={handleChange}
+                    value={formData.city.ar}
+                  />
+                </div>
 
-                  <div className="w-full pt-7">
-                    <p className="">
-                      <span className="font-bold text-black dark:text-white">تقسييم الدخلي الصورة:</span>
-                      الصورة الأولى ستكون الغلاف (حد أقصى 1)
-                    </p>
-                    <input
-                      type="file"
-                      id="imagePlans"
-                      onChange={(e) => setFilesPlan(Array.from(e.target.files))}
-                      ref={fileRefPlan}
-                      className="hidden"
-                      accept="image/*"
-                      multiple
-                    />
+                {/* Multilingual Address */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label={t('project_address_en')}
+                    type="text"
+                    id="address.en"
+                    required
+                    onChange={handleChange}
+                    value={formData.address.en}
+                  />
+                  <Input
+                    label={t('project_address_ar')}
+                    type="text"
+                    id="address.ar"
+                    required
+                    onChange={handleChange}
+                    value={formData.address.ar}
+                  />
+                </div>
+
+                {/* Multilingual Description */}
+                <div className="space-y-4">
+                  <Input
+                    label={t('project_desc_en')}
+                    type="textarea"
+                    id="description.en"
+                    required
+                    onChange={handleChange}
+                    value={formData.description.en}
+                  />
+                  <Input
+                    label={t('project_desc_ar')}
+                    type="textarea"
+                    id="description.ar"
+                    required
+                    onChange={handleChange}
+                    value={formData.description.ar}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">{t('property_type')}</label>
+                    <select
+                      id="propertyType"
+                      value={formData.propertyType}
+                      onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
+                      className="w-full p-3 border-gray-200 border-[1px] rounded-none focus:border-primary-600 outline-none"
+                    >
+                      <option value="Apartment">{t('Apartment') || 'Apartment'}</option>
+                      <option value="Villa">{t('Villa') || 'Villa'}</option>
+                      <option value="Office">{t('Office') || 'Office'}</option>
+                      <option value="Shop">{t('Shop') || 'Shop'}</option>
+                      <option value="Land">{t('Land') || 'Land'}</option>
+                    </select>
+                  </div>
+                  <Input
+                    label={t('price')}
+                    type="number"
+                    id="price"
+                    required
+                    onChange={handleChange}
+                    value={formData.price}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-slate-500 uppercase">{t('availability_status')}</p>
+                  <div className="flex gap-4">
                     <div
-                      onClick={() => fileRefPlan.current.click()}
-                      className="w-full rounded-2xl hover:bg-gray-300/15 dark:hover:bg-gray-500/15 bg-white dark:bg-gray-700 mt-2 overflow-hidden relative border-dashed dark:border-gray-500 border-2"
+                      onClick={() => setFormData({ ...formData, available: true })}
+                      className={`flex items-center p-3 rounded-none border-[1px] cursor-pointer transition-all flex-1 justify-center font-bold text-xs uppercase tracking-widest ${formData.available === true ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
                     >
-                      <span className="absolute top-0 left-0 w-full h-full cursor-pointer"></span>
-                      <div className="flex justify-center items-center flex-col p-3 h-40">
-                        <HiPhotograph className="text-5xl text-blue-600" />
-                        <p>تحميل تقسييم الداخلي الصورة</p>
-                        <div
-                          className={` mt-2`}
-                        >
-                          {filesPlan.length ? (
-                            <Alert color={`${filesPlan.length > 1 ? "failure" : "success"}`} icon={HiCursorClick}>
-                              <span>{filesPlan.length}</span>
-                              <span>الصور المختارة</span>
-                            </Alert>
-                          ) : (
-                            ""
-                          )}
-                        </div>
-                      </div>
+                      <span>{t('available')}</span>
                     </div>
-                    {imageUploadErrorPlan ? <Alert color="failure" className="mt-3" icon={HiInformationCircle}>{imageUploadErrorPlan}</Alert> : ""}
-                    <div className="flex justify-center items-center">
-                      {uploadingPlan ? (
-                        <FaCircleNotch className="animate-spin mt-3 text-[#023E8A] dark:text-blue-400" />
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                    <div>
-                      {formData.imagePlans.length > 0 && (
-                        <div className="dark:border-gray-500 mt-3 rounded-xl border ">
-                          <div className="bg-img-createPage p-[2px] flex flex-wrap">
-                            {formData.imagePlans.map((url, index) => (
-                              <div key={index} className="p-1 ">
-                                <div className="flex justify-between items-center rounded overflow-hidden">
-                                  <div className="flex items-center group/item relative rounded-md overflow-hidden dark:border-gray-500 border-2 shadow-md">
-                                    <img
-                                      src={url}
-                                      alt="image"
-                                      className="w-20 h-20 object-cover"
-                                    />
-                                    <div className="group-hover/item:translate-y-0 -translate-y-40 transition-transform ease-in-out absolute top-0 left-0 w-full">
-                                      <button
-                                        type="button"
-                                        onClick={handleRemoveImagePlan(index)}
-                                        className=" bg-red-600 text-red-100 font-semibold py-1 p-3 w-full"
-                                      >
-                                        مسح
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      disabled={uploadingPlan}
-                      onClick={handleImageSubmitPlan}
-                      className="bg-blue-600 rounded-lg mt-4 font-bold text-white p-3 w-full hover:shadow-lg flex justify-center items-center disabled:bg-blue-600/50 disabled:shadow-none"
-                    >
-                      {uploadingPlan ? "جاري التحميل..." : "رفع الصورة"}
-                    </button>
-                  </div>
-
-                  <div className="w-full pt-7">
-                    <p className="">
-                      <span className="font-bold text-black dark:text-white">صور الشقق:</span>{" "}
-                      الصورة الأولى ستكون الغلاف (بحد أقصى 8)
-                    </p>
-                    <input type="file" id="imageApartments" onChange={(e) => setFilesApartment(Array.from(e.target.files))} ref={fileRefApartment} className="hidden" accept="image/*" multiple />
-                    <div onClick={() => fileRefApartment.current.click()}
-                      className="w-full rounded-2xl hover:bg-gray-300/15 dark:hover:bg-gray-500/15 bg-white dark:bg-gray-700 mt-2 overflow-hidden relative border-dashed dark:border-gray-500 border-2" >
-                      <span className="absolute top-0 left-0 w-full h-full cursor-pointer"></span>
-                      <div className="flex justify-center items-center flex-col p-3 h-40 ">
-                        <HiPhotograph className={` text-5xl text-blue-600`} />
-                        <p>تحميل صورة الشقة</p>
-                        <div
-                          className='mt-2'
-                        >
-                          {filesApartment.length ? (
-                            <Alert color={`${filesApartment.length > 8 ? "failure" : "success"}`} icon={HiCursorClick}>
-                              <span>{filesApartment.length}</span>
-                              <span>الصور المختارة</span>
-                            </Alert>
-                          ) : (
-                            ""
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    {imageUploadErrorApartment ? <Alert color="failure" className="mt-3" icon={HiInformationCircle}>{imageUploadErrorApartment}</Alert> : ""}
-                    <div>
-                      {formData.imageApartments.length > 0 && (
-                        <div className=" dark:border-gray-500 mt-3  rounded-xl border ">
-                          <div className="bg-img-createPage p-[2px] flex flex-wrap">
-                            {formData.imageApartments.map((url, index) => (
-                              <div key={index} className="p-1">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center group/item relative rounded-md overflow-hidden dark:border-gray-500 border-2 shadow-md">
-                                    <img
-                                      src={url}
-                                      alt="image"
-                                      className="w-20 h-20 object-cover"
-                                    />
-                                    <div className="group-hover/item:translate-y-0 -translate-y-40 transition-transform ease-in-out absolute top-0 left-0 w-full">
-                                      <button
-                                        type="button"
-                                        onClick={handleRemoveImageApartment(index)}
-                                        className=" bg-red-600 text-red-100 font-semibold py-1 p-3 w-full"
-                                      >
-                                        مسح
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-center items-center">
-                      {uploadingApartment ? (
-                        <FaCircleNotch className="animate-spin mt-3 text-blue-600 " />
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      disabled={uploadingApartment}
-                      onClick={handleImageSubmitApartment}
-                      className="bg-blue-600 rounded-lg mt-4 font-bold text-white p-3 w-full hover:shadow-lg flex justify-center items-center disabled:bg-blue-600/50 disabled:shadow-none"
-                    >
-                      {uploadingApartment ? "جاري التحميل..." : "رفع الصور"}
-                    </button>
-                  </div>
-
-
-                  <div className="grid grid-cols-4 gap-3">
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (1)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsOne"
-                        placeholder="مساحة شقة (1)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsOne}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (2)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsTwo"
-                        placeholder="مساحة شقة (2)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsTwo}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (3)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsThree"
-                        placeholder="مساحة شقة (3)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsThree}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (4)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsFour"
-                        placeholder="مساحة شقة (4)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsFour}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (5)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsFive"
-                        placeholder="مساحة شقة (5)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsFive}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (6)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsSix"
-                        placeholder="مساحة شقة (6)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsSix}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (7)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsSeven"
-                        placeholder="مساحة شقة (7)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsSeven}
-                      />
-                    </div>
-                    <div className="w-full">
-                      <label htmlFor="titleApartments">مساحة شقة (8)</label>
-                      <input
-                        type="number"
-                        id="sizeApartmentsEight"
-                        placeholder="مساحة شقة (8)"
-                        className={styleIuput}
-                        onChange={handleChange}
-                        value={formData.sizeApartmentsEight}
-                      />
-                    </div>
-
-                  </div>
-
-
-
-                </div>
-
-                <div className=" order-first md:order-2">
-                  <div className="sticky top-16 w-full  ">
-                    <p className="mb-2">
-                      <span className="font-bold text-black dark:text-white">الصور:</span> الصورة الأولى ستكون الغلاف (بحد أقصى 6)
-                    </p>
-                    <input
-                      onChange={(e) => setFiles(Array.from(e.target.files))}
-                      type="file"
-                      id="imageUrls"
-                      ref={fileRef}
-                      className="hidden"
-                      accept="image/*"
-                      multiple
-                    />
                     <div
-                      onClick={() => fileRef.current.click()}
-                      className="w-full bg-white dark:bg-gray-700 overflow-hidden relative hover:bg-gray-300/15 dark:hover:bg-gray-500/15 cursor-pointer border-dashed dark:border-gray-500 border-2 rounded-2xl"
+                      onClick={() => setFormData({ ...formData, available: false })}
+                      className={`flex items-center p-3 rounded-none border-[1px] cursor-pointer transition-all flex-1 justify-center font-bold text-xs uppercase tracking-widest ${formData.available === false ? 'bg-red-600 border-red-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
                     >
-                      <span className="absolute top-0 left-0 w-full h-full"></span>
-                      <div className="flex justify-center items-center flex-col p-3 h-80 ">
-                        <HiPhotograph className="text-7xl text-blue-600" />
-                        <p>تحميل صورة الغلاف</p>
-                        <div
-                          className={`mt-2`}
-                        >
-                          {files.length ? (
-                            <Alert color={`${files.length > 6 ? "failure" : "success"}`} icon={HiCursorClick}>
-                              <span>{files.length}</span>
-                              <span>الصور المختارة</span>
-                            </Alert>
-                          ) : (
-                            ""
-                          )}
-                        </div>
-                      </div>
+                      <span>{t('sold')}</span>
                     </div>
-
-                    {imageUploadError ? <Alert color="failure" className="mt-3" icon={HiInformationCircle}>{imageUploadError}</Alert> : ""}
-
-
-                    <div>
-                      {formData.imageUrls.length > 0 && (
-                        <div className="dark:border-gray-500 mt-3  rounded-xl border overflow-hidden ">
-                          <div className="bg-img-createPage p-[2px] flex flex-wrap">
-                            {formData.imageUrls.map((url, index) => (
-                              <div key={index} className="p-1 ">
-                                <div className="flex justify-between items-center">
-                                  <div className="flex items-center group/item relative rounded-md overflow-hidden dark:border-gray-500 border-2 shadow-md">
-                                    <img
-                                      src={url}
-                                      alt="image"
-                                      className="w-24 h-24 object-cover"
-                                    />
-                                    <div className="group-hover/item:translate-y-0 -translate-y-40 transition-transform ease-in-out absolute top-0 left-0 w-full">
-                                      <button
-                                        type="button"
-                                        onClick={handleRemoveImage(index)}
-                                        className=" bg-red-600 text-red-100 font-semibold py-1 p-3 w-full"
-                                      >
-                                        مسح
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-center items-center">
-                      {uploading ? (
-                        <FaCircleNotch className="animate-spin mt-3 text-blue-600" />
-                      ) : (
-                        ""
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      disabled={uploading}
-                      onClick={handleImageSubmit}
-                      className="bg-blue-600 rounded-lg mt-4 font-bold text-white p-3 w-full hover:shadow-lg flex justify-center items-center disabled:bg-blue-600/50 disabled:shadow-none"
-                    >
-                      {uploading ? "جاري التحميل..." : "رفع الصور"}
-                    </button>
                   </div>
                 </div>
 
-
-
-
-
-                <div className="order-last">
-                  <button disabled={loading || uploading || uploadingApartment || uploadingPlan} className="bg-primary-600 disabled:bg-primary-500/50 uppercase font-black text-white rounded-xl active:scale-95 transition-all p-4 w-full shadow-lg my-3">
-                    {loading ? <FaCircleNotch className="animate-spin inline mr-2" /> : "نشر صفحة جديدة"}
-                  </button>
-
-                  {error && <Alert color="failure" icon={HiInformationCircle}>{error}</Alert>}
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label={t('number_of_floors')}
+                    type="number"
+                    id="numberFloors"
+                    min={1}
+                    required
+                    onChange={handleChange}
+                    value={formData.numberFloors}
+                  />
+                  <Input
+                    label={t('project_size')}
+                    type="number"
+                    id="propertySize"
+                    min={1}
+                    required
+                    onChange={handleChange}
+                    value={formData.propertySize}
+                  />
                 </div>
-              </form>
-            </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <Input
+                    label={t('rooms')}
+                    type="number"
+                    id="rooms"
+                    min={0}
+                    onChange={handleChange}
+                    value={formData.rooms}
+                  />
+                  <Input
+                    label={t('bathrooms')}
+                    type="number"
+                    id="bathrooms"
+                    min={0}
+                    onChange={handleChange}
+                    value={formData.bathrooms}
+                  />
+                </div>
+              </div>
+
+              {/* Column 2: Uploads */}
+              <div className="space-y-8">
+                {/* Cover Images */}
+                <div className="space-y-4">
+                  <p className="text-xs font-bold text-slate-500 uppercase">{t('upload_cover')}</p>
+                  <div
+                    onClick={() => fileRef.current.click()}
+                    className="w-full h-48 border-2 border-dashed border-slate-200 rounded-none flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
+                  >
+                    <HiPhotograph className="text-4xl text-primary-600 mb-2" />
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('upload_images')}</span>
+                    <input type="file" ref={fileRef} hidden accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files))} />
+                  </div>
+                  <Button variant="outline" fullWidth onClick={handleImageSubmit} isLoading={uploading} disabled={uploading} className="uppercase tracking-widest text-xs font-bold">
+                    {uploading ? t('uploading') : t('upload_images')}
+                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.imageUrls.map((url, index) => (
+                      <div key={index} className="relative w-20 h-20 border border-slate-200 group">
+                        <img src={url} className="w-full h-full object-cover" />
+                        <button type="button" onClick={handleRemoveImage(index)} className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-[10px] uppercase">
+                          {t('delete')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* internal plans */}
+                <div className="space-y-4">
+                  <p className="text-xs font-bold text-slate-500 uppercase">{t('upload_plans')}</p>
+                  <div
+                    onClick={() => fileRefPlan.current.click()}
+                    className="w-full h-32 border-2 border-dashed border-slate-200 rounded-none flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
+                  >
+                    <HiPhotograph className="text-3xl text-primary-600 mb-2" />
+                    <input type="file" ref={fileRefPlan} hidden accept="image/*" onChange={(e) => setFilesPlan(Array.from(e.target.files))} />
+                  </div>
+                  <Button variant="outline" fullWidth onClick={handleImageSubmitPlan} isLoading={uploadingPlan} disabled={uploadingPlan} className="uppercase tracking-widest text-xs font-bold">
+                    {t('upload_image')}
+                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.imagePlans.map((url, index) => (
+                      <div key={index} className="relative w-20 h-20 border border-slate-200 group">
+                        <img src={url} className="w-full h-full object-cover" />
+                        <button type="button" onClick={handleRemoveImagePlan(index)} className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-[10px] uppercase">
+                          {t('delete')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-slate-100">
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="primary"
+                    size="lg"
+                    className="py-5 font-black uppercase tracking-[0.2em]"
+                    disabled={loading || uploading || uploadingPlan || uploadingApartment}
+                    isLoading={loading}
+                  >
+                    {loading ? t('loading') : t('publish')}
+                  </Button>
+                  {error && <Alert color="failure" icon={HiInformationCircle} className="mt-4 rounded-none">{error}</Alert>}
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>

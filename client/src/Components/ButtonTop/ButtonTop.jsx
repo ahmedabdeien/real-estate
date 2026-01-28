@@ -29,7 +29,7 @@ export default function FloatingContact() {
       <motion.div
         className="flex items-center gap-2"
         initial={true}
-        animate={isOpen ?  "visible" :"visible" }
+        animate={isOpen ? "visible" : "visible"}
         variants={containerVariants}
       >
         <AnimatePresence>
@@ -41,7 +41,7 @@ export default function FloatingContact() {
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
-                className="w-12 h-12 rounded-full bg-green-600 shadow-lg flex items-center justify-center backdrop-blur-sm bg-opacity-90 hover:bg-green-700 transition-colors"
+                className="w-12 h-12 rounded-none bg-green-600 shadow-lg flex items-center justify-center backdrop-blur-sm bg-opacity-90 hover:bg-green-700 transition-colors"
                 aria-label="Make phone call"
               >
                 <BsTelephone className="text-2xl text-white" />
@@ -53,7 +53,7 @@ export default function FloatingContact() {
                 variants={buttonVariants}
                 whileHover="hover"
                 whileTap="tap"
-                className="w-12 h-12 rounded-full bg-blue-600 shadow-lg flex items-center justify-center backdrop-blur-sm bg-opacity-90 hover:bg-blue-700 transition-colors"
+                className="w-12 h-12 rounded-none bg-blue-600 shadow-lg flex items-center justify-center backdrop-blur-sm bg-opacity-90 hover:bg-blue-700 transition-colors"
                 aria-label="Send email"
               >
                 <BsEnvelope className="text-2xl text-white" />
@@ -66,7 +66,7 @@ export default function FloatingContact() {
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
-          className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="w-12 h-12 rounded-none bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
           aria-label="Contact options"
         >
           <motion.span

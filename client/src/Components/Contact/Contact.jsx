@@ -12,9 +12,9 @@ const CONFIGURATION = {
 };
 
 const ContactMethod = ({ icon: Icon, title, children, link }) => (
-  <div className="bg-white p-8 border border-slate-200 hover:border-primary-500 transition-all duration-300 rounded-sm group shadow-sm">
+  <div className="bg-white p-8 border border-slate-200 hover:border-primary-500 transition-all duration-300 rounded-none group shadow-sm">
     <div className="flex items-start gap-4">
-      <div className="w-12 h-12 bg-slate-50 flex items-center justify-center text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-300 rounded-sm">
+      <div className="w-12 h-12 bg-slate-50 flex items-center justify-center text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-300 rounded-none">
         <Icon size={20} />
       </div>
       <div>
@@ -121,7 +121,7 @@ function Contact() {
             </div>
 
             {/* Working Hours Card */}
-            <div className="bg-white p-10 border border-slate-200 rounded-sm shadow-sm">
+            <div className="bg-white p-10 border border-slate-200 rounded-none shadow-sm">
               <h3 className="text-lg font-bold text-slate-900 mb-6 uppercase tracking-tight border-b border-slate-100 pb-4">{t('working_hours')}</h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -137,7 +137,7 @@ function Contact() {
           </div>
 
           {/* Contact Form Section */}
-          <div className="bg-white p-10 md:p-12 border border-slate-200 rounded-sm shadow-xl border-t-4 border-primary-600">
+          <div className="bg-white p-10 md:p-12 border border-slate-200 rounded-none shadow-xl border-t-4 border-primary-600">
             <div className="mb-10">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">{t('send_a_message')}</h2>
               <p className="text-slate-500 text-sm">{t('form_subtitle') || 'Our advisors will get back to you as soon as possible.'}</p>
@@ -149,7 +149,7 @@ function Contact() {
 
         {/* Map Section */}
         <section className="mt-24">
-          <div className="bg-white border border-slate-200 rounded-sm p-4">
+          <div className="bg-white border border-slate-200 rounded-none p-4">
             <div className="h-[500px] relative overflow-hidden bg-slate-100">
               <gmpx-api-loader
                 key={CONFIGURATION.mapsApiKey}

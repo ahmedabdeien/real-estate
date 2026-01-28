@@ -109,5 +109,15 @@
     "quick_links": "Quick Links",
     "all_rights_reserved": "All rights reserved",
     "privacy_policy": "Privacy Policy",
-    "terms_conditions": "Terms & Conditions"
+    "terms_conditions": "Terms & Conditions",
+    "project_name_en": "Project Name (English)",
+    "project_name_ar": "Project Name (Arabic)",
+    "project_desc_en": "Description (English)",
+    "project_desc_ar": "Description (Arabic)",
+    "project_address_en": "Address (English)",
+    "project_address_ar": "Address (Arabic)",
+    "city_en": "City (English)",
+    "city_ar": "City (Arabic)",
+    "services": "Services",
+    "reviews": "Reviews"
 }

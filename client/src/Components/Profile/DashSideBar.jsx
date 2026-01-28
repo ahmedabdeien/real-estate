@@ -65,7 +65,7 @@ function DashSideBar() {
                             <p className="text-sm text-gray-600">{currentUser.isAdmin ? "Admin" : currentUser.isBroker ? "Broker" : "User"}</p>
                         </div>
                         <Link to="/Dashboard?tab=Profile">
-                            <div className={`flex items-center p-2 my-2 ${tab === "Profile" ? 'bg-blue-100' : ''} hover:bg-gray-100 cursor-pointer`}>
+                            <div className={`flex items-center p-2 my-2 ${tab === "Profile" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
                                 <HiUser className="mr-2" />
                                 Profile
                             </div>
@@ -73,31 +73,49 @@ function DashSideBar() {
                         {currentUser.isAdmin && (
                             <>
                                 <Link to="/Dashboard?tab=pagesFinished">
-                                    <div className={`flex items-center p-2 my-2 ${tab === "pagesFinished" ? 'bg-blue-100' : ''} hover:bg-gray-100 cursor-pointer`}>
+                                    <div className={`flex items-center p-2 my-2 ${tab === "pagesFinished" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
                                         <HiDocumentText className="mr-2" />
                                         Pages finished
                                     </div>
                                 </Link>
                                 <Link to="/Dashboard?tab=users">
-                                    <div className={`flex items-center p-2 my-2 ${tab === "users" ? 'bg-blue-100' : ''} hover:bg-gray-100 cursor-pointer`}>
+                                    <div className={`flex items-center p-2 my-2 ${tab === "users" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
                                         <HiUserGroup className="mr-2" />
                                         Users
                                     </div>
                                 </Link>
                                 <Link to="/Dashboard?tab=dashbordData">
-                                    <div className={`flex items-center p-2 my-2 ${tab === "dashbordData" ? 'bg-blue-100' : ''} hover:bg-gray-100 cursor-pointer`}>
+                                    <div className={`flex items-center p-2 my-2 ${tab === "dashbordData" ? 'bg-blue-100' : ''} hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
                                         <HiChartPie className="mr-2" />
                                         Dashboard
+                                    </div>
+                                </Link>
+                                <Link to="/Admin-Settings">
+                                    <div className={`flex items-center p-2 my-2 hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
+                                        <HiChartPie className="mr-2" />
+                                        Site Configuration
+                                    </div>
+                                </Link>
+                                <Link to="/CreatePage">
+                                    <div className={`flex items-center p-2 my-2 hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
+                                        <HiDocumentText className="mr-2" />
+                                        Create New Project
+                                    </div>
+                                </Link>
+                                <Link to="/PageBroker">
+                                    <div className={`flex items-center p-2 my-2 hover:bg-gray-100 rounded-none cursor-pointer transition-all`}>
+                                        <HiUser className="mr-2" />
+                                        Broker Page (Project View)
                                     </div>
                                 </Link>
                             </>
                         )}
                         <div className="border-t border-[var(--border)] my-4"></div>
-                        <div onClick={handleSignout} className="flex items-center p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl cursor-pointer transition-all font-semibold">
+                        <div onClick={handleSignout} className="flex items-center p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-none cursor-pointer transition-all font-semibold">
                             <HiArrowSmRight className="mr-2 text-xl" />
                             تسجيل الخروج
                         </div>
-                        <div onClick={() => setShowModal(true)} className="flex items-center p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl cursor-pointer transition-all font-semibold">
+                        <div onClick={() => setShowModal(true)} className="flex items-center p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-none cursor-pointer transition-all font-semibold">
                             <HiOutlineTrash className="mr-2 text-xl" />
                             حذف الحساب
                         </div>
@@ -107,9 +125,9 @@ function DashSideBar() {
 
             {/* Custom Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white rounded-lg w-11/12 md:w-1/2 lg:w-1/3">
-                        <div className="bg-red-500 text-white p-4 rounded-t-lg">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+                    <div className="bg-white rounded-none w-11/12 md:w-1/2 lg:w-1/3 shadow-2xl">
+                        <div className="bg-red-500 text-white p-4 rounded-none">
                             <h2 className="text-lg font-semibold">Delete Account</h2>
                         </div>
                         <div className="p-6">
@@ -124,11 +142,11 @@ function DashSideBar() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex justify-end p-4 space-x-4">
-                            <button onClick={handleDeleteUser} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                        <div className="flex justify-end p-4 space-x-4 border-t border-slate-100">
+                            <button onClick={handleDeleteUser} className="bg-red-500 text-white px-4 py-2 rounded-none hover:bg-red-600 transition-colors uppercase tracking-widest text-xs font-bold">
                                 Yes, Delete My Account
                             </button>
-                            <button onClick={() => setShowModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                            <button onClick={() => setShowModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded-none hover:bg-gray-600 transition-colors uppercase tracking-widest text-xs font-bold">
                                 No, Cancel
                             </button>
                         </div>

@@ -7,6 +7,9 @@ export const createListing = async (req, res, next) => {
     if (req.user.role !== 'Admin' && req.user.role !== 'Sales') {
         return next(errorHandler(403, "You are not allowed to create a listing"));
     }
+    if (!req.body.name || !req.body.name.en) {
+        return next(errorHandler(400, "English name is required for slug generation"));
+    }
     const slug = req.body.name.en.split(' ').join('-').toLowerCase().replace(/[^a-zA-z0-9-]/g, '-') + '-' + Math.random().toString(36).slice(-4);
     const newListing = new Listing({
         ...req.body,
@@ -35,8 +38,12 @@ export const getListing = async (req, res, next) => {
                     { "city.ar": new RegExp(req.query.city, 'i') }
                 ]
             }),
-            ...(req.query.minPrice && { price: { $gte: parseInt(req.query.minPrice) } }),
-            ...(req.query.maxPrice && { price: { ...req.price, $lte: parseInt(req.query.maxPrice) } }),
+            ...(req.query.minPrice || req.query.maxPrice ? {
+                price: {
+                    ...(req.query.minPrice && { $gte: parseInt(req.query.minPrice) }),
+                    ...(req.query.maxPrice && { $lte: parseInt(req.query.maxPrice) })
+                }
+            } : {}),
             ...(req.query.rooms && { rooms: parseInt(req.query.rooms) }),
             ...(req.query.propertySize && { propertySize: { $gte: parseInt(req.query.propertySize) } }),
             ...(req.query.available && { available: req.query.available === 'true' }),

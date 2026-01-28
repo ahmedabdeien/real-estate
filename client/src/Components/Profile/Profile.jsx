@@ -1,9 +1,18 @@
 import React, { useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Badge, Button, Alert } from 'flowbite-react';
+import { Badge, Alert } from 'flowbite-react';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { updateStart, updateSuccess, updateFailure } from '../redux/user/userSlice';
+import {
+  getStorage,
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
+import { app } from "../../firebase";
+import Button from "../UI/Button";
+import Input from "../UI/Input";
 
 export default function CustomizedProfile() {
   const { currentUser, error } = useSelector((state) => state.user);
@@ -27,18 +36,36 @@ export default function CustomizedProfile() {
   };
 
   const uploadImage = async (file) => {
-    // Implement your image upload logic here
-    // For now, we'll just simulate progress
-    setImageFileUploadProgress(0);
-    const interval = setInterval(() => {
-      setImageFileUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 500);
+    const storage = getStorage(app);
+    const fileName = new Date().getTime() + file.name;
+    const storageRef = ref(storage, fileName);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setImageFileUploadProgress(progress.toFixed(0));
+      },
+      (error) => {
+        setImageFileUploadError(
+          'Could not upload image (File must be less than 2MB)'
+        );
+        setImageFileUploadProgress(null);
+        setImageFile(null);
+        setImageFileUrl(null);
+        setImageUploadError(true);
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setImageFileUrl(downloadURL);
+          setFormData({ ...formData, avatar: downloadURL });
+          setImageFileUploadProgress(null);
+          setImageFileUploadError(false);
+        });
+      }
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -50,13 +77,13 @@ export default function CustomizedProfile() {
 
   return (
     <div className="bg-gradient-to-b from-stone-100 to-stone-200 min-h-screen py-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
+      <div className="max-w-4xl mx-auto bg-white rounded-none shadow-xl overflow-hidden">
         <div className="bg-blue-600 text-white p-6 text-center">
           <h1 className="text-3xl font-bold mb-2">Personal Information</h1>
           <p className="text-xl">Welcome, <span className="font-semibold">{currentUser.name}!</span></p>
         </div>
 
-        
+
         <div className="p-6">
           <div className="flex flex-col md:flex-row gap-8">
             <div className="md:w-1/3 flex flex-col items-center">
@@ -88,8 +115,9 @@ export default function CustomizedProfile() {
               />
               <Button
                 onClick={() => filePickerRef.current.click()}
-                gradientDuoTone="cyanToBlue"
+                variant="outline"
                 className="mb-4"
+                size="sm"
               >
                 Change Avatar
               </Button>
@@ -100,59 +128,53 @@ export default function CustomizedProfile() {
                 {currentUser.isAdmin ? 'Admin' : currentUser.isBroker ? 'Broker' : 'User'}
               </Badge>
             </div>
-            
+
             <div className="md:w-2/3">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <input
+                    <Input
+                      label="Name"
                       type="text"
                       defaultValue={currentUser.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Username</label>
-                    <input
+                    <Input
+                      label="Username"
                       type="text"
                       defaultValue={currentUser.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <input
+                    <Input
+                      label="Email"
                       type="email"
                       defaultValue={currentUser.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <input
+                    <Input
+                      label="Phone"
                       type="number"
-                      number="number"
                       defaultValue={currentUser.number}
                       onChange={(e) => setFormData({ ...formData, number: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Password</label>
-                  <input
+                  <Input
+                    label="Password"
                     type="password"
                     placeholder="Enter new password"
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                   />
                 </div>
                 <div className="flex justify-between items-center">
-                  <Button type="submit" gradientDuoTone="greenToBlue">
+                  <Button type="submit" variant="primary">
                     Update Profile
                   </Button>
                   <p className="text-sm text-gray-500">
@@ -160,7 +182,7 @@ export default function CustomizedProfile() {
                   </p>
                 </div>
               </form>
-              
+
               {updateUserSuccess && (
                 <Alert color="success" className="mt-4">
                   {updateUserSuccess}
@@ -174,10 +196,10 @@ export default function CustomizedProfile() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gray-100 p-4 text-center">
           <Button
-            color="failure"
+            variant="danger"
             onClick={() => {
               localStorage.removeItem('token');
               window.location.reload();

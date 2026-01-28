@@ -83,11 +83,11 @@ const SectionCarousel = () => {
                   transition={{ duration: 0.8, delay: 0.2 }}
                   className="space-y-6"
                 >
-                  <span className="inline-block px-3 py-1 bg-accent-500 text-white text-xs font-bold uppercase tracking-widest rounded-sm">
+                  <span className="inline-block px-3 py-1 bg-accent-500 text-white text-xs font-bold uppercase tracking-widest rounded-none">
                     {slide.badge}
                   </span>
 
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
                     {slide.title}
                   </h1>
 
@@ -97,12 +97,12 @@ const SectionCarousel = () => {
 
                   <div className="flex flex-col sm:flex-row items-start gap-4 pt-6">
                     <Link to={slide.link}>
-                      <button className="px-8 py-3 bg-white text-primary-900 font-bold hover:bg-slate-100 transition-colors uppercase tracking-wide text-sm rounded-sm">
+                      <button className="px-8 py-3 bg-white text-primary-900 font-bold hover:bg-slate-100 transition-colors uppercase tracking-wide text-sm rounded-none">
                         {slide.cta}
                       </button>
                     </Link>
                     <Link to="/contact">
-                      <button className="px-8 py-3 bg-transparent border-2 border-white text-white font-bold hover:bg-white/10 transition-colors uppercase tracking-wide text-sm rounded-sm">
+                      <button className="px-8 py-3 bg-transparent border-2 border-white text-white font-bold hover:bg-white/10 transition-colors uppercase tracking-wide text-sm rounded-none">
                         {t('get_consultation')}
                       </button>
                     </Link>
@@ -116,10 +116,10 @@ const SectionCarousel = () => {
         {/* Custom Navigation */}
         <div className="absolute bottom-8 right-12 z-20 hidden lg:flex items-center gap-4">
           <div className="flex gap-2">
-            <button className="hero-prev w-10 h-10 bg-white/10 hover:bg-primary-500 backdrop-blur-sm flex items-center justify-center text-white transition-all rounded-sm">
+            <button className="hero-prev w-10 h-10 bg-white/10 hover:bg-primary-500 backdrop-blur-sm flex items-center justify-center text-white transition-all rounded-none">
               <BsArrowRight className="text-lg" />
             </button>
-            <button className="hero-next w-10 h-10 bg-white/10 hover:bg-primary-500 backdrop-blur-sm flex items-center justify-center text-white transition-all rounded-sm">
+            <button className="hero-next w-10 h-10 bg-white/10 hover:bg-primary-500 backdrop-blur-sm flex items-center justify-center text-white transition-all rounded-none">
               <BsArrowLeft className="text-lg" />
             </button>
           </div>
@@ -133,7 +133,7 @@ const SectionCarousel = () => {
           width: 8px;
           height: 8px;
           background: rgba(255,255,255,0.3);
-          border-radius: 50%;
+          border-radius: 0;
           cursor: pointer;
           transition: all 0.3s ease;
         }

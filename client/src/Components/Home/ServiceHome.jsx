@@ -14,17 +14,17 @@ const ServiceCard = ({ icon: Icon, title, text, index }) => {
         visible: { opacity: 1, y: 0 }
       }}
       whileHover={{ y: -15, scale: 1.02 }}
-      className="group relative bg-white dark:bg-slate-800 p-12 rounded-[50px] shadow-premium border border-slate-100 dark:border-slate-700 transition-all duration-700 hover:shadow-premium-xl hover:border-accent-600/50 overflow-hidden"
+      className="group relative bg-white dark:bg-slate-800 p-12 rounded-none shadow-premium border border-slate-100 dark:border-slate-700 transition-all duration-700 hover:shadow-premium-xl hover:border-accent-600/50 overflow-hidden"
     >
       {/* Decorative Background */}
-      <div className={`absolute top-0 ${isRtl ? 'right-0' : 'left-0'} w-32 h-32 bg-accent-600/5 rounded-bl-[100px] -z-0 transition-all duration-700 group-hover:w-full group-hover:h-full group-hover:rounded-none group-hover:bg-accent-600/10`} />
+      <div className={`absolute top-0 ${isRtl ? 'right-0' : 'left-0'} w-32 h-32 bg-accent-600/5 rounded-none -z-0 transition-all duration-700 group-hover:w-full group-hover:h-full group-hover:rounded-none group-hover:bg-accent-600/10`} />
 
       <div className="relative z-10">
-        <div className="w-24 h-24 rounded-[32px] bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-accent-600 mb-10 group-hover:bg-accent-600 group-hover:text-white transition-all duration-500 shadow-premium">
+        <div className="w-24 h-24 rounded-none bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-accent-600 mb-10 group-hover:bg-accent-600 group-hover:text-white transition-all duration-500 shadow-premium">
           <Icon className="text-5xl" />
         </div>
 
-        <h3 className="text-3xl font-heading font-black text-primary-900 dark:text-white mb-6 group-hover:text-accent-600 transition-colors">
+        <h3 className="text-xl font-heading font-black text-primary-900 dark:text-white mb-6 group-hover:text-accent-600 transition-colors">
           {title}
         </h3>
 
@@ -68,10 +68,10 @@ export default function ServiceHome() {
   ];
 
   return (
-    <section dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
+    <section id="services" dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
       {/* Abstract Shapes */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent-600/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-900/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-96 h-96 bg-accent-600/5 rounded-none blur-[120px] -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-900/5 rounded-none blur-[120px] translate-y-1/2 -translate-x-1/2" />
 
       <div className="container mx-auto px-6 lg:px-12">
         <div className={`flex flex-col lg:flex-row ${isRtl ? 'items-end' : 'items-start'} justify-between mb-24 gap-12`}>
@@ -82,7 +82,7 @@ export default function ServiceHome() {
             viewport={{ once: true }}
           >
             <span className="text-accent-600 font-black uppercase tracking-[0.4em] text-xs">{t('world_class_services')}</span>
-            <h2 className="text-5xl md:text-7xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
               {t('real_estate_solutions')} <br />
               <span className="text-slate-400">{t('for_future')}</span>
             </h2>
