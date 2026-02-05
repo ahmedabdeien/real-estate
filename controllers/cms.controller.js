@@ -102,37 +102,39 @@ export const updateBlogStatus = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-    // Deletion
-    export const deletePage = async (req, res, next) => {
-        if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
-        try {
-            await Page.findByIdAndDelete(req.params.id);
-            res.status(200).json('Page has been deleted');
-        } catch (error) {
-            next(error);
-        }
-    };
+};
 
-    export const deleteBlog = async (req, res, next) => {
-        if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
-        try {
-            await Blog.findByIdAndDelete(req.params.id);
-            res.status(200).json('Blog has been deleted');
-        } catch (error) {
-            next(error);
-        }
-    };
+// Deletion
+export const deletePage = async (req, res, next) => {
+    if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+    try {
+        await Page.findByIdAndDelete(req.params.id);
+        res.status(200).json('Page has been deleted');
+    } catch (error) {
+        next(error);
+    }
+};
 
-    export const updateBlog = async (req, res, next) => {
-        if (req.user.role !== 'Admin' && req.user.role !== 'BlogWriter') return next(errorHandler(403, 'Unauthorized'));
-        try {
-            const updatedBlog = await Blog.findByIdAndUpdate(
-                req.params.id,
-                { $set: req.body },
-                { new: true }
-            );
-            res.status(200).json(updatedBlog);
-        } catch (error) {
-            next(error);
-        }
-    };
+export const deleteBlog = async (req, res, next) => {
+    if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+    try {
+        await Blog.findByIdAndDelete(req.params.id);
+        res.status(200).json('Blog has been deleted');
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateBlog = async (req, res, next) => {
+    if (req.user.role !== 'Admin' && req.user.role !== 'BlogWriter') return next(errorHandler(403, 'Unauthorized'));
+    try {
+        const updatedBlog = await Blog.findByIdAndUpdate(
+            req.params.id,
+            { $set: req.body },
+            { new: true }
+        );
+        res.status(200).json(updatedBlog);
+    } catch (error) {
+        next(error);
+    }
+};
