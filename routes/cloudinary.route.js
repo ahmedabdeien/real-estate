@@ -1,6 +1,6 @@
 import express from 'express';
 import { getImages, deleteImage } from '../controllers/cloudinary.controller.js';
-import { verifyToken } from '../utils/verifyUser.js';
+import { verifyToken } from '../Utils/verifyUser.js';
 
 const router = express.Router();
 
