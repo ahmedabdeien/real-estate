@@ -17,7 +17,7 @@
     "@hello-pangea/dnd": "^17.0.0",
     "@reduxjs/toolkit": "^2.0.1",
     "@tabler/icons-react": "^3.29.0",
-    "antd": "^5.23.3",
+    "antd": "^5.29.3",
     "axios": "^1.7.2",
     "compress-json": "^3.4.0",
     "crypto": "^1.0.1",

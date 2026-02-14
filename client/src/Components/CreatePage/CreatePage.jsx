@@ -63,6 +63,7 @@ function CreatePage() {
     imageUrls: [],
     imagePlans: [],
     imageApartments: [],
+    status: 'Available',
   });
 
 
@@ -376,13 +377,13 @@ function CreatePage() {
                   <p className="text-xs font-bold text-slate-500 uppercase">{t('availability_status')}</p>
                   <div className="flex gap-4">
                     <div
-                      onClick={() => setFormData({ ...formData, available: true })}
+                      onClick={() => setFormData({ ...formData, available: true, status: 'Available' })}
                       className={`flex items-center p-3 rounded-none border-[1px] cursor-pointer transition-all flex-1 justify-center font-bold text-xs uppercase tracking-widest ${formData.available === true ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
                     >
                       <span>{t('available')}</span>
                     </div>
                     <div
-                      onClick={() => setFormData({ ...formData, available: false })}
+                      onClick={() => setFormData({ ...formData, available: false, status: 'Sold' })}
                       className={`flex items-center p-3 rounded-none border-[1px] cursor-pointer transition-all flex-1 justify-center font-bold text-xs uppercase tracking-widest ${formData.available === false ? 'bg-red-600 border-red-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
                     >
                       <span>{t('sold')}</span>

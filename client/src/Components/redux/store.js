@@ -5,10 +5,13 @@ import storage from 'redux-persist/lib/storage'
 import configReducer from './config/configSlice'
 import themeReducer from './theme/themeSlice'
 
+import ctaReducer from './cta/ctaSlice';
+
 const rootReducer = combineReducers({
   user: userReducer,
   theme: themeReducer,
   config: configReducer,
+  cta: ctaReducer,
 })
 
 const persistConfig = {

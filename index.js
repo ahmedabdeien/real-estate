@@ -13,6 +13,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import cmsRouter from './routes/cms.route.js';
 import configRouter from './routes/config.route.js';
+import ctaRouter from './routes/cta.route.js';
 import { fileURLToPath } from "url";
 
 // Setup
@@ -54,6 +55,8 @@ app.use('/api/contact', contactRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/cms', cmsRouter);
 app.use('/api/config', configRouter);
+app.use('/api/cta', ctaRouter);
+app.use("/api/media", cloudinaryRouter);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, "./client/dist")));

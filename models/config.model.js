@@ -6,6 +6,17 @@ const configSchema = new mongoose.Schema({
     primaryColor: { type: String, default: '#005B94' },
     accentColor: { type: String, default: '#5BC1D7' },
     mapsApiKey: { type: String, default: '' },
+    hero: {
+        title: {
+            en: { type: String, default: 'Find Your Dream Home' },
+            ar: { type: String, default: 'ابحث عن منزل أحلامك' }
+        },
+        subtitle: {
+            en: { type: String, default: 'The best real estate platform in Egypt' },
+            ar: { type: String, default: 'أفضل منصة عقارية في مصر' }
+        },
+        images: [{ type: String }]
+    },
     contact: {
         phone: { type: String, default: '+20 121 262 2210' },
         email: { type: String, default: 'elsarhegypt@gmail.com' },
@@ -19,6 +30,10 @@ const configSchema = new mongoose.Schema({
         facebook: { type: String, default: 'https://facebook.com/elsarh' },
         instagram: { type: String, default: 'https://instagram.com/elsarh' },
         whatsapp: { type: String, default: 'https://wa.me/201212622210' },
+    },
+    translations: {
+        en: { type: Map, of: String, default: {} },
+        ar: { type: Map, of: String, default: {} }
     },
     lastUpdatedBy: {
         type: mongoose.Schema.Types.ObjectId,

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -19,7 +20,10 @@ const SectionCarousel = () => {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language;
 
-  const slides = [
+  const { config } = useSelector((state) => state.config);
+  const heroConfig = config?.hero;
+
+  const defaultSlides = [
     {
       image: photosOne,
       badge: t('badge_innovation'),
@@ -42,9 +46,38 @@ const SectionCarousel = () => {
       title: t('hero_title_3'),
       description: t('hero_desc_3'),
       cta: t('contact'),
-      link: "/contact"
+      link: "/Contact"
     }
   ];
+
+  // Use dynamic content or fallback to default
+  // Note: simpler logic to override text for all slides if configured, or just use images if array provided
+  // For now, let's just override the first slide or map images to slides if provided
+
+  let contentSlides = defaultSlides;
+
+  if (heroConfig) {
+    // If we have custom images, use them
+    if (heroConfig.images && heroConfig.images.length > 0) {
+      contentSlides = heroConfig.images.map((img, idx) => ({
+        image: img,
+        badge: t('badge_innovation'), // Static for now or add to config
+        title: heroConfig.title?.[currentLang] || heroConfig.title?.en || t('hero_title_1'),
+        description: heroConfig.subtitle?.[currentLang] || heroConfig.subtitle?.en || t('hero_desc_1'),
+        cta: t('explore_projects'),
+        link: "/Project"
+      }));
+    } else {
+      // If no images but text exists, override text on default slides
+      contentSlides = defaultSlides.map(slide => ({
+        ...slide,
+        title: heroConfig.title?.[currentLang] || heroConfig.title?.en || slide.title,
+        description: heroConfig.subtitle?.[currentLang] || heroConfig.subtitle?.en || slide.description
+      }));
+    }
+  }
+
+  const slides = contentSlides;
 
   return (
     <section className="relative h-[600px] w-full overflow-hidden bg-slate-900 font-body">

@@ -34,6 +34,11 @@ const listingSchema = new mongoose.Schema(
             type: Boolean,
             default: true
         },
+        status: {
+            type: String,
+            enum: ['Available', 'Sold'],
+            default: 'Available'
+        },
         numberFloors: {
             type: Number,
             default: 1
