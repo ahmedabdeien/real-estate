@@ -16,6 +16,7 @@ import {
 import HeroSettings from './HeroSettings'; // Assuming these can be adapted or wrapped
 import CTAManager from './CTAManager';
 import MediaManager from './MediaManager';
+import TranslationManager from './TranslationManager';
 
 const { Header, Content, Sider } = Layout;
 const { Title, Text } = Typography;
@@ -223,23 +224,9 @@ export default function AdminSettings() {
                             {activeKey === 'media' && <MediaManager />}
 
                             {activeKey === 'translations' && (
-                                <Card title="Translation Manager" bordered={false}>
-                                    <Alert message="Translations are managed here. Add keys and values for EN and AR." type="info" showIcon className="mb-4" />
-                                    {/* Translation Manager Logic using Table/Editable Cells would go here */}
-                                    <Form.List name={['translations', 'en']}>
-                                        {(fields, { add, remove }) => (
-                                            <>
-                                                <Typography.Title level={5}>English Translations</Typography.Title>
-                                                {['welcome', 'contact_us', 'hero_title'].map(k => (
-                                                    <Form.Item key={k} name={['translations', 'en', k]} label={k}>
-                                                        <Input />
-                                                    </Form.Item>
-                                                ))}
-                                                {/* Dynamic map iteration ideally */}
-                                            </>
-                                        )}
-                                    </Form.List>
-                                </Card>
+                                <Form.Item name="translations">
+                                    <TranslationManager />
+                                </Form.Item>
                             )}
 
                         </Form>

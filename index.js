@@ -14,6 +14,7 @@ import rateLimit from "express-rate-limit";
 import cmsRouter from './routes/cms.route.js';
 import configRouter from './routes/config.route.js';
 import ctaRouter from './routes/cta.route.js';
+import cloudinaryRouter from './routes/cloudinary.route.js';
 import { fileURLToPath } from "url";
 
 // Setup
