@@ -16,7 +16,8 @@ router.delete('/pages/:id', verifyToken, deletePage);
 
 // Blogs
 router.post('/blogs', verifyToken, createBlog);
-router.get('/blogs', verifyToken, getBlogs);
+// router.get('/blogs', verifyToken, getBlogs); // Original - forced auth
+router.get('/blogs', getBlogs); // Public access allowed for published blogs
 router.put('/blogs/:id/status', verifyToken, updateBlogStatus);
 router.put('/blogs/:id', verifyToken, updateBlog);
 router.delete('/blogs/:id', verifyToken, deleteBlog);

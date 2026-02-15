@@ -111,7 +111,7 @@ export const getUserListing = async (req, res, next) => {
 }
 
 export const getUsers = async (req, res, next) => {
-    if (!req.user.isAdmin) {
+    if (req.user.role !== 'Admin') {
         return next(errorHandler(403, 'You are not allowed to view all users!'))
     }
     try {

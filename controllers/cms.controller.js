@@ -4,7 +4,9 @@ import Blog from '../models/blog.model.js';
 import Contact from '../models/contact.model.js';
 
 export const getMessages = async (req, res, next) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'Sales') return next(errorHandler(403, 'Unauthorized'));
+    if (!req.user || (req.user.role !== 'Admin' && req.user.role !== 'Sales')) {
+        return next(errorHandler(403, 'Unauthorized'));
+    }
     try {
         // Fetch all contact form submissions
         const messages = await Contact.find().sort({ createdAt: -1 });
@@ -15,7 +17,9 @@ export const getMessages = async (req, res, next) => {
 };
 
 export const deleteMessage = async (req, res, next) => {
-    if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+    if (!req.user || req.user.role !== 'Admin') {
+        return next(errorHandler(403, 'Unauthorized'));
+    }
     try {
         await Contact.findByIdAndDelete(req.params.id);
         res.status(200).json('Message deleted');
@@ -26,7 +30,9 @@ export const deleteMessage = async (req, res, next) => {
 
 // Static Pages
 export const createPage = async (req, res, next) => {
-    if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+    if (!req.user || req.user.role !== 'Admin') {
+        return next(errorHandler(403, 'Unauthorized'));
+    }
     try {
         const newPage = new Page({ ...req.body, lastUpdatedBy: req.user.id });
         const savedPage = await newPage.save();
@@ -46,7 +52,9 @@ export const getPages = async (req, res, next) => {
 };
 
 export const updatePage = async (req, res, next) => {
-    if (req.user.role !== 'Admin') return next(errorHandler(403, 'Unauthorized'));
+    if (!req.user || req.user.role !== 'Admin') {
+        return next(errorHandler(403, 'Unauthorized'));
+    }
     try {
         const updatedPage = await Page.findByIdAndUpdate(
             req.params.id,
