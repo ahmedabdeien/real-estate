@@ -22,7 +22,14 @@ dotenv.config();
 const app = express();
 
 // Security Middlewares
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "img-src": ["'self'", "data:", "https://firebasestorage.googleapis.com", "https://images.unsplash.com", "https://api.dicebear.com"],
+        },
+    },
+}));
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100 // limit each IP to 100 requests per windowMs
