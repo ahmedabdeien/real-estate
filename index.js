@@ -27,6 +27,9 @@ app.use(helmet({
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
             "img-src": ["'self'", "data:", "https://firebasestorage.googleapis.com", "https://images.unsplash.com", "https://api.dicebear.com"],
+            "script-src": ["'self'", "https://apis.google.com"],
+            "connect-src": ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebasestorage.googleapis.com"],
+            "frame-src": ["'self'", "https://apis.google.com", "https://*.firebaseapp.com"],
         },
     },
 }));
