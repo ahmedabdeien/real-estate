@@ -32,6 +32,7 @@ app.use(helmet({
             "frame-src": ["'self'", "https://apis.google.com", "https://*.firebaseapp.com"],
         },
     },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
 }));
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
