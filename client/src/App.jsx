@@ -53,9 +53,9 @@ function App() {
         if (data && !data.success === false) {
           dispatch(fetchConfigSuccess(data));
 
-          // Apply CSS variables dynamically
-          if (data.primaryColor) document.documentElement.style.setProperty('--primary', data.primaryColor);
-          if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
+          // Apply CSS variables dynamically (Disabled to enforce company colors)
+          // if (data.primaryColor) document.documentElement.style.setProperty('--primary', data.primaryColor);
+          // if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
 
           // Inject dynamic translations
           if (data.translations) {

@@ -12,32 +12,40 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: 'var(--primary)', // Corporate Blue
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: 'var(--primary)', // Main Brand Color
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+          DEFAULT: '#8A6924',
+          50: '#faf8f3',
+          100: '#f2ece2',
+          200: '#e3d4bc',
+          300: '#d3ba91',
+          400: '#c19c62',
+          500: '#b18342',
+          600: '#8A6924', // Company Gold
+          700: '#75541e',
+          800: '#63461c',
+          900: '#553c1b',
+          950: '#31200c',
+        },
+        secondary: {
+          DEFAULT: '#12283C', // Company Navy
+          50: '#f2f6fa',
+          100: '#e1ecf4',
+          200: '#cadced',
+          300: '#a3c4df',
+          400: '#76a5cd',
+          500: '#5388b8',
+          600: '#406b9b',
+          700: '#34557d',
+          800: '#2d4868',
+          900: '#12283C', // Main secondary
+          950: '#1a2a40',
         },
         accent: {
-          DEFAULT: 'var(--accent)', // Brand Teal
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: 'var(--accent)', // Main Accent
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
+          DEFAULT: '#DFBA6B', // Yellow Gold
+          light: '#CDB785', // Light Beige/Gold
+        },
+        muted: {
+          DEFAULT: '#C9CCC8', // Light Grey
+          dark: '#4C545E', // Slate Grey
         },
         wp: {
           blue: '#2271b1',
@@ -45,13 +53,23 @@ export default {
         }
       },
       fontFamily: {
-        heading: ['Montserrat', 'Cairo', 'sans-serif'],
-        body: ['Inter', 'Cairo', 'sans-serif'],
+        heading: ['Roboto', 'Cairo', 'sans-serif'],
+        body: ['Roboto', 'Cairo', 'sans-serif'],
       },
       boxShadow: {
-        'premium': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        'premium-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
-        'premium-xl': '0 25px 50px -12px rgba(0, 0, 0, 0.12)',
+        'premium': '0 1px 2px 0 rgba(0, 0, 0, 0.1)', // Odoo card shadow
+        'premium-lg': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'premium-xl': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'odoo': '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
+        'odoo-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+      },
+      borderRadius: {
+        'none': '0',
+        'sm': '0.125rem',
+        DEFAULT: '0.2rem', // Odoo standard
+        'md': '0.25rem',
+        'lg': '0.3rem',
+        'xl': '0.5rem',
       }
     },
     container: {

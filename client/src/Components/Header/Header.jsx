@@ -98,120 +98,101 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] shadow-md font-body">
-      {/* Top Bar - White */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4 lg:px-12 h-20 flex justify-between items-center">
-
-          {/* Logo */}
+    <header className="fixed top-0 left-0 right-0 z-[100] shadow-odoo font-body bg-secondary text-white border-b border-secondary-800">
+      <div className="container mx-auto px-4 lg:px-8 h-16 flex justify-between items-center">
+        
+        {/* Left: Logo & Nav Links */}
+        <div className="flex items-center gap-8">
           <Link to="/" className="flex items-center gap-3">
             <img
               src={(config.logo && config.logo.startsWith('http')) ? config.logo : Logoelsarh}
               alt={config.siteName}
-              className="h-12 w-auto object-contain"
+              className="h-8 w-auto object-contain brightness-0 invert"
             />
             <div className="hidden md:block">
-              <h1 className="text-xl font-black text-primary-900 leading-none tracking-tight uppercase">
+              <h1 className="text-lg font-black leading-none tracking-tight uppercase">
                 {config.siteName?.split(' ')[0] || t('welcome').split(' ')[0]}
               </h1>
-              <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">
-                {config.siteName?.split(' ').slice(1).join(' ') || t('welcome').split(' ').slice(1).join(' ')}
-              </span>
             </div>
           </Link>
 
-          {/* Top Utilities (Search & Auth) */}
-          <div className="flex items-center gap-6">
-
-            {/* Fake Search Bar (Visual Only) */}
-            <div className="hidden lg:flex items-center bg-slate-100 rounded-none px-4 py-2 w-96 border border-slate-200 focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all">
-              <input
-                type="text"
-                placeholder={t('search_placeholder')}
-                className="bg-transparent border-none focus:ring-0 text-sm w-full text-slate-700 placeholder:text-slate-400"
-              />
-              <BsSearch className="text-slate-400" />
-            </div>
-
-            <div className="h-8 w-px bg-slate-200 hidden lg:block" />
-
-            {/* Auth & Config */}
-            <div className="flex items-center gap-4">
-              <LanguageSwitcher />
-              <button
-                onClick={() => dispatch(toggleTheme())}
-                className="text-slate-400 hover:text-primary-600 transition-colors"
-              >
-                {theme === 'light' ? <FaMoon size={16} /> : <FaSun size={16} />}
-              </button>
-
-              {currentUser ? (
-                <div className="relative" ref={userMenuRef}>
-                  <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
-                    <Avatar img={currentUser.avatar} size="sm" className="rounded-none overflow-hidden [&>img]:rounded-none" />
-                  </button>
-                  <AnimatePresence>
-                    {isUserMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-none shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
-                      >
-                        <div className="p-2" dir={isRtl ? 'rtl' : 'ltr'}>
-                          <UserMenuItem icon={<FaUser />} text={t('favorites')} href="/Dashboard?tab=Favorites" onClick={() => setIsUserMenuOpen(false)} />
-                          {(currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
-                            <>
-                              <UserMenuItem icon={<FaColumns />} text={t('admin')} href="/CreatePage" onClick={() => setIsUserMenuOpen(false)} />
-                              {currentUser.role === 'Admin' && (
-                                <UserMenuItem icon={<FaCogs />} text="Admin Settings" href="/Admin-Settings" onClick={() => setIsUserMenuOpen(false)} />
-                              )}
-                              <UserMenuItem icon={<FaCoins />} text={t('sales')} href="/Dashboard?tab=dashbordData" onClick={() => setIsUserMenuOpen(false)} />
-                            </>
-                          )}
-                          <UserMenuItem icon={<FaCogs />} text={t('settings')} href="/Settings" onClick={() => setIsUserMenuOpen(false)} />
-                          <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                          <UserMenuItem icon={<FaDoorOpen />} text={t('logout')} onClick={handleSignout} isRed />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <Link to="/Signin" className="text-sm font-bold text-primary-600 hover:text-primary-800 uppercase tracking-wide">
-                  {t('login')} / {t('signup')}
-                </Link>
-              )}
-
-              {/* Mobile Toggle */}
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden text-slate-700"
-              >
-                {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Bar - Blue */}
-      <div className="bg-primary-600 text-white hidden lg:block border-t border-primary-700">
-        <div className="container mx-auto px-4 lg:px-12">
-          <nav className={`flex items-center ${isRtl ? 'space-x-reverse' : ''}`}>
+          {/* Desktop Nav Links */}
+          <nav className={`hidden lg:flex items-center gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}
                 to={link.path}
                 className={({ isActive }) => `
-                  px-8 py-4 font-bold text-xs uppercase tracking-widest transition-colors
-                  ${isActive ? 'bg-accent-500 text-white' : 'hover:bg-primary-700 text-primary-50'}
+                  text-sm font-medium transition-colors border-b-2 pt-1 pb-1
+                  ${isActive ? 'text-primary border-primary' : 'text-slate-300 border-transparent hover:text-white'}
                 `}
               >
                 {link.title}
               </NavLink>
             ))}
           </nav>
+        </div>
+
+        {/* Right Utilities */}
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center bg-secondary-800 rounded-sm px-3 py-1.5 border border-secondary-700 focus-within:border-primary transition-all">
+            <BsSearch className="text-slate-400" />
+            <input
+              type="text"
+              placeholder={t('search_placeholder')}
+              className="bg-transparent border-none focus:ring-0 text-xs w-40 text-white placeholder:text-slate-400 p-0 ml-2"
+            />
+          </div>
+
+          <LanguageSwitcher />
+
+          {currentUser ? (
+            <div className="relative" ref={userMenuRef}>
+              <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center gap-2 hover:text-primary transition-colors">
+                <Avatar img={currentUser.avatar} size="sm" className="rounded-sm overflow-hidden" />
+                <span className="hidden md:block text-sm font-medium">{currentUser.username}</span>
+                <FaChevronDown size={10} />
+              </button>
+              <AnimatePresence>
+                {isUserMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 top-full mt-4 w-56 bg-white dark:bg-slate-800 rounded-sm shadow-odoo-hover border border-slate-100 dark:border-slate-700 overflow-hidden z-50 text-slate-800"
+                  >
+                    <div className="p-2" dir={isRtl ? 'rtl' : 'ltr'}>
+                      <UserMenuItem icon={<FaUser />} text={t('favorites')} href="/Dashboard?tab=Favorites" onClick={() => setIsUserMenuOpen(false)} />
+                      {(currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
+                        <>
+                          <UserMenuItem icon={<FaColumns />} text={t('admin')} href="/CreatePage" onClick={() => setIsUserMenuOpen(false)} />
+                          {currentUser.role === 'Admin' && (
+                            <UserMenuItem icon={<FaCogs />} text="Admin Settings" href="/Admin-Settings" onClick={() => setIsUserMenuOpen(false)} />
+                          )}
+                          <UserMenuItem icon={<FaCoins />} text={t('sales')} href="/Dashboard?tab=dashbordData" onClick={() => setIsUserMenuOpen(false)} />
+                        </>
+                      )}
+                      <UserMenuItem icon={<FaCogs />} text={t('settings')} href="/Settings" onClick={() => setIsUserMenuOpen(false)} />
+                      <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                      <UserMenuItem icon={<FaDoorOpen />} text={t('logout')} onClick={handleSignout} isRed />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Link to="/Signin" className="text-sm font-bold bg-primary text-white px-5 py-2 rounded-sm hover:bg-primary-700 transition-colors uppercase tracking-wide">
+              {t('login')}
+            </Link>
+          )}
+
+          {/* Mobile Toggle */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden text-white hover:text-primary transition-colors"
+          >
+            {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          </button>
         </div>
       </div>
 

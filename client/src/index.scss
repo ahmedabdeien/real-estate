@@ -145,3 +145,31 @@ h6 {
 .animate-pulse-slow {
   animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Odoo Global Style Overrides */
+button, .btn, a.btn {
+  border-radius: 0.2rem !important;
+  text-transform: uppercase;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px;
+}
+input, select, textarea {
+  border-radius: 0.2rem !important;
+  border: 1px solid #d1d5db !important;
+  background-color: #fff !important;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary) !important;
+}
+.dark input, .dark select, .dark textarea {
+  background-color: #1e3a5a !important;
+  border-color: #374151 !important;
+}
+/* Admin Sidebar / Header Odoo tweaks */
+.bg-slate-800, .dark\:bg-slate-800 {
+  background-color: #212529 !important; 
+}
+.bg-primary-600 {
+  background-color: var(--primary) !important;
+}
