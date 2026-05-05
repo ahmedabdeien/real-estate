@@ -75,7 +75,7 @@ export default function Footer() {
               />
               <div>
                 <h2 className="text-lg font-black text-primary-900 uppercase tracking-tight">{config.siteName || t('welcome_title_1')}</h2>
-                <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Real Estate Investment</span>
+                <span className="text-[10px] text-slate-400 font-bold tracking-widest block">للاستثمار العقاري</span>
               </div>
             </Link>
             <p className="text-sm leading-relaxed text-slate-500">

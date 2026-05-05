@@ -1,4 +1,4 @@
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaWhatsapp, FaYoutube, FaTiktok } from "react-icons/fa";
 import { motion } from 'framer-motion';
 import { useSelector } from "react-redux";
 
@@ -41,8 +41,10 @@ export const SocialMediaLinks = ({ variant = 'primary' }) => {
       icon: <FaWhatsapp />,
       href: config?.socialLinks?.whatsapp || "http://wa.me/201000554192",
       label: "WhatsApp"
-    }
-  ];
+    },
+    ...(config?.socialLinks?.youtube ? [{ icon: <FaYoutube />, href: config.socialLinks.youtube, label: "YouTube" }] : []),
+    ...(config?.socialLinks?.tiktok ? [{ icon: <FaTiktok />, href: config.socialLinks.tiktok, label: "TikTok" }] : []),
+  ].filter(l => l.href);
 
   return (
     <motion.div

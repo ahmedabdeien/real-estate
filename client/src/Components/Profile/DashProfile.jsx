@@ -54,7 +54,7 @@ const CustomizedDashProfile = () => {
       },
       (error) => {
         setImageFileUploadError(
-          'Could not upload image (file must be less than 2MB)'
+          'فشل رفع الصورة (يجب أن يكون حجم الملف أقل من 2MB)'
         );
         setImageFileUploadProgress(null);
         setImageFile(null);
@@ -81,7 +81,7 @@ const CustomizedDashProfile = () => {
     setUpdateUserError(null);
     setUpdateUserSuccess(null);
     if (Object.keys(formData).length === 0) {
-      setUpdateUserError('No changes made!');
+      setUpdateUserError('لم تقم بأي تغييرات!');
       return;
     }
     if (imageFileUploading) {
@@ -102,7 +102,7 @@ const CustomizedDashProfile = () => {
         setUpdateUserError(data.message);
       } else {
         dispatch(updateSuccess(data));
-        setUpdateUserSuccess("User's Profile updated successfully!");
+        setUpdateUserSuccess('تم تحديث البيانات بنجاح!');
       }
     } catch (error) {
       dispatch(updateFailure(error.message));
@@ -126,8 +126,8 @@ const CustomizedDashProfile = () => {
   return (
     <>
       <Helmet>
-        <title>Profile</title>
-        <meta name="description" content="User Profile" />
+        <title>ملفي الشخصي</title>
+        <meta name="description" content="الملف الشخصي للمستخدم" />
       </Helmet>
 
       <motion.div
@@ -192,7 +192,7 @@ const CustomizedDashProfile = () => {
                 <div className="space-y-4">
                   <Input
                     id="name"
-                    label="Full Name"
+                    label="الاسم الكامل"
                     type="text"
                     defaultValue={currentUser.name}
                     onChange={handleChange}
@@ -208,7 +208,7 @@ const CustomizedDashProfile = () => {
 
                   <Input
                     id="email"
-                    label="Email"
+                    label="البريد الإلكتروني"
                     type="email"
                     defaultValue={currentUser.email}
                     onChange={handleChange}
@@ -219,7 +219,7 @@ const CustomizedDashProfile = () => {
                 <div className="space-y-4">
                   <Input
                     id="number"
-                    label="Phone Number"
+                    label="رقم الهاتف"
                     type="tel"
                     defaultValue={currentUser.number}
                     onChange={handleChange}
@@ -228,19 +228,19 @@ const CustomizedDashProfile = () => {
 
                   <Input
                     id="password"
-                    label="Password"
+                    label="كلمة المرور الجديدة"
                     type="password"
                     onChange={handleChange}
                   />
 
                   <motion.div variants={itemVariants} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-gray-700">Role:</span>
-                      <span className={`px-3 py-1 rounded-none text-sm ${currentUser.isAdmin ? 'bg-red-100 text-red-800' :
-                        currentUser.isBroker ? 'bg-amber-100 text-amber-800' :
-                          'bg-green-100 text-green-800'
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700">الصلاحية:</span>
+                      <span className={`px-3 py-1 rounded-sm text-xs font-black ${currentUser.isAdmin ? 'bg-red-100 text-red-700' :
+                        currentUser.isBroker ? 'bg-amber-100 text-amber-700' :
+                          'bg-green-100 text-green-700'
                         }`}>
-                        {currentUser.isAdmin ? 'Admin' : currentUser.isBroker ? 'Broker' : 'User'}
+                        {currentUser.isAdmin ? 'مسؤول النظام' : currentUser.isBroker ? 'وسيط عقاري' : 'مستخدم'}
                       </span>
                     </div>
                   </motion.div>
@@ -271,7 +271,7 @@ const CustomizedDashProfile = () => {
                   }}
                 >
                   <FaSignOutAlt className="text-lg mr-2" />
-                  <span>Logout</span>
+                  <span>تسجيل الخروج</span>
                 </Button>
               </motion.div>
             </motion.form>

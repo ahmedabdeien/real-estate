@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 const configSchema = new mongoose.Schema({
-    siteName: { type: String, default: 'El Sarh Real Estate' },
+    siteName: { type: String, default: 'الصرح للعقارات' },
     logo: { type: String, default: '/assets/images/logoElsarh.png' },
-    primaryColor: { type: String, default: '#005B94' },
-    accentColor: { type: String, default: '#5BC1D7' },
+    primaryColor: { type: String, default: '#8A6924' },
+    accentColor: { type: String, default: '#DFBA6B' },
     mapsApiKey: { type: String, default: '' },
     hero: {
         title: {
@@ -30,6 +30,15 @@ const configSchema = new mongoose.Schema({
         facebook: { type: String, default: 'https://facebook.com/elsarh' },
         instagram: { type: String, default: 'https://instagram.com/elsarh' },
         whatsapp: { type: String, default: 'https://wa.me/201212622210' },
+        youtube: { type: String, default: '' },
+        tiktok: { type: String, default: '' },
+        linkedin: { type: String, default: '' },
+    },
+    services: {
+        s1: { title: { type: String, default: 'تطوير عقاري متكامل' }, desc: { type: String, default: 'إدارة شاملة للمشروع من الفكرة حتى التسليم.' } },
+        s2: { title: { type: String, default: 'استشارات قانونية' }, desc: { type: String, default: 'ضمان أمان استثماراتك وشفافية جميع التعاقدات.' } },
+        s3: { title: { type: String, default: 'إدارة المرافق' }, desc: { type: String, default: 'خدمات صيانة وإدارة تضمن قيمة عقارك.' } },
+        s4: { title: { type: String, default: 'استثمار ذكي' }, desc: { type: String, default: 'فرص استثمارية مدروسة تحقق أعلى العوائد.' } },
     },
     translations: {
         en: { type: Map, of: String, default: {} },

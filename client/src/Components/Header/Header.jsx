@@ -68,13 +68,13 @@ export default function Header() {
     { title: t('home'), path: '/' },
     { title: t('listings'), path: '/Project' },
     ...dynamicPages.map(page => ({
-      title: page.title[currentLang] || page.title['en'],
+      title: page.title[currentLang] || page.title['ar'] || page.title['en'],
       path: `/p/${page.slug}`
     })),
-    { title: 'News & Blog', path: '/Blogs' },
+    { title: t('blog') || 'الأخبار والمدونة', path: '/Blogs' },
     { title: t('about'), path: '/About' },
     { title: t('contact'), path: '/Contact' },
-    ...(currentUser?.isAdmin ? [{ title: t('admin'), path: '/Dashboard?tab=dashbordData' }] : []),
+    ...(currentUser?.isAdmin ? [{ title: 'لوحة التحكم', path: '/Dashboard?tab=dashbordData' }] : []),
   ];
 
   useEffect(() => {
@@ -159,19 +159,19 @@ export default function Header() {
                         className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-none shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50"
                       >
                         <div className="p-2" dir={isRtl ? 'rtl' : 'ltr'}>
-                          <UserMenuItem icon={<FaUser />} text={t('favorites')} href="/Dashboard?tab=Favorites" onClick={() => setIsUserMenuOpen(false)} />
+                          <UserMenuItem icon={<FaUser />} text="ملفي الشخصي" href="/Dashboard?tab=Profile" onClick={() => setIsUserMenuOpen(false)} />
                           {(currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
                             <>
-                              <UserMenuItem icon={<FaColumns />} text={t('admin')} href="/CreatePage" onClick={() => setIsUserMenuOpen(false)} />
+                              <UserMenuItem icon={<FaColumns />} text="إضافة مشروع" href="/CreatePage" onClick={() => setIsUserMenuOpen(false)} />
                               {currentUser.role === 'Admin' && (
-                                <UserMenuItem icon={<FaCogs />} text="Admin Settings" href="/Admin-Settings" onClick={() => setIsUserMenuOpen(false)} />
+                                <UserMenuItem icon={<FaCogs />} text="إعدادات الموقع" href="/Admin-Settings" onClick={() => setIsUserMenuOpen(false)} />
                               )}
-                              <UserMenuItem icon={<FaCoins />} text={t('sales')} href="/Dashboard?tab=dashbordData" onClick={() => setIsUserMenuOpen(false)} />
+                              <UserMenuItem icon={<FaCoins />} text="لوحة التحكم" href="/Dashboard?tab=dashbordData" onClick={() => setIsUserMenuOpen(false)} />
                             </>
                           )}
                           <UserMenuItem icon={<FaCogs />} text={t('settings')} href="/Settings" onClick={() => setIsUserMenuOpen(false)} />
                           <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                          <UserMenuItem icon={<FaDoorOpen />} text={t('logout')} onClick={handleSignout} isRed />
+                          <UserMenuItem icon={<FaDoorOpen />} text="تسجيل الخروج" onClick={handleSignout} isRed />
                         </div>
                       </motion.div>
                     )}
