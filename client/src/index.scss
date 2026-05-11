@@ -55,7 +55,7 @@ body {
   @apply bg-[var(--background)] text-[var(--foreground)] antialiased;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   font-family: var(--body-font);
 }
 

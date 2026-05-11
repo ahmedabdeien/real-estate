@@ -24,7 +24,7 @@ function Home() {
   const description = config?.hero?.subtitle?.[currentLang] || config?.hero?.subtitle?.['en'] || 'Leading Real Estate Investment Company';
 
   return (
-    <div className="bg-[var(--background)] transition-colors duration-500 overflow-hidden">
+    <div className="bg-[var(--background)] transition-colors duration-500 overflow-x-hidden">
       <Helmet>
         <title>{siteName} - {currentLang === 'ar' ? 'الرئيسية' : 'Home'}</title>
         <meta

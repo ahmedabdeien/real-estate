@@ -68,7 +68,7 @@ export default function ServiceHome() {
   ];
 
   return (
-    <section id="services" dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
+    <section id="services" dir="rtl" className="py-40 bg-[var(--background)] relative overflow-hidden">
       {/* Abstract Shapes */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent-600/5 rounded-none blur-[120px] -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-900/5 rounded-none blur-[120px] translate-y-1/2 -translate-x-1/2" />

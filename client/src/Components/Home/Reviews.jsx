@@ -10,7 +10,7 @@ export default function Reviews() {
   ];
 
   return (
-    <section id="reviews" dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
+    <section id="reviews" dir="rtl" className="py-40 bg-[var(--background)] relative overflow-hidden">
       {/* Dynamic Background Pattern */}
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent" />
 

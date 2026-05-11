@@ -29,7 +29,7 @@ export default function AboutHome() {
   ];
 
   return (
-    <section dir={isRtl ? 'rtl' : 'ltr'} className="py-24 bg-white font-body">
+    <section dir={isRtl ? 'rtl' : 'ltr'} className="py-24 bg-[var(--background)] font-body">
       <div className="container mx-auto px-4 lg:px-12">
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center`}>
 
@@ -37,24 +37,24 @@ export default function AboutHome() {
           <div className={`space-y-8 ${isRtl ? 'order-last lg:order-first' : ''}`}>
             <div>
               <span className="text-primary-600 font-bold uppercase tracking-widest text-xs mb-2 block">{t('legacy')}</span>
-              <h2 className="text-3xl md:text-5xl font-heading font-black text-slate-900 leading-tight">
+              <h2 className="text-3xl md:text-5xl font-heading font-black text-[var(--foreground)] leading-tight">
                 {t('welcome_title_1')} <span className="text-primary-600">{t('welcome_title_2')}</span> {t('welcome_title_3')}
               </h2>
             </div>
 
-            <p className="text-slate-500 leading-relaxed text-lg">
+            <p className="text-[var(--muted-foreground)] leading-relaxed text-lg">
               {t('about_desc')}
             </p>
 
             <div className="space-y-6">
               {achievements.map((item, idx) => (
                 <div key={idx} className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-slate-50 border border-slate-100 rounded-none flex items-center justify-center text-primary-600">
+                  <div className="flex-shrink-0 w-12 h-12 bg-[var(--muted)] border border-[var(--border)] rounded-none flex items-center justify-center text-primary-600">
                     {item.icon}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 mb-1">{item.title}</h4>
-                    <p className="text-slate-500 text-sm">{item.desc}</p>
+                    <h4 className="font-bold text-[var(--foreground)] mb-1">{item.title}</h4>
+                    <p className="text-[var(--muted-foreground)] text-sm">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -71,7 +71,7 @@ export default function AboutHome() {
 
           {/* Image Content */}
           <div className="relative">
-            <div className="relative rounded-none overflow-hidden shadow-lg border border-slate-200">
+            <div className="relative rounded-none overflow-hidden shadow-lg border border-[var(--border)]">
               <img
                 src={imgElsarh}
                 alt="About El Sarh"
