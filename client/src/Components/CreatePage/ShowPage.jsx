@@ -161,6 +161,30 @@ function ShowPage() {
               ))}
             </section>
 
+            {/* Location Map */}
+            {(pages.location?.lat && pages.location?.lng) && (
+              <section className="bg-white p-8 border border-slate-200">
+                <h2 className="text-xl font-bold text-slate-900 mb-6 uppercase tracking-tight border-b border-slate-100 pb-4 flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-primary-600" /> {t('location') || 'الموقع'}
+                </h2>
+                <div className="w-full h-72 border border-slate-200 overflow-hidden">
+                  <iframe
+                    title="property-location"
+                    src={`https://maps.google.com/maps?q=${pages.location.lat},${pages.location.lng}&z=15&output=embed&hl=${currentLang}`}
+                    className="w-full h-full"
+                    loading="lazy"
+                    allowFullScreen
+                  />
+                </div>
+                {propertyAddress && (
+                  <p className="mt-3 text-sm text-slate-500 flex items-center gap-2">
+                    <FaMapMarkerAlt className="text-primary-600 flex-shrink-0" />
+                    {propertyAddress}
+                  </p>
+                )}
+              </section>
+            )}
+
             {/* Video Placeholder or Embed */}
             {pages.videoUrl && (
               <section className="bg-white p-8 border border-slate-200">

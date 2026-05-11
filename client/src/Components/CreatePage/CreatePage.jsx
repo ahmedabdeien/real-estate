@@ -7,8 +7,8 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../../firebase";
-import { FaCircleNotch } from "react-icons/fa6";
-import { HiCursorClick, HiInformationCircle, HiPhotograph } from "react-icons/hi";
+import { FaCircleNotch, FaMapMarkerAlt } from "react-icons/fa";
+import { HiCursorClick, HiInformationCircle, HiPhotograph, HiLocationMarker } from "react-icons/hi";
 import 'react-quill/dist/quill.snow.css';
 import { Alert } from "flowbite-react";
 import { useSelector } from "react-redux";
@@ -18,6 +18,21 @@ import { HiArchive } from "react-icons/hi";
 import Button from "../UI/Button";
 import Input from "../UI/Input";
 import Spinner from "../UI/Spinner";
+
+// Extract lat/lng from a Google Maps URL
+function parseGoogleMapsUrl(url) {
+  if (!url) return null;
+  // Pattern: /@lat,lng,zoom
+  const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (atMatch) return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+  // Pattern: ?q=lat,lng or &q=lat,lng
+  const qMatch = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (qMatch) return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+  // Pattern: ll=lat,lng
+  const llMatch = url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+  if (llMatch) return { lat: parseFloat(llMatch[1]), lng: parseFloat(llMatch[2]) };
+  return null;
+}
 
 
 function CreatePage() {
@@ -38,7 +53,9 @@ function CreatePage() {
   const [imageUploadErrorApartment, setImageUploadErrorApartment] =
     useState(false);
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [mapInput, setMapInput] = useState('');
+  const [mapParsed, setMapParsed] = useState(null);
 
   const [formData, setFormData] = useState({
     name: { en: '', ar: '' },
@@ -64,6 +81,7 @@ function CreatePage() {
     imagePlans: [],
     imageApartments: [],
     status: 'Available',
+    location: { lat: null, lng: null, mapUrl: '' },
   });
 
 
@@ -214,6 +232,21 @@ function CreatePage() {
         [id]: type === 'number' ? parseInt(value) || 0 : value
       });
     }
+  };
+
+  const handleMapUrlChange = (e) => {
+    const url = e.target.value;
+    setMapInput(url);
+    const parsed = parseGoogleMapsUrl(url);
+    setMapParsed(parsed);
+    setFormData({
+      ...formData,
+      location: {
+        lat: parsed?.lat || null,
+        lng: parsed?.lng || null,
+        mapUrl: url,
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -429,6 +462,44 @@ function CreatePage() {
                     onChange={handleChange}
                     value={formData.bathrooms}
                   />
+                </div>
+
+                {/* Location Section */}
+                <div className="space-y-3 border border-slate-200 rounded-none p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <HiLocationMarker className="text-primary-600 text-lg" />
+                    <p className="text-xs font-bold text-slate-500 uppercase">الموقع على الخريطة</p>
+                  </div>
+                  <p className="text-[11px] text-slate-400">الصق رابط Google Maps أو رابط الموقع مباشرة</p>
+                  <input
+                    type="url"
+                    value={mapInput}
+                    onChange={handleMapUrlChange}
+                    placeholder="https://maps.google.com/maps?q=30.044,31.235 ..."
+                    className="w-full p-3 border border-slate-200 rounded-none text-sm focus:outline-none focus:border-primary-600"
+                    dir="ltr"
+                  />
+                  {mapInput && (
+                    mapParsed ? (
+                      <div className="text-xs text-green-600 font-bold flex items-center gap-1 bg-green-50 p-2 border border-green-200">
+                        ✓ تم استخراج الإحداثيات: {mapParsed.lat.toFixed(5)}, {mapParsed.lng.toFixed(5)}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-amber-600 font-bold flex items-center gap-1 bg-amber-50 p-2 border border-amber-200">
+                        ⚠ سيتم حفظ الرابط بدون إحداثيات - للخريطة المضمنة استخدم رابطاً يحتوي على إحداثيات
+                      </div>
+                    )
+                  )}
+                  {mapParsed && (
+                    <div className="w-full h-40 border border-slate-200 overflow-hidden">
+                      <iframe
+                        title="map-preview"
+                        src={`https://maps.google.com/maps?q=${mapParsed.lat},${mapParsed.lng}&z=15&output=embed`}
+                        className="w-full h-full"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 

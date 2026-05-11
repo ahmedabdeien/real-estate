@@ -26,10 +26,10 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            "img-src": ["'self'", "data:", "https://firebasestorage.googleapis.com", "https://images.unsplash.com", "https://api.dicebear.com"],
+            "img-src": ["'self'", "data:", "https://firebasestorage.googleapis.com", "https://images.unsplash.com", "https://api.dicebear.com", "https://maps.gstatic.com", "https://maps.googleapis.com"],
             "script-src": ["'self'", "https://apis.google.com", "https://ajax.googleapis.com"],
             "connect-src": ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebasestorage.googleapis.com"],
-            "frame-src": ["'self'", "https://apis.google.com", "https://*.firebaseapp.com"],
+            "frame-src": ["'self'", "https://apis.google.com", "https://*.firebaseapp.com", "https://maps.google.com", "https://www.google.com"],
         },
     },
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
