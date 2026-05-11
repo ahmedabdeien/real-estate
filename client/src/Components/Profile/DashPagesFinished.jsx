@@ -54,11 +54,13 @@ export default function DashPagesFinished() {
     const [sortBy, setSortBy] = useState('updatedAt');
     const [isLoading, setIsLoading] = useState(true);
 
+    const hasAccess = currentUser?.role === 'Admin' || currentUser?.role === 'Sales';
+
     useEffect(() => {
-        if (currentUser.isAdmin) {
+        if (hasAccess) {
             fetchPages();
         }
-    }, [currentUser.isAdmin, currentUser._id]);
+    }, [currentUser._id]);
 
     const fetchPages = async (startIndex = 0) => {
         setIsLoading(true);
