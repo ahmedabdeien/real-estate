@@ -1,22 +1,14 @@
 import express from "express";
-import { google, logout, signin, signup } from "../controllers/auth.controller.js";
-import { check } from "express-validator";
+import { register, login, googleLogin, logout, me, updateProfile } from "../controllers/auth.controller.js";
+import { authenticate } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/signUp", [
-    check("name", "Name is required").not().isEmpty(),
-    check("email", "Please include a valid email").isEmail(),
-    check("password", "Please enter a password with 6 or more characters").isLength({ min: 6 })
-], signup);
-
-router.post("/signin", [
-    check("email", "Please include a valid email").isEmail(),
-    check("password", "Password is required").exists()
-], signin);
-
-router.post('/google', google);
-router.get("/logout", logout);
-
+router.post("/register", register);
+router.post("/login", login);
+router.post("/google", googleLogin);
+router.post("/logout", logout);
+router.get("/me", authenticate, me);
+router.put("/profile", authenticate, updateProfile);
 
 export default router;

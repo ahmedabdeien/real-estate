@@ -103,7 +103,19 @@ export default function AdminLeads() {
 
   const f = (key, val) => setForm((p) => ({ ...p, [key]: val }));
 
+  // Quick status change directly from table row
+  const quickStatus = async (id, newStatus) => {
+    try {
+      await api.put(`/leads/${id}`, { status: newStatus });
+      setLeads((prev) => prev.map((l) => l._id === id ? { ...l, status: newStatus } : l));
+      toast.success("تم تحديث الحالة");
+    } catch {
+      toast.error("فشل تحديث الحالة");
+    }
+  };
+
   const sourceAr = { website: "الموقع", whatsapp: "واتساب", phone: "هاتف", referral: "إحالة", campaign: "حملة", other: "أخرى" };
+  const statusAr = { new: "جديد", contacted: "تم التواصل", interested: "مهتم", not_interested: "غير مهتم", converted: "محوّل", lost: "خسرناه" };
 
   return (
     <div className="space-y-5">
@@ -161,12 +173,39 @@ export default function AdminLeads() {
                           {l.email && <p className="text-gray-400 text-xs">{l.email}</p>}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 font-mono">{l.phone}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm text-gray-600 dark:text-gray-400 font-mono">{l.phone}</span>
+                          {l.phone && (
+                            <>
+                              <a href={`tel:${l.phone}`} title="اتصال"
+                                className="w-6 h-6 flex items-center justify-center rounded-md bg-blue-50 dark:bg-blue-900/30 text-blue-500 hover:bg-blue-100 transition-colors">
+                                <Phone className="w-3 h-3" />
+                              </a>
+                              <a href={`https://wa.me/${l.phone.replace(/\D/g,"")}`} target="_blank" rel="noreferrer" title="واتساب"
+                                className="w-6 h-6 flex items-center justify-center rounded-md bg-green-50 dark:bg-green-900/30 text-green-500 hover:bg-green-100 transition-colors">
+                                <Mail className="w-3 h-3" />
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                         {l.interestedProject?.name?.ar || "—"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{sourceAr[l.source] || l.source}</td>
-                      <td className="px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
+                      <td className="px-6 py-4">
+                        <select
+                          value={l.status}
+                          onChange={(e) => quickStatus(l._id, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-xs border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#2d5d89] cursor-pointer"
+                        >
+                          {leadStatuses.map((s) => (
+                            <option key={s} value={s}>{statusAr[s]}</option>
+                          ))}
+                        </select>
+                      </td>
                       <td className="px-6 py-4 text-xs text-gray-400">{new Date(l.createdAt).toLocaleDateString("ar-EG")}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1">

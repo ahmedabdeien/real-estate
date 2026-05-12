@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Eye, Search, Filter } from "lucide-react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../components/UI/Modal";
@@ -8,6 +8,7 @@ import Pagination from "../../components/UI/Pagination";
 import EmptyState from "../../components/UI/EmptyState";
 import LoadingSpinner from "../../components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../components/UI/Badge";
+import ImageUpload from "../../components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 import { Building2 } from "lucide-react";
 
@@ -296,12 +297,12 @@ export default function AdminProjects() {
             <input type="number" value={form.totalUnits} onChange={(e) => f("totalUnits", e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
           </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الصورة الرئيسية</label>
-            <input value={form.coverImage} onChange={(e) => f("coverImage", e.target.value)}
-              placeholder="https://..."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
+          <ImageUpload
+            className="md:col-span-2"
+            label="الصورة الرئيسية للمشروع"
+            value={form.coverImage}
+            onChange={(url) => f("coverImage", url)}
+          />
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.featured} onChange={(e) => f("featured", e.target.checked)}

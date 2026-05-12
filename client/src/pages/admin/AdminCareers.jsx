@@ -16,6 +16,7 @@ const emptyCareer = {
   location: { ar: "", en: "" },
   type: "full_time",
   description: { ar: "", en: "" },
+  cv_link: "",
   published: true,
   deadline: "",
 };
@@ -57,6 +58,7 @@ export default function AdminCareers() {
       department: { ar: c.department?.ar ?? "", en: c.department?.en ?? "" },
       location: { ar: c.location?.ar ?? "", en: c.location?.en ?? "" },
       description: { ar: c.description?.ar ?? "", en: c.description?.en ?? "" },
+      cv_link: c.cv_link ?? "",
       deadline: c.deadline ? c.deadline.split("T")[0] : "",
     });
     setModal(true);
@@ -194,6 +196,15 @@ export default function AdminCareers() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوصف (عربي)</label>
             <textarea rows={4} value={form.description?.ar} onChange={(e) => f("description.ar", e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              رابط تقديم السيرة الذاتية (Google Drive / Dropbox / أي رابط)
+            </label>
+            <input type="url" value={form.cv_link} onChange={(e) => f("cv_link", e.target.value)}
+              placeholder="https://forms.google.com/... أو https://drive.google.com/..."
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+            <p className="text-xs text-gray-400 mt-1">اتركه فارغاً لاستخدام نموذج التقديم الافتراضي</p>
           </div>
           <div>
             <label className="flex items-center gap-2 cursor-pointer">

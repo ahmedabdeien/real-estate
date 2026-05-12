@@ -1,140 +1,105 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import i18n from './i18n';
-import Home from "./Components/Home/Home";
-import SingIn from "./Components/Registry/SingIn/Signin";
-import ForgotPassword from "./Components/Registry/SingIn/ForgotPassword.jsx";
-import SignUp from "./Components/Registry/SingUp/Signup";
-import About from "./Components/About/About";
-import Project from "./Components/Project/Project";
-import Header from "./Components/Header/Header";
-import PrivateRoute from "./Components/PrivateRoute/PrivateRoute";
-import NotFound from "./Components/NotFound/NotFound";
-import CreatePage from "./Components/CreatePage/CreatePage";
-import UpdatePage from "./Components/CreatePage/UpdatePage";
-import Footer from "./Components/Footer/Footer";
-import OnlyAdminPrivateRoute from "./Components/PrivateRoute/OnlyAdminPrivateRoute";
-import Dashboard from "./Components/Profile/Dashboard";
-import PageBroker from "./Components/Profile/PageBroker";
-import AdminSettings from "./Components/Profile/AdminSettings";
-import PageEditor from "./Components/Profile/PageEditor";
-import BlogEditor from "./Components/Profile/BlogEditor";
-import BrokerPrivateRoute from "./Components/PrivateRoute/BrokerPrivateRoute";
-import ShowPage from "./Components/CreatePage/ShowPage";
-import Contact from "./Components/Contact/Contact";
-import Settings from "./Components/Settings/Settings";
-import ButtonTop from "./Components/ButtonTop/ButtonTop";
-import Loading from "./Loading.jsx"; // Import the Loading component
-import { useDispatch } from "react-redux";
-import { fetchConfigStart, fetchConfigSuccess, fetchConfigFailure } from "./Components/redux/config/configSlice";
-import ResetPassword from "./Components/Registry/SingIn/ResetPassword.jsx";
-import FloatingChat from "./Components/Chat/FloatingChat";
-import GenericPage from "./Components/UI/GenericPage";
-import BlogList from "./Components/UI/BlogList";
-import BlogPage from "./Components/UI/BlogPage";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 
+// Contexts
+import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import { SiteSettingsProvider } from "./context/SiteSettingsContext";
+import { useAuth } from "./context/AuthContext";
 
+// Layouts
+import PublicLayout from "./layouts/PublicLayout";
+import AdminLayout from "./layouts/AdminLayout";
 
-function App() {
-  const [isLoading, setIsLoading] = useState(true);
+// Public Pages
+import HomePage from "./pages/public/Home";
+import ProjectsPage from "./pages/public/Projects";
+import ProjectDetailPage from "./pages/public/ProjectDetail";
+import UnitsPage from "./pages/public/Units";
+import AboutPage from "./pages/public/About";
+import BlogPage from "./pages/public/Blog";
+import BlogDetailPage from "./pages/public/BlogDetail";
+import ContactPage from "./pages/public/Contact";
+import CareersPage from "./pages/public/Careers";
+import ProfilePage from "./pages/public/Profile";
 
-  const dispatch = useDispatch();
+// Admin Pages
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProjects from "./pages/admin/AdminProjects";
+import AdminUnits from "./pages/admin/AdminUnits";
+import AdminLeads from "./pages/admin/AdminLeads";
+import AdminBlogs from "./pages/admin/AdminBlogs";
+import AdminContent from "./pages/admin/AdminContent";
+import AdminMedia from "./pages/admin/AdminMedia";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminCareers from "./pages/admin/AdminCareers";
+import AdminActivity from "./pages/admin/AdminActivity";
 
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        dispatch(fetchConfigStart());
-        const res = await fetch('/api/config');
-        const data = await res.json();
+// Guard: admin-only routes redirect sales users to /admin/projects
+function AdminOnlyRoute({ children }) {
+  const { user } = useAuth();
+  if (user?.role !== "admin") return <Navigate to="/admin/projects" replace />;
+  return children;
+}
 
-
-
-        if (data && !data.success === false) {
-          dispatch(fetchConfigSuccess(data));
-
-          // Apply CSS variables dynamically (Disabled to enforce company colors)
-          // if (data.primaryColor) document.documentElement.style.setProperty('--primary', data.primaryColor);
-          // if (data.accentColor) document.documentElement.style.setProperty('--accent', data.accentColor);
-
-          // Inject dynamic translations
-          if (data.translations) {
-            Object.keys(data.translations).forEach(lang => {
-              if (data.translations[lang]) {
-                i18n.addResourceBundle(lang, 'translation', data.translations[lang], true, true);
-              }
-            });
-          }
-        } else {
-          dispatch(fetchConfigFailure(data?.message || 'Failed to load config'));
-        }
-
-      } catch (error) {
-        dispatch(fetchConfigFailure(error.message));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchConfig();
-  }, [dispatch]);
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
+function NotFound() {
   return (
-    <BrowserRouter>
-      <Header />
-      <div className="relative pt-20">
-        <ButtonTop />
-        <FloatingChat />
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]" dir="rtl">
+      <div className="text-center">
+        <p className="text-8xl font-black text-gray-200">404</p>
+        <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-2">الصفحة غير موجودة</h1>
+        <a href="/" className="text-[#2d5d89] font-semibold hover:underline">العودة للرئيسية</a>
       </div>
-
-      <main className="min-h-screen">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={window.location.pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/Signin" element={<SingIn />} />
-              <Route path="/Forgot-Password" element={<ForgotPassword />} />
-              <Route path="/ResetPassword" element={<ResetPassword />} />
-              <Route path="/Signup" element={<SignUp />} />
-              <Route path="/About" element={<About />} />
-              <Route path="/Project" element={<Project />} />
-              <Route path="/Contact" element={<Contact />} />
-              <Route path="/Projects/:pageSlug" element={<ShowPage />} />
-              <Route element={<PrivateRoute />}>
-                <Route path="/Dashboard" element={<Dashboard />} />
-                <Route path="/Settings" element={<Settings />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-              <Route path="/p/:slug" element={<GenericPage />} />
-              <Route path="/Blogs" element={<BlogList />} />
-              <Route path="/blog/:slug" element={<BlogPage />} />
-              <Route element={<OnlyAdminPrivateRoute />}>
-                <Route path="/CreatePage" element={<CreatePage />} />
-                <Route path="/Update-Page/:pageId" element={<UpdatePage />} />
-                <Route path="/Admin-Settings" element={<AdminSettings />} />
-                <Route path="/Admin/Page-Editor/:pageId?" element={<PageEditor />} />
-                <Route path="/Admin/Blog-Editor/:blogId?" element={<BlogEditor />} />
-              </Route>
-              <Route element={<BrokerPrivateRoute />}>
-                <Route path="/PageBroker" element={<PageBroker />} />
-              </Route>
-            </Routes>
-          </motion.div>
-        </AnimatePresence>
-      </main>
-
-      <Footer />
-    </BrowserRouter >
+    </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <AuthProvider>
+        <ToastProvider>
+          <SiteSettingsProvider>
+            <Routes>
+              {/* Public Website */}
+              <Route element={<PublicLayout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/projects/:slug" element={<ProjectDetailPage />} />
+                <Route path="/units" element={<UnitsPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/:slug" element={<BlogDetailPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/careers" element={<CareersPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+              </Route>
+
+              {/* Admin Login */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+
+              {/* Admin Dashboard */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
+                <Route path="projects" element={<AdminProjects />} />
+                <Route path="units" element={<AdminUnits />} />
+                <Route path="leads" element={<AdminLeads />} />
+                <Route path="blogs" element={<AdminBlogs />} />
+                <Route path="content" element={<AdminOnlyRoute><AdminContent /></AdminOnlyRoute>} />
+                <Route path="media" element={<AdminOnlyRoute><AdminMedia /></AdminOnlyRoute>} />
+                <Route path="careers" element={<AdminOnlyRoute><AdminCareers /></AdminOnlyRoute>} />
+                <Route path="users" element={<AdminOnlyRoute><AdminUsers /></AdminOnlyRoute>} />
+                <Route path="settings" element={<AdminOnlyRoute><AdminSettings /></AdminOnlyRoute>} />
+                <Route path="activity" element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SiteSettingsProvider>
+        </ToastProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}

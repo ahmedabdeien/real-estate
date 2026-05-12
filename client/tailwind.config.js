@@ -1,76 +1,120 @@
-import flowbite from "flowbite-react/tailwind";
 import tailwindScrollbar from 'tailwind-scrollbar';
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-    flowbite.content(),
   ],
   theme: {
     extend: {
       colors: {
+        // ===== ألوان الصرح للعقارات =====
         primary: {
           DEFAULT: '#8A6924',
-          50: '#faf8f3',
-          100: '#f2ece2',
-          200: '#e3d4bc',
-          300: '#d3ba91',
-          400: '#c19c62',
-          500: '#b18342',
-          600: '#8A6924', // Company Gold
-          700: '#75541e',
-          800: '#63461c',
-          900: '#553c1b',
-          950: '#31200c',
-        },
-        secondary: {
-          DEFAULT: '#12283C', // Company Navy
-          50: '#f2f6fa',
-          100: '#e1ecf4',
-          200: '#cadced',
-          300: '#a3c4df',
-          400: '#76a5cd',
-          500: '#5388b8',
-          600: '#406b9b',
-          700: '#34557d',
-          800: '#2d4868',
-          900: '#12283C', // Main secondary
-          950: '#1a2a40',
+          50:  '#fdf9ee',
+          100: '#f9f0d0',
+          200: '#f2e0a1',
+          300: '#e8c96a',
+          400: '#dfba6b',
+          500: '#c4983a',
+          600: '#8A6924',   // اللون الرئيسي (ذهبي)
+          700: '#6b5219',
+          800: '#4d3c12',
+          900: '#12283C',   // كحلي - للخلفيات الداكنة
+          950: '#0a1a26',
         },
         accent: {
-          DEFAULT: '#DFBA6B', // Yellow Gold
-          light: '#CDB785', // Light Beige/Gold
+          DEFAULT: '#DFBA6B',
+          50:  '#fdf9ee',
+          100: '#f9f0d0',
+          200: '#f2e0a1',
+          300: '#DFBA6B',   // ذهبي فاتح
+          400: '#d4aa55',
+          500: '#DFBA6B',
+          600: '#c4983a',
+          700: '#a87828',
+          800: '#845e1e',
+          900: '#614415',
         },
-        muted: {
-          DEFAULT: '#C9CCC8', // Light Grey
-          dark: '#4C545E', // Slate Grey
+        secondary: {
+          DEFAULT: '#12283C',
+          50:  '#e8edf2',
+          100: '#c5d3de',
+          200: '#9eb4c5',
+          300: '#7695ac',
+          400: '#4f7799',
+          500: '#2d5a7c',
+          600: '#1a3f5c',
+          700: '#12283C',   // كحلي داكن
+          800: '#0d1e2e',
+          900: '#080f18',
         },
-        wp: {
-          blue: '#2271b1',
-          dark: '#1d2327',
-        }
+        gold: {
+          light: '#DFBA6B',
+          DEFAULT: '#8A6924',
+          dark: '#6b5219',
+        },
+        navy: {
+          light: '#1e3a5c',
+          DEFAULT: '#12283C',
+          dark: '#080f18',
+        },
       },
       fontFamily: {
-        heading: ['Roboto', 'Cairo', 'sans-serif'],
-        body: ['Roboto', 'Cairo', 'sans-serif'],
+        heading: ['Cairo', 'Montserrat', 'sans-serif'],
+        body:    ['Cairo', 'Inter', 'sans-serif'],
       },
       boxShadow: {
-        'premium': '0 1px 2px 0 rgba(0, 0, 0, 0.1)', // Odoo card shadow
-        'premium-lg': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'premium-xl': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        'odoo': '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
-        'odoo-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'premium':      '0 4px 24px -4px rgba(138, 105, 36, 0.15)',
+        'premium-lg':   '0 10px 40px -8px rgba(138, 105, 36, 0.2)',
+        'premium-xl':   '0 20px 60px -12px rgba(138, 105, 36, 0.25)',
+        'gold':         '0 8px 32px -4px rgba(138, 105, 36, 0.35)',
+        'glass':        '0 8px 32px 0 rgba(18, 40, 60, 0.12)',
+        'glass-gold':   '0 8px 32px 0 rgba(138, 105, 36, 0.2)',
+        'navy':         '0 8px 32px 0 rgba(18, 40, 60, 0.3)',
+        'inner-gold':   'inset 0 1px 0 rgba(223, 186, 107, 0.3)',
       },
-      borderRadius: {
-        'none': '0',
-        'sm': '0.125rem',
-        DEFAULT: '0.2rem', // Odoo standard
-        'md': '0.25rem',
-        'lg': '0.3rem',
-        'xl': '0.5rem',
-      }
+      backdropBlur: {
+        xs: '2px',
+        sm: '4px',
+        md: '8px',
+        lg: '16px',
+        xl: '24px',
+        '2xl': '40px',
+        '3xl': '64px',
+      },
+      backgroundImage: {
+        'gold-gradient':  'linear-gradient(135deg, #8A6924 0%, #DFBA6B 50%, #8A6924 100%)',
+        'navy-gradient':  'linear-gradient(135deg, #0a1a26 0%, #12283C 50%, #1e3a5c 100%)',
+        'hero-gradient':  'linear-gradient(to left, rgba(18,40,60,0.92) 0%, rgba(18,40,60,0.4) 60%, transparent 100%)',
+        'card-shine':     'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%)',
+      },
+      animation: {
+        'float':    'float 6s ease-in-out infinite',
+        'shimmer':  'shimmer 2s linear infinite',
+        'glow':     'glow 2s ease-in-out infinite alternate',
+        'slide-up': 'slideUp 0.6s ease-out',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%':      { transform: 'translateY(-12px)' },
+        },
+        shimmer: {
+          '0%':   { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        glow: {
+          from: { boxShadow: '0 0 20px rgba(138,105,36,0.3)' },
+          to:   { boxShadow: '0 0 40px rgba(138,105,36,0.6)' },
+        },
+        slideUp: {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
     },
     container: {
       center: true,
@@ -83,9 +127,7 @@ export default {
       },
     },
   },
-
   plugins: [
-    flowbite.plugin(),
     tailwindScrollbar,
   ],
 }

@@ -1,24 +1,13 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
+import App from "./App.jsx";
+import "./index.scss";
 
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.scss'
-import './i18n';
-import { persistor, store } from './Components/redux/store.js'
-import { Provider } from 'react-redux'
-import { PersistGate } from 'redux-persist/integration/react'
-import ThemeProvider from './Components/PrivateRoute/ThemeProvider.jsx'
-import { QueryClient, QueryClientProvider } from 'react-query'
-import 'swiper/css/bundle';
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <QueryClientProvider client={new QueryClient()}>
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <ThemeProvider>
-
-          <App />
-
-        </ThemeProvider>
-      </PersistGate>
-    </Provider>
-  </QueryClientProvider>
-)
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
+  </React.StrictMode>
+);

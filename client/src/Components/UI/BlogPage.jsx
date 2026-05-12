@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from "react-helmet";
-import { TbLoaderQuarter } from "react-icons/tb";
-import { useTranslation } from 'react-i18next';
-import { HiArrowLeft, HiCalendar, HiUser } from 'react-icons/hi';
-import { Button } from 'flowbite-react';
+import { Helmet } from 'react-helmet';
+import { motion } from 'framer-motion';
+import { TbLoaderQuarter } from 'react-icons/tb';
+import { HiArrowRight, HiCalendar, HiUser } from 'react-icons/hi';
+import { useSelector } from 'react-redux';
 
 export default function BlogPage() {
     const { slug } = useParams();
-    const { i18n } = useTranslation();
-    const currentLang = i18n.language;
+    const { config } = useSelector(s => s.config);
+    const currentLang = 'ar';
     const [blog, setBlog] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
@@ -27,7 +27,7 @@ export default function BlogPage() {
                 } else {
                     setError(true);
                 }
-            } catch (err) {
+            } catch {
                 setError(true);
             } finally {
                 setLoading(false);
@@ -37,56 +37,105 @@ export default function BlogPage() {
     }, [slug]);
 
     if (loading) return (
-        <div className="min-h-screen flex justify-center items-center">
-            <TbLoaderQuarter className="text-6xl animate-spin text-primary-600" />
+        <div className="min-h-screen flex justify-center items-center" style={{ background: '#faf8f4' }}>
+            <TbLoaderQuarter className="animate-spin text-4xl" style={{ color: '#8A6924' }} />
         </div>
     );
 
     if (error || !blog) return (
-        <div className="min-h-screen flex flex-col justify-center items-center text-xl font-bold text-slate-400 gap-4">
-            <p>Article Not Found</p>
-            <Link to="/Blogs">
-                <Button color="dark" className="rounded-none uppercase font-bold">Back to News</Button>
+        <div className="min-h-screen flex flex-col justify-center items-center gap-6" style={{ background: '#faf8f4' }}>
+            <p className="text-xl font-black" style={{ color: '#12283C' }}>المقال غير موجود</p>
+            <Link
+                to="/Blogs"
+                className="flex items-center gap-2 px-6 py-3 text-sm font-black text-white"
+                style={{ background: '#12283C' }}
+            >
+                <HiArrowRight size={14} />
+                العودة للمدونة
             </Link>
         </div>
     );
 
-    const title = blog.title[currentLang] || blog.title['en'];
-    const content = blog.content[currentLang] || blog.content['en'];
-    const date = new Date(blog.createdAt).toLocaleDateString();
+    const title = blog.title?.[currentLang] || blog.title?.['ar'] || blog.title?.['en'];
+    const content = blog.content?.[currentLang] || blog.content?.['ar'] || blog.content?.['en'];
+    const date = new Date(blog.createdAt).toLocaleDateString('ar-EG');
 
     return (
-        <div className="min-h-screen bg-white font-body">
+        <div dir="rtl" className="min-h-screen" style={{ background: '#faf8f4' }}>
             <Helmet>
-                <title>{title} | El Sarh News</title>
+                <title>{title} | {config?.siteName || 'الصرح للعقارات'}</title>
             </Helmet>
 
-            {/* Hero Header with Image */}
-            <div className="relative h-[50vh] bg-slate-900 flex items-center justify-center overflow-hidden">
+            {/* Hero */}
+            <div className="relative h-[55vh] min-h-[380px] overflow-hidden" style={{ background: '#12283C' }}>
                 {blog.image && (
-                    <img src={blog.image} alt={title} className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                    <img src={blog.image} alt={title} className="absolute inset-0 w-full h-full object-cover opacity-30" />
                 )}
-                <div className="relative z-10 container mx-auto px-4 text-center">
-                    <div className="flex items-center justify-center gap-6 text-white/80 font-bold uppercase tracking-widest text-xs mb-4">
-                        <span className="flex items-center gap-2"><HiCalendar /> {date}</span>
-                        <span className="flex items-center gap-2"><HiUser /> {blog.author?.username || 'Admin'}</span>
-                    </div>
-                    <h1 className="text-3xl lg:text-5xl font-black text-white max-w-4xl mx-auto leading-tight">
-                        {title}
-                    </h1>
+                <div
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(to top, rgba(18,40,60,1) 0%, rgba(18,40,60,0.6) 60%, transparent 100%)' }}
+                />
+                <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+                    style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #DFBA6B 1px, transparent 0)', backgroundSize: '32px 32px' }}
+                />
+                <div className="relative z-10 h-full flex flex-col justify-end container mx-auto px-4 lg:px-12 pb-12">
+                    <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+                        <div className="flex items-center gap-5 mb-4" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <span className="flex items-center gap-2 text-xs font-bold">
+                                <HiCalendar size={13} style={{ color: '#DFBA6B' }} /> {date}
+                            </span>
+                            {blog.author?.username && (
+                                <span className="flex items-center gap-2 text-xs font-bold">
+                                    <HiUser size={13} style={{ color: '#DFBA6B' }} /> {blog.author.username}
+                                </span>
+                            )}
+                        </div>
+                        <h1 className="text-2xl md:text-4xl font-black text-white max-w-3xl leading-tight">
+                            {title}
+                        </h1>
+                        <div className="h-1 w-16 mt-5" style={{ background: 'linear-gradient(to left, #8A6924, #DFBA6B)' }} />
+                    </motion.div>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 lg:px-24 -mt-20 relative z-20 pb-20">
-                <div className="bg-white p-8 lg:p-16 border border-slate-200 shadow-xl max-w-5xl mx-auto">
-                    <Link to="/Blogs" className="inline-flex items-center text-slate-400 hover:text-primary-600 font-bold uppercase text-xs tracking-widest mb-8 transition-colors">
-                        <HiArrowLeft className="mr-2" /> Back to Articles
+            {/* Article */}
+            <div className="container mx-auto px-4 lg:px-12 py-12">
+                <div className="max-w-4xl mx-auto">
+                    <Link
+                        to="/Blogs"
+                        className="inline-flex items-center gap-2 text-xs font-black tracking-widest mb-8 transition-colors hover:text-[#8A6924]"
+                        style={{ color: '#6b5e3e' }}
+                    >
+                        <HiArrowRight size={14} />
+                        العودة إلى المدونة
                     </Link>
 
-                    <div
-                        className="prose prose-slate prose-lg max-w-none text-slate-600 leading-relaxed first-letter:text-5xl first-letter:font-black first-letter:text-primary-600 first-letter:float-left first-letter:mr-3"
-                        dangerouslySetInnerHTML={{ __html: content }}
-                    />
+                    <motion.article
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="p-8 lg:p-14"
+                        style={{
+                            background: 'rgba(255,255,255,0.9)',
+                            backdropFilter: 'blur(16px)',
+                            border: '1px solid rgba(138,105,36,0.12)',
+                            boxShadow: '0 16px 48px rgba(18,40,60,0.06)',
+                            borderTop: '3px solid #8A6924',
+                        }}
+                    >
+                        <div
+                            className="prose prose-lg max-w-none"
+                            style={{
+                                '--tw-prose-body': '#4a3e2a',
+                                '--tw-prose-headings': '#12283C',
+                                '--tw-prose-links': '#8A6924',
+                                '--tw-prose-bold': '#12283C',
+                                color: '#4a3e2a',
+                                lineHeight: '2',
+                            }}
+                            dangerouslySetInnerHTML={{ __html: content }}
+                        />
+                    </motion.article>
                 </div>
             </div>
         </div>

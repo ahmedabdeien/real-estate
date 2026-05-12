@@ -1,95 +1,114 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import userRouter from "./routes/user.route.js";
-import authRouter from './routes/auth.route.js';
-import listingRouter from './routes/listing.route.js';
-import contactRouter from './routes/contact.route.js';
-import chatRouter from './routes/chat.route.js';
 import cookieParser from "cookie-parser";
-import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import cmsRouter from './routes/cms.route.js';
-import configRouter from './routes/config.route.js';
-import ctaRouter from './routes/cta.route.js';
-import cloudinaryRouter from './routes/cloudinary.route.js';
+import path from "path";
 import { fileURLToPath } from "url";
+import { existsSync } from "fs";
 
-// Setup
+import authRouter from "./routes/auth.route.js";
+import userRouter from "./routes/user.route.js";
+import projectRouter from "./routes/project.route.js";
+import unitRouter from "./routes/unit.route.js";
+import leadRouter from "./routes/lead.route.js";
+import blogRouter from "./routes/blog.route.js";
+import contentRouter from "./routes/content.route.js";
+import careerRouter from "./routes/career.route.js";
+import mediaRouter from "./routes/media.route.js";
+import settingsRouter from "./routes/settings.route.js";
+import dashboardRouter from "./routes/dashboard.route.js";
+import activityRouter from "./routes/activity.route.js";
+import searchRouter from "./routes/search.route.js";
+
 dotenv.config();
 const app = express();
-
-// Security Middlewares
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            "img-src": ["'self'", "data:", "https://firebasestorage.googleapis.com", "https://images.unsplash.com", "https://api.dicebear.com"],
-            "script-src": ["'self'", "https://apis.google.com", "https://ajax.googleapis.com"],
-            "connect-src": ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://firebasestorage.googleapis.com"],
-            "frame-src": ["'self'", "https://apis.google.com", "https://*.firebaseapp.com"],
-        },
-    },
-    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
-}));
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO)
-    .then(() => {
-        console.log('MongoDB is connected!!');
-    })
-    .catch((err) => {
-        console.error('MongoDB connection error:', err);
-    });
+// Security
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "img-src": ["'self'", "data:", "https:", "blob:"],
+        "script-src": ["'self'", "'unsafe-inline'", "https://apis.google.com"],
+        "connect-src": ["'self'", "https:", "wss:"],
+        "frame-src": ["'self'", "https:"],
+        "media-src": ["'self'", "https:", "blob:"],
+      },
+    },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 
-// Middlewares
-app.use(express.json());
-app.use(cors({
-    origin: ["http://localhost:5173", "https://elsarhegypt.com", "https://elsarh.co"],
-    credentials: true
-}));
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: "محاولات كثيرة، حاول بعد 15 دقيقة" },
+});
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
+
+// DB
+mongoose
+  .connect(process.env.MONGO)
+  .then(() => console.log("MongoDB is connected!!"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+// Middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+// Build allowed origins from env (comma-separated) + dev defaults
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()) : []),
+];
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      cb(new Error(`CORS blocked: ${origin}`));
+    },
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 
 // Routes
-app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
-app.use("/api/listing", listingRouter);
-app.use('/api/contact', contactRouter);
-app.use('/api/chat', chatRouter);
-app.use('/api/cms', cmsRouter);
-app.use('/api/config', configRouter);
-app.use('/api/cta', ctaRouter);
-app.use("/api/media", cloudinaryRouter);
+app.use("/api/users", userRouter);
+app.use("/api/projects", projectRouter);
+app.use("/api/units", unitRouter);
+app.use("/api/leads", leadRouter);
+app.use("/api/blogs", blogRouter);
+app.use("/api/content", contentRouter);
+app.use("/api/careers", careerRouter);
+app.use("/api/media", mediaRouter);
+app.use("/api/settings", settingsRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/activity", activityRouter);
+app.use("/api/search", searchRouter);
 
-// Serve frontend
-app.use(express.static(path.join(__dirname, "./client/dist")));
-app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "./client/dist/index.html"));
-});
+// Serve frontend only if client/dist exists (monolith mode)
+const distPath = path.join(__dirname, "./client/dist");
+if (existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("*", (req, res) => res.sendFile(path.join(distPath, "index.html")));
+}
 
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
-    console.error('Global error handler:', err);
-    const statusCode = err.statusCode || 500;
-    const message = err.message || 'Internal Server Error';
-    return res.status(statusCode).json({
-        success: false,
-        statusCode,
-        message,
-    });
+  console.error(err);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
 });
 
-// Start server
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}!!`);
-});
+app.listen(port, () => console.log(`Server is running on port ${port}!!`));

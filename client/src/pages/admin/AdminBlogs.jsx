@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../components/UI/Modal";
@@ -8,6 +8,7 @@ import Pagination from "../../components/UI/Pagination";
 import EmptyState from "../../components/UI/EmptyState";
 import LoadingSpinner from "../../components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../components/UI/Badge";
+import ImageUpload from "../../components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 import { FileText } from "lucide-react";
 
@@ -225,12 +226,11 @@ export default function AdminBlogs() {
                 <option value="hidden">مخفي</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الصورة الغلاف</label>
-              <input value={form.coverImage} onChange={(e) => f("coverImage", e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-            </div>
+            <ImageUpload
+              label="صورة الغلاف"
+              value={form.coverImage}
+              onChange={(url) => f("coverImage", url)}
+            />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.featured} onChange={(e) => f("featured", e.target.checked)}

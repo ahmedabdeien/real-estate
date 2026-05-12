@@ -1,42 +1,33 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const blogSchema = new mongoose.Schema({
+const blogSchema = new mongoose.Schema(
+  {
     title: {
-        en: { type: String, required: true },
-        ar: { type: String, required: true }
+      ar: { type: String, required: true },
+      en: { type: String, required: true },
     },
-    slug: {
-        type: String,
-        required: true,
-        unique: true
-    },
+    slug: { type: String, required: true, unique: true },
     content: {
-        en: { type: String, required: true },
-        ar: { type: String, required: true }
+      ar: { type: String, default: "" },
+      en: { type: String, default: "" },
     },
     excerpt: {
-        en: { type: String },
-        ar: { type: String }
+      ar: { type: String, default: "" },
+      en: { type: String, default: "" },
     },
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
-        required: true
-    },
+    coverImage: { type: String, default: "" },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    category: { type: String, default: "general" },
+    tags: [{ type: String }],
     status: {
-        type: String,
-        enum: ['Draft', 'Pending Approval', 'Published', 'Hidden'],
-        default: 'Draft'
+      type: String,
+      enum: ["draft", "published", "hidden"],
+      default: "draft",
     },
-    featured: {
-        type: Boolean,
-        default: false
-    },
-    image: {
-        type: String
-    }
-}, { timestamps: true });
+    featured: { type: Boolean, default: false },
+    views: { type: Number, default: 0 },
+  },
+  { timestamps: true }
+);
 
-const Blog = mongoose.model('Blog', blogSchema);
-
-export default Blog;
+export default mongoose.model("Blog", blogSchema);

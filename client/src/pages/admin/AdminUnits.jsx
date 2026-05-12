@@ -86,12 +86,21 @@ export default function AdminUnits() {
 
   const handleSave = async () => {
     setSaving(true);
+    // Convert numeric fields – empty string → 0, string numbers → numbers
+    const payload = {
+      ...form,
+      area:      Number(form.area)      || 0,
+      price:     Number(form.price)     || 0,
+      floor:     Number(form.floor)     || 0,
+      rooms:     Number(form.rooms)     || 1,
+      bathrooms: Number(form.bathrooms) || 1,
+    };
     try {
       if (editItem) {
-        await api.put(`/units/${editItem._id}`, form);
+        await api.put(`/units/${editItem._id}`, payload);
         toast.success("تم تحديث الوحدة");
       } else {
-        await api.post("/units", form);
+        await api.post("/units", payload);
         toast.success("تم إضافة الوحدة");
       }
       setModal(false);

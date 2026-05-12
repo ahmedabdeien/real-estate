@@ -1,22 +1,15 @@
 import React from 'react';
-import { FaCircleNotch } from 'react-icons/fa6';
-import PropTypes from 'prop-types';
 
-const Spinner = ({ size = 'md', className = '' }) => {
-    const sizes = {
-        sm: 'text-sm',
-        md: 'text-xl',
-        lg: 'text-3xl',
-    };
-
-    return (
-        <FaCircleNotch className={`animate-spin text-blue-600 ${sizes[size]} ${className}`} />
-    );
-};
-
-Spinner.propTypes = {
-    size: PropTypes.oneOf(['sm', 'md', 'lg']),
-    className: PropTypes.string,
-};
-
-export default Spinner;
+export default function Spinner({ size = 'md', color = 'gold', className = '' }) {
+  const sizes = { sm: 'w-5 h-5 border-[3px]', md: 'w-8 h-8 border-4', lg: 'w-12 h-12 border-4' };
+  const colors = {
+    gold: 'border-[#DFBA6B]/30 border-t-[#DFBA6B]',
+    navy: 'border-[#12283C]/30 border-t-[#12283C]',
+    white: 'border-white/30 border-t-white',
+  };
+  return (
+    <div
+      className={`${sizes[size]} rounded-full animate-spin ${colors[color]} ${className}`}
+    />
+  );
+}
