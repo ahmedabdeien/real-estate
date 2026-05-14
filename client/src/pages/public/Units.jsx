@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { Home, MapPin, BedDouble, Bath, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Pagination from "../../components/UI/Pagination";
-import EmptyState from "../../components/UI/EmptyState";
-import Badge, { statusBadge } from "../../components/UI/Badge";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Pagination from "../../Components/UI/Pagination";
+import EmptyState from "../../Components/UI/EmptyState";
+import Badge, { statusBadge } from "../../Components/UI/Badge";
 
 const unitTypeAr = { apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس", penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه" };
 

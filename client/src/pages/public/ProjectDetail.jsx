@@ -3,8 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Calendar, Home, Building2, Phone, ArrowRight } from "lucide-react";
 import api from "../../api/axios";
-import { PageLoader } from "../../components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../components/UI/Badge";
+import { PageLoader } from "../../Components/UI/LoadingSpinner";
+import Badge, { statusBadge } from "../../Components/UI/Badge";
 
 const unitTypeAr = { apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس", penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه" };
 

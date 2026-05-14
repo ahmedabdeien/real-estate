@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
-import Header from "../components/layout/Header";
-import Footer from "../components/layout/Footer";
-import SiteMeta from "../components/SiteMeta";
+import Header from "../Components/layout/Header";
+import Footer from "../Components/layout/Footer";
+import SiteMeta from "../Components/SiteMeta";
 
 export default function PublicLayout() {
   return (

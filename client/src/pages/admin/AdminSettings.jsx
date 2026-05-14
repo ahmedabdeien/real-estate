@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Save, Globe, Share2, Building2, Palette, MapPin, Plus, Trash2 } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import ImageUpload from "../../components/UI/ImageUpload";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import ImageUpload from "../../Components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 
 const settingsGroups = [

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import EmptyState from "../../components/UI/EmptyState";
-import Pagination from "../../components/UI/Pagination";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import EmptyState from "../../Components/UI/EmptyState";
+import Pagination from "../../Components/UI/Pagination";
 import { useToast } from "../../context/ToastContext";
 
 const actionMeta = {

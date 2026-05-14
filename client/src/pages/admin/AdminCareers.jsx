@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
-import Modal from "../../components/UI/Modal";
-import ConfirmModal from "../../components/UI/ConfirmModal";
-import EmptyState from "../../components/UI/EmptyState";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Badge from "../../components/UI/Badge";
+import Modal from "../../Components/UI/Modal";
+import ConfirmModal from "../../Components/UI/ConfirmModal";
+import EmptyState from "../../Components/UI/EmptyState";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Badge from "../../Components/UI/Badge";
 import { useToast } from "../../context/ToastContext";
 import { Briefcase } from "lucide-react";
 

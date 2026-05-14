@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import Sidebar from "../components/admin/Sidebar";
-import Topbar from "../components/admin/Topbar";
-import { PageLoader } from "../components/UI/LoadingSpinner";
+import Sidebar from "../Components/admin/Sidebar";
+import Topbar from "../Components/admin/Topbar";
+import { PageLoader } from "../Components/UI/LoadingSpinner";
 
 export default function AdminLayout() {
   const { user, loading } = useAuth();

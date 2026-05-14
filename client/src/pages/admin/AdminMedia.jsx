@@ -3,10 +3,10 @@ import { Trash2, Upload, Image as ImageIcon, Copy, Check, CloudUpload, AlertCirc
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadToCloudinary, getCloudinaryThumb } from "../../lib/cloudinary";
 import api from "../../api/axios";
-import ConfirmModal from "../../components/UI/ConfirmModal";
-import Pagination from "../../components/UI/Pagination";
-import EmptyState from "../../components/UI/EmptyState";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
+import ConfirmModal from "../../Components/UI/ConfirmModal";
+import Pagination from "../../Components/UI/Pagination";
+import EmptyState from "../../Components/UI/EmptyState";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import { useToast } from "../../context/ToastContext";
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;

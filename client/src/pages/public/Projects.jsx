@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, MapPin, Calendar, ArrowLeft, Search } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Pagination from "../../components/UI/Pagination";
-import EmptyState from "../../components/UI/EmptyState";
-import Badge, { statusBadge } from "../../components/UI/Badge";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Pagination from "../../Components/UI/Pagination";
+import EmptyState from "../../Components/UI/EmptyState";
+import Badge, { statusBadge } from "../../Components/UI/Badge";
 
 const statusOptions = [
   { value: "", label: "كل المشاريع" },

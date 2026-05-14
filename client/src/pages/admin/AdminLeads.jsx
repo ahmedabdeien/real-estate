@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Search, Phone, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
-import Modal from "../../components/UI/Modal";
-import ConfirmModal from "../../components/UI/ConfirmModal";
-import Pagination from "../../components/UI/Pagination";
-import EmptyState from "../../components/UI/EmptyState";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../components/UI/Badge";
+import Modal from "../../Components/UI/Modal";
+import ConfirmModal from "../../Components/UI/ConfirmModal";
+import Pagination from "../../Components/UI/Pagination";
+import EmptyState from "../../Components/UI/EmptyState";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useToast } from "../../context/ToastContext";
 import { TrendingUp } from "lucide-react";
 

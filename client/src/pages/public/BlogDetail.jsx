@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Calendar, Eye, ArrowRight } from "lucide-react";
 import api from "../../api/axios";
-import { PageLoader } from "../../components/UI/LoadingSpinner";
+import { PageLoader } from "../../Components/UI/LoadingSpinner";
 
 export default function BlogDetailPage() {
   const { slug } = useParams();

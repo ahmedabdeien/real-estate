@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Save, Eye, Image as ImageIcon, AlignLeft, Type } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import ImageUpload from "../../components/UI/ImageUpload";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import ImageUpload from "../../Components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 
 const sections = [

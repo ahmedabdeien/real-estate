@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FileText, Search, Calendar, Eye } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Pagination from "../../components/UI/Pagination";
-import EmptyState from "../../components/UI/EmptyState";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Pagination from "../../Components/UI/Pagination";
+import EmptyState from "../../Components/UI/EmptyState";
 
 export default function BlogPage() {
   const [blogs, setBlogs] = useState([]);

@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Briefcase, MapPin, Clock, Calendar, Link2 } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import EmptyState from "../../components/UI/EmptyState";
-import Badge from "../../components/UI/Badge";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import EmptyState from "../../Components/UI/EmptyState";
+import Badge from "../../Components/UI/Badge";
 
 const typeAr = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
 

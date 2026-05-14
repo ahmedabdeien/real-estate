@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building2, Home as HomeIcon, Users, Award, ArrowLeft, Phone, MapPin, Calendar, Search, X } from "lucide-react";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../components/UI/Badge";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Badge, { statusBadge } from "../../Components/UI/Badge";
 
 // Badge labels for search result types
 const typeBg = { project: "bg-blue-500", unit: "bg-emerald-500", blog: "bg-purple-500", career: "bg-amber-500" };

@@ -3,8 +3,8 @@ import { Building2, Home, TrendingUp, FileText, ArrowUpRight, Clock, CheckCircle
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import LoadingSpinner from "../../components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../components/UI/Badge";
+import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useAuth } from "../../context/AuthContext";
 
 const actionMeta = {
