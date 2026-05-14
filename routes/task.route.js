@@ -4,14 +4,15 @@ import { authenticate, authorize } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// All task roles
-const taskRoles = ["admin", "manager", "employee", "sales"];
-const managerRoles = ["admin", "manager"];
+// Roles that can access tasks at all
+const taskRoles    = ["admin", "supervisor", "manager", "employee", "sales"];
+// Roles that can create / delete tasks
+const manageRoles  = ["admin", "supervisor", "manager"];
 
-router.get("/users", authenticate, authorize(...managerRoles), getTaskUsers);
-router.get("/",      authenticate, authorize(...taskRoles),    getTasks);
-router.post("/",     authenticate, authorize(...managerRoles), createTask);
-router.put("/:id",   authenticate, authorize(...taskRoles),    updateTask);
-router.delete("/:id",authenticate, authorize(...managerRoles), deleteTask);
+router.get("/users", authenticate, authorize(...manageRoles), getTaskUsers);
+router.get("/",      authenticate, authorize(...taskRoles),   getTasks);
+router.post("/",     authenticate, authorize(...manageRoles), createTask);
+router.put("/:id",   authenticate, authorize(...taskRoles),   updateTask);
+router.delete("/:id",authenticate, authorize(...manageRoles), deleteTask);
 
 export default router;

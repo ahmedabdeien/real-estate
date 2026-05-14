@@ -22,15 +22,16 @@ const navItems = [
   { to: "/admin/activity", label: "سجل النشاط",   icon: Activity,  roles: ["admin"] },
   { to: "/admin/settings", label: "الإعدادات",     icon: Settings,  roles: ["admin"] },
   // Tasks — shown to all panel roles except viewer
-  { to: "/tasks",          label: "المهام",        icon: CheckSquare, roles: ["admin", "manager", "employee", "sales"], external: true },
+  { to: "/tasks",          label: "المهام",        icon: CheckSquare, roles: ["admin", "supervisor", "manager", "employee", "sales"], external: true },
 ];
 
 const roleLabels = {
-  admin:    "مدير",
-  manager:  "مشرف",
-  employee: "موظف",
-  sales:    "مبيعات",
-  viewer:   "مشاهد",
+  admin:      "مدير عام",
+  supervisor: "مشرف عام",
+  manager:    "مدير قسم",
+  employee:   "موظف",
+  sales:      "مبيعات",
+  viewer:     "مشاهد",
 };
 
 export default function Sidebar({ collapsed, onToggle }) {

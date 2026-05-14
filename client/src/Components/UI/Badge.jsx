@@ -33,11 +33,12 @@ export const statusBadge = (status) => {
     draft: { label: "مسودة", variant: "gray" },
     published: { label: "منشور", variant: "success" },
     hidden: { label: "مخفي", variant: "warning" },
-    admin: { label: "مدير", variant: "primary" },
-    manager: { label: "مشرف", variant: "warning" },
-    employee: { label: "موظف", variant: "info" },
-    sales: { label: "مبيعات", variant: "success" },
-    viewer: { label: "مشاهد", variant: "gray" },
+    admin:      { label: "مدير عام",   variant: "primary" },
+    supervisor: { label: "مشرف عام",  variant: "error" },
+    manager:    { label: "مدير قسم",  variant: "warning" },
+    employee:   { label: "موظف",      variant: "info" },
+    sales:      { label: "مبيعات",    variant: "success" },
+    viewer:     { label: "مشاهد",     variant: "gray" },
   };
   return map[status] || { label: status, variant: "gray" };
 };

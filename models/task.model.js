@@ -9,7 +9,16 @@ const taskSchema = new mongoose.Schema(
     dueDate:     { type: Date, required: true },
     status:      { type: String, enum: ["pending", "in_progress", "done"], default: "pending" },
     priority:    { type: String, enum: ["low", "medium", "high"], default: "medium" },
-    notes:       { type: String, default: "" }, // notes from employee
+    notes:       { type: String, default: "" },
+    // Department this task belongs to
+    department:  {
+      type: String,
+      enum: [
+        "accounts", "legal", "marketing",
+        "administrative", "projects", "warehouse", "purchasing",
+      ],
+      required: true,
+    },
   },
   { timestamps: true }
 );

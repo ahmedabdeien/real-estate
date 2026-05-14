@@ -52,7 +52,7 @@ function TasksRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/admin/login" replace />;
-  if (user.role === "viewer") return <Navigate to="/" replace />;
+  if (!["admin", "supervisor", "manager", "employee", "sales"].includes(user.role)) return <Navigate to="/" replace />;
   return <TasksPage />;
 }
 
