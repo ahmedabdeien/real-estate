@@ -27,15 +27,16 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveUser = (u) => {
+  const saveUser = (u, token) => {
     setUser(u);
     localStorage.setItem("elsarh_user", JSON.stringify(u));
+    if (token) localStorage.setItem("elsarh_token", token);
   };
 
   // Email/password login
   const login = async (email, password) => {
     const res = await api.post("/auth/login", { email, password });
-    saveUser(res.data.user);
+    saveUser(res.data.user, res.data.token);
     return res.data.user;
   };
 
@@ -44,7 +45,7 @@ export function AuthProvider({ children }) {
     const result = await signInWithPopup(auth, googleProvider);
     const idToken = await result.user.getIdToken();
     const res = await api.post("/auth/google", { idToken });
-    saveUser(res.data.user);
+    saveUser(res.data.user, res.data.token);
     return res.data.user;
   };
 
@@ -53,6 +54,7 @@ export function AuthProvider({ children }) {
     await api.post("/auth/logout");
     setUser(null);
     localStorage.removeItem("elsarh_user");
+    localStorage.removeItem("elsarh_token");
   };
 
   const updateUser = (data) => {

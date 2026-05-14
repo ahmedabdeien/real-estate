@@ -9,11 +9,19 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Attach JWT as Authorization header — works cross-origin without cookie sameSite issues
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("elsarh_token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("elsarh_user");
+      localStorage.removeItem("elsarh_token");
       const path = window.location.pathname;
       if (path.startsWith("/admin") && path !== "/admin/login") {
         window.location.href = "/admin/login";
