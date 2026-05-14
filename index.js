@@ -41,7 +41,7 @@ app.use(
         "media-src": ["'self'", "https:", "blob:"],
       },
     },
-    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginOpenerPolicy: false,
   })
 );
 
