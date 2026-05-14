@@ -7,7 +7,8 @@ import { PageLoader } from "../Components/UI/LoadingSpinner";
 
 export default function AdminLayout() {
   const { user, loading } = useAuth();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Start collapsed on mobile, expanded on desktop
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");

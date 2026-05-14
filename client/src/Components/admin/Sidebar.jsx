@@ -41,6 +41,11 @@ export default function Sidebar({ collapsed, onToggle }) {
   const toast = useToast();
   const navigate = useNavigate();
 
+  // Close sidebar on mobile when nav link is clicked
+  const handleNavClick = () => {
+    if (window.innerWidth < 1024) onToggle();
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -104,6 +109,7 @@ export default function Sidebar({ collapsed, onToggle }) {
               key={to}
               to={to}
               end={exact}
+              onClick={handleNavClick}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
               className={({ isActive }) =>
