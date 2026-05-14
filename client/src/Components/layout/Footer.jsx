@@ -1,20 +1,19 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Building2, Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
-import api from "../../api/axios";
+import { useCms } from "../../hooks/useCms";
 
 export default function Footer() {
   const year = new Date().getFullYear();
   const { settings, contact } = useSiteSettings();
 
-  const [cmsFooter, setCmsFooter] = useState({});
-
-  useEffect(() => {
-    api.get("/content/footer")
-      .then((r) => setCmsFooter(r.data.data || {}))
-      .catch(() => {});
-  }, []);
+  const { data: cmsFooter } = useCms("footer", {
+    companyName: "",
+    companyDesc: "",
+    phone: "",
+    email: "",
+    address: "",
+  });
 
   const phone   = cmsFooter.phone    || contact.phone    || settings.company_phone   || "01234567890";
   const email   = cmsFooter.email    || contact.email    || settings.company_email   || "info@elsarh.com";

@@ -7,6 +7,7 @@ import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
+import { useCms } from "../../hooks/useCms";
 
 const statusOptions = [
   { value: "", label: "كل المشاريع" },
@@ -16,6 +17,11 @@ const statusOptions = [
 ];
 
 export default function ProjectsPage() {
+  const { data: cmsPage } = useCms("projects_page", {
+    title_ar: "مشاريعنا",
+    subtitle_ar: "اكتشف مجموعة مشاريعنا المتميزة",
+    hero_image: "",
+  });
   const [projects, setProjects] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -42,10 +48,14 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">مشاريعنا</h1>
-          <p className="text-white/70 text-lg">اكتشف مجموعة مشاريعنا المتميزة</p>
+      <div
+        className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16 relative"
+        style={cmsPage.hero_image ? { backgroundImage: `url('${cmsPage.hero_image}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+      >
+        {cmsPage.hero_image && <div className="absolute inset-0 bg-[#1a3d5c]/70" />}
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-4xl font-black text-white mb-3">{cmsPage.title_ar}</h1>
+          <p className="text-white/70 text-lg">{cmsPage.subtitle_ar}</p>
         </div>
       </div>
 

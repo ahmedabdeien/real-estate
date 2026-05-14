@@ -4,10 +4,21 @@ import { Phone, Mail, MapPin, Clock, Send, CheckCircle, MessageCircle, Navigatio
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
+import { useCms } from "../../hooks/useCms";
 
 export default function ContactPage() {
   const { user } = useAuth();
   const { contact: siteContact, settings } = useSiteSettings();
+  const { data: cmsContact } = useCms("contact", {
+    phone: "",
+    whatsapp: "",
+    email: "",
+    address_ar: "",
+    working_hours: "",
+    facebook: "",
+    instagram: "",
+    youtube: "",
+  });
 
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -45,12 +56,15 @@ export default function ContactPage() {
 
   const f = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // Resolve contact info: prefer content API → settings → fallback
-  const phone    = siteContact.phone    || "01234567890";
-  const email    = siteContact.email    || "info@elsarh.com";
-  const address  = siteContact.address_ar || "القاهرة، جمهورية مصر العربية";
-  const hours    = siteContact.working_hours || "السبت - الخميس: 9 صباحاً - 6 مساءً";
-  const whatsapp = siteContact.whatsapp || phone;
+  // Resolve contact info: prefer CMS → siteContact context → settings → fallback
+  const phone    = cmsContact.phone    || siteContact.phone    || "01234567890";
+  const email    = cmsContact.email    || siteContact.email    || "info@elsarh.com";
+  const address  = cmsContact.address_ar || siteContact.address_ar || "القاهرة، جمهورية مصر العربية";
+  const hours    = cmsContact.working_hours || siteContact.working_hours || "السبت - الخميس: 9 صباحاً - 6 مساءً";
+  const whatsapp = cmsContact.whatsapp || siteContact.whatsapp || phone;
+  const facebook  = cmsContact.facebook  || siteContact.facebook  || settings.facebook_url  || "#";
+  const instagram = cmsContact.instagram || siteContact.instagram || settings.instagram_url || "#";
+  const youtube   = cmsContact.youtube   || siteContact.youtube   || settings.youtube_url   || "#";
 
   let branches = [];
   try { branches = settings.branches ? JSON.parse(settings.branches) : []; } catch {}

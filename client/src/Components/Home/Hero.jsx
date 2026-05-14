@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaSearch } from 'react-icons/fa';
+import { useCms } from '../../hooks/useCms';
 
 const PROPERTY_TYPES = ['جميع الأنواع', 'فيلا', 'شقة', 'أرض', 'مجمع سكني', 'تجاري'];
 const CITIES = ['جميع المدن', 'الرياض', 'جدة', 'مكة المكرمة', 'المدينة المنورة', 'الدمام', 'الخبر'];
@@ -19,6 +20,13 @@ export default function Hero() {
   const [price, setPrice] = useState('');
   const [city, setCity] = useState('');
 
+  const { data } = useCms('hero', {
+    title_ar: 'اكتشف عقارك المثالي',
+    subtitle_ar: 'نقدم أفضل العقارات السكنية والتجارية بأعلى معايير الجودة والخدمة المتميزة',
+    background_image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1600&auto=format&fit=crop',
+    cta_text_ar: 'ابحث عن عقارك الآن',
+  });
+
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -34,7 +42,7 @@ export default function Hero() {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1600&auto=format&fit=crop')`,
+          backgroundImage: `url('${data.background_image}')`,
         }}
       />
       {/* Overlays */}
@@ -67,11 +75,7 @@ export default function Hero() {
             className="text-white font-black leading-tight mb-4"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
           >
-            اكتشف
-            <span className="block text-[#DFBA6B]">عقارك المثالي</span>
-            <span className="block text-white/80 text-[0.7em] font-bold mt-1">
-              في أرقى مناطق المملكة
-            </span>
+            {data.title_ar}
           </motion.h1>
 
           {/* Sub */}
@@ -81,7 +85,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-white/70 text-base mb-8 leading-relaxed max-w-lg"
           >
-            نقدم أفضل العقارات السكنية والتجارية بأعلى معايير الجودة والخدمة المتميزة
+            {data.subtitle_ar}
           </motion.p>
 
           {/* Search box */}
@@ -153,7 +157,7 @@ export default function Hero() {
                 className="w-full py-3 bg-[#8A6924] hover:bg-[#DFBA6B] hover:text-[#12283C] text-white font-black text-sm tracking-wider transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <FaSearch />
-                ابحث عن عقارك الآن
+                {data.cta_text_ar}
               </button>
             </form>
           </motion.div>

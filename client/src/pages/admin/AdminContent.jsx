@@ -76,6 +76,37 @@ const sections = [
       { key: "map_embed",      label: "رابط Google Maps embed",  type: "text" },
     ],
   },
+  {
+    key: "home_services",
+    label: "الرئيسية — خدماتنا",
+    fields: [
+      { key: "title_ar",       label: "عنوان القسم",          type: "text" },
+      { key: "service1_title", label: "خدمة 1 — العنوان",     type: "text" },
+      { key: "service1_desc",  label: "خدمة 1 — الوصف",      type: "textarea" },
+      { key: "service2_title", label: "خدمة 2 — العنوان",     type: "text" },
+      { key: "service2_desc",  label: "خدمة 2 — الوصف",      type: "textarea" },
+      { key: "service3_title", label: "خدمة 3 — العنوان",     type: "text" },
+      { key: "service3_desc",  label: "خدمة 3 — الوصف",      type: "textarea" },
+    ],
+  },
+  {
+    key: "careers_page",
+    label: "صفحة الوظائف",
+    fields: [
+      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+      { key: "image",       label: "صورة الصفحة",     type: "image" },
+    ],
+  },
+  {
+    key: "projects_page",
+    label: "صفحة المشاريع",
+    fields: [
+      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+    ],
+  },
 ];
 
 const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon };

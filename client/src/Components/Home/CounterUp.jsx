@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import CountUp from 'react-countup';
 import { motion, useInView } from "framer-motion";
 import { useSelector } from 'react-redux';
+import { useCms } from '../../hooks/useCms';
 
 const parseNum = (str) => parseInt((str || '').replace(/\D/g, '')) || 0;
 
@@ -14,15 +15,33 @@ const defaultItems = [
 
 export default function CounterUp() {
   const { config } = useSelector(s => s.config);
+  const { data: cmsStats } = useCms('stats', {
+    projects_count: '',
+    units_count: '',
+    clients_count: '',
+    years_experience: '',
+  });
   const ref = useRef(null);
   const isInView = useInView(ref, { margin: "-100px", once: true });
   const [startAnimation, setStartAnimation] = useState(false);
 
-  const counterItems = defaultItems.map(item => ({
-    ...item,
-    end:    config?.stats?.[item.key] ? parseNum(config.stats[item.key]) : item.fallback,
-    suffix: '+',
-  }));
+  const counterItems = defaultItems.map(item => {
+    // Map CMS keys to defaultItems keys
+    const cmsKeyMap = {
+      projects:   'projects_count',
+      experience: 'years_experience',
+      clients:    'clients_count',
+      units:      'units_count',
+    };
+    const cmsKey = cmsKeyMap[item.key];
+    const cmsVal = cmsStats[cmsKey];
+    const reduxVal = config?.stats?.[item.key];
+    return {
+      ...item,
+      end: cmsVal ? parseNum(cmsVal) : reduxVal ? parseNum(reduxVal) : item.fallback,
+      suffix: '+',
+    };
+  });
 
   useEffect(() => {
     if (isInView) setStartAnimation(true);

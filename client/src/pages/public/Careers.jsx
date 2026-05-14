@@ -5,10 +5,16 @@ import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import EmptyState from "../../Components/UI/EmptyState";
 import Badge from "../../Components/UI/Badge";
+import { useCms } from "../../hooks/useCms";
 
 const typeAr = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
 
 export default function CareersPage() {
+  const { data: cmsPage } = useCms("careers_page", {
+    title_ar: "الوظائف المتاحة",
+    subtitle_ar: "انضم إلى فريق الصرح للتطوير العقاري",
+    image: "",
+  });
   const [careers, setCareers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -39,10 +45,14 @@ export default function CareersPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">الوظائف المتاحة</h1>
-          <p className="text-white/70 text-lg">انضم إلى فريق الصرح للتطوير العقاري</p>
+      <div
+        className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16 relative"
+        style={cmsPage.image ? { backgroundImage: `url('${cmsPage.image}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+      >
+        {cmsPage.image && <div className="absolute inset-0 bg-[#1a3d5c]/70" />}
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h1 className="text-4xl font-black text-white mb-3">{cmsPage.title_ar}</h1>
+          <p className="text-white/70 text-lg">{cmsPage.subtitle_ar}</p>
         </div>
       </div>
 

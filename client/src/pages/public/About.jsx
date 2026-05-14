@@ -1,22 +1,27 @@
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Building2, Users, Award, Target, Eye } from "lucide-react";
-import api from "../../api/axios";
+import { useCms } from "../../hooks/useCms";
 
 export default function AboutPage() {
-  const [content, setContent] = useState({});
-  const [stats, setStats] = useState({});
-
-  useEffect(() => {
-    api.get("/content/about").then((r) => setContent(r.data.data || {})).catch(() => {});
-    api.get("/content/stats").then((r) => setStats(r.data.data || {})).catch(() => {});
-  }, []);
+  const { data: content } = useCms("about", {
+    title_ar: "عن الصرح للتطوير العقاري",
+    body_ar: "الصرح للتطوير العقاري شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها.",
+    vision_ar: "أن نكون الخيار الأول للتطوير العقاري في مصر، من خلال تقديم مشاريع مبتكرة تلبي تطلعات العملاء وتساهم في بناء مجتمعات متكاملة.",
+    mission_ar: "تقديم حلول عقارية متكاملة تجمع بين الجودة والابتكار وخدمة العملاء الاستثنائية، مع الحفاظ على أعلى معايير الشفافية والمصداقية.",
+    image: "",
+  });
+  const { data: stats } = useCms("stats", {
+    projects_count: "50+",
+    units_count: "2000+",
+    clients_count: "5000+",
+    years_experience: "15+",
+  });
 
   return (
     <div className="min-h-screen" dir="rtl">
       <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">{content.title_ar || "عن الصرح للتطوير العقاري"}</h1>
+          <h1 className="text-4xl font-black text-white mb-3">{content.title_ar}</h1>
           <p className="text-white/70 text-lg">شركة رائدة في مجال التطوير العقاري</p>
         </div>
       </div>
@@ -31,14 +36,14 @@ export default function AboutPage() {
                 {content.founded_year ? `منذ عام ${content.founded_year}` : "رواد في عالم العقارات"}
               </h2>
               <p className="text-gray-600 leading-relaxed mb-6">
-                {content.body_ar || "الصرح للتطوير العقاري شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها."}
+                {content.body_ar}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { label: "مشروع", value: stats.projects_count || "50+" },
-                  { label: "وحدة سكنية", value: stats.units_count || "2000+" },
-                  { label: "عميل سعيد", value: stats.clients_count || "5000+" },
-                  { label: "سنة خبرة", value: stats.years_experience || "15+" },
+                  { label: "مشروع", value: stats.projects_count },
+                  { label: "وحدة سكنية", value: stats.units_count },
+                  { label: "عميل سعيد", value: stats.clients_count },
+                  { label: "سنة خبرة", value: stats.years_experience },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-[#f8fafc] rounded-xl p-4">
                     <p className="text-3xl font-black text-[#2d5d89]">{value}</p>
@@ -71,7 +76,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-3">رؤيتنا</h3>
               <p className="text-gray-600 leading-relaxed">
-                {content.vision_ar || "أن نكون الخيار الأول للتطوير العقاري في مصر، من خلال تقديم مشاريع مبتكرة تلبي تطلعات العملاء وتساهم في بناء مجتمعات متكاملة."}
+                {content.vision_ar}
               </p>
             </motion.div>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -82,7 +87,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-3">رسالتنا</h3>
               <p className="text-gray-600 leading-relaxed">
-                {content.mission_ar || "تقديم حلول عقارية متكاملة تجمع بين الجودة والابتكار وخدمة العملاء الاستثنائية، مع الحفاظ على أعلى معايير الشفافية والمصداقية."}
+                {content.mission_ar}
               </p>
             </motion.div>
           </div>
