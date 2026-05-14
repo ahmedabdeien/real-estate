@@ -28,7 +28,7 @@ export default function ProjectsPage() {
     setLoading(true);
     try {
       const res = await api.get("/projects", { params: { page, search, status, published: true } });
-      setProjects(res.data.projects);
+      setProjects(res.data.projects || []);
       setTotal(res.data.total);
       setPages(res.data.pages);
     } catch {

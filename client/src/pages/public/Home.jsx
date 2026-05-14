@@ -198,7 +198,7 @@ export default function HomePage() {
 
   useEffect(() => {
     api.get("/projects", { params: { featured: true, published: true, limit: 6 } })
-      .then((r) => setProjects(r.data.projects))
+      .then((r) => setProjects(r.data.projects || []))
       .finally(() => setLoadingProjects(false));
     api.get("/content/hero").then((r) => setHero(r.data.data || {})).catch(() => {});
     api.get("/content/stats").then((r) => setStats(r.data.data || {})).catch(() => {});

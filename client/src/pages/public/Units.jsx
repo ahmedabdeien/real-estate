@@ -24,7 +24,7 @@ export default function UnitsPage() {
     setLoading(true);
     try {
       const res = await api.get("/units", { params: { page, status, project, published: true } });
-      setUnits(res.data.units);
+      setUnits(res.data.units || []);
       setTotal(res.data.total);
       setPages(res.data.pages);
     } catch {
@@ -35,7 +35,7 @@ export default function UnitsPage() {
 
   useEffect(() => { load(); }, [page, status, project]);
   useEffect(() => {
-    api.get("/projects", { params: { limit: 100, published: true } }).then((r) => setProjects(r.data.projects));
+    api.get("/projects", { params: { limit: 100, published: true } }).then((r) => setProjects(r.data.projects || []));
   }, []);
 
   return (

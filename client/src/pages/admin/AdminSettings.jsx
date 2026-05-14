@@ -11,6 +11,8 @@ const settingsGroups = [
     label: "معلومات الشركة",
     icon: Building2,
     settings: [
+      { key: "site_name",          label: "اسم التبويب في المتصفح",    type: "text" },
+      { key: "favicon_url",        label: "أيقونة المتصفح (Favicon)",  type: "image" },
       { key: "company_name_ar",   label: "اسم الشركة (عربي)",        type: "text" },
       { key: "company_name_en",   label: "اسم الشركة (إنجليزي)",      type: "text" },
       { key: "company_logo",      label: "شعار الشركة",               type: "image" },
