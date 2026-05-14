@@ -17,7 +17,7 @@ export default function CareersPage() {
 
   useEffect(() => {
     api.get("/careers", { params: { published: true } })
-      .then((r) => setCareers(r.data.careers))
+      .then((r) => setCareers(r.data.careers || []))
       .finally(() => setLoading(false));
   }, []);
 

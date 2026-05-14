@@ -3,24 +3,35 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
-  Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity
+  Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
+  CheckSquare
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 
 const navItems = [
-  { to: "/admin", label: "لوحة التحكم", icon: LayoutDashboard, exact: true, roles: ["admin"] },
-  { to: "/admin/projects", label: "المشاريع", icon: Building2 },
-  { to: "/admin/units", label: "الوحدات", icon: Home },
-  { to: "/admin/leads", label: "العملاء", icon: TrendingUp },
-  { to: "/admin/blogs", label: "المقالات", icon: FileText },
-  { to: "/admin/content", label: "المحتوى", icon: FileText, roles: ["admin"] },
-  { to: "/admin/media", label: "المكتبة", icon: Image, roles: ["admin"] },
-  { to: "/admin/careers", label: "الوظائف", icon: Briefcase, roles: ["admin"] },
-  { to: "/admin/users", label: "المستخدمين", icon: Users, roles: ["admin"] },
-  { to: "/admin/activity", label: "سجل النشاط", icon: Activity, roles: ["admin"] },
-  { to: "/admin/settings", label: "الإعدادات", icon: Settings, roles: ["admin"] },
+  { to: "/admin",          label: "لوحة التحكم",  icon: LayoutDashboard, exact: true, roles: ["admin"] },
+  { to: "/admin/projects", label: "المشاريع",      icon: Building2 },
+  { to: "/admin/units",    label: "الوحدات",       icon: Home },
+  { to: "/admin/leads",    label: "العملاء",       icon: TrendingUp },
+  { to: "/admin/blogs",    label: "المقالات",      icon: FileText },
+  { to: "/admin/content",  label: "المحتوى",       icon: FileText,  roles: ["admin"] },
+  { to: "/admin/media",    label: "المكتبة",       icon: Image,     roles: ["admin"] },
+  { to: "/admin/careers",  label: "الوظائف",       icon: Briefcase, roles: ["admin"] },
+  { to: "/admin/users",    label: "المستخدمين",    icon: Users,     roles: ["admin"] },
+  { to: "/admin/activity", label: "سجل النشاط",   icon: Activity,  roles: ["admin"] },
+  { to: "/admin/settings", label: "الإعدادات",     icon: Settings,  roles: ["admin"] },
+  // Tasks — shown to all panel roles except viewer
+  { to: "/tasks",          label: "المهام",        icon: CheckSquare, roles: ["admin", "manager", "employee", "sales"], external: true },
 ];
+
+const roleLabels = {
+  admin:    "مدير",
+  manager:  "مشرف",
+  employee: "موظف",
+  sales:    "مبيعات",
+  viewer:   "مشاهد",
+};
 
 export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
@@ -85,14 +96,16 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-          {filtered.map(({ to, label, icon: Icon, exact }) => (
+          {filtered.map(({ to, label, icon: Icon, exact, external }) => (
             <NavLink
               key={to}
               to={to}
               end={exact}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
               className={({ isActive }) =>
                 `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium ${
-                  isActive
+                  isActive && !external
                     ? "bg-white/20 text-white"
                     : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`
@@ -124,7 +137,7 @@ export default function Sidebar({ collapsed, onToggle }) {
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                <p className="text-xs text-white/50 truncate">{user?.role === "admin" ? "مدير" : user?.role === "sales" ? "مبيعات" : "مشاهد"}</p>
+                <p className="text-xs text-white/50 truncate">{roleLabels[user?.role] || user?.role}</p>
               </div>
             </div>
           )}

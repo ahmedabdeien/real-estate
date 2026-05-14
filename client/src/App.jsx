@@ -37,11 +37,23 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminActivity from "./pages/admin/AdminActivity";
 
-// Guard: admin-only routes redirect sales users to /admin/projects
+// Tasks
+import TasksPage from "./pages/tasks/TasksPage";
+
+// Guard: admin-only routes redirect non-admins to /admin/projects
 function AdminOnlyRoute({ children }) {
   const { user } = useAuth();
   if (user?.role !== "admin") return <Navigate to="/admin/projects" replace />;
   return children;
+}
+
+// Guard: tasks route — only non-viewer authenticated users
+function TasksRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/admin/login" replace />;
+  if (user.role === "viewer") return <Navigate to="/" replace />;
+  return <TasksPage />;
 }
 
 function NotFound() {
@@ -79,6 +91,9 @@ export default function App() {
 
               {/* Admin Login */}
               <Route path="/admin/login" element={<AdminLogin />} />
+
+              {/* Tasks — standalone page (not inside admin layout) */}
+              <Route path="/tasks" element={<TasksRoute />} />
 
               {/* Admin Dashboard */}
               <Route path="/admin" element={<AdminLayout />}>

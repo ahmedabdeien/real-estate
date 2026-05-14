@@ -17,26 +17,8 @@ export function SiteSettingsProvider({ children }) {
       setSettings(s);
       setContact(c);
       injectTheme(s);
-      injectBranding(s);
     }).finally(() => setLoading(false));
   }, []);
-
-  function injectBranding(s) {
-    // Site name → browser tab title
-    if (s.site_name) {
-      document.title = s.site_name;
-    }
-    // Favicon → <link rel="icon">
-    if (s.favicon_url) {
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement("link");
-        link.rel = "icon";
-        document.head.appendChild(link);
-      }
-      link.href = s.favicon_url;
-    }
-  }
 
   function injectTheme(s) {
     const primary = s.primary_color || "#2d5d89";

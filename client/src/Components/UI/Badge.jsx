@@ -34,7 +34,9 @@ export const statusBadge = (status) => {
     published: { label: "منشور", variant: "success" },
     hidden: { label: "مخفي", variant: "warning" },
     admin: { label: "مدير", variant: "primary" },
-    sales: { label: "مبيعات", variant: "info" },
+    manager: { label: "مشرف", variant: "warning" },
+    employee: { label: "موظف", variant: "info" },
+    sales: { label: "مبيعات", variant: "success" },
     viewer: { label: "مشاهد", variant: "gray" },
   };
   return map[status] || { label: status, variant: "gray" };

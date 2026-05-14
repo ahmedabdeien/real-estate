@@ -19,7 +19,7 @@ export default function BlogPage() {
     setLoading(true);
     try {
       const res = await api.get("/blogs", { params: { page, search, status: "published" } });
-      setBlogs(res.data.blogs);
+      setBlogs(res.data.blogs || []);
       setTotal(res.data.total);
       setPages(res.data.pages);
     } catch {

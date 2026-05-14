@@ -191,6 +191,8 @@ export default function AdminUsers() {
             <select value={form.role} onChange={(e) => f("role", e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
               <option value="admin">مدير</option>
+              <option value="manager">مشرف</option>
+              <option value="employee">موظف</option>
               <option value="sales">مبيعات</option>
               <option value="viewer">مشاهد</option>
             </select>

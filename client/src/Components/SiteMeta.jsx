@@ -4,9 +4,11 @@ import { useSiteSettings } from "../context/SiteSettingsContext";
 export default function SiteMeta() {
   const { settings } = useSiteSettings();
 
-  const title  = settings.meta_title_ar  || settings.company_name_ar || "الصرح للعقارات";
+  // site_name = browser tab title set by admin; falls back to SEO title then company name
+  const title  = settings.site_name || settings.meta_title_ar || settings.company_name_ar || "الصرح للعقارات";
   const desc   = settings.meta_description_ar || "شركة عقارية رائدة في مجال التطوير العقاري";
   const logo   = settings.company_logo;
+  const favicon = settings.favicon_url || logo;
   const gaId   = settings.google_analytics_id;
   const fbId   = settings.facebook_pixel_id;
 
@@ -17,7 +19,7 @@ export default function SiteMeta() {
       <meta property="og:title" content={title} />
       <meta property="og:description" content={desc} />
       {logo && <meta property="og:image" content={logo} />}
-      {logo && <link rel="icon" type="image/png" href={logo} />}
+      {favicon && <link rel="icon" type="image/png" href={favicon} />}
 
       {/* Google Analytics */}
       {gaId && (

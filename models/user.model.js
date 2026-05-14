@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
     googleId: { type: String, default: "" },
     role: {
       type: String,
-      enum: ["admin", "sales", "viewer"],
+      enum: ["admin", "manager", "employee", "sales", "viewer"],
       default: "viewer",
     },
     isActive: { type: Boolean, default: true },

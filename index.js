@@ -22,6 +22,7 @@ import settingsRouter from "./routes/settings.route.js";
 import dashboardRouter from "./routes/dashboard.route.js";
 import activityRouter from "./routes/activity.route.js";
 import searchRouter from "./routes/search.route.js";
+import taskRouter from "./routes/task.route.js";
 
 dotenv.config();
 const app = express();
@@ -66,7 +67,12 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5175",
-  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()) : []),
+  ...(process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").flatMap((o) => {
+        const h = o.trim().replace(/^https?:\/\//, "");
+        return [`https://${h}`, `http://${h}`];
+      })
+    : []),
 ];
 app.use(
   cors({
@@ -93,6 +99,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/activity", activityRouter);
 app.use("/api/search", searchRouter);
+app.use("/api/tasks", taskRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");
