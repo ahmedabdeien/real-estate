@@ -1,5 +1,15 @@
 import mongoose from "mongoose";
 
+const VALID_DEPARTMENTS = [
+  "accounts",       // الحسابات
+  "legal",          // الشئون القانونية
+  "marketing",      // التسويق
+  "administrative", // اداري
+  "projects",       // مشروعات
+  "warehouse",      // المخازن
+  "purchasing",     // المشتريات
+];
+
 const userSchema = new mongoose.Schema(
   {
     name:     { type: String, required: true },
@@ -12,20 +22,12 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "supervisor", "manager", "employee", "sales", "viewer"],
       default: "viewer",
     },
-    // Department — required for manager/employee roles
+    // Department — optional, used for manager/employee roles
     department: {
       type: String,
-      enum: [
-        "accounts",       // الحسابات
-        "legal",          // الشئون القانونية
-        "marketing",      // التسويق
-        "administrative", // اداري
-        "projects",       // مشروعات (المواقع البنائية)
-        "warehouse",      // المخازن
-        "purchasing",     // المشتريات
-        null,
-      ],
+      enum: [...VALID_DEPARTMENTS, null, undefined, ""],
       default: null,
+      set: (v) => v || null, // coerce empty string → null
     },
     isActive:        { type: Boolean, default: true },
     lastLogin:       { type: Date },
