@@ -52,7 +52,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             <span className="text-[#DFBA6B] font-black text-sm">ع</span>
           </div>
           <div>
-            <div className="text-[#DFBA6B] font-black text-sm">الصرح للعقارات</div>
+            <div className="text-[#DFBA6B] font-black text-sm">الصرح للتطوير العقاري</div>
             <div className="text-white/40 text-[10px]">لوحة التحكم</div>
           </div>
         </div>

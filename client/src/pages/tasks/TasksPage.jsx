@@ -541,7 +541,7 @@ export default function TasksPage() {
 
       <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4">
         {/* ── Status tabs ── */}
-        <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {statusTabs.map(({ key, label, count, icon: Icon, cls }) => (
             <button key={key} onClick={() => setStatusTab(key)}
               className={`bg-white rounded-2xl border p-3 text-center transition-all active:scale-95 ${
@@ -558,10 +558,10 @@ export default function TasksPage() {
 
         {/* ── Department filter (admin/supervisor + multiple depts) ── */}
         {canSeeAll && depts.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-3 sm:mx-0 px-3 sm:px-0">
+          <div className="flex flex-wrap gap-2 pb-1">
             {[["all", "كل الأقسام"], ...depts.map((d) => [d, DEPARTMENTS[d] || d])].map(([k, v]) => (
               <button key={k} onClick={() => setDeptFilter(k)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold border transition-all active:scale-95 ${
+                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold border transition-all active:scale-95 whitespace-nowrap ${
                   deptFilter === k
                     ? "bg-[#2d5d89] text-white border-[#2d5d89]"
                     : "bg-white text-gray-600 border-gray-200"

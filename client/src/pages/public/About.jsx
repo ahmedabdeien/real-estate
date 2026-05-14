@@ -16,7 +16,7 @@ export default function AboutPage() {
     <div className="min-h-screen" dir="rtl">
       <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">{content.title_ar || "عن الصرح للعقارات"}</h1>
+          <h1 className="text-4xl font-black text-white mb-3">{content.title_ar || "عن الصرح للتطوير العقاري"}</h1>
           <p className="text-white/70 text-lg">شركة رائدة في مجال التطوير العقاري</p>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function AboutPage() {
                 {content.founded_year ? `منذ عام ${content.founded_year}` : "رواد في عالم العقارات"}
               </h2>
               <p className="text-gray-600 leading-relaxed mb-6">
-                {content.body_ar || "الصرح للعقارات شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها."}
+                {content.body_ar || "الصرح للتطوير العقاري شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها."}
               </p>
               <div className="grid grid-cols-2 gap-4">
                 {[
@@ -49,7 +49,7 @@ export default function AboutPage() {
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               {content.image ? (
-                <img src={content.image} alt="الصرح للعقارات" className="rounded-2xl w-full h-80 object-cover shadow-xl" />
+                <img src={content.image} alt="الصرح للتطوير العقاري" className="rounded-2xl w-full h-80 object-cover shadow-xl" />
               ) : (
                 <div className="rounded-2xl w-full h-80 bg-gradient-to-br from-[#2d5d89] to-[#1a3d5c] flex items-center justify-center shadow-xl">
                   <Building2 className="w-24 h-24 text-white/30" />

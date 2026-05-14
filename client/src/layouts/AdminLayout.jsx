@@ -16,8 +16,10 @@ export default function AdminLayout() {
 
   if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/admin/login" replace />;
-  // viewer → home; all other roles get panel access
+  // viewer → home
   if (!["admin", "supervisor", "manager", "employee", "sales"].includes(user.role)) return <Navigate to="/" replace />;
+  // non-admin roles → tasks page
+  if (user.role !== "admin") return <Navigate to="/tasks" replace />;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950" dir="rtl">

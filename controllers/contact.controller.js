@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import User from '../models/user.model.js';
+import { createNotification } from './notification.controller.js';
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -43,6 +45,22 @@ export const createContact = async (req, res, next) => {
                 console.log("Email Error: ", error);
             }
         });
+
+        // Notify all admin users
+        try {
+            const admins = await User.find({ role: "admin" }).select("_id");
+            for (const admin of admins) {
+                await createNotification({
+                    userId: admin._id,
+                    type: "new_message",
+                    title: "رسالة جديدة من عميل",
+                    body: `من: ${name}`,
+                    link: "/admin/leads",
+                });
+            }
+        } catch (notifErr) {
+            console.error("Notification error:", notifErr.message);
+        }
 
         res.status(201).json({
             success: true,

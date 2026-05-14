@@ -12,7 +12,7 @@ export function PageLoader() {
     <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
       <div className="flex flex-col items-center gap-4">
         <div className="w-14 h-14 border-4 border-gray-100 dark:border-gray-800 border-t-[#2d5d89] rounded-full animate-spin" />
-        <span className="text-[#2d5d89] font-bold text-sm tracking-wider">الصرح للعقارات</span>
+        <span className="text-[#2d5d89] font-bold text-sm tracking-wider">الصرح للتطوير العقاري</span>
       </div>
     </div>
   );

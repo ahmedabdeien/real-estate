@@ -95,7 +95,7 @@ export default function Header() {
 
   const phone = contact.phone || settings.company_phone || "01234567890";
   const logo  = settings.company_logo;
-  const name  = settings.company_name_ar || "الصرح للعقارات";
+  const name  = settings.company_name_ar || "الصرح للتطوير العقاري";
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -152,13 +152,21 @@ export default function Header() {
           {user ? (
             <UserDropdown user={user} logout={logout} />
           ) : (
-            <a
-              href={`tel:+2${phone}`}
-              className="hidden md:flex items-center gap-2 bg-[#f59e0b] hover:bg-[#d97706] text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
-            >
-              <Phone className="w-4 h-4" />
-              اتصل بنا
-            </a>
+            <>
+              <Link
+                to="/admin/login"
+                className="hidden md:flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors"
+              >
+                تسجيل الدخول
+              </Link>
+              <a
+                href={`tel:+2${phone}`}
+                className="hidden md:flex items-center gap-2 bg-[#f59e0b] hover:bg-[#d97706] text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+              >
+                <Phone className="w-4 h-4" />
+                اتصل بنا
+              </a>
+            </>
           )}
           <button
             onClick={() => setOpen(!open)}
@@ -215,11 +223,17 @@ export default function Header() {
                   </button>
                 </div>
               ) : (
-                <a href={`tel:+2${phone}`}
-                  className="mt-2 flex items-center justify-center gap-2 bg-[#2d5d89] text-white px-4 py-3 rounded-xl text-sm font-semibold">
-                  <Phone className="w-4 h-4" />
-                  اتصل بنا الآن
-                </a>
+                <div className="mt-2 space-y-2">
+                  <Link to="/admin/login"
+                    className="flex items-center justify-center gap-2 bg-[#2d5d89] text-white px-4 py-3 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+                    تسجيل الدخول
+                  </Link>
+                  <a href={`tel:+2${phone}`}
+                    className="flex items-center justify-center gap-2 bg-[#f59e0b] text-white px-4 py-3 rounded-xl text-sm font-semibold">
+                    <Phone className="w-4 h-4" />
+                    اتصل بنا الآن
+                  </a>
+                </div>
               )}
             </div>
           </motion.div>

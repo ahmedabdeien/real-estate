@@ -2,24 +2,22 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import OAuth from '../../OAuth/OAuth';
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { TbLoader } from "react-icons/tb";
-import { HiInformationCircle } from "react-icons/hi";
-import { useTranslation } from 'react-i18next';
-import Button from "../../UI/Button";
-import Input from "../../UI/Input";
+import { FaEye, FaEyeSlash } from 'react-icons/fa6';
+import { HiExclamationCircle, HiCheckCircle } from 'react-icons/hi';
+import { TbLoaderQuarter } from 'react-icons/tb';
+import { Helmet } from 'react-helmet';
+import Logoelsarh from '../../../assets/images/logoElsarh.png';
 
-function Signup() {
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === 'ar';
+export default function Signup() {
   const [visible, setVisible] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({ name: '', username: '', email: '', number: '', password: '' });
+  const [error, setError]     = useState(null);
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
     if (error) setError(null);
   };
 
@@ -27,149 +25,163 @@ function Signup() {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/signUp', {
+      setError(null);
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Error occurred during registration');
-      }
-      navigate('/signin');
-    } catch (error) {
-      setError(error.message);
+      if (!res.ok) throw new Error(data.message || 'خطأ في إنشاء الحساب');
+      setSuccess(true);
+      setTimeout(() => navigate('/Signin'), 1800);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div dir={isRtl ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 flex justify-center items-center py-12 px-4 font-body">
-      <div className="max-w-md w-full bg-white p-10 border border-slate-200 shadow-xl rounded-none">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2 uppercase tracking-tight">
-            {t('create_account') || 'Create Account'}
+    <div dir="rtl" className="min-h-screen flex" style={{ background: '#f5f4f1' }}>
+      <Helmet><title>إنشاء حساب | الصرح للتطوير العقاري</title></Helmet>
+
+      {/* اللوحة اليسرى — زخرفية */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #12283C 0%, #1e3f5a 100%)' }}>
+        <div className="absolute inset-0 opacity-[0.05]"
+          style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #DFBA6B 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(138,105,36,0.2), transparent 70%)' }} />
+        <div className="relative z-10 flex flex-col justify-center items-center w-full p-16 text-center">
+          <img src={Logoelsarh} alt="الصرح" className="h-20 w-auto mb-8 opacity-90" />
+          <h2 className="text-3xl font-black text-white mb-4 leading-tight">
+            انضم إلى<br />
+            <span style={{ color: '#DFBA6B' }}>مجتمع الصرح</span>
           </h2>
-          <p className="text-slate-500 text-sm">
-            {t('signup_subtitle') || 'Join us today to explore exclusive properties'}
+          <p className="text-sm leading-loose max-w-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            سجّل حسابك مجاناً واستمتع بالوصول الحصري لأفضل الفرص العقارية في مصر.
           </p>
+          <div className="flex gap-6 mt-10">
+            {[['150+', 'مشروع منجز'], ['20+', 'عاماً خبرة'], ['50K+', 'عميل راضٍ']].map(([n, l]) => (
+              <div key={l} className="text-center">
+                <p className="text-2xl font-black" style={{ color: '#DFBA6B' }}>{n}</p>
+                <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{l}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 space-y-3 text-right w-full max-w-xs">
+            {['وصول فوري لجميع المشاريع', 'تواصل مباشر مع فريق المبيعات', 'تحديثات حصرية عبر الحساب'].map(f => (
+              <div key={f} className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 flex-shrink-0" style={{ background: '#DFBA6B' }} />
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>{f}</span>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <Input
-              label={t('full_name') || 'Full Name'}
-              id="name"
-              type="text"
-              required
-              placeholder={t('name_placeholder') || "Full Name"}
-              onChange={handleChange}
-            />
+      {/* اللوحة اليمنى — النموذج */}
+      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 overflow-y-auto">
+        <motion.div
+          className="w-full max-w-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* شعار الموبايل */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <img src={Logoelsarh} alt="الصرح" className="h-14 w-auto" />
+          </div>
 
-            <Input
-              label={t('username') || 'Username'}
-              id="username"
-              type="text"
-              required
-              placeholder="username"
-              onChange={handleChange}
-            />
+          <h1 className="text-2xl font-black mb-1" style={{ color: '#12283C' }}>إنشاء حساب جديد</h1>
+          <p className="text-sm mb-8" style={{ color: '#6b5e3e' }}>أنشئ حسابك وابدأ رحلتك العقارية</p>
 
-            <Input
-              label={t('email') || 'Email'}
-              id="email"
-              type="email"
-              required
-              placeholder="name@email.com"
-              onChange={handleChange}
-            />
+          <AnimatePresence>
+            {success && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                className="mb-4 flex items-center gap-2 p-3 text-xs font-bold"
+                style={{ background: '#f0fdf4', border: '1px solid #86efac', color: '#16a34a' }}>
+                <HiCheckCircle size={16} />
+                تم إنشاء الحساب! جارٍ التحويل...
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <Input
-              label={t('phone_number') || 'Phone Number'}
-              id="number"
-              type="tel"
-              placeholder="012XXXXXXXX"
-              onChange={handleChange}
-            />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {[
+              { id: 'name',     label: 'الاسم الكامل',       type: 'text',     placeholder: 'محمد أحمد',        required: true },
+              { id: 'username', label: 'اسم المستخدم',        type: 'text',     placeholder: 'username',          required: true },
+              { id: 'email',    label: 'البريد الإلكتروني',   type: 'email',    placeholder: 'example@email.com', required: true },
+              { id: 'number',   label: 'رقم الهاتف',          type: 'tel',      placeholder: '01XXXXXXXXX',       required: false, optional: true },
+            ].map(f => (
+              <div key={f.id}>
+                <label className="block text-xs font-bold mb-1.5" style={{ color: '#12283C' }}>
+                  {f.label}
+                  {f.optional && <span className="font-normal mr-1" style={{ color: '#94a3b8' }}>(اختياري)</span>}
+                </label>
+                <input id={f.id} type={f.type} value={formData[f.id]} onChange={handleChange}
+                  required={f.required} placeholder={f.placeholder}
+                  className="w-full px-4 py-3 text-sm border transition-all focus:outline-none"
+                  style={{ border: '1.5px solid #e2e8f0', background: 'white' }}
+                  onFocus={e => e.target.style.borderColor = '#8A6924'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                />
+              </div>
+            ))}
 
-            <Input
-              label={t('password') || 'Password'}
-              id="password"
-              type={visible ? "text" : "password"}
-              required
-              placeholder="••••••••"
-              onChange={handleChange}
-              suffix={
-                <button
-                  type="button"
-                  onClick={() => setVisible(!visible)}
-                  className={`text-slate-400 hover:text-blue-600 transition-colors bg-transparent border-0 p-0 cursor-pointer`}
-                  aria-label="Toggle password visibility"
-                >
-                  {visible ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+            {/* كلمة المرور */}
+            <div>
+              <label className="block text-xs font-bold mb-1.5" style={{ color: '#12283C' }}>كلمة المرور</label>
+              <div className="relative">
+                <input id="password" type={visible ? 'text' : 'password'} value={formData.password}
+                  onChange={handleChange} required placeholder="••••••••"
+                  className="w-full px-4 py-3 pl-12 text-sm border transition-all focus:outline-none"
+                  style={{ border: '1.5px solid #e2e8f0', background: 'white' }}
+                  onFocus={e => e.target.style.borderColor = '#8A6924'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}
+                />
+                <button type="button" onClick={() => setVisible(!visible)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                  {visible ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                 </button>
-              }
-            />
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading || success}
+              className="w-full py-3.5 text-sm font-black text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #8A6924, #c4983a)', boxShadow: '0 6px 24px rgba(138,105,36,0.4)' }}>
+              {loading ? <><TbLoaderQuarter className="animate-spin" size={18} /> جارٍ الإنشاء...</> : 'إنشاء الحساب'}
+            </button>
+          </form>
+
+          <AnimatePresence>
+            {error && (
+              <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="mt-4 flex items-center gap-2 p-3 text-xs font-bold"
+                style={{ background: '#fff5f5', border: '1px solid #fecaca', color: '#dc2626' }}>
+                <HiExclamationCircle size={16} />
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="flex-1 h-px" style={{ background: '#e2e8f0' }} />
+            <span className="text-[11px] font-bold" style={{ color: '#94a3b8' }}>أو</span>
+            <div className="flex-1 h-px" style={{ background: '#e2e8f0' }} />
           </div>
 
-          <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={loading}
-              fullWidth
-              isLoading={loading}
-              className="py-4 font-bold uppercase text-xs tracking-widest"
-              variant="primary"
-            >
-              {loading ? (t('loading') || 'Loading...') : (t('create_account') || 'Create Account')}
-            </Button>
-          </div>
-        </form>
-
-        <div className="mt-8">
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
-            </div>
-            <div className="relative flex justify-center">
-              <span className="px-4 bg-white text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                {t('or_continue_with') || 'Or continue with'}
-              </span>
-            </div>
-          </div>
           <OAuth />
-        </div>
 
-        <div className="mt-8 text-center pt-4 border-t border-slate-100">
-          <p className="text-xs font-bold text-slate-400 uppercase">
-            {t('already_have_account') || 'Already have an account?'} {' '}
-            <Link
-              to="/signin"
-              className="text-primary-600 hover:underline"
-            >
-              {t('sign_in') || 'Sign In'}
+          <p className="text-center mt-6 text-sm" style={{ color: '#6b5e3e' }}>
+            لديك حساب بالفعل؟{' '}
+            <Link to="/Signin" className="font-black hover:underline" style={{ color: '#8A6924' }}>
+              تسجيل الدخول
             </Link>
           </p>
-        </div>
-
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-6 p-4 bg-red-50 border border-red-100 rounded-none flex items-start gap-3 text-red-600"
-            >
-              <HiInformationCircle className="flex-shrink-0 w-5 h-5 mt-0.5" />
-              <span className="text-xs font-bold">{error}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );
 }
-
-export default Signup;

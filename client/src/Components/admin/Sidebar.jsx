@@ -84,7 +84,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 exit={{ opacity: 0, width: 0 }}
                 className="overflow-hidden"
               >
-                <p className="font-bold text-sm leading-tight whitespace-nowrap">الصرح للعقارات</p>
+                <p className="font-bold text-sm leading-tight whitespace-nowrap">الصرح للتطوير العقاري</p>
                 <p className="text-white/50 text-xs whitespace-nowrap">لوحة الإدارة</p>
               </motion.div>
             )}

@@ -1,324 +1,870 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Helmet } from "react-helmet";
 import { useQuery } from "react-query";
-import { useTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
-import { BsArrowRightShort, BsSearch, BsClock, BsDoorOpen, BsBuilding, BsPlusCircle } from "react-icons/bs";
-// src/Components/Project.jsx
-import Button from "../UI/Button";
-import Input from "../UI/Input";
-import Spinner from "../UI/Spinner";
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+import { useSelector } from "react-redux";
+import {
+  BsSearch, BsBuilding, BsDoorOpen, BsGeoAlt, BsFilter,
+  BsGrid3X3Gap, BsList, BsX, BsChevronDown,
+  BsArrowRightShort, BsHouseDoor
+} from "react-icons/bs";
+import {
+  MapContainer, TileLayer, Marker, Popup, useMap
+} from "react-leaflet";
+import { FaBath } from "react-icons/fa";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+// ── ألوان الشركة ──────────────────────────────────────────
+const C = {
+  gold:    "#8A6924",
+  goldLt:  "#DFBA6B",
+  navy:    "#12283C",
+  bg:      "#faf8f4",
+  text:    "#1a1509",
+  muted:   "#6b5e3e",
+};
+
+// ── API ──────────────────────────────────────────────────
+const API_BASE     = import.meta.env.VITE_API_BASE_URL || "/api";
 const API_ENDPOINT = `${API_BASE}/listing/getListings`;
-const QUERY_KEY = 'dataListings';
-const ITEMS_PER_PAGE = 12;
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
+// ── إصلاح أيقونة Leaflet الافتراضية ─────────────────────
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl:       "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl:     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
+
+// ── أيقونات الخريطة المخصصة ──────────────────────────────
+const makeIcon = (available, active = false) =>
+  L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        position:relative;
+        width:${active ? 48 : 38}px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        filter:${active ? "drop-shadow(0 6px 14px rgba(0,0,0,.45))" : "drop-shadow(0 3px 7px rgba(0,0,0,.30))"};
+        transition:all .2s;
+      ">
+        <div style="
+          background:${available ? C.gold : "#dc2626"};
+          color:white;
+          font-size:10px;
+          font-weight:900;
+          padding:4px 8px;
+          border-radius:4px;
+          white-space:nowrap;
+          border:2px solid ${active ? C.goldLt : "white"};
+          letter-spacing:.03em;
+        ">${available ? "متاح" : "مباع"}</div>
+        <div style="
+          width:0;height:0;
+          border-left:7px solid transparent;
+          border-right:7px solid transparent;
+          border-top:9px solid ${available ? C.gold : "#dc2626"};
+          margin-top:-1px;
+        "></div>
+      </div>`,
+    iconSize:   [active ? 48 : 38, active ? 46 : 38],
+    iconAnchor: [active ? 24 : 19, active ? 46 : 38],
+    popupAnchor:[0, -38],
+  });
+
+// ── تحريك الخريطة نحو الماركر النشط ─────────────────────
+function MapFlyTo({ project }) {
+  const map = useMap();
+  useEffect(() => {
+    if (project?.location?.lat && project?.location?.lng) {
+      map.flyTo([project.location.lat, project.location.lng], 14, { duration: 0.8 });
     }
-  }
-};
+  }, [project, map]);
+  return null;
+}
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-  exit: { opacity: 0, y: -20 }
-};
+// ── الاسم بالعربي ─────────────────────────────────────────
+const getName = (v) =>
+  typeof v === "object" ? v?.ar || v?.en || "" : v || "";
 
-const hoverEffect = {
-  scale: 1.02,
-  y: -5,
-  transition: { type: 'spring', stiffness: 300 }
-};
-
-const ProjectCard = React.memo(({ item }) => {
-  const { i18n, t } = useTranslation();
-  const { currentUser } = useSelector(state => state.user);
-  const currentLang = i18n.language;
-  const isAvailable = item.available === true;
-  const name = item.name[currentLang] || item.name['en'] || item.name;
-  const description = item.description[currentLang] || item.description['en'] || item.description;
+// ── كارت المشروع في القائمة ───────────────────────────────
+const ProjectCard = React.memo(({ item, active, onHover }) => {
+  const { currentUser } = useSelector((s) => s.user);
+  const isAvail = item.available !== false;
+  const name    = getName(item.name);
+  const city    = getName(item.city);
+  const addr    = getName(item.address);
 
   return (
-    <div className="bg-white border border-slate-200 hover:shadow-xl transition-all duration-300 flex flex-col h-full rounded-none overflow-hidden group">
-      <div className="relative h-56 overflow-hidden">
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.25 }}
+      onMouseEnter={() => onHover(item)}
+      onMouseLeave={() => onHover(null)}
+      className="group cursor-pointer"
+      style={{
+        background: "white",
+        border: `1.5px solid ${active ? C.gold : "rgba(138,105,36,.10)"}`,
+        boxShadow: active
+          ? `0 8px 28px rgba(138,105,36,.18)`
+          : "0 2px 10px rgba(18,40,60,.04)",
+        transition: "all .25s",
+        marginBottom: 12,
+        overflow: "hidden",
+      }}
+    >
+      {/* الصورة */}
+      <div className="relative overflow-hidden" style={{ height: 170 }}>
         <Link to={`/Projects/${item.slug}`}>
           <img
-            src={item.imageUrls[0]}
+            src={item.imageUrls?.[0]}
             alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
-        <div className="absolute top-4 left-4">
-          <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white rounded-none ${isAvailable ? 'bg-primary-600' : 'bg-red-500'}`}>
-            {isAvailable ? t('available') : t('sold')}
-          </span>
-          {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
-            <Link to={`/Update-Page/${item._id}`} className="mt-2 block">
-              <Button variant="primary" size="sm" fullWidth className="text-[10px] uppercase tracking-widest h-auto py-1">
-                {t('edit')}
-              </Button>
-            </Link>
-          )}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to top, rgba(18,40,60,.45) 0%, transparent 60%)",
+          }}
+        />
+        {/* شارة الحالة */}
+        <span
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            background: isAvail ? C.gold : "#dc2626",
+            color: "white",
+            fontSize: 10,
+            fontWeight: 900,
+            padding: "3px 10px",
+            letterSpacing: ".06em",
+            borderRadius: 2,
+          }}
+        >
+          {isAvail ? "متاح" : "مباع"}
+        </span>
+        {/* زر تعديل للأدمن */}
+        {currentUser && (currentUser.isAdmin || currentUser.role === "Sales") && (
+          <Link
+            to={`/Update-Page/${item._id}`}
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              background: C.navy,
+              color: "white",
+              fontSize: 10,
+              fontWeight: 900,
+              padding: "3px 10px",
+              letterSpacing: ".04em",
+              borderRadius: 2,
+            }}
+          >
+            تعديل
+          </Link>
+        )}
+        {/* السعر في أسفل الصورة */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 10,
+            right: 10,
+            color: C.goldLt,
+            fontSize: 14,
+            fontWeight: 900,
+            textShadow: "0 1px 6px rgba(0,0,0,.5)",
+          }}
+        >
+          {item.price?.toLocaleString()} ج.م
         </div>
       </div>
 
-      <div className="p-6 flex flex-col flex-1">
-        <h3 className="text-lg font-bold text-slate-800 mb-2 truncate group-hover:text-primary-600 transition-colors">
+      {/* المحتوى */}
+      <div style={{ padding: "12px 14px 14px" }}>
+        <h3
+          style={{
+            color: C.navy,
+            fontWeight: 900,
+            fontSize: 13,
+            marginBottom: 3,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {name}
         </h3>
-        <p className="text-slate-500 text-sm line-clamp-2 mb-6">
-          {description}
-        </p>
 
-        <div className="flex items-center gap-4 text-xs text-slate-400 mb-6">
-          <div className="flex items-center gap-1">
-            <BsDoorOpen /> <span>{item.rooms} {t('rooms')}</span>
-          </div>
-          <div className="flex items-center gap-1 border-l border-slate-200 ml-2 pl-4">
-            <BsBuilding /> <span>{item.propertySize} m²</span>
-          </div>
+        {(city || addr) && (
+          <p
+            style={{
+              color: C.muted,
+              fontSize: 11,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              marginBottom: 8,
+            }}
+          >
+            <BsGeoAlt size={11} style={{ color: C.gold }} />
+            {city}{addr ? ` — ${addr}` : ""}
+          </p>
+        )}
+
+        {/* التفاصيل */}
+        <div
+          style={{
+            display: "flex",
+            gap: 14,
+            fontSize: 11,
+            color: C.gold,
+            paddingTop: 8,
+            borderTop: `1px solid rgba(138,105,36,.10)`,
+          }}
+        >
+          {item.rooms > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <BsDoorOpen size={12} /> {item.rooms} غرف
+            </span>
+          )}
+          {item.bathrooms > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <FaBath size={11} /> {item.bathrooms} حمام
+            </span>
+          )}
+          {item.propertySize > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <BsBuilding size={12} /> {item.propertySize} م²
+            </span>
+          )}
         </div>
 
-        <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">
-          <span className="text-primary-600 font-bold text-lg">
-            {item.price?.toLocaleString()} {currentLang === 'ar' ? 'ج.م' : 'EGP'}
-          </span>
-          <Link to={`/Projects/${item.slug}`} className="text-xs font-bold uppercase text-slate-400 hover:text-primary-600 transition-colors flex items-center gap-1">
-            {t('details')} <BsArrowRightShort size={18} />
-          </Link>
-        </div>
+        {/* رابط التفاصيل */}
+        <Link
+          to={`/Projects/${item.slug}`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            marginTop: 10,
+            fontSize: 11,
+            fontWeight: 900,
+            color: C.navy,
+            letterSpacing: ".04em",
+            textDecoration: "none",
+            transition: "color .2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = C.gold)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = C.navy)}
+        >
+          عرض التفاصيل
+          <BsArrowRightShort size={16} />
+        </Link>
       </div>
-    </div>
+    </motion.div>
   );
 });
 
-const LoadingSkeleton = () => (
-  <motion.div
-    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-    variants={containerVariants}
-    initial="hidden"
-    animate="show"
-  >
-    {[...Array(8)].map((_, i) => (
-      <div key={i} className="bg-white rounded-none overflow-hidden shadow-premium border border-slate-100">
-        <div className="h-64 bg-slate-50 animate-pulse" />
-        <div className="p-6 space-y-4">
-          <div className="h-6 bg-slate-50 rounded w-3/4 animate-pulse" />
-          <div className="h-20 bg-slate-50 rounded w-full animate-pulse" />
-          <div className="h-4 bg-slate-50 rounded w-1/4 animate-pulse pt-4" />
+// ── هيكل التحميل ─────────────────────────────────────────
+const Skeleton = () => (
+  <div style={{ padding: "0 16px" }}>
+    {[...Array(5)].map((_, i) => (
+      <div
+        key={i}
+        style={{
+          background: "white",
+          border: "1px solid rgba(138,105,36,.08)",
+          marginBottom: 12,
+          overflow: "hidden",
+        }}
+      >
+        <div className="skeleton" style={{ height: 170 }} />
+        <div style={{ padding: "12px 14px" }}>
+          <div className="skeleton" style={{ height: 13, width: "70%", marginBottom: 8 }} />
+          <div className="skeleton" style={{ height: 11, width: "45%", marginBottom: 10 }} />
+          <div style={{ display: "flex", gap: 12 }}>
+            <div className="skeleton" style={{ height: 11, width: 50 }} />
+            <div className="skeleton" style={{ height: 11, width: 50 }} />
+          </div>
         </div>
       </div>
     ))}
-  </motion.div>
+  </div>
 );
 
+// ── الصفحة الرئيسية ───────────────────────────────────────
 export default function Project() {
-  const { t, i18n } = useTranslation();
-  const currentLang = i18n.language;
-  const isRtl = currentLang === 'ar';
+  const [search,       setSearch]       = useState("");
+  const [propType,     setPropType]     = useState("");
+  const [availability, setAvailability] = useState(""); // "available" | "sold" | ""
+  const [minPrice,     setMinPrice]     = useState("");
+  const [maxPrice,     setMaxPrice]     = useState("");
+  const [view,         setView]         = useState("list"); // "list" | "grid"
+  const [filterOpen,   setFilterOpen]   = useState(false);
+  const [activeItem,   setActiveItem]   = useState(null);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [rooms, setRooms] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const listRef = useRef(null);
 
-  const { data: projects, isLoading, error } = useQuery(
-    QUERY_KEY,
+  // ── جلب البيانات ─────────────────────────────────────────
+  const { data: projects = [], isLoading, error } = useQuery(
+    "dataListings",
     async () => {
-      const response = await fetch(`${API_ENDPOINT}?limit=200`);
-      if (!response.ok) throw new Error('Failed to fetch projects');
-      const json = await response.json();
-      return json.listings || []; // Handle new format
+      const res  = await fetch(`${API_ENDPOINT}?limit=200`);
+      if (!res.ok) throw new Error("Failed");
+      const json = await res.json();
+      return json.listings || [];
     },
     { staleTime: 300000, cacheTime: 3600000, retry: 3 }
   );
 
-  const filteredProjects = useMemo(() => {
-    if (!projects) return [];
-    return projects.filter(p => {
-      const name = (typeof p.name === 'object' ? (p.name[currentLang] || p.name['en'] || '') : (p.name || '')).toLowerCase();
-      const description = (typeof p.description === 'object' ? (p.description[currentLang] || p.description['en'] || '') : (p.description || '')).toLowerCase();
-      const term = searchTerm.toLowerCase().trim();
-
-      const matchesSearch = !term || name.includes(term) || description.includes(term);
-      const matchesType = !propertyType || p.propertyType === propertyType;
-      const matchesMinPrice = !minPrice || p.price >= parseInt(minPrice);
-      const matchesMaxPrice = !maxPrice || p.price <= parseInt(maxPrice);
-      const matchesRooms = !rooms || p.rooms === parseInt(rooms);
-
-      return matchesSearch && matchesType && matchesMinPrice && matchesMaxPrice && matchesRooms;
+  // ── الفلترة ───────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    const term = search.toLowerCase().trim();
+    return projects.filter((p) => {
+      const nm   = getName(p.name).toLowerCase();
+      const desc = getName(p.description).toLowerCase();
+      const ct   = getName(p.city).toLowerCase();
+      if (term && !nm.includes(term) && !desc.includes(term) && !ct.includes(term)) return false;
+      if (propType && p.propertyType !== propType) return false;
+      if (availability === "available" && p.available === false)  return false;
+      if (availability === "sold"      && p.available !== false)  return false;
+      if (minPrice && p.price < parseInt(minPrice)) return false;
+      if (maxPrice && p.price > parseInt(maxPrice)) return false;
+      return true;
     });
-  }, [projects, searchTerm, propertyType, minPrice, maxPrice, rooms, currentLang]);
+  }, [projects, search, propType, availability, minPrice, maxPrice]);
 
-  const paginatedProjects = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredProjects.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredProjects, currentPage]);
+  // ── مركز الخريطة ─────────────────────────────────────────
+  const mapCenter = useMemo(() => {
+    const withCoords = projects.filter((p) => p.location?.lat && p.location?.lng);
+    if (!withCoords.length) return [30.0444, 31.2357]; // القاهرة
+    const lat = withCoords.reduce((s, p) => s + p.location.lat, 0) / withCoords.length;
+    const lng = withCoords.reduce((s, p) => s + p.location.lng, 0) / withCoords.length;
+    return [lat, lng];
+  }, [projects]);
 
-  const handleSearch = useCallback((e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  }, []);
+  const resetFilters = () => {
+    setSearch(""); setPropType(""); setAvailability("");
+    setMinPrice(""); setMaxPrice("");
+  };
 
-  if (error) return (
-    <motion.div
-      className="min-h-[60vh] flex items-center justify-center p-6"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <div className="max-w-md text-center bg-white p-12 rounded-none shadow-premium border border-slate-100">
-        <h3 className="text-2xl font-black text-red-600 mb-4">
-          عذراً، حدث خطأ ما
-        </h3>
-        <p className="text-slate-500 mb-8 leading-relaxed">
-          لم نتمكن من جلب قائمة المشاريع العقارية حالياً. يرجى محاولة تحديث الصفحة.
-        </p>
-        <button onClick={() => window.location.reload()} className="px-8 py-4 bg-primary-500 text-white font-black rounded-none">
-          تحديث الصفحة
-        </button>
-      </div>
-    </motion.div>
-  );
+  const hasFilters = search || propType || availability || minPrice || maxPrice;
 
   return (
-    <div dir={isRtl ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-50 font-body pb-24">
+    <div dir="rtl" style={{ height: "calc(100vh - 72px)", display: "flex", flexDirection: "column", background: C.bg }}>
       <Helmet>
-        <title>{t('listings')} | El Sarh</title>
+        <title>المشاريع العقارية | الصرح للتطوير العقاري</title>
       </Helmet>
 
-      {/* Hero Banner - Standardized */}
-      <div className="bg-primary-900 py-24 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-900 to-transparent opacity-90" />
+      {/* ═══ شريط الأدوات ═══════════════════════════════════ */}
+      <div
+        style={{
+          background: C.navy,
+          padding: "12px 20px",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          flexShrink: 0,
+          boxShadow: "0 2px 12px rgba(18,40,60,.25)",
+          zIndex: 10,
+          flexWrap: "wrap",
+        }}
+      >
+        {/* بحث */}
+        <div style={{ position: "relative", flex: "1 1 200px", minWidth: 160 }}>
+          <BsSearch
+            size={13}
+            style={{ position: "absolute", top: "50%", right: 11, transform: "translateY(-50%)", color: "rgba(255,255,255,.45)" }}
+          />
+          <input
+            type="text"
+            placeholder="ابحث عن مشروع أو مدينة..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              paddingRight: 30,
+              paddingLeft: 12,
+              paddingTop: 8,
+              paddingBottom: 8,
+              fontSize: 12,
+              background: "rgba(255,255,255,.08)",
+              border: "1px solid rgba(255,255,255,.15)",
+              color: "white",
+              outline: "none",
+              borderRadius: 0,
+            }}
+            onFocus={(e)  => (e.target.style.borderColor = C.goldLt)}
+            onBlur={(e)   => (e.target.style.borderColor = "rgba(255,255,255,.15)")}
+          />
         </div>
-        <div className="container mx-auto px-4 lg:px-12 relative z-10">
-          <span className="text-accent-500 font-bold uppercase tracking-widest text-xs mb-4 block">
-            {t('world_class_services')}
-          </span>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-8">
-            {t('listings')}
-          </h1>
 
-          {/* Search & Filter Bar */}
-          <div className="max-w-5xl bg-white p-4 rounded-none shadow-xl flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Input
-                type="text"
-                placeholder={t('search_placeholder')}
-                value={searchTerm}
-                onChange={handleSearch}
-                suffix={<BsSearch className="text-slate-400" />}
-                className="w-full"
-              />
-            </div>
-            <div className="flex gap-4 flex-wrap lg:flex-nowrap">
-              <select
-                value={propertyType}
-                onChange={(e) => setPropertyType(e.target.value)}
-                className="bg-slate-50 border border-slate-200 rounded-none p-3 text-sm focus:ring-1 focus:ring-primary-500 outline-none"
-              >
-                <option value="">{t('property_type')}</option>
-                <option value="Apartment">{t('Apartment') || 'Apartment'}</option>
-                <option value="Villa">{t('Villa') || 'Villa'}</option>
-                <option value="Office">{t('Office') || 'Office'}</option>
-              </select>
-              <Button
-                variant="outline"
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="h-[46px] text-xs uppercase tracking-widest"
-              >
-                {t('advanced_filters')}
-              </Button>
-            </div>
-          </div>
+        {/* نوع العقار */}
+        <select
+          value={propType}
+          onChange={(e) => setPropType(e.target.value)}
+          style={{
+            padding: "8px 12px",
+            fontSize: 12,
+            background: "rgba(255,255,255,.08)",
+            border: "1px solid rgba(255,255,255,.15)",
+            color: propType ? C.goldLt : "rgba(255,255,255,.7)",
+            outline: "none",
+            cursor: "pointer",
+          }}
+        >
+          <option value=""    style={{ background: C.navy }}>كل الأنواع</option>
+          <option value="Apartment" style={{ background: C.navy }}>شقة</option>
+          <option value="Villa"     style={{ background: C.navy }}>فيلا</option>
+          <option value="Office"    style={{ background: C.navy }}>مكتب</option>
+          <option value="Shop"      style={{ background: C.navy }}>محل</option>
+          <option value="Land"      style={{ background: C.navy }}>أرض</option>
+        </select>
 
-          <AnimatePresence>
-            {isFilterOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="max-w-5xl mt-4 bg-white p-6 rounded-none shadow-lg border-t-4 border-accent-500"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">{t('price_range')}</label>
-                    <div className="flex gap-2">
-                      <Input type="number" placeholder="Min" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="w-full" />
-                      <Input type="number" placeholder="Max" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="w-full" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">{t('rooms')}</label>
-                    <Input type="number" value={rooms} onChange={e => setRooms(e.target.value)} className="w-full" />
-                  </div>
-                  <div className="flex items-end">
-                    <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(''); setPropertyType(''); setMinPrice(''); setMaxPrice(''); setRooms(''); }} className="text-red-500 hover:text-red-700">
-                      {t('reset_filters')}
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* متاح / مباع */}
+        <select
+          value={availability}
+          onChange={(e) => setAvailability(e.target.value)}
+          style={{
+            padding: "8px 12px",
+            fontSize: 12,
+            background: "rgba(255,255,255,.08)",
+            border: "1px solid rgba(255,255,255,.15)",
+            color: availability ? C.goldLt : "rgba(255,255,255,.7)",
+            outline: "none",
+            cursor: "pointer",
+          }}
+        >
+          <option value=""          style={{ background: C.navy }}>الحالة</option>
+          <option value="available" style={{ background: C.navy }}>متاح</option>
+          <option value="sold"      style={{ background: C.navy }}>مباع</option>
+        </select>
+
+        {/* فلتر متقدم */}
+        <button
+          onClick={() => setFilterOpen((v) => !v)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            fontSize: 12,
+            fontWeight: 900,
+            background: filterOpen ? C.gold : "rgba(138,105,36,.25)",
+            border: `1px solid rgba(223,186,107,.3)`,
+            color: C.goldLt,
+            cursor: "pointer",
+            letterSpacing: ".04em",
+          }}
+        >
+          <BsFilter size={14} />
+          فلاتر
+          <BsChevronDown
+            size={11}
+            style={{ transition: "transform .2s", transform: filterOpen ? "rotate(180deg)" : "none" }}
+          />
+        </button>
+
+        {/* إعادة ضبط */}
+        {hasFilters && (
+          <button
+            onClick={resetFilters}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "8px 12px",
+              fontSize: 11,
+              fontWeight: 900,
+              background: "rgba(220,38,38,.2)",
+              border: "1px solid rgba(220,38,38,.35)",
+              color: "#fca5a5",
+              cursor: "pointer",
+            }}
+          >
+            <BsX size={14} /> مسح
+          </button>
+        )}
+
+        {/* تبديل العرض (grid / list) */}
+        <div style={{ display: "flex", border: "1px solid rgba(255,255,255,.15)", marginRight: "auto" }}>
+          {[["list", BsList], ["grid", BsGrid3X3Gap]].map(([v, Icon]) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                padding: "7px 10px",
+                background: view === v ? C.gold : "transparent",
+                border: "none",
+                color: view === v ? "white" : "rgba(255,255,255,.5)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Icon size={15} />
+            </button>
+          ))}
         </div>
+
+        {/* عدد النتائج */}
+        <span style={{ color: "rgba(255,255,255,.5)", fontSize: 11, whiteSpace: "nowrap" }}>
+          {filtered.length} مشروع
+        </span>
       </div>
 
-      <div className="container mx-auto px-4 lg:px-12 py-16">
-        {isLoading ? (
-          <LoadingSkeleton />
-        ) : (
-          <>
-            {paginatedProjects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                {paginatedProjects.map((item) => (
-                  <ProjectCard key={item._id} item={item} />
-                ))}
+      {/* ═══ فلاتر متقدمة (قابلة للطي) ═══════════════════════ */}
+      <AnimatePresence>
+        {filterOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: "hidden", background: "#0e1f2e", flexShrink: 0, zIndex: 9 }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                padding: "14px 20px",
+                flexWrap: "wrap",
+                borderTop: `2px solid ${C.gold}`,
+              }}
+            >
+              <div>
+                <label style={{ fontSize: 10, color: C.goldLt, fontWeight: 900, letterSpacing: ".08em", display: "block", marginBottom: 6 }}>
+                  الحد الأدنى للسعر
+                </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  style={filterInputStyle}
+                />
               </div>
-            ) : (
-              <div className="text-center py-24 bg-white border border-slate-200">
-                <p className="text-xl font-bold text-slate-800">{t('no_results_found') || 'No results found'}</p>
-                <button onClick={() => setSearchTerm('')} className="mt-4 text-primary-600 font-bold uppercase text-xs hover:underline">
-                  {t('view_all_properties') || 'View all properties'}
+              <div>
+                <label style={{ fontSize: 10, color: C.goldLt, fontWeight: 900, letterSpacing: ".08em", display: "block", marginBottom: 6 }}>
+                  الحد الأقصى للسعر
+                </label>
+                <input
+                  type="number"
+                  placeholder="بلا حد"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  style={filterInputStyle}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ الجسم الرئيسي (قائمة + خريطة) ═════════════════ */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+
+        {/* ── القائمة اليمنى ─────────────────────────────── */}
+        <div
+          ref={listRef}
+          style={{
+            width: "42%",
+            minWidth: 300,
+            maxWidth: 480,
+            overflowY: "auto",
+            background: C.bg,
+            borderLeft: "1px solid rgba(138,105,36,.1)",
+            flexShrink: 0,
+          }}
+          className="custom-scrollbar"
+        >
+          {/* رأس القائمة */}
+          <div
+            style={{
+              padding: "14px 16px 10px",
+              borderBottom: "1px solid rgba(138,105,36,.1)",
+              background: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              position: "sticky",
+              top: 0,
+              zIndex: 2,
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 900, color: C.navy }}>
+              نتائج البحث
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                color: C.gold,
+                fontWeight: 700,
+                background: "rgba(138,105,36,.08)",
+                padding: "2px 10px",
+                borderRadius: 20,
+              }}
+            >
+              {filtered.length} مشروع
+            </span>
+          </div>
+
+          {/* المحتوى */}
+          <div style={{ padding: "14px 14px 20px" }}>
+            {isLoading ? (
+              <Skeleton />
+            ) : filtered.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 20px" }}>
+                <BsHouseDoor size={40} style={{ color: "rgba(138,105,36,.25)", margin: "0 auto 14px" }} />
+                <p style={{ fontSize: 13, fontWeight: 900, color: C.navy, marginBottom: 6 }}>
+                  لا توجد نتائج
+                </p>
+                <p style={{ fontSize: 11, color: C.muted, marginBottom: 16 }}>
+                  جرب تغيير معايير البحث
+                </p>
+                <button
+                  onClick={resetFilters}
+                  style={{
+                    padding: "8px 20px",
+                    fontSize: 11,
+                    fontWeight: 900,
+                    background: C.gold,
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  عرض الكل
                 </button>
               </div>
-            )}
-
-            {/* Pagination Component */}
-            {filteredProjects.length > ITEMS_PER_PAGE && (
-              <div className="flex justify-center items-center gap-4 mt-16">
-                {[...Array(Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setCurrentPage(i + 1);
-                      window.scrollTo({ top: 400, behavior: 'smooth' });
-                    }}
-                    className={`w-10 h-10 flex items-center justify-center rounded-none font-bold text-sm transition-all ${currentPage === i + 1
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-white text-slate-400 border border-slate-200 hover:border-primary-500'
-                      }`}
-                  >
-                    {i + 1}
-                  </button>
+            ) : view === "list" ? (
+              <AnimatePresence>
+                {filtered.map((item) => (
+                  <ProjectCard
+                    key={item._id}
+                    item={item}
+                    active={activeItem?._id === item._id}
+                    onHover={setActiveItem}
+                  />
                 ))}
+              </AnimatePresence>
+            ) : (
+              /* عرض الشبكة */
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <AnimatePresence>
+                  {filtered.map((item) => (
+                    <GridCard
+                      key={item._id}
+                      item={item}
+                      active={activeItem?._id === item._id}
+                      onHover={setActiveItem}
+                    />
+                  ))}
+                </AnimatePresence>
               </div>
             )}
-          </>
-        )}
+          </div>
+        </div>
+
+        {/* ── الخريطة اليسرى ─────────────────────────────── */}
+        <div style={{ flex: 1, position: "relative" }}>
+          <MapContainer
+            center={mapCenter}
+            zoom={10}
+            style={{ width: "100%", height: "100%" }}
+            zoomControl={false}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {/* ماركرات المشاريع */}
+            {filtered.map((item) => {
+              if (!item.location?.lat || !item.location?.lng) return null;
+              const isAvail  = item.available !== false;
+              const isActive = activeItem?._id === item._id;
+              return (
+                <Marker
+                  key={item._id}
+                  position={[item.location.lat, item.location.lng]}
+                  icon={makeIcon(isAvail, isActive)}
+                  eventHandlers={{ click: () => setActiveItem(item) }}
+                  zIndexOffset={isActive ? 1000 : 0}
+                >
+                  <Popup>
+                    <div dir="rtl" style={{ minWidth: 200, fontFamily: "Cairo, sans-serif" }}>
+                      {item.imageUrls?.[0] && (
+                        <img
+                          src={item.imageUrls[0]}
+                          alt=""
+                          style={{ width: "100%", height: 100, objectFit: "cover", marginBottom: 8, borderRadius: 4 }}
+                        />
+                      )}
+                      <strong style={{ display: "block", color: C.navy, fontSize: 13, marginBottom: 4 }}>
+                        {getName(item.name)}
+                      </strong>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          background: isAvail ? C.gold : "#dc2626",
+                          color: "white",
+                          fontSize: 10,
+                          fontWeight: 900,
+                          padding: "2px 8px",
+                          borderRadius: 2,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {isAvail ? "متاح" : "مباع"}
+                      </span>
+                      <p style={{ color: C.gold, fontSize: 13, fontWeight: 900, marginBottom: 6 }}>
+                        {item.price?.toLocaleString()} ج.م
+                      </p>
+                      <Link
+                        to={`/Projects/${item.slug}`}
+                        style={{
+                          display: "block",
+                          textAlign: "center",
+                          background: C.navy,
+                          color: "white",
+                          fontSize: 11,
+                          fontWeight: 900,
+                          padding: "5px 0",
+                          borderRadius: 2,
+                          textDecoration: "none",
+                        }}
+                      >
+                        عرض التفاصيل
+                      </Link>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+
+            {/* تحريك الخريطة نحو المشروع المحدد */}
+            {activeItem && <MapFlyTo project={activeItem} />}
+          </MapContainer>
+
+          {/* مفتاح الخريطة */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 20,
+              right: 16,
+              background: "white",
+              padding: "10px 14px",
+              boxShadow: "0 4px 16px rgba(0,0,0,.15)",
+              zIndex: 1000,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+              borderRight: `3px solid ${C.gold}`,
+            }}
+          >
+            <span style={{ fontSize: 10, fontWeight: 900, color: C.navy, marginBottom: 2, letterSpacing: ".06em" }}>
+              المفتاح
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: C.text }}>
+              <span style={{ width: 14, height: 14, background: C.gold, borderRadius: 2, flexShrink: 0 }} />
+              متاح
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: C.text }}>
+              <span style={{ width: 14, height: 14, background: "#dc2626", borderRadius: 2, flexShrink: 0 }} />
+              مباع
+            </span>
+          </div>
+
+          {/* عداد المشاريع على الخريطة */}
+          <div
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 16,
+              background: C.navy,
+              color: "white",
+              padding: "6px 14px",
+              fontSize: 11,
+              fontWeight: 900,
+              zIndex: 1000,
+              boxShadow: "0 2px 10px rgba(0,0,0,.2)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <BsGeoAlt size={13} style={{ color: C.goldLt }} />
+            {filtered.filter((p) => p.location?.lat).length} موقع على الخريطة
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
+// ── استايل حقل الفلتر ─────────────────────────────────────
+const filterInputStyle = {
+  padding: "7px 10px",
+  fontSize: 12,
+  background: "rgba(255,255,255,.08)",
+  border: "1px solid rgba(255,255,255,.15)",
+  color: "white",
+  outline: "none",
+  width: 140,
+};
+
+// ── كارت الشبكة (grid view) ───────────────────────────────
+const GridCard = React.memo(({ item, active, onHover }) => {
+  const isAvail = item.available !== false;
+  const name    = getName(item.name);
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: .96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0 }}
+      onMouseEnter={() => onHover(item)}
+      onMouseLeave={() => onHover(null)}
+      style={{
+        background: "white",
+        border: `1.5px solid ${active ? C.gold : "rgba(138,105,36,.10)"}`,
+        overflow: "hidden",
+        cursor: "pointer",
+        transition: "all .2s",
+      }}
+    >
+      <div style={{ position: "relative", height: 110 }}>
+        <Link to={`/Projects/${item.slug}`}>
+          <img src={item.imageUrls?.[0]} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </Link>
+        <span
+          style={{
+            position: "absolute", top: 6, right: 6,
+            background: isAvail ? C.gold : "#dc2626",
+            color: "white", fontSize: 9, fontWeight: 900,
+            padding: "2px 7px", letterSpacing: ".05em",
+          }}
+        >
+          {isAvail ? "متاح" : "مباع"}
+        </span>
+      </div>
+      <div style={{ padding: "8px 10px" }}>
+        <p style={{ fontSize: 11, fontWeight: 900, color: C.navy, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 3 }}>
+          {name}
+        </p>
+        <p style={{ fontSize: 12, fontWeight: 900, color: C.gold }}>
+          {item.price?.toLocaleString()} ج.م
+        </p>
+      </div>
+    </motion.div>
+  );
+});

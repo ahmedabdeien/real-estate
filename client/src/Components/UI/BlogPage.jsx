@@ -63,7 +63,7 @@ export default function BlogPage() {
     return (
         <div dir="rtl" className="min-h-screen" style={{ background: '#faf8f4' }}>
             <Helmet>
-                <title>{title} | {config?.siteName || 'الصرح للعقارات'}</title>
+                <title>{title} | {config?.siteName || 'الصرح للتطوير العقاري'}</title>
             </Helmet>
 
             {/* Hero */}

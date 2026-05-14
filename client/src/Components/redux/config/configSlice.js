@@ -2,10 +2,10 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     config: {
-        siteName: 'El Sarh Real Estate',
+        siteName: 'الصرح للتطوير العقاري',
         logo: '/assets/images/logoElsarh.png',
-        primaryColor: '#005B94',
-        accentColor: '#5BC1D7',
+        primaryColor: '#8A6924',
+        accentColor: '#DFBA6B',
         contact: {
             phone: '+20 121 262 2210',
             email: 'elsarhegypt@gmail.com',

@@ -41,10 +41,11 @@ import AdminActivity from "./pages/admin/AdminActivity";
 import TasksPage from "./pages/tasks/TasksPage";
 import AdminTasks from "./pages/admin/AdminTasks";
 
-// Guard: admin-only routes redirect non-admins to /admin/projects
+// Guard: admin-only routes redirect non-admins to /tasks
 function AdminOnlyRoute({ children }) {
   const { user } = useAuth();
-  if (user?.role !== "admin") return <Navigate to="/admin/projects" replace />;
+  if (!user) return <Navigate to="/admin/login" replace />;
+  if (user.role !== "admin") return <Navigate to="/tasks" replace />;
   return children;
 }
 

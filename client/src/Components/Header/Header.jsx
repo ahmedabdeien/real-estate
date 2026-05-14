@@ -3,52 +3,43 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Avatar } from "flowbite-react";
 import Logoelsarh from '../../assets/images/logoElsarh.png';
 import {
-  FaComments, FaColumns, FaCoins, FaCogs,
-  FaDoorOpen, FaMoon, FaUser, FaSun, FaTimes,
-  FaChevronDown, FaBars
+  FaColumns, FaCogs,
+  FaDoorOpen, FaUser, FaTimes,
+  FaBars, FaPhoneAlt
 } from "react-icons/fa";
-import { BsSearch } from "react-icons/bs";
+import { BsGrid1X2Fill } from "react-icons/bs";
 import { logOutUserFailure, logOutUserStart, logOutUserSuccess } from '../redux/user/userSlice';
-import { toggleTheme } from '../redux/theme/themeSlice';
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from './LanguageSwitcher';
 
 export default function Header() {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { theme } = useSelector(state => state.theme);
   const { currentUser } = useSelector(state => state.user);
   const { config } = useSelector(state => state.config);
   const dispatch = useDispatch();
   const menuRef = useRef(null);
   const userMenuRef = useRef(null);
-
   const [dynamicPages, setDynamicPages] = useState([]);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    // Fetch generic pages for menu
+  useEffect(() => {
     const fetchPages = async () => {
       try {
         const res = await fetch('/api/cms/pages');
         const data = await res.json();
-        if (res.ok) {
-          setDynamicPages(data);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
+        if (res.ok) setDynamicPages(data);
+      } catch (err) {}
+    };
     fetchPages();
-
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -65,201 +56,296 @@ export default function Header() {
   const currentLang = i18n.language;
 
   const navLinks = [
-    { title: t('home'), path: '/' },
-    { title: t('listings'), path: '/Project' },
-    ...dynamicPages.map(page => ({
-      title: page.title[currentLang] || page.title['en'],
-      path: `/p/${page.slug}`
+    { title: t('home') || 'الرئيسية', path: '/' },
+    { title: t('listings') || 'المشاريع', path: '/Project' },
+    ...dynamicPages.map(p => ({
+      title: p.title[currentLang] || p.title['ar'] || p.title['en'],
+      path: `/p/${p.slug}`
     })),
-    { title: 'News & Blog', path: '/Blogs' },
-    { title: t('about'), path: '/About' },
-    { title: t('contact'), path: '/Contact' },
-    ...(currentUser?.isAdmin ? [{ title: t('admin'), path: '/Dashboard?tab=dashbordData' }] : []),
+    { title: t('blog') || 'المدونة', path: '/Blogs' },
+    { title: t('about') || 'من نحن', path: '/About' },
+    { title: t('contact') || 'اتصل بنا', path: '/Contact' },
   ];
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setIsMenuOpen(false);
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setIsUserMenuOpen(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleSignout = async () => {
     try {
       dispatch(logOutUserStart());
-      const res = await fetch('/api/user/signout', { method: "POST" });
-      if (!res.ok) throw new Error('Failed to logout');
+      const res = await fetch('/api/user/signout', { method: 'POST' });
+      if (!res.ok) throw new Error('failed');
       dispatch(logOutUserSuccess());
-    } catch (error) {
-      dispatch(logOutUserFailure(error.message));
+    } catch (e) {
+      dispatch(logOutUserFailure(e.message));
     }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[100] shadow-odoo font-body bg-secondary text-white border-b border-secondary-800">
-      <div className="container mx-auto px-4 lg:px-8 h-16 flex justify-between items-center">
-        
-        {/* Left: Logo & Nav Links */}
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-3">
+    <header
+      dir="rtl"
+      className="fixed top-0 inset-x-0 z-[100] transition-all duration-500 font-body"
+      style={{
+        background: isScrolled
+          ? 'rgba(18,40,60,0.92)'
+          : 'rgba(18,40,60,0.75)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: isScrolled
+          ? '1px solid rgba(223,186,107,0.25)'
+          : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: isScrolled ? '0 8px 40px rgba(18,40,60,0.4)' : 'none',
+      }}
+    >
+      <div className="container mx-auto px-4 lg:px-12 h-[72px] flex items-center justify-between">
+
+        {/* ===== شعار الشركة ===== */}
+        <Link to="/" className="flex items-center gap-3 shrink-0">
+          <div
+            className="w-12 h-12 flex items-center justify-center overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(223,186,107,0.25)' }}
+          >
             <img
               src={(config.logo && config.logo.startsWith('http')) ? config.logo : Logoelsarh}
-              alt={config.siteName}
-              className="h-8 w-auto object-contain brightness-0 invert"
-            />
-            <div className="hidden md:block">
-              <h1 className="text-lg font-black leading-none tracking-tight uppercase">
-                {config.siteName?.split(' ')[0] || t('welcome').split(' ')[0]}
-              </h1>
-            </div>
-          </Link>
-
-          {/* Desktop Nav Links */}
-          <nav className={`hidden lg:flex items-center gap-6 ${isRtl ? 'flex-row-reverse' : ''}`}>
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={({ isActive }) => `
-                  text-sm font-medium transition-colors border-b-2 pt-1 pb-1
-                  ${isActive ? 'text-primary border-primary' : 'text-slate-300 border-transparent hover:text-white'}
-                `}
-              >
-                {link.title}
-              </NavLink>
-            ))}
-          </nav>
-        </div>
-
-        {/* Right Utilities */}
-        <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center bg-secondary-800 rounded-sm px-3 py-1.5 border border-secondary-700 focus-within:border-primary transition-all">
-            <BsSearch className="text-slate-400" />
-            <input
-              type="text"
-              placeholder={t('search_placeholder')}
-              className="bg-transparent border-none focus:ring-0 text-xs w-40 text-white placeholder:text-slate-400 p-0 ml-2"
+              alt="الصرح للتطوير العقاري"
+              className="h-10 w-auto object-contain"
             />
           </div>
+          <div className="hidden sm:block">
+            <p className="text-white font-black text-base leading-tight tracking-tight">
+              الصرح
+            </p>
+            <p className="text-[10px] font-bold tracking-widest" style={{ color: '#DFBA6B' }}>
+              للعقارات
+            </p>
+          </div>
+        </Link>
 
-          <LanguageSwitcher />
+        {/* ===== روابط التنقل (Desktop) ===== */}
+        <nav className="hidden lg:flex items-center">
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              className={({ isActive }) =>
+                `px-5 py-2 mx-0.5 text-xs font-bold tracking-widest transition-all duration-300 relative group ${
+                  isActive
+                    ? 'text-[#DFBA6B]'
+                    : 'text-white/80 hover:text-[#DFBA6B]'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  {link.title}
+                  <span
+                    className="absolute bottom-0 right-0 left-0 h-0.5 transition-all duration-300"
+                    style={{
+                      background: 'linear-gradient(to right, #8A6924, #DFBA6B)',
+                      transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
+                      transformOrigin: 'right',
+                    }}
+                  />
+                  <span
+                    className="absolute bottom-0 right-0 left-0 h-0.5 transition-all duration-300 opacity-0 group-hover:opacity-100 group-hover:scale-x-100"
+                    style={{
+                      background: 'linear-gradient(to right, #8A6924, #DFBA6B)',
+                      transform: 'scaleX(0)',
+                      transformOrigin: 'right',
+                    }}
+                  />
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
 
+        {/* ===== أدوات اليمين ===== */}
+        <div className="flex items-center gap-3">
+          {/* رقم الهاتف */}
+          {config?.contact?.phone && (
+            <a
+              href={`tel:${config.contact.phone}`}
+              className="hidden xl:flex items-center gap-2 px-4 py-2 text-xs font-bold transition-all duration-300"
+              style={{
+                background: 'rgba(138,105,36,0.2)',
+                border: '1px solid rgba(223,186,107,0.3)',
+                color: '#DFBA6B',
+              }}
+            >
+              <FaPhoneAlt size={11} />
+              <span dir="ltr">{config.contact.phone}</span>
+            </a>
+          )}
+
+          {/* حساب المستخدم */}
           {currentUser ? (
             <div className="relative" ref={userMenuRef}>
-              <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center gap-2 hover:text-primary transition-colors">
-                <Avatar img={currentUser.avatar} size="sm" className="rounded-sm overflow-hidden" />
-                <span className="hidden md:block text-sm font-medium">{currentUser.username}</span>
-                <FaChevronDown size={10} />
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2 px-3 py-2 transition-all duration-300"
+                style={{
+                  background: 'rgba(138,105,36,0.2)',
+                  border: '1px solid rgba(223,186,107,0.3)',
+                }}
+              >
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="w-7 h-7 object-cover"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+                <span className="text-xs font-bold text-white hidden sm:block max-w-[80px] truncate">
+                  {currentUser.name?.split(' ')[0]}
+                </span>
               </button>
+
               <AnimatePresence>
                 {isUserMenuOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 top-full mt-4 w-56 bg-white dark:bg-slate-800 rounded-sm shadow-odoo-hover border border-slate-100 dark:border-slate-700 overflow-hidden z-50 text-slate-800"
+                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute left-0 top-full mt-2 w-56 overflow-hidden z-50"
+                    style={{
+                      background: 'rgba(18,40,60,0.95)',
+                      backdropFilter: 'blur(24px)',
+                      border: '1px solid rgba(223,186,107,0.2)',
+                      boxShadow: '0 20px 60px rgba(18,40,60,0.6)',
+                    }}
                   >
-                    <div className="p-2" dir={isRtl ? 'rtl' : 'ltr'}>
-                      <UserMenuItem icon={<FaUser />} text={t('favorites')} href="/Dashboard?tab=Favorites" onClick={() => setIsUserMenuOpen(false)} />
-                      {(currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
+                    {/* هيدر المستخدم */}
+                    <div className="px-4 py-3 border-b" style={{ borderColor: 'rgba(223,186,107,0.1)' }}>
+                      <p className="text-xs font-black text-white">{currentUser.name}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: '#DFBA6B' }}>{currentUser.email}</p>
+                    </div>
+
+                    <div className="py-1.5">
+                      <UserMenuItem icon={<FaUser />} text="ملفي الشخصي" href="/Dashboard?tab=Profile" onClick={() => setIsUserMenuOpen(false)} />
+                      {(currentUser.isAdmin || currentUser.role === 'Sales') && (
                         <>
-                          <UserMenuItem icon={<FaColumns />} text={t('admin')} href="/CreatePage" onClick={() => setIsUserMenuOpen(false)} />
-                          {currentUser.role === 'Admin' && (
-                            <UserMenuItem icon={<FaCogs />} text="Admin Settings" href="/Admin-Settings" onClick={() => setIsUserMenuOpen(false)} />
+                          <UserMenuItem icon={<BsGrid1X2Fill />} text="لوحة التحكم" href="/Dashboard?tab=dashbordData" onClick={() => setIsUserMenuOpen(false)} />
+                          <UserMenuItem icon={<FaColumns />} text="إضافة مشروع" href="/CreatePage" onClick={() => setIsUserMenuOpen(false)} />
+                          {currentUser.isAdmin && (
+                            <UserMenuItem icon={<FaCogs />} text="إعدادات الموقع" href="/Admin-Settings" onClick={() => setIsUserMenuOpen(false)} />
                           )}
-                          <UserMenuItem icon={<FaCoins />} text={t('sales')} href="/Dashboard?tab=dashbordData" onClick={() => setIsUserMenuOpen(false)} />
                         </>
                       )}
-                      <UserMenuItem icon={<FaCogs />} text={t('settings')} href="/Settings" onClick={() => setIsUserMenuOpen(false)} />
-                      <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
-                      <UserMenuItem icon={<FaDoorOpen />} text={t('logout')} onClick={handleSignout} isRed />
+                    </div>
+
+                    <div className="py-1.5 border-t" style={{ borderColor: 'rgba(223,186,107,0.1)' }}>
+                      <button
+                        onClick={() => { handleSignout(); setIsUserMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <FaDoorOpen size={14} />
+                        <span>تسجيل الخروج</span>
+                      </button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           ) : (
-            <Link to="/Signin" className="text-sm font-bold bg-primary text-white px-5 py-2 rounded-sm hover:bg-primary-700 transition-colors uppercase tracking-wide">
-              {t('login')}
+            <Link
+              to="/Signin"
+              className="px-5 py-2.5 text-xs font-black tracking-widest transition-all duration-300"
+              style={{
+                background: 'linear-gradient(135deg, #8A6924, #c4983a)',
+                color: 'white',
+                boxShadow: '0 4px 16px rgba(138,105,36,0.35)',
+              }}
+            >
+              دخول
             </Link>
           )}
 
-          {/* Mobile Toggle */}
+          {/* زر القائمة Mobile */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden text-white hover:text-primary transition-colors"
+            className="lg:hidden w-10 h-10 flex items-center justify-center text-white/80 hover:text-[#DFBA6B] transition-colors"
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
           >
-            {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+            {isMenuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Nav Drawer */}
+      {/* ===== Mobile Drawer ===== */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-primary-950/40 backdrop-blur-sm z-[110] lg:hidden"
+              className="fixed inset-0 z-[110] lg:hidden"
+              style={{ background: 'rgba(18,40,60,0.7)', backdropFilter: 'blur(8px)' }}
             />
-
             <motion.div
-              initial={{ x: isRtl ? '100%' : '-100%' }}
+              initial={{ x: '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: isRtl ? '100%' : '-100%' }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className={`fixed inset-y-0 ${isRtl ? 'right-0' : 'left-0'} w-full sm:w-80 bg-white shadow-2xl z-[120] lg:hidden flex flex-col`}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+              className="fixed inset-y-0 right-0 w-[280px] z-[120] lg:hidden flex flex-col overflow-hidden"
+              style={{
+                background: 'rgba(18,40,60,0.97)',
+                backdropFilter: 'blur(32px)',
+                borderLeft: '1px solid rgba(223,186,107,0.15)',
+              }}
             >
-              {/* Drawer Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                <img src={Logoelsarh} alt="El Sarh" className="h-10 w-auto" />
-                <button
-                  onClick={() => setIsMenuOpen(false)}
-                  className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary-600 transition-colors"
-                >
-                  <FaTimes size={20} />
+              {/* هيدر الدرج */}
+              <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid rgba(223,186,107,0.12)' }}>
+                <div className="flex items-center gap-3">
+                  <img src={Logoelsarh} alt="الصرح" className="h-9 w-auto" />
+                  <span className="text-white font-black text-sm">{config.siteName || 'الصرح للتطوير العقاري'}</span>
+                </div>
+                <button onClick={() => setIsMenuOpen(false)} className="text-white/50 hover:text-[#DFBA6B] transition-colors">
+                  <FaTimes size={18} />
                 </button>
               </div>
 
-              {/* Drawer Links */}
-              <div className="flex-1 overflow-y-auto py-8 px-6 space-y-2" dir={isRtl ? 'rtl' : 'ltr'}>
-                {navLinks.map((link) => (
-                  <NavLink
+              {/* روابط الدرج */}
+              <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
+                {navLinks.map((link, i) => (
+                  <motion.div
                     key={link.path}
-                    to={link.path}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={({ isActive }) => `
-                      block px-4 py-4 rounded-none text-sm font-bold uppercase tracking-widest transition-all
-                      ${isActive
-                        ? 'bg-primary-50 text-primary-600 border-r-4 border-primary-600'
-                        : 'text-slate-500 hover:bg-slate-50 hover:text-primary-600'}
-                    `}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
                   >
-                    {link.title}
-                  </NavLink>
+                    <NavLink
+                      to={link.path}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3.5 text-sm font-bold tracking-wide transition-all ${
+                          isActive
+                            ? 'text-[#DFBA6B] bg-white/5'
+                            : 'text-white/70 hover:text-[#DFBA6B] hover:bg-white/5'
+                        }`
+                      }
+                      style={({ isActive }) => ({
+                        borderRight: isActive ? '3px solid #8A6924' : '3px solid transparent',
+                      })}
+                    >
+                      {link.title}
+                    </NavLink>
+                  </motion.div>
                 ))}
-              </div>
+              </nav>
 
-              {/* Drawer Footer */}
-              <div className="p-8 border-t border-slate-100 bg-slate-50">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">
-                  {t('contact_us')}
-                </p>
-                <div className="space-y-4">
-                  <a href={`tel:${config?.contact?.phone}`} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                    <div className="w-8 h-8 rounded-none bg-white flex items-center justify-center text-primary-600 shadow-sm border border-slate-100">
-                      <FaDoorOpen size={14} />
-                    </div>
-                    {config?.contact?.phone}
+              {/* قدم الدرج */}
+              {config?.contact?.phone && (
+                <div className="px-6 py-5" style={{ borderTop: '1px solid rgba(223,186,107,0.12)' }}>
+                  <a
+                    href={`tel:${config.contact.phone}`}
+                    className="flex items-center gap-3 text-sm font-bold"
+                    style={{ color: '#DFBA6B' }}
+                  >
+                    <FaPhoneAlt size={14} />
+                    <span dir="ltr">{config.contact.phone}</span>
                   </a>
                 </div>
-              </div>
+              )}
             </motion.div>
           </>
         )}
@@ -268,19 +354,15 @@ export default function Header() {
   );
 }
 
-const UserMenuItem = ({ icon, text, href, onClick, isRed = false }) => {
-  const content = (
-    <div className={`
-      flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-none cursor-pointer
-      transition-all duration-200
-      ${isRed
-        ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10'
-        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-primary-600'}
-    `} onClick={onClick}>
-      <span className="text-lg">{icon}</span>
+const UserMenuItem = ({ icon, text, href, onClick }) => {
+  const inner = (
+    <div
+      className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-white/70 hover:text-[#DFBA6B] hover:bg-white/5 transition-all cursor-pointer"
+      onClick={onClick}
+    >
+      <span className="text-sm">{icon}</span>
       <span>{text}</span>
     </div>
   );
-
-  return href ? <Link to={href} className="block no-underline">{content}</Link> : content;
+  return href ? <Link to={href} className="block">{inner}</Link> : inner;
 };

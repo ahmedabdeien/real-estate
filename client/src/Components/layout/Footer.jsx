@@ -10,7 +10,7 @@ export default function Footer() {
   const email   = contact.email    || settings.company_email   || "info@elsarh.com";
   const address = contact.address_ar || settings.company_address || "القاهرة، مصر";
   const logo    = settings.company_logo;
-  const name    = settings.company_name_ar || "الصرح للعقارات";
+  const name    = settings.company_name_ar || "الصرح للتطوير العقاري";
 
   const facebook  = contact.facebook  || settings.facebook_url  || "#";
   const instagram = contact.instagram || settings.instagram_url || "#";

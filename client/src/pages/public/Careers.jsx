@@ -42,7 +42,7 @@ export default function CareersPage() {
       <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl font-black text-white mb-3">الوظائف المتاحة</h1>
-          <p className="text-white/70 text-lg">انضم إلى فريق الصرح للعقارات</p>
+          <p className="text-white/70 text-lg">انضم إلى فريق الصرح للتطوير العقاري</p>
         </div>
       </div>
 

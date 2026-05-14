@@ -53,7 +53,7 @@ export default function GenericPage() {
     return (
         <div className="min-h-screen bg-slate-50 font-body py-12">
             <Helmet>
-                <title>{title} | الصرح للعقارات</title>
+                <title>{title} | الصرح للتطوير العقاري</title>
             </Helmet>
             <div className="container mx-auto px-4 lg:px-24">
                 <div className="bg-white p-8 lg:p-16 border border-slate-200 shadow-sm rounded-none">

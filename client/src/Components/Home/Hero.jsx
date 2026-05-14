@@ -55,7 +55,7 @@ export default function Hero() {
           >
             <div className="w-8 h-0.5 bg-[#DFBA6B]" />
             <span className="text-[#DFBA6B] text-xs font-black tracking-[0.4em] uppercase">
-              الصرح للعقارات
+              الصرح للتطوير العقاري
             </span>
           </motion.div>
 

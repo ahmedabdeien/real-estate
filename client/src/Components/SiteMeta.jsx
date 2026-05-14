@@ -5,7 +5,7 @@ export default function SiteMeta() {
   const { settings } = useSiteSettings();
 
   // site_name = browser tab title set by admin; falls back to SEO title then company name
-  const title  = settings.site_name || settings.meta_title_ar || settings.company_name_ar || "الصرح للعقارات";
+  const title  = settings.site_name || settings.meta_title_ar || settings.company_name_ar || "الصرح للتطوير العقاري";
   const desc   = settings.meta_description_ar || "شركة عقارية رائدة في مجال التطوير العقاري";
   const logo   = settings.company_logo;
   const favicon = settings.favicon_url || logo;

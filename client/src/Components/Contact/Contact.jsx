@@ -1,174 +1,208 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
-import { SocialMediaPrimary } from "../SocialMedia/SocialMediaLink.jsx";
-import { Helmet } from "react-helmet";
-import { useTranslation } from 'react-i18next';
+import { FiPhone, FiMail, FiMapPin, FiClock } from 'react-icons/fi';
+import { SocialMediaPrimary } from '../SocialMedia/SocialMediaLink.jsx';
+import { Helmet } from 'react-helmet';
 import { useSelector } from 'react-redux';
 import FormContact from './FormContact';
 
-const CONFIGURATION = {
-  mapsApiKey: import.meta.env.VITE_MAP_KEY || ''
-};
-
-const ContactMethod = ({ icon: Icon, title, children, link }) => (
-  <div className="bg-white p-8 border border-slate-200 hover:border-primary-500 transition-all duration-300 rounded-none group shadow-sm">
-    <div className="flex items-start gap-4">
-      <div className="w-12 h-12 bg-slate-50 flex items-center justify-center text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all duration-300 rounded-none">
-        <Icon size={20} />
-      </div>
-      <div>
-        <h4 className="text-sm font-bold text-slate-900 mb-1 uppercase tracking-tight">{title}</h4>
-        {link ? (
-          <a href={link} className="text-slate-500 hover:text-primary-600 transition-colors text-sm">
-            {children}
-          </a>
-        ) : (
-          <p className="text-slate-500 text-sm leading-relaxed">{children}</p>
-        )}
-      </div>
-    </div>
-  </div>
-);
-
 function Contact() {
-  const { t, i18n } = useTranslation();
-  const { config } = useSelector(state => state.config);
-  const isRtl = i18n.language === 'ar';
+  const { config } = useSelector(s => s.config);
 
-  useEffect(() => {
-    const initializeMap = async () => {
-      try {
-        if (typeof CONFIGURATION !== 'undefined' && config.mapsApiKey) {
-          await customElements.whenDefined('gmpx-store-locator');
-          const locator = document.querySelector('gmpx-store-locator');
-          if (locator) {
-            locator.configureFromQuickBuilder({ ...CONFIGURATION, mapsApiKey: config.mapsApiKey });
-          }
-        }
-      } catch (error) {
-        console.error("Map initialization failed", error);
-      }
-    };
-    initializeMap();
-  }, [config.mapsApiKey]);
+  const contactMethods = [
+    {
+      icon: FiMapPin,
+      title: 'فرع المعادي',
+      value: config?.contact?.maadiBranchAddress || '14 شارع مختار، المعادي الجديدة، القاهرة',
+      link:  config?.contact?.maadiBranchLink,
+    },
+    {
+      icon: FiMapPin,
+      title: 'فرع بني سويف',
+      value: config?.contact?.beniSuefBranchAddress || 'شارع محمد حميدة، بني سويف',
+      link:  config?.contact?.beniSuefBranchLink,
+    },
+    {
+      icon: FiPhone,
+      title: 'الخط الساخن',
+      value: config?.contact?.phone,
+      link:  config?.contact?.phone ? `tel:${config.contact.phone}` : null,
+    },
+    {
+      icon: FiMail,
+      title: 'البريد الإلكتروني',
+      value: config?.contact?.email,
+      link:  config?.contact?.email ? `mailto:${config.contact.email}` : null,
+    },
+  ].filter(m => m.value);
 
   return (
-    <div dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 font-body pb-24 min-h-screen">
+    <div dir="rtl" className="min-h-screen overflow-hidden" style={{ background: '#faf8f4' }}>
       <Helmet>
-        <title>{t('contact_us')} | {config.siteName}</title>
-        <script
-          type="module"
-          src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"
-        />
+        <title>اتصل بنا | {config.siteName || 'الصرح للتطوير العقاري'}</title>
       </Helmet>
 
-      {/* Hero Header - Standard Banner Style */}
-      <div className="bg-primary-900 py-24 relative overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-900 to-transparent opacity-90" />
-        </div>
+      {/* ===== Hero ===== */}
+      <section
+        className="relative py-28 flex items-center overflow-hidden"
+        style={{ background: '#12283C' }}
+      >
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 2px 2px, #DFBA6B 1px, transparent 0)',
+            backgroundSize: '32px 32px',
+          }}
+        />
+        <div
+          className="absolute left-0 top-0 w-96 h-96 pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(138,105,36,0.12), transparent 70%)' }}
+        />
+
         <div className="container mx-auto px-4 lg:px-12 relative z-10">
-          <span className="text-accent-500 font-bold uppercase tracking-widest text-xs mb-4 block">
-            {t('contact_us')}
-          </span>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            {t('reach_out_to_us_today') || 'Reach out to us today'}
-          </h1>
-          <p className="max-w-2xl text-primary-50 text-base leading-relaxed opacity-80">
-            {t('contact_desc') || 'Our team is here to help you with any questions you may have. Feel free to contact us via any of the methods below.'}
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span
+              className="inline-block px-4 py-1.5 text-[10px] font-black tracking-[0.3em] uppercase mb-5"
+              style={{ background: 'rgba(138,105,36,0.85)', color: '#DFBA6B', border: '1px solid rgba(223,186,107,0.3)' }}
+            >
+              تواصل معنا
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black text-white mb-4">
+              تواصل معنا اليوم
+            </h1>
+            <div className="h-1 w-16 mb-4" style={{ background: 'linear-gradient(to left, #8A6924, #DFBA6B)' }} />
+            <p className="text-sm max-w-lg" style={{ color: 'rgba(255,255,255,0.6)' }}>
+              فريقنا متواجد لمساعدتك في أي استفسار. لا تتردد في التواصل معنا عبر أي من الطرق الموضحة.
+            </p>
+          </motion.div>
         </div>
-      </div>
+      </section>
 
-      <main className="container mx-auto px-4 lg:px-12 -mt-10 relative z-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      {/* ===== المحتوى الرئيسي ===== */}
+      <main className="container mx-auto px-4 lg:px-12 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
 
-          {/* Contact Details & Methods */}
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ContactMethod
-                icon={FiMapPin}
-                title={t('maadi_branch') || "Maadi"}
-                link={config?.contact?.maadiBranchLink}
+          {/* ===== الجانب الأيمن — معلومات التواصل ===== */}
+          <div className="lg:col-span-2 space-y-5">
+
+            {/* بطاقات التواصل */}
+            {contactMethods.map((m, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: 24 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group p-5 transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid rgba(138,105,36,0.1)',
+                  boxShadow: '0 4px 16px rgba(18,40,60,0.05)',
+                }}
               >
-                {config?.contact?.maadiBranchAddress || '14 Mokhtar St, New Maadi, Cairo, Egypt'}
-              </ContactMethod>
-
-              <ContactMethod
-                icon={FiMapPin}
-                title={t('beni_suef_branch') || "Beni Suef"}
-                link={config?.contact?.beniSuefBranchLink}
-              >
-                {config?.contact?.beniSuefBranchAddress || 'Mohamed Hamida St, Beni Suef'}
-              </ContactMethod>
-
-              <ContactMethod
-                icon={FiPhone}
-                title={t('hotline') || "Hotline"}
-                link={`tel:${config?.contact?.phone}`}
-              >
-                {config?.contact?.phone}
-              </ContactMethod>
-
-              <ContactMethod
-                icon={FiMail}
-                title={t('email') || "Email"}
-                link={`mailto:${config?.contact?.email}`}
-              >
-                {config?.contact?.email}
-              </ContactMethod>
-            </div>
-
-            {/* Working Hours Card */}
-            <div className="bg-white p-10 border border-slate-200 rounded-none shadow-sm">
-              <h3 className="text-lg font-bold text-slate-900 mb-6 uppercase tracking-tight border-b border-slate-100 pb-4">{t('working_hours')}</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500 text-sm font-medium">{t('saturday')} - {t('thursday')}</span>
-                  <span className="font-bold text-primary-600 text-sm">10:00 AM - 05:00 PM</span>
+                <div className="flex items-start gap-4">
+                  <div
+                    className="w-11 h-11 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110"
+                    style={{ background: 'rgba(138,105,36,0.1)', border: '1px solid rgba(138,105,36,0.2)' }}
+                  >
+                    <m.icon size={18} style={{ color: '#8A6924' }} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-black tracking-wider uppercase mb-1" style={{ color: '#8A6924' }}>
+                      {m.title}
+                    </h4>
+                    {m.link ? (
+                      <a
+                        href={m.link}
+                        className="text-sm font-medium break-all transition-colors hover:text-[#8A6924]"
+                        dir={m.icon === FiPhone ? 'ltr' : 'rtl'}
+                        style={{ color: '#12283C' }}
+                      >
+                        {m.value}
+                      </a>
+                    ) : (
+                      <p className="text-sm" style={{ color: '#4a3e2a' }}>{m.value}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center border-t border-slate-50 pt-4">
-                  <span className="text-slate-500 text-sm font-medium">{t('friday')}</span>
-                  <span className="text-red-500 font-bold text-xs uppercase tracking-widest">{t('closed')}</span>
+              </motion.div>
+            ))}
+
+            {/* ساعات العمل */}
+            <motion.div
+              initial={{ opacity: 0, x: 24 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="p-6"
+              style={{
+                background: '#12283C',
+                border: '1px solid rgba(223,186,107,0.15)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <FiClock size={16} style={{ color: '#DFBA6B' }} />
+                <h3 className="text-xs font-black tracking-widest uppercase" style={{ color: '#DFBA6B' }}>
+                  ساعات العمل
+                </h3>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm">
+                  <span style={{ color: 'rgba(255,255,255,0.6)' }}>السبت — الخميس</span>
+                  <span className="font-black" style={{ color: '#DFBA6B' }}>10:00 - 17:00</span>
+                </div>
+                <div className="h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+                <div className="flex justify-between items-center text-sm">
+                  <span style={{ color: 'rgba(255,255,255,0.6)' }}>الجمعة</span>
+                  <span className="font-black text-red-400">مغلق</span>
                 </div>
               </div>
+            </motion.div>
+
+            {/* سوشيال ميديا */}
+            <div
+              className="p-5"
+              style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(16px)', border: '1px solid rgba(138,105,36,0.1)' }}
+            >
+              <p className="text-xs font-black tracking-widest uppercase mb-4" style={{ color: '#8A6924' }}>
+                تابعنا على
+              </p>
+              <SocialMediaPrimary />
             </div>
           </div>
 
-          {/* Contact Form Section */}
-          <div className="bg-white p-10 md:p-12 border border-slate-200 rounded-none shadow-xl border-t-4 border-primary-600">
-            <div className="mb-10">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">{t('send_a_message')}</h2>
-              <p className="text-slate-500 text-sm">{t('form_subtitle') || 'Our advisors will get back to you as soon as possible.'}</p>
+          {/* ===== الجانب الأيسر — نموذج التواصل ===== */}
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="lg:col-span-3"
+          >
+            <div
+              className="p-8 md:p-10"
+              style={{
+                background: 'rgba(255,255,255,0.9)',
+                backdropFilter: 'blur(24px)',
+                border: '1px solid rgba(138,105,36,0.12)',
+                boxShadow: '0 16px 48px rgba(18,40,60,0.08)',
+                borderTop: '3px solid #8A6924',
+              }}
+            >
+              <div className="mb-8">
+                <h2 className="text-xl font-black mb-2" style={{ color: '#12283C' }}>أرسل رسالة</h2>
+                <p className="text-xs" style={{ color: '#6b5e3e' }}>
+                  سيعاود مستشارونا الاتصال بك في أقرب وقت ممكن.
+                </p>
+              </div>
+              <FormContact />
             </div>
-            <FormContact />
-          </div>
-
+          </motion.div>
         </div>
-
-        {/* Map Section */}
-        <section className="mt-24">
-          <div className="bg-white border border-slate-200 rounded-none p-4">
-            <div className="h-[500px] relative overflow-hidden bg-slate-100">
-              <gmpx-api-loader
-                key={CONFIGURATION.mapsApiKey}
-                solution-channel="GMP_QB_locatorplus_v11_cABD"
-              />
-              <gmpx-store-locator
-                map-id="DEMO_MAP_ID"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  '--gmpx-color-surface': '#fff',
-                  '--gmpx-color-on-surface': '#1e293b',
-                  '--gmpx-color-primary': '#005B94',
-                  '--gmpx-font-family-base': 'Inter, sans-serif',
-                }}
-              />
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );

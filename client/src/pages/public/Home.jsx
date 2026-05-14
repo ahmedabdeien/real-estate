@@ -223,7 +223,7 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <span className="inline-block bg-[#f59e0b]/20 text-[#f59e0b] text-sm font-semibold px-4 py-1.5 rounded-full mb-6 backdrop-blur">
-              الصرح للعقارات — مستقبلك يبدأ هنا
+              الصرح للتطوير العقاري — مستقبلك يبدأ هنا
             </span>
             <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
               {content.title_ar || "اكتشف بيت أحلامك"}

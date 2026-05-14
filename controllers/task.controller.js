@@ -1,5 +1,6 @@
 import Task from "../models/task.model.js";
 import User from "../models/user.model.js";
+import { createNotification } from "./notification.controller.js";
 
 const populate = [
   { path: "assignedTo", select: "name avatar role department" },
@@ -52,6 +53,20 @@ export const createTask = async (req, res) => {
       createdBy: req.user._id,
     });
     const populated = await Task.findById(task._id).populate(populate);
+
+    // Send notifications to all assigned users
+    const assignedIds = assignedTo || [];
+    for (const uid of assignedIds) {
+      await createNotification({
+        userId: uid,
+        type: "task_assigned",
+        title: "تم تعيين مهمة جديدة لك",
+        body: task.title,
+        link: "/tasks",
+        createdBy: req.user._id,
+      });
+    }
+
     res.status(201).json({ success: true, task: populated });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });

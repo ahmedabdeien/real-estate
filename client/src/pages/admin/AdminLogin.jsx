@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
-import { Building2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useNavigate, Navigate, Link } from "react-router-dom";
+import { Building2, Mail, Lock, Eye, EyeOff, Home } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 
@@ -58,15 +58,25 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2d5d89] via-[#1a3d5c] to-[#0f2336] flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-[#2d5d89] via-[#1a3d5c] to-[#0f2336] flex items-center justify-center p-4 relative" dir="rtl">
+      {/* Home button — top right */}
+      <Link
+        to="/"
+        className="absolute top-4 left-4 flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-3 py-2 rounded-xl text-sm font-medium transition-colors backdrop-blur-sm"
+      >
+        <Home className="w-4 h-4" />
+        الرئيسية
+      </Link>
+
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">الصرح للعقارات</h1>
-          <p className="text-white/60 mt-1">لوحة إدارة المحتوى</p>
+          <h1 className="text-2xl font-bold text-white">الصرح للتطوير العقاري</h1>
+          <p className="text-white/60 mt-1">تسجيل الدخول إلى لوحة التحكم</p>
+          <p className="text-white/80 mt-2 text-sm font-medium">ندير أعمالك بكفاءة واحترافية</p>
         </div>
 
         {/* Card */}

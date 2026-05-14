@@ -1,145 +1,223 @@
 "use client";
-import { motion, AnimatePresence } from 'framer-motion';
-import { BsArrowUpShort, BsChevronRight } from 'react-icons/bs';
-import { FiClock, FiMapPin, FiMail, FiPhone } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import { FiMapPin, FiMail, FiPhone } from 'react-icons/fi';
+import { BsArrowLeft } from 'react-icons/bs';
 import { SocialMediaSecondary } from '../SocialMedia/SocialMediaLink';
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import Logoelsarh from '../../assets/images/logoElsarh.png';
 
-const FooterSection = ({ title, children }) => (
-  <div className="space-y-6">
-    <h4 className="text-lg font-heading font-bold text-white tracking-wide uppercase">
-      {title}
-    </h4>
-    <div className="space-y-4">
-      {children}
-    </div>
-  </div>
-);
-
 export default function Footer() {
-  const [showButton, setShowButton] = useState(false);
+  const { config }  = useSelector(s => s.config);
+  const [dynamicPages, setDynamicPages] = useState([]);
 
   useEffect(() => {
-    const handleScroll = () => setShowButton(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    fetch('/api/cms/pages')
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setDynamicPages(d))
+      .catch(() => {});
   }, []);
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  const footerLinks = [
-    { name: 'الرئيسية', path: '/' },
-    { name: 'المشاريع', path: '/Project' },
-    { name: 'من نحن', path: '/About' },
+  const quickLinks = [
+    { name: 'الرئيسية',   path: '/' },
+    { name: 'المشاريع',   path: '/Project' },
+    { name: 'من نحن',     path: '/About' },
+    { name: 'المدونة',    path: '/Blogs' },
     { name: 'تواصل معنا', path: '/Contact' },
   ];
 
-  const { t, i18n } = useTranslation();
-  const { config } = useSelector((state) => state.config);
-  const isRtl = i18n.language === 'ar';
-  const currentLang = i18n.language;
-
-  // Fetch dynamic pages (e.g. Privacy, Terms)
-  const [dynamicPages, setDynamicPages] = useState([]);
-  useEffect(() => {
-    const fetchPages = async () => {
-      try {
-        const res = await fetch('/api/cms/pages');
-        const data = await res.json();
-        if (res.ok) {
-          setDynamicPages(data);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    fetchPages();
-  }, []);
-
   return (
-    <footer dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 text-slate-600 font-body border-t border-slate-200 pt-16 pb-8">
-      <div className="container mx-auto px-4 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+    <footer
+      dir="rtl"
+      className="relative overflow-hidden"
+      style={{ background: '#12283C' }}
+    >
+      {/* زخرفة */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, #DFBA6B 1px, transparent 0)',
+          backgroundSize: '36px 36px',
+        }}
+      />
+      <div
+        className="absolute top-0 inset-x-0 h-px"
+        style={{ background: 'linear-gradient(to right, transparent, rgba(223,186,107,0.4), transparent)' }}
+      />
 
-          {/* Brand & Bio */}
-          <div className="space-y-6">
+      <div className="container mx-auto px-4 lg:px-12 py-16 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-14">
+
+          {/* ===== الهوية ===== */}
+          <div className="space-y-6 lg:col-span-1">
             <Link to="/" className="flex items-center gap-3">
-              <img
-                src={(config.logo && config.logo.startsWith('http')) ? config.logo : Logoelsarh}
-                alt={config.siteName}
-                className="w-12 h-auto"
-              />
+              <div
+                className="w-12 h-12 flex items-center justify-center overflow-hidden shrink-0"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(223,186,107,0.2)' }}
+              >
+                <img
+                  src={(config.logo?.startsWith?.('http') ? config.logo : Logoelsarh) || Logoelsarh}
+                  alt={config.siteName}
+                  className="h-10 w-auto object-contain"
+                />
+              </div>
               <div>
-                <h2 className="text-lg font-black text-primary-900 uppercase tracking-tight">{config.siteName || t('welcome_title_1')}</h2>
-                <span className="text-[10px] text-slate-400 font-bold tracking-widest uppercase block">Real Estate Investment</span>
+                <p className="text-white font-black text-base leading-tight">{config.siteName || 'الصرح للتطوير العقاري'}</p>
+                <p className="text-[10px] font-bold tracking-widest mt-0.5" style={{ color: '#DFBA6B' }}>للاستثمار العقاري</p>
               </div>
             </Link>
-            <p className="text-sm leading-relaxed text-slate-500">
-              {t('about_desc').substring(0, 100)}...
+
+            <p className="text-sm leading-loose" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              {config?.footer?.about || 'منذ عام 2004 ونحن نعيد تعريف مفهوم السكن الفاخر في مصر، بمعايير بناء عالمية وخدمة تفوق التوقعات.'}
             </p>
-            <div className="flex gap-4 pt-2">
-              <SocialMediaSecondary links={config.socialLinks} />
-            </div>
+
+            <SocialMediaSecondary />
           </div>
 
-          {/* Quick Links */}
+          {/* ===== روابط سريعة ===== */}
           <div>
-            <h4 className="font-bold text-primary-900 uppercase tracking-wide text-sm mb-6">{t('quick_links')}</h4>
-            <ul className="space-y-3 text-sm">
-              <li><Link to="/" className="hover:text-primary-600 transition-colors">{t('home')}</Link></li>
-              <li><Link to="/Project" className="hover:text-primary-600 transition-colors">{t('listings')}</Link></li>
-              <li><Link to="/About" className="hover:text-primary-600 transition-colors">{t('about')}</Link></li>
-              <li><Link to="/Contact" className="hover:text-primary-600 transition-colors">{t('contact')}</Link></li>
+            <h4
+              className="text-xs font-black tracking-[0.3em] uppercase mb-6 pb-3"
+              style={{ color: '#DFBA6B', borderBottom: '1px solid rgba(223,186,107,0.15)' }}
+            >
+              روابط سريعة
+            </h4>
+            <ul className="space-y-3">
+              {quickLinks.map(l => (
+                <li key={l.path}>
+                  <Link
+                    to={l.path}
+                    className="flex items-center gap-2 text-sm transition-all duration-300 group"
+                    style={{ color: 'rgba(255,255,255,0.5)' }}
+                  >
+                    <BsArrowLeft
+                      size={11}
+                      className="transition-transform duration-300 group-hover:-translate-x-1"
+                      style={{ color: '#8A6924' }}
+                    />
+                    <span className="group-hover:text-[#DFBA6B] transition-colors">{l.name}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contact Info */}
+          {/* ===== معلومات التواصل ===== */}
           <div>
-            <h4 className="font-bold text-primary-900 uppercase tracking-wide text-sm mb-6">{t('contact_us')}</h4>
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-start gap-3">
-                <FiMapPin className="text-primary-600 shrink-0 mt-1" />
-                <span>{config?.contact?.maadiBranchAddress || '14 Mokhtar St, New Maadi, Cairo, Egypt'}</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <FiPhone className="text-primary-600 shrink-0" />
-                <a href={`tel:${config?.contact?.phone}`} className="hover:text-primary-600 dir-ltr">{config?.contact?.phone}</a>
-              </li>
-              <li className="flex items-center gap-3">
-                <FiMail className="text-primary-600 shrink-0" />
-                <a href={`mailto:${config?.contact?.email}`} className="hover:text-primary-600">{config?.contact?.email}</a>
-              </li>
+            <h4
+              className="text-xs font-black tracking-[0.3em] uppercase mb-6 pb-3"
+              style={{ color: '#DFBA6B', borderBottom: '1px solid rgba(223,186,107,0.15)' }}
+            >
+              تواصل معنا
+            </h4>
+            <ul className="space-y-4">
+              {config?.contact?.maadiBranchAddress && (
+                <li className="flex items-start gap-3">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: 'rgba(138,105,36,0.2)', border: '1px solid rgba(223,186,107,0.15)' }}
+                  >
+                    <FiMapPin size={13} style={{ color: '#DFBA6B' }} />
+                  </div>
+                  <span className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {config.contact.maadiBranchAddress}
+                  </span>
+                </li>
+              )}
+              {config?.contact?.phone && (
+                <li className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(138,105,36,0.2)', border: '1px solid rgba(223,186,107,0.15)' }}
+                  >
+                    <FiPhone size={13} style={{ color: '#DFBA6B' }} />
+                  </div>
+                  <a href={`tel:${config.contact.phone}`} dir="ltr" className="text-xs font-bold transition-colors hover:text-[#DFBA6B]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    {config.contact.phone}
+                  </a>
+                </li>
+              )}
+              {config?.contact?.email && (
+                <li className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(138,105,36,0.2)', border: '1px solid rgba(223,186,107,0.15)' }}
+                  >
+                    <FiMail size={13} style={{ color: '#DFBA6B' }} />
+                  </div>
+                  <a href={`mailto:${config.contact.email}`} className="text-xs transition-colors hover:text-[#DFBA6B]" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    {config.contact.email}
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
-          {/* Legal / Hours */}
+          {/* ===== ساعات العمل ===== */}
           <div>
-            <h4 className="font-bold text-primary-900 uppercase tracking-wide text-sm mb-6">{t('working_hours')}</h4>
-            <div className="text-sm space-y-2 text-slate-500">
-              <p className="flex justify-between border-b border-slate-200 pb-2">
-                <span>{t('saturday')} - {t('thursday')}</span>
-                <span className="font-bold text-slate-700">10:00 - 17:00</span>
-              </p>
-              <p className="flex justify-between pt-2">
-                <span>{t('friday')}</span>
-                <span className="text-red-500 font-bold">{t('closed')}</span>
-              </p>
+            <h4
+              className="text-xs font-black tracking-[0.3em] uppercase mb-6 pb-3"
+              style={{ color: '#DFBA6B', borderBottom: '1px solid rgba(223,186,107,0.15)' }}
+            >
+              ساعات العمل
+            </h4>
+            <div
+              className="p-5 space-y-3"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+            >
+              <div className="flex justify-between items-center">
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {(config?.footer?.workingHours || 'السبت - الخميس: 10:00 - 17:00').split(':')[0]}
+                </span>
+                <span className="text-xs font-black" style={{ color: '#DFBA6B' }}>
+                  {(config?.footer?.workingHours || 'السبت - الخميس: 10:00 - 17:00').split(':').slice(1).join(':').trim() || '10:00 - 17:00'}
+                </span>
+              </div>
+              <div
+                className="h-px"
+                style={{ background: 'rgba(255,255,255,0.06)' }}
+              />
+              <div className="flex justify-between items-center">
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>الجمعة</span>
+                <span className="text-xs font-black text-red-400">مغلق</span>
+              </div>
             </div>
-          </div>
 
+            {/* CTA */}
+            <Link to="/Contact" className="block mt-4">
+              <button
+                className="w-full py-3 text-xs font-black tracking-widest transition-all duration-300 hover:-translate-y-0.5"
+                style={{
+                  background: 'linear-gradient(135deg, #8A6924, #c4983a)',
+                  color: 'white',
+                  boxShadow: '0 4px 16px rgba(138,105,36,0.35)',
+                }}
+              >
+                احجز استشارة مجانية
+              </button>
+            </Link>
+          </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-slate-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
-          <p>&copy; {new Date().getFullYear()} {config.siteName || 'El Sarh'}. {t('all_rights_reserved')}.</p>
-          <div className="flex gap-6">
-            {dynamicPages.map(page => (
-              <Link key={page._id} to={`/p/${page.slug}`} className="hover:text-primary-600 transition-colors">
-                {page.title[currentLang] || page.title['en']}
+        {/* ===== البار السفلي ===== */}
+        <div
+          className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 text-[11px]"
+          style={{
+            borderTop: '1px solid rgba(255,255,255,0.07)',
+            color: 'rgba(255,255,255,0.3)',
+          }}
+        >
+          <p>
+            &copy; {new Date().getFullYear()} {config.siteName || 'الصرح للتطوير العقاري'} — {config?.footer?.copyright || 'جميع الحقوق محفوظة'}.
+          </p>
+          <div className="flex items-center gap-5">
+            {dynamicPages.map(p => (
+              <Link
+                key={p._id}
+                to={`/p/${p.slug}`}
+                className="hover:text-[#DFBA6B] transition-colors"
+              >
+                {p.title?.ar || p.title?.en || ''}
               </Link>
             ))}
           </div>
