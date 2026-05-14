@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Badge, Alert } from 'flowbite-react';
+// flowbite removed
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { updateStart, updateSuccess, updateFailure } from '../redux/user/userSlice';
@@ -121,12 +121,9 @@ export default function CustomizedProfile() {
               >
                 Change Avatar
               </Button>
-              <Badge
-                color={currentUser.isAdmin ? 'failure' : currentUser.isBroker ? 'warning' : 'success'}
-                size="xl"
-              >
-                {currentUser.isAdmin ? 'Admin' : currentUser.isBroker ? 'Broker' : 'User'}
-              </Badge>
+              <span className="px-3 py-1 text-xs font-black text-white" style={{ background: currentUser.isAdmin ? '#dc2626' : currentUser.isBroker ? '#8A6924' : '#16a34a' }}>
+                {currentUser.isAdmin ? 'مسؤول' : currentUser.isBroker ? 'وسيط' : 'مستخدم'}
+              </span>
             </div>
 
             <div className="md:w-2/3">
@@ -184,14 +181,10 @@ export default function CustomizedProfile() {
               </form>
 
               {updateUserSuccess && (
-                <Alert color="success" className="mt-4">
-                  {updateUserSuccess}
-                </Alert>
+                <div className="mt-4 p-3 text-xs font-bold" style={{ background: '#f0fdf4', border: '1px solid #86efac', color: '#16a34a' }}>{updateUserSuccess}</div>
               )}
               {updateUserError && (
-                <Alert color="failure" className="mt-4">
-                  {updateUserError}
-                </Alert>
+                <div className="mt-4 p-3 text-xs font-bold" style={{ background: '#fff5f5', border: '1px solid #fecaca', color: '#dc2626' }}>{updateUserError}</div>
               )}
             </div>
           </div>

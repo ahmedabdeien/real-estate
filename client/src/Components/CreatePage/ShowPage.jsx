@@ -17,9 +17,9 @@ import { TbLoaderQuarter } from "react-icons/tb";
 import SectionShowProjects from './SectionShowProjects';
 
 function ShowPage() {
-  const { t, i18n } = useTranslation();
-  const currentLang = i18n.language;
-  const isRtl = currentLang === 'ar';
+  const { t } = useTranslation();
+  const currentLang = 'ar';
+  const isRtl = true;
   const currentUser = useSelector((state) => state.user?.currentUser);
   const { pageSlug } = useParams();
   const [loading, setLoading] = useState(true);
@@ -47,20 +47,21 @@ function ShowPage() {
 
   if (loading) {
     return (
-      <div className="w-full h-screen flex justify-center items-center flex-col bg-slate-50">
-        <TbLoaderQuarter className="text-6xl animate-spin text-primary-600" />
-        <p className="mt-4 text-slate-500 font-bold uppercase text-xs tracking-widest">{t('loading_details') || 'Loading Project Details...'}</p>
+      <div className="w-full h-screen flex justify-center items-center flex-col" style={{ background: '#faf8f4' }}>
+        <TbLoaderQuarter className="text-5xl animate-spin" style={{ color: '#8A6924' }} />
+        <p className="mt-4 text-xs font-bold tracking-widest" style={{ color: '#8A6924' }}>جارٍ تحميل تفاصيل المشروع...</p>
       </div>
     );
   }
 
   if (error || !pages) {
     return (
-      <div className="w-full h-screen flex justify-center items-center flex-col bg-slate-50">
-        <div className="bg-white p-12 border border-slate-200 text-center shadow-xl">
-          <p className="text-red-600 text-xl font-bold mb-4">{error || 'Project not found'}</p>
-          <Link to="/" className="px-8 py-3 bg-primary-900 text-white font-bold uppercase text-xs tracking-widest hover:bg-primary-800 transition-colors">
-            {t('back_home') || 'Back to Home'}
+      <div className="w-full h-screen flex justify-center items-center flex-col" style={{ background: '#faf8f4' }}>
+        <div className="p-12 text-center" style={{ background: 'white', border: '1px solid rgba(138,105,36,0.15)', boxShadow: '0 16px 48px rgba(18,40,60,0.08)' }}>
+          <p className="text-red-600 text-lg font-black mb-6">{error || 'المشروع غير موجود'}</p>
+          <Link to="/" className="px-8 py-3 text-sm font-black text-white"
+            style={{ background: 'linear-gradient(135deg, #8A6924, #c4983a)' }}>
+            العودة للرئيسية
           </Link>
         </div>
       </div>
@@ -72,9 +73,9 @@ function ShowPage() {
   const propertyAddress = typeof pages.address === 'object' ? (pages.address[currentLang] || pages.address['en']) : pages.address;
 
   return (
-    <div dir={isRtl ? 'rtl' : 'ltr'} className="bg-slate-50 font-body pb-24 min-h-screen">
+    <div dir="rtl" className="pb-24 min-h-screen" style={{ background: '#faf8f4' }}>
       <Helmet>
-        <title>{propertyName} | El Sarh</title>
+        <title>{propertyName} | الصرح للتطوير العقاري</title>
         <meta name="description" content={propertyDesc} />
       </Helmet>
 
@@ -94,22 +95,25 @@ function ShowPage() {
                 <PhotoView src={image}>
                   <div className="relative h-full w-full cursor-zoom-in">
                     <img src={image} alt={propertyName} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary-900/80 via-transparent to-transparent" />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(18,40,60,0.88) 0%, rgba(18,40,60,0.35) 50%, transparent 100%)' }} />
                     <div className="absolute bottom-12 left-0 right-0">
                       <div className="container mx-auto px-4 lg:px-12">
-                        <span className="inline-block px-3 py-1 bg-accent-500 text-white text-[10px] font-bold uppercase tracking-widest mb-4">
-                          {t('featured_property') || 'Featured Property'}
+                        <span className="inline-block px-3 py-1 text-[10px] font-black tracking-widest text-white mb-4"
+                          style={{ background: '#8A6924' }}>
+                          مشروع مميز
                         </span>
-                        <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 flex flex-wrap items-center gap-4">
+                        <h1 className="text-3xl md:text-5xl font-black text-white mb-2 flex flex-wrap items-center gap-4">
                           {propertyName}
-                          {currentUser && (currentUser.role === 'Admin' || currentUser.role === 'Sales') && (
-                            <Link to={`/Update-Page/${pages._id}`} className="inline-block px-4 py-1 text-sm bg-accent-500 hover:bg-accent-600 text-white font-bold uppercase tracking-widest rounded-none transition-colors">
-                              {t('edit')}
+                          {currentUser && (currentUser.isAdmin || currentUser.role === 'Sales') && (
+                            <Link to={`/Update-Page/${pages._id}`}
+                              className="inline-block px-4 py-1 text-sm font-black text-white transition-colors"
+                              style={{ background: 'rgba(138,105,36,0.85)' }}>
+                              تعديل
                             </Link>
                           )}
                         </h1>
-                        <p className="flex items-center gap-2 text-primary-50 opacity-80 text-sm">
-                          <FaMapMarkerAlt /> {propertyAddress}
+                        <p className="flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                          <FaMapMarkerAlt style={{ color: '#DFBA6B' }} /> {propertyAddress}
                         </p>
                       </div>
                     </div>
@@ -136,27 +140,32 @@ function ShowPage() {
           <div className="lg:col-span-2 space-y-12">
 
             {/* Overview */}
-            <section className="bg-white p-8 border border-slate-200">
-              <h2 className="text-xl font-bold text-slate-900 mb-6 uppercase tracking-tight border-b border-slate-100 pb-4">
-                {t('overview')}
+            <section className="p-8" style={{ background: 'white', border: '1px solid rgba(138,105,36,0.12)' }}>
+              <h2 className="text-sm font-black uppercase tracking-widest mb-5 pb-3" style={{ color: '#12283C', borderBottom: '1px solid #f1f5f9' }}>
+                نظرة عامة
               </h2>
-              <p className="text-slate-600 leading-relaxed text-base whitespace-pre-wrap">
+              <p className="leading-loose text-sm whitespace-pre-wrap" style={{ color: '#4a3e2a' }}>
                 {propertyDesc}
               </p>
             </section>
 
             {/* Quick Specs Grid */}
-            <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { icon: BsRulers, label: t('area'), value: `${pages.propertySize} m²` },
-                { icon: BsDoorOpen, label: t('rooms'), value: pages.rooms },
-                { icon: FaBath, label: t('bathrooms'), value: pages.bathrooms },
-                { icon: BsBuilding, label: t('floors'), value: pages.numberFloors }
+                { icon: BsRulers, label: 'المساحة', value: `${pages.propertySize} م²` },
+                { icon: BsDoorOpen, label: 'الغرف', value: pages.rooms },
+                { icon: FaBath, label: 'الحمامات', value: pages.bathrooms },
+                { icon: BsBuilding, label: 'الطوابق', value: pages.numberFloors }
               ].map((spec, i) => (
-                <div key={i} className="bg-white p-6 border border-slate-200 text-center group hover:border-primary-500 transition-all">
-                  <spec.icon className="mx-auto text-primary-600 mb-3 group-hover:scale-110 transition-transform" size={24} />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">{spec.label}</p>
-                  <p className="text-lg font-bold text-slate-900">{spec.value}</p>
+                <div key={i}
+                  className="p-6 text-center group transition-all"
+                  style={{ background: 'white', border: '1px solid rgba(138,105,36,0.1)' }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(138,105,36,0.3)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(138,105,36,0.1)'}
+                >
+                  <spec.icon className="mx-auto mb-3 group-hover:scale-110 transition-transform" size={22} style={{ color: '#8A6924' }} />
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: '#8A6924' }}>{spec.label}</p>
+                  <p className="text-lg font-black" style={{ color: '#12283C' }}>{spec.value}</p>
                 </div>
               ))}
             </section>
@@ -200,30 +209,36 @@ function ShowPage() {
           {/* Right: Sidebar */}
           <aside className="space-y-8">
             {/* Inquiry Card */}
-            <div className="bg-primary-900 p-8 text-white rounded-none shadow-xl border-t-4 border-accent-500">
-              <h3 className="text-xl font-bold mb-4 uppercase tracking-tight">{t('interested_in_this') || 'Interested in this project?'}</h3>
-              <p className="text-primary-100 text-sm mb-8 opacity-80 leading-relaxed">
-                {t('contact_cta_desc') || "Our real estate advisors are ready to help you with pricing, floor plans, and investment details."}
+            <div className="p-8 text-white shadow-xl" style={{ background: '#12283C', borderTop: '4px solid #8A6924' }}>
+              <h3 className="text-xl font-black mb-4">مهتم بهذا المشروع؟</h3>
+              <p className="text-sm mb-8 leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                مستشارونا العقاريون جاهزون لمساعدتك في التسعير والمخططات وتفاصيل الاستثمار.
               </p>
-              <div className="space-y-4">
-                <a href="tel:+201212622210" className="flex items-center justify-center gap-2 w-full py-4 bg-accent-600 hover:bg-accent-700 text-white font-bold uppercase text-xs tracking-widest transition-all">
-                  <FaPhone /> {t('call_us') || 'Call Us'}
+              <div className="space-y-3">
+                <a href="tel:+201212622210"
+                  className="flex items-center justify-center gap-2 w-full py-4 text-white text-xs font-black tracking-widest transition-all hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #8A6924, #c4983a)' }}>
+                  <FaPhone size={12} /> اتصل بنا الآن
                 </a>
-                <a href="https://wa.me/201212622210" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold uppercase text-xs tracking-widest transition-all">
-                  واتساب WhatsApp
+                <a href="https://wa.me/201212622210" target="_blank" rel="noreferrer"
+                  className="flex items-center justify-center gap-2 w-full py-4 border text-white text-xs font-black tracking-widest transition-all hover:bg-white/10"
+                  style={{ borderColor: 'rgba(223,186,107,0.3)', color: '#DFBA6B' }}>
+                  واتساب
                 </a>
               </div>
             </div>
 
             {/* Documents */}
-            <div className="bg-white p-8 border border-slate-200 rounded-none">
-              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-6 border-b border-slate-100 pb-4">{t('documents') || 'Documents'}</h4>
-              <button className="flex items-center justify-between w-full p-4 bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-200">
+            <div className="p-8" style={{ background: 'white', border: '1px solid rgba(138,105,36,0.12)' }}>
+              <h4 className="text-xs font-black text-slate-600 uppercase tracking-widest mb-5 pb-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                ملفات المشروع
+              </h4>
+              <button className="flex items-center justify-between w-full p-4 transition-colors hover:bg-slate-50" style={{ background: '#faf8f4', border: '1px solid rgba(138,105,36,0.1)' }}>
                 <div className="flex items-center gap-3">
                   <FaRegFilePdf className="text-red-600" size={20} />
-                  <div className="text-left">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">PDF</p>
-                    <p className="text-xs font-bold text-slate-700">{t('download_brochure') || 'Download Brochure'}</p>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-slate-400 uppercase">PDF</p>
+                    <p className="text-xs font-black" style={{ color: '#12283C' }}>تحميل البروشور</p>
                   </div>
                 </div>
                 <BsChevronRight className="text-slate-400" />

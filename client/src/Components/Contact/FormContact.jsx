@@ -36,8 +36,7 @@ const InputField = React.memo(({
             onBlur(e);
           }}
           onFocus={() => setIsFocused(true)}
-          className={`w-full px-4 py-3 rounded-lg border-2 bg-transparent peer transition-all resize-none min-h-[120px] ${error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-            } ${isFocused ? 'border-[#ff9505] ring-2 ring-[#ff9505]/20' : ''}`}
+          className={`w-full px-4 py-3 border-2 bg-transparent peer transition-all resize-none min-h-[120px] focus:outline-none ${error ? 'border-red-500' : isFocused ? 'border-[#8A6924]' : 'border-slate-200'}`}
         />
       ) : (
         <input
@@ -51,17 +50,15 @@ const InputField = React.memo(({
             onBlur(e);
           }}
           onFocus={() => setIsFocused(true)}
-          className={`w-full px-4 py-3 rounded-lg border-2 bg-transparent peer transition-all ${error ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'
-            } ${isFocused ? 'border-[#ff9505] ring-2 ring-[#ff9505]/20' : ''}`}
+          className={`w-full px-4 py-3 border-2 bg-transparent peer transition-all focus:outline-none ${error ? 'border-red-500' : isFocused ? 'border-[#8A6924]' : 'border-slate-200'}`}
         />
       )}
 
       <label
         htmlFor={id}
-        className={`absolute right-3 transition-all duration-300 pointer-events-none ${(isFocused || value) ?
-          '-top-3.5 text-sm bg-white dark:bg-gray-800 px-1 text-[#2f2f2f] dark:text-gray-300' :
-          'top-3.5 text-gray-500'
-          } ${error ? 'text-red-500' : ''}`}
+        className={`absolute right-3 transition-all duration-300 pointer-events-none text-sm ${
+          (isFocused || value) ? '-top-3 bg-white px-1 font-bold' : 'top-3'
+          } ${error ? 'text-red-500' : isFocused ? 'text-[#8A6924]' : 'text-slate-400'}`}
       >
         {label}
       </label>
@@ -106,17 +103,17 @@ export default function FormContact() {
   }, [currentUser]);
 
   const validations = {
-    name: /^[\u0600-\u06FF\s]+$/, // Strictly Arabic name validation as per requirement
+    name: /^[\u0600-\u06FFa-zA-Z\s\-'\.]{2,60}$/, // Accept Arabic and English names
     phone: /^[+0-9\u0660-\u0669\u06F0-\u06F9][0-9\u0660-\u0669\u06F0-\u06F9\s\-()]{9,14}$/,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
     message: /^[\s\S]{10,500}$/
   };
 
   const errorMessages = {
-    name: currentLang === 'ar' ? "يرجى إدخال الاسم باللغة العربية" : "Please enter name in Arabic",
-    phone: currentLang === 'ar' ? "رقم الهاتف غير صالح" : "Invalid phone number",
-    email: currentLang === 'ar' ? "البريد الإلكتروني غير صالح" : "Invalid email address",
-    message: currentLang === 'ar' ? "الرسالة قصيرة جداً" : "Message is too short"
+    name: "يرجى إدخال الاسم (٢ حروف على الأقل)",
+    phone: "رقم الهاتف غير صالح",
+    email: "البريد الإلكتروني غير صالح",
+    message: "الرسالة قصيرة جداً (١٠ أحرف على الأقل)"
   };
 
   const validateField = (name, value) => {
@@ -181,15 +178,15 @@ export default function FormContact() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl "
+      className="w-full"
     >
-      <form onSubmit={handleSubmit} className="grid gap-3">
+      <form onSubmit={handleSubmit} className="grid gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             id="name"
             name="name"
             type="text"
-            label={t('name') + (currentLang === 'ar' ? ' (باللغة العربية)' : ' (In Arabic)')}
+            label="الاسم الكامل"
             value={formData.name}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -200,7 +197,7 @@ export default function FormContact() {
             id="phone"
             name="phone"
             type="tel"
-            label={t('phone')}
+            label="رقم الهاتف"
             value={formData.phone}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -212,7 +209,7 @@ export default function FormContact() {
           id="email"
           name="email"
           type="email"
-          label={t('email')}
+          label="البريد الإلكتروني"
           value={formData.email}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -222,7 +219,7 @@ export default function FormContact() {
         <InputField
           id="message"
           name="message"
-          label={t('message')}
+          label="رسالتك"
           value={formData.message}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -230,18 +227,22 @@ export default function FormContact() {
           textarea
         />
 
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-4 px-6 bg-primary-600 text-white rounded-xl font-black hover:bg-primary-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 px-6 text-white text-sm font-black tracking-wide flex items-center justify-center gap-2 transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{
+              background: isSubmitting ? '#8A6924' : 'linear-gradient(135deg, #8A6924, #c4983a)',
+              boxShadow: '0 6px 20px rgba(138,105,36,0.35)',
+            }}
           >
             {isSubmitting ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <FiSend className="text-lg" />
-                <span>{t('send')}</span>
+                <FiSend size={14} />
+                <span>إرسال الرسالة</span>
               </>
             )}
           </button>
@@ -249,19 +250,19 @@ export default function FormContact() {
 
         {status.message && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg flex items-center gap-3 ${status.type === 'error'
-              ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300'
-              : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300'
+            className={`p-4 flex items-center gap-3 text-sm font-bold ${status.type === 'error'
+              ? 'bg-red-50 border border-red-200 text-red-700'
+              : 'bg-green-50 border border-green-200 text-green-700'
               }`}
           >
             {status.type === 'error' ? (
-              <FiAlertCircle className="shrink-0 text-xl" />
+              <FiAlertCircle className="shrink-0" size={16} />
             ) : (
-              <FiCheckCircle className="shrink-0 text-xl" />
+              <FiCheckCircle className="shrink-0" size={16} />
             )}
-            <span>{status.message}</span>
+            <span>{status.message || (status.type === 'success' ? 'تم إرسال رسالتك بنجاح!' : 'حدث خطأ، يرجى المحاولة مرة أخرى')}</span>
           </motion.div>
         )}
       </form>

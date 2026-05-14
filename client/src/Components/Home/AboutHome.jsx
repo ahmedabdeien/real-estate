@@ -1,95 +1,187 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { FiCheckCircle, FiShield, FiTrendingUp, FiTarget } from 'react-icons/fi';
-import { useTranslation } from 'react-i18next';
-import imgElsarh from '../../assets/images/section_2__elsarhWebsite.png';
-import logoElsarh from "../../assets/images/apartment-2179337-removebg-preview.png";
+import { useSelector } from 'react-redux';
+import { FiShield, FiTrendingUp, FiTarget, FiAward, FiUsers, FiHome } from 'react-icons/fi';
+
+const features = [
+  { icon: FiShield,     title: 'أمان استثنائي',  desc: 'نطبق أعلى معايير السلامة والجودة العالمية في كل مشروع.' },
+  { icon: FiTrendingUp, title: 'نمو مستدام',     desc: 'رؤية استراتيجية تضمن أفضل عائد استثماري على المدى البعيد.' },
+  { icon: FiTarget,     title: 'دقة التنفيذ',    desc: 'التزام راسخ بالموعد المحدد والمواصفات الفنية المتفق عليها.' },
+];
 
 export default function AboutHome() {
-  const { t, i18n } = useTranslation();
-  const currentLang = i18n.language;
-  const isRtl = currentLang === 'ar';
+  const { config } = useSelector(s => s.config);
 
-  const achievements = [
-    {
-      title: t('about_feat_1_title'),
-      desc: t('about_feat_1_desc'),
-      icon: <FiShield className="w-8 h-8" />
-    },
-    {
-      title: t('about_feat_2_title'),
-      desc: t('about_feat_2_desc'),
-      icon: <FiTrendingUp className="w-8 h-8" />
-    },
-    {
-      title: t('about_feat_3_title'),
-      desc: t('about_feat_3_desc'),
-      icon: <FiTarget className="w-8 h-8" />
-    }
+  const badge      = config?.about?.badge             || 'إرث يمتد منذ 2004';
+  const title      = config?.about?.title?.ar         || 'رؤية عقارية تتجاوز الحدود';
+  const desc       = config?.about?.description?.ar   || 'منذ انطلاقتنا في عام 2004، أعدنا تعريف مفهوم السكن الفاخر في مصر، وبنينا مئات الوحدات بتميز وأمان يفوق التوقعات.';
+  const experience = config?.stats?.experience        || '20+';
+  const projects   = config?.stats?.projects          || '150+';
+  const clients    = config?.stats?.clients           || '500+';
+  const units      = config?.stats?.units             || '1000+';
+
+  const stats = [
+    { number: experience, label: 'عاماً من الخبرة',   icon: FiAward },
+    { number: projects,   label: 'مشروع منجز',        icon: FiHome },
+    { number: clients,    label: 'عميل راضٍ',          icon: FiUsers },
+    { number: units,      label: 'وحدة مسلمة',         icon: FiShield },
   ];
 
   return (
-    <section dir={isRtl ? 'rtl' : 'ltr'} className="py-24 bg-white font-body">
+    <section
+      dir="rtl"
+      className="py-16 md:py-24"
+      style={{ background: 'white' }}
+    >
       <div className="container mx-auto px-4 lg:px-12">
-        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center`}>
 
-          {/* Text Content */}
-          <div className={`space-y-8 ${isRtl ? 'order-last lg:order-first' : ''}`}>
-            <div>
-              <span className="text-primary-600 font-bold uppercase tracking-widest text-xs mb-2 block">{t('legacy')}</span>
-              <h2 className="text-3xl md:text-5xl font-heading font-black text-slate-900 leading-tight">
-                {t('welcome_title_1')} <span className="text-primary-600">{t('welcome_title_2')}</span> {t('welcome_title_3')}
-              </h2>
-            </div>
+        {/* Section label */}
+        <motion.div
+          className="flex items-center gap-3 mb-10"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <div style={{ width: 3, height: 24, background: '#8A6924', flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: 800, color: '#8A6924', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            {badge}
+          </span>
+        </motion.div>
 
-            <p className="text-slate-500 leading-relaxed text-lg">
-              {t('about_desc')}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+          {/* ── Text column ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2
+              className="text-3xl md:text-4xl font-black leading-snug mb-5"
+              style={{ color: '#12283C' }}
+            >
+              {title}
+            </h2>
+            <p
+              className="text-sm leading-loose mb-8"
+              style={{ color: '#374151', lineHeight: 1.9 }}
+            >
+              {desc}
             </p>
 
-            <div className="space-y-6">
-              {achievements.map((item, idx) => (
-                <div key={idx} className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-slate-50 border border-slate-100 rounded-none flex items-center justify-center text-primary-600">
-                    {item.icon}
+            {/* Feature checklist */}
+            <div className="space-y-3 mb-8">
+              {features.map((f, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: i * 0.1 }}
+                  className="flex items-start gap-3 p-4"
+                  style={{
+                    background: '#fafafa',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      background: 'rgba(138,105,36,0.1)',
+                      border: '1px solid rgba(138,105,36,0.2)',
+                    }}
+                  >
+                    <f.icon size={17} style={{ color: '#8A6924' }} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 mb-1">{item.title}</h4>
-                    <p className="text-slate-500 text-sm">{item.desc}</p>
+                    <h4 className="font-black text-sm mb-0.5" style={{ color: '#12283C' }}>{f.title}</h4>
+                    <p className="text-xs" style={{ color: '#6b7280', lineHeight: 1.7 }}>{f.desc}</p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
-            <div className="pt-4">
-              <Link to="/about">
-                <button className="px-8 py-3 bg-primary-600 text-white font-bold hover:bg-primary-700 transition-colors uppercase tracking-wide text-sm rounded-none">
-                  {t('learn_more')}
-                </button>
-              </Link>
-            </div>
-          </div>
+            {/* CTA */}
+            <Link to="/About">
+              <button
+                className="px-7 py-3 text-sm font-black tracking-wide transition-all duration-200 hover:opacity-90"
+                style={{
+                  background: '#8A6924',
+                  color: 'white',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(138,105,36,0.3)',
+                }}
+              >
+                اكتشف قصتنا
+              </button>
+            </Link>
+          </motion.div>
 
-          {/* Image Content */}
-          <div className="relative">
-            <div className="relative rounded-none overflow-hidden shadow-lg border border-slate-200">
-              <img
-                src={imgElsarh}
-                alt="About El Sarh"
-                className="w-full h-auto object-cover"
-              />
+          {/* ── Stats grid column ── */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              {stats.map((s, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: 0.15 + i * 0.08 }}
+                  className="flex flex-col items-center text-center p-6"
+                  style={{
+                    background: i % 2 === 0 ? '#fafafa' : 'white',
+                    border: '1px solid #e5e7eb',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                    borderTop: '3px solid #8A6924',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(138,105,36,0.1)',
+                      marginBottom: 10,
+                    }}
+                  >
+                    <s.icon size={18} style={{ color: '#8A6924' }} />
+                  </div>
+                  <span
+                    className="text-3xl font-black"
+                    style={{ color: '#12283C', lineHeight: 1 }}
+                  >
+                    {s.number}
+                  </span>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 2,
+                      background: 'linear-gradient(to right, #8A6924, #DFBA6B)',
+                      margin: '8px auto',
+                    }}
+                  />
+                  <span className="text-xs font-bold" style={{ color: '#6b7280' }}>
+                    {s.label}
+                  </span>
+                </motion.div>
+              ))}
             </div>
-            {/* Simple Achievement Box */}
-            <div className={`absolute bottom-8 ${isRtl ? 'left-8' : 'right-8'} bg-primary-600 p-6 shadow-xl rounded-none text-white max-w-xs`}>
-              <div className="flex items-center gap-4">
-                <span className="text-4xl font-black">20+</span>
-                <div>
-                  <h4 className="font-bold leading-non uppercase tracking-wide text-sm">{t('years_exp_title')}</h4>
-                  <p className="text-primary-100 text-xs mt-1">{t('years_exp_desc')}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          </motion.div>
         </div>
       </div>
     </section>

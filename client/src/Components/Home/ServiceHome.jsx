@@ -1,123 +1,149 @@
 import { motion } from 'framer-motion';
-import { BsBuildingCheck, BsBriefcase, BsArrowRepeat, BsGraphUpArrow, BsArrowLeft, BsArrowRight } from "react-icons/bs";
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { BsBuildingCheck, BsBriefcase, BsArrowRepeat, BsGraphUpArrow, BsArrowLeft } from 'react-icons/bs';
 
-const ServiceCard = ({ icon: Icon, title, text, index }) => {
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === 'ar';
+const serviceIcons = [BsBuildingCheck, BsBriefcase, BsArrowRepeat, BsGraphUpArrow];
+const serviceKeys = ['service_1', 'service_2', 'service_3', 'service_4'];
 
-  return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 30 },
-        visible: { opacity: 1, y: 0 }
-      }}
-      whileHover={{ y: -15, scale: 1.02 }}
-      className="group relative bg-white dark:bg-slate-800 p-12 rounded-none shadow-premium border border-slate-100 dark:border-slate-700 transition-all duration-700 hover:shadow-premium-xl hover:border-accent-600/50 overflow-hidden"
-    >
-      {/* Decorative Background */}
-      <div className={`absolute top-0 ${isRtl ? 'right-0' : 'left-0'} w-32 h-32 bg-accent-600/5 rounded-none -z-0 transition-all duration-700 group-hover:w-full group-hover:h-full group-hover:rounded-none group-hover:bg-accent-600/10`} />
-
-      <div className="relative z-10">
-        <div className="w-24 h-24 rounded-none bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-accent-600 mb-10 group-hover:bg-accent-600 group-hover:text-white transition-all duration-500 shadow-premium">
-          <Icon className="text-5xl" />
-        </div>
-
-        <h3 className="text-xl font-heading font-black text-primary-900 dark:text-white mb-6 group-hover:text-accent-600 transition-colors">
-          {title}
-        </h3>
-
-        <p className="text-slate-500 dark:text-slate-400 leading-loose text-lg mb-8">
-          {text}
-        </p>
-
-        <div className="flex items-center gap-2 text-accent-600 font-black text-sm uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          {t('discover_more')} {isRtl ? <BsArrowLeft size={16} /> : <BsArrowRight size={16} />}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
+const defaultTitles = ['تطوير عقاري متكامل', 'استشارات قانونية', 'إدارة المرافق', 'استثمار ذكي'];
+const defaultDescs  = [
+  'إدارة شاملة للمشروع من الفكرة حتى التسليم بأعلى معايير الجودة.',
+  'ضمان أمان استثماراتك وشفافية كاملة في جميع التعاقدات.',
+  'خدمات صيانة وإدارة متكاملة تضمن الحفاظ على قيمة عقارك.',
+  'فرص استثمارية مدروسة تحقق أعلى العوائد بأقل المخاطر.',
+];
 
 export default function ServiceHome() {
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === 'ar';
+  const { config } = useSelector(s => s.config);
 
-  const services = [
-    {
-      icon: BsBuildingCheck,
-      title: t('service_1_title'),
-      text: t('service_1_desc')
-    },
-    {
-      icon: BsBriefcase,
-      title: t('service_2_title'),
-      text: t('service_2_desc')
-    },
-    {
-      icon: BsArrowRepeat,
-      title: t('service_3_title'),
-      text: t('service_3_desc')
-    },
-    {
-      icon: BsGraphUpArrow,
-      title: t('service_4_title'),
-      text: t('service_4_desc')
-    }
-  ];
+  const services = serviceIcons.map((icon, i) => {
+    const cfgKey  = `s${i + 1}`;
+    const cfgItem = config?.services?.[cfgKey];
+    return {
+      icon,
+      title: cfgItem?.title || defaultTitles[i],
+      desc:  cfgItem?.desc  || defaultDescs[i],
+    };
+  });
 
   return (
-    <section id="services" dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
-      {/* Abstract Shapes */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent-600/5 rounded-none blur-[120px] -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary-900/5 rounded-none blur-[120px] translate-y-1/2 -translate-x-1/2" />
+    <section
+      dir="rtl"
+      id="services"
+      className="py-16 md:py-24"
+      style={{ background: '#faf8f4' }}
+    >
+      <div className="container mx-auto px-4 lg:px-12">
 
-      <div className="container mx-auto px-6 lg:px-12">
-        <div className={`flex flex-col lg:flex-row ${isRtl ? 'items-end' : 'items-start'} justify-between mb-24 gap-12`}>
+        {/* Section header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-6">
           <motion.div
-            className="max-w-2xl"
-            initial={{ opacity: 0, x: isRtl ? 50 : -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <span className="text-accent-600 font-black uppercase tracking-[0.4em] text-xs">{t('world_class_services')}</span>
-            <h2 className="text-4xl md:text-5xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
-              {t('real_estate_solutions')} <br />
-              <span className="text-slate-400">{t('for_future')}</span>
+            <div className="flex items-center gap-3 mb-4">
+              <div style={{ width: 3, height: 24, background: '#8A6924', flexShrink: 0 }} />
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: '#8A6924',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                خدمات عالمية المستوى
+              </span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-black" style={{ color: '#12283C' }}>
+              حلول عقارية متكاملة
             </h2>
+            <p className="text-sm mt-2" style={{ color: '#6b7280' }}>
+              نقدم لك كل ما تحتاجه تحت سقف واحد
+            </p>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -16 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <Link to="/contact">
-              <button className="btn-premium border-2 border-primary-900 text-primary-900 dark:text-white dark:border-white hover:bg-primary-900 hover:text-white dark:hover:bg-white dark:hover:text-primary-950">
-                {t('get_consultation_free')}
+            <Link to="/Contact">
+              <button
+                className="flex items-center gap-2 px-6 py-2.5 text-sm font-black transition-all duration-200 hover:opacity-90"
+                style={{
+                  background: '#12283C',
+                  color: '#DFBA6B',
+                  border: 'none',
+                }}
+              >
+                <span>احصل على استشارة مجانية</span>
+                <BsArrowLeft size={13} />
               </button>
             </Link>
           </motion.div>
         </div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={{
-            visible: {
-              transition: {
-                staggerChildren: 0.15
-              }
-            }
-          }}
-        >
-          {services.map((service, index) => (
-            <ServiceCard key={index} {...service} index={index} />
+        {/* Service cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {services.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="group p-6 transition-all duration-300 cursor-default hover:-translate-y-1"
+              style={{
+                background: 'white',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                e.currentTarget.style.borderColor = 'rgba(138,105,36,0.3)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.07)';
+                e.currentTarget.style.borderColor = '#e5e7eb';
+              }}
+            >
+              {/* Icon */}
+              <div
+                className="w-12 h-12 flex items-center justify-center mb-5"
+                style={{
+                  background: 'rgba(138,105,36,0.1)',
+                  border: '1px solid rgba(138,105,36,0.2)',
+                }}
+              >
+                <s.icon size={22} style={{ color: '#8A6924' }} />
+              </div>
+
+              {/* Gold accent line */}
+              <div
+                style={{
+                  height: 2,
+                  width: 32,
+                  background: 'linear-gradient(to left, #8A6924, #DFBA6B)',
+                  marginBottom: 14,
+                  transition: 'width 0.3s ease',
+                }}
+              />
+
+              {/* Title */}
+              <h3 className="text-sm font-black mb-2" style={{ color: '#12283C' }}>
+                {s.title}
+              </h3>
+
+              {/* Description */}
+              <p className="text-xs leading-relaxed" style={{ color: '#6b7280', lineHeight: 1.8 }}>
+                {s.desc}
+              </p>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

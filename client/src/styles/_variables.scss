@@ -1,20 +1,15 @@
-$primary: #8A6924;
-$primary-light: #e3d4bc;
-$primary-dark: #63461c;
+// ===== ألوان الصرح للعقارات =====
+$primary:       #8A6924;   // ذهبي غامق
+$primary-light: #DFBA6B;   // ذهبي فاتح
+$primary-dark:  #6b5219;   // ذهبي داكن
 
-$secondary: #12283C;
-$secondary-light: #e1ecf4;
-$secondary-dark: #1a2a40;
+$accent:        #DFBA6B;   // ذهبي فاتح
+$accent-light:  #f5e9c8;
+$accent-dark:   #c4983a;
 
-$accent: #DFBA6B;
-$accent-light: #CDB785;
-$accent-dark: #b59247;
+$secondary:     #12283C;   // كحلي داكن
+$background:    #faf8f4;   // خلفية دافئة
+$foreground:    #1a1509;   // نص داكن
 
-$muted: #C9CCC8;
-$muted-dark: #4C545E;
-
-$background: #f4f5f7;
-$foreground: #12283C;
-
-$heading-font: 'Roboto', 'Cairo', 'sans-serif';
-$body-font: 'Roboto', 'Cairo', 'sans-serif';
+$heading-font: 'Cairo', 'Montserrat', 'Inter', sans-serif;
+$body-font:    'Cairo', 'Inter', sans-serif;

@@ -10,18 +10,13 @@ import { app } from "../../firebase";
 import { FaCircleNotch } from "react-icons/fa6";
 import { HiCursorClick, HiInformationCircle, HiPhotograph } from "react-icons/hi";
 import 'react-quill/dist/quill.snow.css';
-import { Alert } from "flowbite-react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { HiArchive } from "react-icons/hi";
-import Button from "../UI/Button";
-import Input from "../UI/Input";
-import Spinner from "../UI/Spinner";
+import { HiArchive, HiExclamationCircle } from "react-icons/hi";
+import { TbLoaderQuarter } from "react-icons/tb";
 
 
 function CreatePage() {
-  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
   const fileRef = useRef(null);
@@ -249,260 +244,183 @@ function CreatePage() {
 
   }
 
+  const fieldStyle = { border: '1.5px solid #e2e8f0', background: 'white' };
+  const labelStyle = { color: '#12283C' };
+  const Field = ({ label, id, type = 'text', value, required, min }) => (
+    <div>
+      <label className="block text-xs font-bold mb-1.5" style={labelStyle}>{label}</label>
+      {type === 'textarea' ? (
+        <textarea id={id} value={value} onChange={handleChange} required={required} rows={3}
+          className="w-full px-4 py-3 text-sm transition-all focus:outline-none resize-none"
+          style={fieldStyle}
+          onFocus={e => e.target.style.borderColor = '#8A6924'}
+          onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+      ) : (
+        <input id={id} type={type} value={value} onChange={handleChange} required={required} min={min}
+          className="w-full px-4 py-3 text-sm transition-all focus:outline-none"
+          style={fieldStyle}
+          onFocus={e => e.target.style.borderColor = '#8A6924'}
+          onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+      )}
+    </div>
+  );
+
   return (
-    <div className="w-full bg-slate-50 py-6">
-      <div className="w-full">
-        <div className="container mb-6">
-          <h1 className="text-3xl font-black flex items-center text-slate-900">
-            <HiArchive className="me-2 text-primary-600" />
-            <span>{t('create_listing')}</span>
-          </h1>
-          <p className="text-slate-500 font-medium">
-            {t('form_subtitle')}
-          </p>
+    <div dir="rtl" className="min-h-screen py-8 px-4 lg:px-12" style={{ background: '#faf8f4' }}>
+      {/* هيدر الصفحة */}
+      <div className="mb-8 flex items-center gap-3">
+        <div className="w-10 h-10 flex items-center justify-center" style={{ background: 'rgba(138,105,36,0.12)', border: '1px solid rgba(138,105,36,0.25)' }}>
+          <HiArchive size={20} style={{ color: '#8A6924' }} />
         </div>
+        <div>
+          <h1 className="text-xl font-black" style={{ color: '#12283C' }}>إضافة مشروع جديد</h1>
+          <p className="text-xs mt-0.5" style={{ color: '#6b5e3e' }}>أضف تفاصيل المشروع العقاري الجديد</p>
+        </div>
+      </div>
 
-        <div className="md:container">
-          <div className="bg-white p-8 rounded-none shadow-xl border border-slate-100">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {/* Column 1: Details */}
-              <div className="space-y-8">
-                {/* Multilingual Name */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label={t('project_name_en')}
-                    type="text"
-                    id="name.en"
-                    required
-                    onChange={handleChange}
-                    value={formData.name.en}
-                  />
-                  <Input
-                    label={t('project_name_ar')}
-                    type="text"
-                    id="name.ar"
-                    required
-                    onChange={handleChange}
-                    value={formData.name.ar}
-                  />
-                </div>
+      <div className="bg-white p-8" style={{ border: '1px solid rgba(138,105,36,0.12)', boxShadow: '0 4px 24px rgba(18,40,60,0.06)', borderTop: '3px solid #8A6924' }}>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          {/* العمود الأول: التفاصيل */}
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="اسم المشروع (بالإنجليزية)" id="name.en" value={formData.name.en} required />
+              <Field label="اسم المشروع (بالعربية)" id="name.ar" value={formData.name.ar} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="المدينة (بالإنجليزية)" id="city.en" value={formData.city.en} required />
+              <Field label="المدينة (بالعربية)" id="city.ar" value={formData.city.ar} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="العنوان (بالإنجليزية)" id="address.en" value={formData.address.en} required />
+              <Field label="العنوان (بالعربية)" id="address.ar" value={formData.address.ar} required />
+            </div>
+            <Field label="الوصف (بالإنجليزية)" id="description.en" type="textarea" value={formData.description.en} required />
+            <Field label="الوصف (بالعربية)" id="description.ar" type="textarea" value={formData.description.ar} required />
 
-                {/* Multilingual City */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label={t('city_en')}
-                    type="text"
-                    id="city.en"
-                    required
-                    onChange={handleChange}
-                    value={formData.city.en}
-                  />
-                  <Input
-                    label={t('city_ar')}
-                    type="text"
-                    id="city.ar"
-                    required
-                    onChange={handleChange}
-                    value={formData.city.ar}
-                  />
-                </div>
-
-                {/* Multilingual Address */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label={t('project_address_en')}
-                    type="text"
-                    id="address.en"
-                    required
-                    onChange={handleChange}
-                    value={formData.address.en}
-                  />
-                  <Input
-                    label={t('project_address_ar')}
-                    type="text"
-                    id="address.ar"
-                    required
-                    onChange={handleChange}
-                    value={formData.address.ar}
-                  />
-                </div>
-
-                {/* Multilingual Description */}
-                <div className="space-y-4">
-                  <Input
-                    label={t('project_desc_en')}
-                    type="textarea"
-                    id="description.en"
-                    required
-                    onChange={handleChange}
-                    value={formData.description.en}
-                  />
-                  <Input
-                    label={t('project_desc_ar')}
-                    type="textarea"
-                    id="description.ar"
-                    required
-                    onChange={handleChange}
-                    value={formData.description.ar}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">{t('property_type')}</label>
-                    <select
-                      id="propertyType"
-                      value={formData.propertyType}
-                      onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
-                      className="w-full p-3 border-gray-200 border-[1px] rounded-none focus:border-primary-600 outline-none"
-                    >
-                      <option value="Apartment">{t('Apartment') || 'Apartment'}</option>
-                      <option value="Villa">{t('Villa') || 'Villa'}</option>
-                      <option value="Office">{t('Office') || 'Office'}</option>
-                      <option value="Shop">{t('Shop') || 'Shop'}</option>
-                      <option value="Land">{t('Land') || 'Land'}</option>
-                    </select>
-                  </div>
-                  <Input
-                    label={t('price')}
-                    type="number"
-                    id="price"
-                    required
-                    onChange={handleChange}
-                    value={formData.price}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase">{t('availability_status')}</p>
-                  <div className="flex gap-4">
-                    <div
-                      onClick={() => setFormData({ ...formData, available: true, status: 'Available' })}
-                      className={`flex items-center p-3 rounded-none border-[1px] cursor-pointer transition-all flex-1 justify-center font-bold text-xs uppercase tracking-widest ${formData.available === true ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
-                    >
-                      <span>{t('available')}</span>
-                    </div>
-                    <div
-                      onClick={() => setFormData({ ...formData, available: false, status: 'Sold' })}
-                      className={`flex items-center p-3 rounded-none border-[1px] cursor-pointer transition-all flex-1 justify-center font-bold text-xs uppercase tracking-widest ${formData.available === false ? 'bg-red-600 border-red-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
-                    >
-                      <span>{t('sold')}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label={t('number_of_floors')}
-                    type="number"
-                    id="numberFloors"
-                    min={1}
-                    required
-                    onChange={handleChange}
-                    value={formData.numberFloors}
-                  />
-                  <Input
-                    label={t('project_size')}
-                    type="number"
-                    id="propertySize"
-                    min={1}
-                    required
-                    onChange={handleChange}
-                    value={formData.propertySize}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label={t('rooms')}
-                    type="number"
-                    id="rooms"
-                    min={0}
-                    onChange={handleChange}
-                    value={formData.rooms}
-                  />
-                  <Input
-                    label={t('bathrooms')}
-                    type="number"
-                    id="bathrooms"
-                    min={0}
-                    onChange={handleChange}
-                    value={formData.bathrooms}
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold mb-1.5" style={labelStyle}>نوع العقار</label>
+                <select id="propertyType" value={formData.propertyType}
+                  onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
+                  className="w-full px-4 py-3 text-sm focus:outline-none transition-all"
+                  style={fieldStyle}
+                  onFocus={e => e.target.style.borderColor = '#8A6924'}
+                  onBlur={e => e.target.style.borderColor = '#e2e8f0'}>
+                  <option value="apartment">شقة</option>
+                  <option value="villa">فيلا</option>
+                  <option value="office">مكتب</option>
+                  <option value="commercial">تجاري</option>
+                  <option value="duplex">دوبلكس</option>
+                  <option value="penthouse">بنتهاوس</option>
+                </select>
               </div>
+              <Field label="السعر (ج.م)" id="price" type="number" value={formData.price} required />
+            </div>
 
-              {/* Column 2: Uploads */}
-              <div className="space-y-8">
-                {/* Cover Images */}
-                <div className="space-y-4">
-                  <p className="text-xs font-bold text-slate-500 uppercase">{t('upload_cover')}</p>
-                  <div
-                    onClick={() => fileRef.current.click()}
-                    className="w-full h-48 border-2 border-dashed border-slate-200 rounded-none flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
-                  >
-                    <HiPhotograph className="text-4xl text-primary-600 mb-2" />
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('upload_images')}</span>
-                    <input type="file" ref={fileRef} hidden accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files))} />
-                  </div>
-                  <Button variant="outline" fullWidth onClick={handleImageSubmit} isLoading={uploading} disabled={uploading} className="uppercase tracking-widest text-xs font-bold">
-                    {uploading ? t('uploading') : t('upload_images')}
-                  </Button>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.imageUrls.map((url, index) => (
-                      <div key={index} className="relative w-20 h-20 border border-slate-200 group">
-                        <img src={url} className="w-full h-full object-cover" />
-                        <button type="button" onClick={handleRemoveImage(index)} className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-[10px] uppercase">
-                          {t('delete')}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* internal plans */}
-                <div className="space-y-4">
-                  <p className="text-xs font-bold text-slate-500 uppercase">{t('upload_plans')}</p>
-                  <div
-                    onClick={() => fileRefPlan.current.click()}
-                    className="w-full h-32 border-2 border-dashed border-slate-200 rounded-none flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors"
-                  >
-                    <HiPhotograph className="text-3xl text-primary-600 mb-2" />
-                    <input type="file" ref={fileRefPlan} hidden accept="image/*" onChange={(e) => setFilesPlan(Array.from(e.target.files))} />
-                  </div>
-                  <Button variant="outline" fullWidth onClick={handleImageSubmitPlan} isLoading={uploadingPlan} disabled={uploadingPlan} className="uppercase tracking-widest text-xs font-bold">
-                    {t('upload_image')}
-                  </Button>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.imagePlans.map((url, index) => (
-                      <div key={index} className="relative w-20 h-20 border border-slate-200 group">
-                        <img src={url} className="w-full h-full object-cover" />
-                        <button type="button" onClick={handleRemoveImagePlan(index)} className="absolute inset-0 bg-red-600/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center font-bold text-[10px] uppercase">
-                          {t('delete')}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-slate-100">
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="primary"
-                    size="lg"
-                    className="py-5 font-black uppercase tracking-[0.2em]"
-                    disabled={loading || uploading || uploadingPlan || uploadingApartment}
-                    isLoading={loading}
-                  >
-                    {loading ? t('loading') : t('publish')}
-                  </Button>
-                  {error && <Alert color="failure" icon={HiInformationCircle} className="mt-4 rounded-none">{error}</Alert>}
-                </div>
+            <div>
+              <p className="text-xs font-bold mb-2" style={labelStyle}>حالة التوفر</p>
+              <div className="flex gap-3">
+                {[{ val: true, label: 'متاح', color: '#8A6924' }, { val: false, label: 'مباع', color: '#dc2626' }].map(opt => (
+                  <button key={opt.label} type="button"
+                    onClick={() => setFormData({ ...formData, available: opt.val })}
+                    className="flex-1 py-3 text-xs font-black tracking-widest transition-all"
+                    style={formData.available === opt.val
+                      ? { background: opt.color, color: 'white', border: `1.5px solid ${opt.color}` }
+                      : { background: 'white', color: '#6b5e3e', border: '1.5px solid #e2e8f0' }}>
+                    {opt.label}
+                  </button>
+                ))}
               </div>
-            </form>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="عدد الطوابق" id="numberFloors" type="number" value={formData.numberFloors} min={0} required />
+              <Field label="المساحة (م²)" id="propertySize" type="number" value={formData.propertySize} min={1} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="عدد الغرف" id="rooms" type="number" value={formData.rooms} min={0} />
+              <Field label="عدد الحمامات" id="bathrooms" type="number" value={formData.bathrooms} min={0} />
+            </div>
           </div>
-        </div>
+
+          {/* العمود الثاني: رفع الصور */}
+          <div className="space-y-6">
+            {/* صور الغلاف */}
+            <div>
+              <p className="text-xs font-bold mb-3" style={labelStyle}>صور الغلاف (حتى 6 صور)</p>
+              <div onClick={() => fileRef.current.click()}
+                className="w-full h-40 flex flex-col items-center justify-center cursor-pointer transition-all"
+                style={{ border: '2px dashed rgba(138,105,36,0.3)', background: 'rgba(138,105,36,0.03)' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#8A6924'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(138,105,36,0.3)'}>
+                <HiPhotograph size={36} style={{ color: 'rgba(138,105,36,0.5)' }} />
+                <span className="text-xs font-bold mt-2" style={{ color: '#8A6924' }}>اختر الصور</span>
+                <input type="file" ref={fileRef} hidden accept="image/*" multiple onChange={(e) => setFiles(Array.from(e.target.files))} />
+              </div>
+              <button type="button" onClick={handleImageSubmit} disabled={uploading}
+                className="w-full mt-3 py-2.5 text-xs font-black transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                style={{ background: '#12283C', color: '#DFBA6B', border: '1px solid rgba(223,186,107,0.2)' }}>
+                {uploading ? <><TbLoaderQuarter className="animate-spin" size={14} /> جارٍ الرفع...</> : 'رفع الصور'}
+              </button>
+              {imageUploadError && <p className="text-xs text-red-600 mt-1">{imageUploadError}</p>}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {formData.imageUrls.map((url, i) => (
+                  <div key={i} className="relative w-20 h-20 group">
+                    <img src={url} className="w-full h-full object-cover" style={{ border: '1px solid rgba(138,105,36,0.15)' }} />
+                    <button type="button" onClick={handleRemoveImage(i)}
+                      className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(220,38,38,0.85)' }}>حذف</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* صورة المخطط */}
+            <div>
+              <p className="text-xs font-bold mb-3" style={labelStyle}>صورة المخطط</p>
+              <div onClick={() => fileRefPlan.current.click()}
+                className="w-full h-28 flex flex-col items-center justify-center cursor-pointer transition-all"
+                style={{ border: '2px dashed rgba(138,105,36,0.3)', background: 'rgba(138,105,36,0.03)' }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#8A6924'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(138,105,36,0.3)'}>
+                <HiPhotograph size={28} style={{ color: 'rgba(138,105,36,0.5)' }} />
+                <input type="file" ref={fileRefPlan} hidden accept="image/*" onChange={(e) => setFilesPlan(Array.from(e.target.files))} />
+              </div>
+              <button type="button" onClick={handleImageSubmitPlan} disabled={uploadingPlan}
+                className="w-full mt-3 py-2.5 text-xs font-black transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                style={{ background: '#12283C', color: '#DFBA6B', border: '1px solid rgba(223,186,107,0.2)' }}>
+                {uploadingPlan ? <><TbLoaderQuarter className="animate-spin" size={14} /> جارٍ الرفع...</> : 'رفع المخطط'}
+              </button>
+              {imageUploadErrorPlan && <p className="text-xs text-red-600 mt-1">{imageUploadErrorPlan}</p>}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {formData.imagePlans.map((url, i) => (
+                  <div key={i} className="relative w-20 h-20 group">
+                    <img src={url} className="w-full h-full object-cover" style={{ border: '1px solid rgba(138,105,36,0.15)' }} />
+                    <button type="button" onClick={handleRemoveImagePlan(i)}
+                      className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ background: 'rgba(220,38,38,0.85)' }}>حذف</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* زر النشر */}
+            <div className="pt-4" style={{ borderTop: '1px solid rgba(138,105,36,0.1)' }}>
+              <button type="submit" disabled={loading || uploading || uploadingPlan}
+                className="w-full py-4 text-sm font-black text-white transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(135deg, #8A6924, #c4983a)', boxShadow: '0 6px 24px rgba(138,105,36,0.4)' }}>
+                {loading ? <><TbLoaderQuarter className="animate-spin" size={18} /> جارٍ النشر...</> : 'نشر المشروع'}
+              </button>
+              {error && (
+                <div className="mt-3 flex items-center gap-2 p-3 text-xs font-bold"
+                  style={{ background: '#fff5f5', border: '1px solid #fecaca', color: '#dc2626' }}>
+                  <HiExclamationCircle size={15} />
+                  {error}
+                </div>
+              )}
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );

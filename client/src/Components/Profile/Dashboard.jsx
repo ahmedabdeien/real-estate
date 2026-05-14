@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import DashSideBar from "./DashSideBar";
 import DashProfile from "./DashProfile";
@@ -33,18 +32,18 @@ function Dashboard() {
             case 'messages':
                 return (currentUser.isAdmin || currentUser.role === 'Sales') ? <DashMessages /> : <NotFound />;
             default:
-                return <NotFound />;
+                return <DashProfile />;
         }
     };
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row">
-            <div className="md:w-56  bg-transparent">
-                {/* Sidebar */}
+        <div className="flex" dir="rtl" style={{ minHeight: 'calc(100vh - 72px)' }}>
+            {/* Sidebar - sticky column */}
+            <div className="w-64 flex-shrink-0 overflow-y-auto" style={{ position: 'sticky', top: 0, height: 'calc(100vh - 72px)', borderLeft: '1px solid rgba(18,40,60,0.15)' }}>
                 <DashSideBar />
             </div>
-            <div className="w-full overflow-hidden">
-                {/* Content */}
+            {/* Main Content Area */}
+            <div className="flex-1 overflow-auto" style={{ background: '#f5f4f1' }}>
                 {renderTabContent()}
             </div>
         </div>

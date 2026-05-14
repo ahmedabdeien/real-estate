@@ -1,75 +1,129 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { BsStarFill, BsQuote } from "react-icons/bs";
+import { BsStarFill, BsQuote } from 'react-icons/bs';
+
+const reviews = [
+  {
+    name: 'د. عصام محمد',
+    role: 'مستثمر عقاري',
+    review: 'تعاملت مع شركة الصرح لشراء منزلي الأول، وكانت التجربة أكثر من رائعة. جودة البناء والخدمة المتميزة جعلتني أشعر بالثقة الكاملة.',
+    rating: 5,
+  },
+  {
+    name: 'م. محمد حسن',
+    role: 'مهندس استشاري',
+    review: 'شركة محترفة بكل ما تحمله الكلمة من معنى. اشتريت شقة من خلالهم وكانوا ملتزمين بالتسليم في الموعد المحدد بتصميم فاق التوقعات.',
+    rating: 5,
+  },
+  {
+    name: 'أ. نادية محمد',
+    role: 'ربة منزل',
+    review: 'إذا كنت تبحث عن شركة عقارية موثوقة، أنصحك بشدة بشركة الصرح. تصاميمها الحديثة وخدماتها الممتازة تجعلها الأفضل في السوق.',
+    rating: 5,
+  },
+];
 
 export default function Reviews() {
-  const reviews = [
-    { name: "د. عصام محمد", role: "مستثمر عقاري", review: 'تعاملت مع شركة "الصرح" لشراء منزلي الأول، وكانت التجربة أكثر من رائعة، جودة البناء والخدمة المتميزة جعلتني أشعر بالثقة في اختياري.', rating: 5 },
-    { name: "م. محمد حسن", role: "مهندس استشاري", review: "شركة محترفة بكل ما تحمله الكلمة من معنى، اشتريت شقة من خلالهم، وكانوا ملتزمين بالتسليم في الموعد المحدد وبتصميم فاق التوقعات.", rating: 5 },
-    { name: "ا. نادية محمد", role: "ربة منزل", review: "إذا كنت تبحث عن شركة عقارية موثوقة وذات سمعة طيبة، أنصحك بشدة بشركة 'الصرح' حيث أن تصاميمها الحديثة وخدماتها الممتازة تجعلها الأفضل.", rating: 5 },
-  ];
-
   return (
-    <section id="reviews" dir="rtl" className="py-40 bg-white dark:bg-slate-950 relative overflow-hidden">
-      {/* Dynamic Background Pattern */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent" />
+    <section
+      dir="rtl"
+      id="reviews"
+      className="relative py-24 overflow-hidden"
+      style={{ background: 'linear-gradient(160deg, #faf8f4 0%, #f5ede0 100%)' }}
+    >
+      {/* Background grid */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(138,105,36,0.08) 1px, transparent 0)',
+          backgroundSize: '32px 32px',
+        }}
+      />
+      <div className="absolute top-0 right-0 w-96 h-96 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(138,105,36,0.08), transparent 70%)' }}
+      />
 
-      <div className="container mx-auto px-6 lg:px-12 relative z-10">
+      <div className="container mx-auto px-4 lg:px-12 relative z-10">
+
+        {/* Section header */}
         <motion.div
-          className="text-center mb-24"
-          initial={{ opacity: 0, y: 20 }}
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <span className="text-accent-600 font-black uppercase tracking-[0.4em] text-xs">ارتقاء بالثقة</span>
-          <h2 className="text-4xl md:text-5xl font-heading font-black text-primary-900 dark:text-white mt-6 leading-tight">
-            ماذا يقول <br /><span className="text-slate-400">شركاء النجاح</span>
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="h-px w-10" style={{ background: 'linear-gradient(to left, #8A6924, transparent)' }} />
+            <span className="text-xs font-black tracking-[0.35em] uppercase" style={{ color: '#8A6924' }}>
+              آراء العملاء
+            </span>
+            <div className="h-px w-10" style={{ background: 'linear-gradient(to right, #8A6924, transparent)' }} />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black" style={{ color: '#12283C' }}>
+            ماذا يقول عملاؤنا
           </h2>
+          <p className="text-sm mt-3" style={{ color: '#8A6924' }}>
+            قصص حقيقية من أشخاص وثقوا بنا
+          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
-          {reviews.map((review, index) => (
+        {/* Review cards */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {reviews.map((r, i) => (
             <motion.div
-              key={index}
+              key={i}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.15 }}
-              className="group relative bg-white dark:bg-slate-800 p-12 rounded-none shadow-premium hover:shadow-premium-xl transition-all duration-700 border border-slate-100 dark:border-slate-700 hover:border-accent-600/30 overflow-hidden"
+              transition={{ delay: i * 0.12, duration: 0.7 }}
+              className="relative overflow-hidden group transition-all duration-500 hover:-translate-y-2"
+              style={{
+                background: 'rgba(255,255,255,0.78)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(138,105,36,0.12)',
+                boxShadow: '0 8px 32px rgba(18,40,60,0.06)',
+              }}
             >
-              <div className="absolute -top-10 -left-10 text-accent-600/5 group-hover:text-accent-600/10 transition-colors transform -rotate-12">
-                <BsQuote size={200} />
+              {/* Hover glow */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ background: 'linear-gradient(135deg, rgba(138,105,36,0.05), transparent 60%)' }}
+              />
+
+              {/* Quote watermark */}
+              <div
+                className="absolute top-3 end-4 pointer-events-none"
+                style={{ color: 'rgba(138,105,36,0.07)' }}
+              >
+                <BsQuote size={80} />
               </div>
 
-              <div className="relative z-10">
-                <div className="flex gap-1 mb-10">
-                  {[...Array(5)].map((_, i) => (
-                    <BsStarFill
-                      key={i}
-                      className="text-accent-500 text-lg"
-                    />
+              <div className="relative z-10 p-8">
+                {/* Stars */}
+                <div className="flex gap-1 mb-5">
+                  {[...Array(r.rating)].map((_, j) => (
+                    <BsStarFill key={j} size={13} style={{ color: '#8A6924' }} />
                   ))}
                 </div>
 
-                <p className="text-xl text-primary-900 dark:text-slate-200 leading-[1.8] font-medium mb-12 italic">
-                  "{review.review}"
+                {/* Review text */}
+                <p className="text-sm leading-[1.9] mb-7" style={{ color: '#4a3e2a', fontStyle: 'italic' }}>
+                  "{r.review}"
                 </p>
 
-                <div className="flex items-center gap-6 border-t border-slate-100 dark:border-slate-700 pt-10">
-                  <div className="w-20 h-20 rounded-none border-4 border-white dark:border-slate-900 shadow-premium overflow-hidden">
-                    <img
-                      src={`https://api.dicebear.com/7.x/initials/svg?seed=${review.name}&backgroundColor=d97706&fontFamily=Inter&fontWeight=700`}
-                      alt={review.name}
-                      className="w-full h-full object-cover"
-                    />
+                {/* Divider */}
+                <div className="h-px mb-5" style={{ background: 'linear-gradient(to left, rgba(138,105,36,0.2), transparent)' }} />
+
+                {/* Author */}
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-11 h-11 flex items-center justify-center text-white font-black text-base shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #8A6924, #c4983a)' }}
+                  >
+                    {r.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="text-lg font-heading font-black text-primary-900 dark:text-white leading-tight">
-                      {review.name}
-                    </h3>
-                    <p className="text-accent-600 text-sm font-black uppercase tracking-widest mt-1">
-                      {review.role}
-                    </p>
+                    <h4 className="font-black text-sm" style={{ color: '#12283C' }}>{r.name}</h4>
+                    <p className="text-xs font-bold mt-0.5" style={{ color: '#8A6924' }}>{r.role}</p>
                   </div>
                 </div>
               </div>

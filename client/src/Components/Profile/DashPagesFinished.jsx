@@ -1,293 +1,387 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Badge, Button, Modal, TextInput, Dropdown } from "flowbite-react";
-import { Link } from "react-router-dom";
-import { HiOutlineExclamationCircle, HiSearch, HiAdjustments, HiRefresh } from "react-icons/hi";
-import { TbLoaderQuarter } from "react-icons/tb";
-import { Helmet } from "react-helmet";
+import { Link } from 'react-router-dom';
+import {
+  HiOutlineExclamationCircle,
+  HiSearch,
+  HiRefresh,
+  HiPencilAlt,
+  HiEye,
+  HiTrash,
+  HiExclamation,
+} from 'react-icons/hi';
+import { TbLoaderQuarter } from 'react-icons/tb';
+import { BsGripVertical } from 'react-icons/bs';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-// Reusable Table Component with Sharp Edges
-const Table = ({ children }) => (
-    <div className="overflow-x-auto rounded-none border border-slate-200 shadow-sm">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            {children}
-        </table>
-    </div>
-);
+// ── Sortable row ──────────────────────────────────────────────────────────────
+function SortableRow({ page, onDeleteClick }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: page._id });
 
-const TableHead = ({ children }) => (
-    <thead className="bg-slate-50 dark:bg-gray-800 border-b-2 border-slate-200">
-        <tr>{children}</tr>
-    </thead>
-);
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    background: isDragging ? '#faf8f4' : 'white',
+    boxShadow: isDragging ? '0 8px 24px rgba(0,0,0,0.12)' : undefined,
+    position: 'relative',
+    zIndex: isDragging ? 10 : undefined,
+  };
 
-const TableHeaderCell = ({ children }) => (
-    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-50">
-        {children}
-    </th>
-);
+  const name      = typeof page.name    === 'object' ? (page.name.ar    || page.name.en    || '') : (page.name    || '');
+  const address   = typeof page.address === 'object' ? (page.address.ar || page.address.en || '') : (page.address || '');
+  const isAvailable = page.available === 'available';
 
-const TableBody = ({ children }) => (
-    <tbody className="bg-white divide-y divide-gray-200 dark:divide-gray-700">
-        {children}
-    </tbody>
-);
+  return (
+    <tr ref={setNodeRef} style={style} className="hover:bg-slate-50 transition-colors border-b border-slate-50">
+      {/* Drag handle */}
+      <td className="px-3 py-3 w-8">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 transition-colors"
+          title="اسحب لإعادة الترتيب"
+          style={{ touchAction: 'none', background: 'none', border: 'none', padding: 2 }}
+        >
+          <BsGripVertical size={16} />
+        </button>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex -space-x-2">
+          {page.imageUrls?.slice(0, 2).map((img, idx) => (
+            <img key={idx} src={img} alt={name} className="w-10 h-10 object-cover border-2 border-white" />
+          ))}
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <div className="font-bold text-slate-800 text-sm">{name}</div>
+        <div className="text-[11px] text-slate-400 mt-0.5">{address}</div>
+      </td>
+      <td className="px-4 py-3 font-black text-sm" style={{ color: '#8A6924' }}>
+        {page.price?.toLocaleString('ar-EG')} ج.م
+      </td>
+      <td className="px-4 py-3 text-slate-500 text-xs">
+        {page.propertySize} م²
+      </td>
+      <td className="px-4 py-3">
+        <span
+          className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+            isAvailable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+          }`}
+        >
+          {isAvailable ? 'متاح' : 'غير متاح'}
+        </span>
+      </td>
+      <td className="px-4 py-3 text-xs text-slate-400">
+        {new Date(page.updatedAt).toLocaleDateString('ar-EG')}
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex gap-1.5">
+          <Link to={`/Update-Page/${page._id}`}>
+            <button
+              className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:opacity-90"
+              style={{ background: '#12283C' }}
+            >
+              <HiPencilAlt size={11} /> تعديل
+            </button>
+          </Link>
+          <Link to={`/Projects/${page.slug}`} target="_blank">
+            <button className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold hover:bg-slate-200 transition-colors">
+              <HiEye size={11} /> عرض
+            </button>
+          </Link>
+          <button
+            onClick={() => onDeleteClick(page._id)}
+            className="p-1.5 text-red-400 hover:bg-red-50 transition-colors"
+          >
+            <HiTrash size={14} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
 
-const TableRow = ({ children }) => (
-    <tr className="hover:bg-slate-50 transition-colors duration-200">{children}</tr>
-);
-
-const TableCell = ({ children, className = '' }) => (
-    <td className={`px-6 py-4 whitespace-nowrap text-sm text-slate-700 dark:text-gray-100 ${className}`}>
-        {children}
-    </td>
-);
-
+// ── Main component ─────────────────────────────────────────────────────────────
 export default function DashPagesFinished() {
-    const { currentUser } = useSelector(state => state.user);
-    const [userPages, setUserPages] = useState([]);
-    const [showMore, setShowMore] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [pageIdToDelete, setPageIdToDelete] = useState('');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterAvailable, setFilterAvailable] = useState('all');
-    const [sortBy, setSortBy] = useState('updatedAt');
-    const [isLoading, setIsLoading] = useState(true);
+  const { currentUser } = useSelector(state => state.user);
+  const [userPages, setUserPages]         = useState([]);
+  const [showMore, setShowMore]           = useState(false);
+  const [showModal, setShowModal]         = useState(false);
+  const [pageIdToDelete, setPageIdToDelete] = useState('');
+  const [searchTerm, setSearchTerm]       = useState('');
+  const [filterAvailable, setFilterAvailable] = useState('all');
+  const [isLoading, setIsLoading]         = useState(true);
+  const [isSaving, setIsSaving]           = useState(false);
 
-    useEffect(() => {
-        if (currentUser.isAdmin) {
-            fetchPages();
-        }
-    }, [currentUser.isAdmin, currentUser._id]);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
-    const fetchPages = async (startIndex = 0) => {
-        setIsLoading(true);
-        try {
-            const res = await fetch(`/api/listing/getListings?limit=1000&startIndex=${startIndex}&sortBy=${sortBy}`);
-            const data = await res.json();
+  useEffect(() => {
+    if (currentUser.isAdmin || currentUser.role === 'Sales') {
+      fetchPages();
+    }
+  }, [currentUser.isAdmin, currentUser._id]);
 
-            if (res.ok) {
-                setUserPages(prevPages => startIndex === 0 ? data.listings : [...prevPages, ...data.listings]);
-                setShowMore(data.listings.length === 8);
-            } else {
-                console.error("Failed to fetch pages:", res.statusText);
-            }
-        } catch (error) {
-            console.error("Error fetching pages:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const fetchPages = async (startIndex = 0) => {
+    setIsLoading(true);
+    try {
+      const res  = await fetch(`/api/listing/getListings?limit=1000&startIndex=${startIndex}`);
+      const data = await res.json();
+      if (res.ok) {
+        setUserPages(prev => startIndex === 0 ? data.listings : [...prev, ...data.listings]);
+        setShowMore(data.listings.length === 8);
+      }
+    } catch (err) {
+      console.error('Error fetching pages:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const handleShowMore = () => fetchPages(userPages.length);
+  const handleDeletePage = async () => {
+    setShowModal(false);
+    try {
+      const res = await fetch(`/api/listing/deletePage/${pageIdToDelete}/${currentUser._id}`, { method: 'DELETE' });
+      if (res.ok) setUserPages(prev => prev.filter(p => p._id !== pageIdToDelete));
+    } catch (err) {
+      console.error('Error deleting page:', err);
+    }
+  };
 
-    const handleDeletePage = async () => {
-        setShowModal(false);
-        try {
-            const res = await fetch(`/api/listing/deletePage/${pageIdToDelete}/${currentUser._id}`, {
-                method: "DELETE"
-            });
-            if (res.ok) {
-                setUserPages(prev => prev.filter(page => page._id !== pageIdToDelete));
-            } else {
-                console.error("Failed to delete page:", res.statusText);
-            }
-        } catch (error) {
-            console.error("Error deleting page:", error);
-        }
-    };
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
 
-    const filteredPages = userPages.filter(page => {
-        const nameMatch = (typeof page.name === 'object' ? (page.name.en || page.name.ar || '') : (page.name || '')).toLowerCase().includes(searchTerm.toLowerCase());
-        const addressMatch = (typeof page.address === 'object' ? (page.address.en || page.address.ar || '') : (page.address || '')).toLowerCase().includes(searchTerm.toLowerCase());
-        return (nameMatch || addressMatch) && (filterAvailable === 'all' || page.available === filterAvailable);
-    });
+    const oldIndex = userPages.findIndex(p => p._id === active.id);
+    const newIndex = userPages.findIndex(p => p._id === over.id);
+    const reordered = arrayMove(userPages, oldIndex, newIndex);
+    setUserPages(reordered);
 
-    const handleRefresh = () => {
-        setUserPages([]);
-        fetchPages(0);
-    };
+    // Persist new order to server
+    setIsSaving(true);
+    try {
+      await fetch('/api/listing/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: reordered.map(p => p._id) }),
+      });
+    } catch (err) {
+      console.error('Error saving order:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-    return (
-        <>
-            <Helmet>
-                <title>Projects Management | Admin Dashboard</title>
-            </Helmet>
-            <div className="p-6 bg-white dark:bg-gray-800 min-h-screen">
-                <div className='bg-primary-900 px-8 py-10 mb-8 rounded-none border-b-4 border-accent-500'>
-                    <h1 className="text-3xl font-black text-white uppercase tracking-widest">المشاريع العقارية</h1>
-                    <p className="text-primary-200 mt-2 font-medium">إدارة وتحديث كافة الوحدات والمشاريع المدرجة في النظام</p>
-                </div>
+  const filteredPages = userPages.filter(page => {
+    const name    = (typeof page.name    === 'object' ? (page.name.ar    || page.name.en    || '') : (page.name    || '')).toLowerCase();
+    const address = (typeof page.address === 'object' ? (page.address.ar || page.address.en || '') : (page.address || '')).toLowerCase();
+    const term    = searchTerm.toLowerCase();
+    const matchSearch = !term || name.includes(term) || address.includes(term);
+    const matchFilter = filterAvailable === 'all' || page.available === filterAvailable;
+    return matchSearch && matchFilter;
+  });
 
-                <div className="mb-8 flex flex-wrap gap-4 items-center justify-between p-6 bg-slate-50 border border-slate-200 rounded-none">
-                    <div className="flex flex-wrap gap-4 items-center ">
-                        <div className="relative">
-                            <TextInput
-                                type="text"
-                                placeholder="Search by name or site..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-80"
-                                icon={HiSearch}
-                                theme={{ field: { input: { base: "rounded-none", colors: { gray: "bg-white border-slate-200" } } } }}
-                            />
-                        </div>
-                        <Dropdown label={`Status: ${filterAvailable}`} inline className="rounded-none">
-                            <Dropdown.Item onClick={() => setFilterAvailable('all')}>All</Dropdown.Item>
-                            <Dropdown.Item onClick={() => setFilterAvailable('available')}>Available</Dropdown.Item>
-                            <Dropdown.Item onClick={() => setFilterAvailable('not available')}>Not Available</Dropdown.Item>
-                        </Dropdown>
-                    </div>
-                    <Button
-                        onClick={handleRefresh}
-                        className="bg-primary-600 hover:bg-primary-700 text-white rounded-none transition-all uppercase tracking-widest font-bold text-xs px-4"
-                    >
-                        <HiRefresh className="mr-2 h-4 w-4" />
-                        Refresh Data
-                    </Button>
-                </div>
+  return (
+    <div className="p-6" dir="rtl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-black text-slate-800">إدارة المشاريع</h1>
+          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+            <span>{filteredPages.length} مشروع</span>
+            {isSaving && (
+              <span className="flex items-center gap-1" style={{ color: '#8A6924' }}>
+                <TbLoaderQuarter className="animate-spin" size={12} />
+                جارٍ الحفظ…
+              </span>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to="/CreatePage">
+            <button
+              className="flex items-center gap-2 px-4 py-2 text-xs font-black text-white transition-colors"
+              style={{ background: 'linear-gradient(135deg, #8A6924, #c4983a)' }}
+            >
+              + إضافة مشروع
+            </button>
+          </Link>
+          <button
+            onClick={() => { setUserPages([]); fetchPages(0); }}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-sm text-sm font-bold text-slate-600 hover:border-[#8A6924] hover:text-[#8A6924] transition-colors"
+          >
+            <HiRefresh size={14} />
+          </button>
+        </div>
+      </div>
 
-                {isLoading ? (
-                    <div className="flex flex-col justify-center items-center h-96 space-y-4">
-                        <TbLoaderQuarter className="text-6xl animate-spin text-primary-600" />
-                        <p className="font-bold text-slate-400 animate-pulse">جاري تحميل البيانات...</p>
-                    </div>
-                ) : filteredPages.length > 0 ? (
-                    <Table>
-                        <TableHead>
-                            <TableHeaderCell>Details</TableHeaderCell>
-                            <TableHeaderCell>Financials</TableHeaderCell>
-                            <TableHeaderCell>Specifications</TableHeaderCell>
-                            <TableHeaderCell>Broker Info</TableHeaderCell>
-                            <TableHeaderCell>Status</TableHeaderCell>
-                            <TableHeaderCell>Images</TableHeaderCell>
-                            <TableHeaderCell>Actions</TableHeaderCell>
-                        </TableHead>
-                        <TableBody>
-                            {filteredPages.map((page) => (
-                                <TableRow key={page._id}>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="font-black text-slate-900 text-sm uppercase">
-                                                {typeof page.name === 'object' ? (page.name.en || page.name.ar) : page.name}
-                                            </span>
-                                            <span className="text-[11px] text-slate-500 mt-1 italic">
-                                                {typeof page.address === 'object' ? (page.address.en || page.address.ar) : page.address}
-                                            </span>
-                                            <span className="text-[10px] text-primary-600 mt-2 font-bold">
-                                                Updated: {new Date(page.updatedAt).toLocaleDateString()}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <span className="text-xs font-bold text-slate-500">Regular Price:</span>
-                                            <span className="text-sm font-black text-accent-600">${page.regularPrice?.toLocaleString()}</span>
-                                            {page.discountPrice > 0 && (
-                                                <>
-                                                    <span className="text-[10px] text-red-500 line-through">Off: ${page.discountPrice?.toLocaleString()}</span>
-                                                </>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                            <span className="text-slate-400">Size:</span>
-                                            <span className="font-bold">{page.propertySize} m²</span>
-                                            <span className="text-slate-400">Floors:</span>
-                                            <span className="font-bold">{page.numberFloors}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col">
-                                            <Badge color="info" className="rounded-none w-fit text-[9px] uppercase font-black mb-1">
-                                                {page.type || 'Standard'}
-                                            </Badge>
-                                            <span className="text-[11px] text-slate-500">ID: {page._id.slice(-6)}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest border ${page.available === 'available'
-                                            ? 'bg-green-50 text-green-700 border-green-200'
-                                            : 'bg-red-50 text-red-700 border-red-200'
-                                            }`}>
-                                            {page.available}
-                                        </span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex -space-x-4 shadow-sm">
-                                            {page.imageUrls.slice(0, 3).map((image, index) => (
-                                                <img key={index} className="w-10 h-10 rounded-none border-2 border-white object-cover shadow-sm bg-slate-100" src={image} alt="Unit" />
-                                            ))}
-                                            {page.imageUrls.length > 3 && (
-                                                <div className="flex items-center justify-center w-10 h-10 text-[xs] font-black text-white bg-primary-900 border-2 border-white">
-                                                    +{page.imageUrls.length - 3}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="flex gap-2">
-                                                <Link to={`/Update-Page/${page._id}`} className="flex-1">
-                                                    <button className='w-full bg-slate-900 text-white hover:bg-black py-2 rounded-none text-[10px] font-black uppercase tracking-tighter transition-all'>Edit</button>
-                                                </Link>
-                                                <Link to={`/Projects/${page.slug}`} className="flex-1">
-                                                    <button className='w-full bg-accent-500 text-white hover:bg-accent-600 py-2 rounded-none text-[10px] font-black uppercase tracking-tighter transition-all'>View</button>
-                                                </Link>
-                                            </div>
-                                            <button
-                                                className='w-full bg-red-50 text-red-600 hover:bg-red-600 hover:text-white py-2 rounded-none text-[10px] font-black uppercase tracking-tighter transition-all border border-red-100'
-                                                onClick={() => { setShowModal(true); setPageIdToDelete(page._id); }}
-                                            >
-                                                Delete Unit
-                                            </button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                ) : (
-                    <div className="text-center py-24 bg-slate-50 border border-dashed border-slate-300">
-                        <HiOutlineExclamationCircle className="mx-auto h-16 w-16 text-slate-300 mb-6" />
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">No active projects found</h3>
-                        <p className="text-slate-500">Try adjusting your filters or search keywords.</p>
-                    </div>
-                )}
+      {/* Filters */}
+      <div className="bg-white rounded-sm shadow-sm border border-slate-100 p-4 flex flex-wrap gap-3 items-center mb-4">
+        <div className="relative flex-1 min-w-48">
+          <HiSearch className="absolute right-3 top-2.5 text-slate-400" size={14} />
+          <input
+            type="text"
+            placeholder="بحث بالاسم أو الموقع..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pr-9 pl-3 py-2 text-sm border border-slate-200 rounded-sm focus:outline-none focus:border-[#8A6924]"
+          />
+        </div>
+        <div className="flex gap-1">
+          {[
+            { value: 'all',           label: 'الكل'       },
+            { value: 'available',     label: 'متاح'       },
+            { value: 'not available', label: 'غير متاح'   },
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setFilterAvailable(opt.value)}
+              className={`px-3 py-1.5 rounded-sm text-xs font-bold transition-colors ${
+                filterAvailable === opt.value
+                  ? 'text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+              style={filterAvailable === opt.value ? { background: '#8A6924' } : {}}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-400 mr-auto flex items-center gap-1">
+          <BsGripVertical size={12} />
+          اسحب الصفوف لإعادة الترتيب
+        </p>
+      </div>
 
-                <div className="mt-12 flex justify-between items-center bg-slate-50 p-6 border border-slate-200">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Results: {filteredPages.length}</p>
-                    {showMore && (
-                        <Button color="dark" onClick={handleShowMore} className="rounded-none uppercase tracking-widest font-black text-xs px-10 border-2">
-                            Load More Data
-                        </Button>
-                    )}
-                </div>
+      {/* Table */}
+      {isLoading ? (
+        <div className="flex justify-center p-16">
+          <TbLoaderQuarter className="animate-spin text-3xl" style={{ color: '#8A6924' }} />
+        </div>
+      ) : filteredPages.length === 0 ? (
+        <div className="bg-white rounded-sm shadow-sm border border-slate-100 p-16 text-center">
+          <HiOutlineExclamationCircle className="mx-auto mb-3 text-slate-200" size={48} />
+          <p className="text-slate-400 font-medium">لا توجد مشاريع</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-sm shadow-sm border border-slate-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-100 bg-slate-50">
+                <th className="px-3 py-3 w-8" />
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">الصورة</th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">المشروع</th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">السعر</th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">المساحة</th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">الحالة</th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">آخر تحديث</th>
+                <th className="px-4 py-3 text-right text-[10px] font-black text-slate-400 uppercase">إجراءات</th>
+              </tr>
+            </thead>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={filteredPages.map(p => p._id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <tbody>
+                  {filteredPages.map(page => (
+                    <SortableRow
+                      key={page._id}
+                      page={page}
+                      onDeleteClick={id => { setShowModal(true); setPageIdToDelete(id); }}
+                    />
+                  ))}
+                </tbody>
+              </SortableContext>
+            </DndContext>
+          </table>
 
-                <Modal show={showModal} size="md" onClose={() => setShowModal(false)} popup className="rounded-none">
-                    <Modal.Header />
-                    <Modal.Body className="bg-white p-10 rounded-none">
-                        <div className="text-center">
-                            <HiOutlineExclamationCircle className="mx-auto mb-6 h-20 w-20 text-red-500" />
-                            <h3 className="mb-6 text-2xl font-black text-slate-900 uppercase">
-                                Confirm Deletion
-                            </h3>
-                            <p className="text-slate-500 mb-10 text-sm">
-                                Are you sure you want to permanently delete this project? This action cannot be undone.
-                            </p>
-                            <div className="flex justify-center gap-4">
-                                <Button color="failure" onClick={handleDeletePage} className="rounded-none uppercase tracking-widest font-black flex-1 py-4">
-                                    Yes, Delete Now
-                                </Button>
-                                <Button color="gray" onClick={() => setShowModal(false)} className="rounded-none uppercase tracking-widest font-black flex-1 py-4 border-2">
-                                    No, Keep It
-                                </Button>
-                            </div>
-                        </div>
-                    </Modal.Body>
-                </Modal>
+          {showMore && (
+            <div className="p-4 text-center border-t border-slate-50">
+              <button
+                onClick={() => fetchPages(userPages.length)}
+                className="px-5 py-2 bg-slate-100 text-slate-600 rounded-sm text-sm font-bold hover:bg-slate-200 transition-colors"
+              >
+                تحميل المزيد
+              </button>
             </div>
-        </>
-    );
+          )}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div
+            style={{
+              width: '100%', maxWidth: 380, margin: '0 16px', padding: 28,
+              background: 'white', border: '1px solid rgba(18,40,60,0.12)',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.15)',
+            }}
+            dir="rtl"
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+              <div
+                style={{
+                  width: 44, height: 44, display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', background: 'rgba(220,38,38,0.1)', flexShrink: 0,
+                }}
+              >
+                <HiExclamation size={22} style={{ color: '#dc2626' }} />
+              </div>
+              <div>
+                <p style={{ color: '#12283C', fontWeight: 900, fontSize: 15 }}>تأكيد حذف المشروع</p>
+                <p style={{ color: '#94a3b8', fontSize: 12, marginTop: 3 }}>لا يمكن التراجع عن هذا الإجراء</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+              <button
+                onClick={handleDeletePage}
+                style={{ flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 900, background: '#dc2626', color: 'white', border: 'none', cursor: 'pointer' }}
+              >
+                نعم، احذف
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                style={{ flex: 1, padding: '10px 0', fontSize: 13, fontWeight: 900, background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer' }}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
