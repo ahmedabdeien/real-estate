@@ -130,7 +130,7 @@ export default function AdminUnits() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الوحدات</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} وحدة</p>
@@ -138,7 +138,8 @@ export default function AdminUnits() {
         <button onClick={openCreate}
           className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
           <Plus className="w-4 h-4" />
-          إضافة وحدة
+          <span className="hidden sm:inline">إضافة وحدة</span>
+          <span className="sm:hidden">إضافة</span>
         </button>
       </div>
 
@@ -169,9 +170,14 @@ export default function AdminUnits() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
                 <tr>
-                  {["الوحدة", "المشروع", "النوع", "المساحة", "السعر", "الطابق", "الحالة", "إجراءات"].map((h) => (
-                    <th key={h} className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">{h}</th>
-                  ))}
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الوحدة</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
+                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النوع</th>
+                  <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المساحة</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر</th>
+                  <th className="hidden lg:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الطابق</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -180,14 +186,14 @@ export default function AdminUnits() {
                   return (
                     <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white text-sm">{u.unitNumber}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.project?.name?.ar || "—"}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{unitTypeAr[u.type] || u.type}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.area} م²</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.price?.toLocaleString()} ج</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.floor}</td>
-                      <td className="px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4 font-medium text-gray-900 dark:text-white text-sm">{u.unitNumber}</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-[100px] sm:max-w-none truncate">{u.project?.name?.ar || "—"}</td>
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{unitTypeAr[u.type] || u.type}</td>
+                      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.area} م²</td>
+                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.price?.toLocaleString()} ج</td>
+                      <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.floor}</td>
+                      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEdit(u)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">

@@ -117,7 +117,7 @@ export default function AdminBlogs() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المقالات والأخبار</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} مقال</p>
@@ -125,16 +125,17 @@ export default function AdminBlogs() {
         <button onClick={openCreate}
           className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
           <Plus className="w-4 h-4" />
-          إضافة مقال
+          <span className="hidden sm:inline">إضافة مقال</span>
+          <span className="sm:hidden">إضافة</span>
         </button>
       </div>
 
       <div className="flex gap-3 flex-wrap">
-        <div className="relative">
+        <div className="relative flex-1 min-w-[160px]">
           <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()}
             placeholder="بحث..."
-            className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-56" />
+            className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
         </div>
         <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
@@ -156,24 +157,24 @@ export default function AdminBlogs() {
               const { label, variant } = statusBadge(b.status);
               return (
                 <motion.div key={b._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   {b.coverImage ? (
-                    <img src={b.coverImage} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                    <img src={b.coverImage} alt="" className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-6 h-6 text-gray-400" />
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{b.title?.ar}</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5 truncate">{b.excerpt?.ar}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5 truncate hidden sm:block">{b.excerpt?.ar}</p>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       <Badge variant={variant}>{label}</Badge>
                       {b.featured && <Badge variant="warning">مميز</Badge>}
-                      <span className="text-xs text-gray-400">{b.views} مشاهدة</span>
+                      <span className="text-xs text-gray-400 hidden sm:inline">{b.views} مشاهدة</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <button onClick={() => openEdit(b)}
                       className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
                       <Pencil className="w-4 h-4" />

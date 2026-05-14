@@ -24,7 +24,7 @@ const navItems = [
   // Tasks inside admin panel (admin/supervisor/manager)
   { to: "/admin/tasks",    label: "المهام",        icon: CheckSquare, roles: ["admin", "supervisor", "manager"] },
   // Tasks standalone for employees/sales
-  { to: "/tasks",          label: "مهامي",         icon: CheckSquare, roles: ["employee", "sales"], external: true },
+  { to: "/staff/tasks",    label: "مهامي",         icon: CheckSquare, roles: ["employee", "sales"], external: true },
 ];
 
 const roleLabels = {

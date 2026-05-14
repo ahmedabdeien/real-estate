@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Home as HomeIcon, Users, Award, ArrowLeft, Phone, MapPin, Calendar, Search, X } from "lucide-react";
+import { Building2, Home as HomeIcon, Users, Award, ArrowLeft, Phone, MapPin, Search, X } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
@@ -171,12 +171,6 @@ function ProjectCard({ project }) {
           <div>
             {project.startingPrice > 0 && (
               <p className="text-[#2d5d89] font-bold text-sm">من {project.startingPrice.toLocaleString()} ج</p>
-            )}
-            {project.deliveryDate && (
-              <div className="flex items-center gap-1 text-gray-400 text-xs mt-0.5">
-                <Calendar className="w-3 h-3" />
-                <span>تسليم {new Date(project.deliveryDate).getFullYear()}</span>
-              </div>
             )}
           </div>
           <Link to={`/projects/${project.slug}`}

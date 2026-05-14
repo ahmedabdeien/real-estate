@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";
 import { Building2, Mail, Lock, Eye, EyeOff, Home } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import api from "../../api/axios";
 
 // Google icon SVG
 function GoogleIcon() {
@@ -24,6 +25,28 @@ export default function AdminLogin() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // CMS content
+  const [cms, setCms] = useState({
+    heroTitle: "الصرح للتطوير العقاري",
+    heroSubtitle: "تسجيل الدخول إلى لوحة التحكم",
+    heroTagline: "ندير أعمالك بكفاءة واحترافية",
+    heroImage: "",
+  });
+
+  useEffect(() => {
+    api.get("/content/login_page")
+      .then((r) => {
+        const d = r.data.data || {};
+        setCms({
+          heroTitle:    d.heroTitle    || "الصرح للتطوير العقاري",
+          heroSubtitle: d.heroSubtitle || "تسجيل الدخول إلى لوحة التحكم",
+          heroTagline:  d.heroTagline  || "ندير أعمالك بكفاءة واحترافية",
+          heroImage:    d.heroImage    || "",
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   if (user) return <Navigate to="/admin" replace />;
 
@@ -58,102 +81,136 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#2d5d89] via-[#1a3d5c] to-[#0f2336] flex items-center justify-center p-4 relative" dir="rtl">
-      {/* Home button — top right */}
-      <Link
-        to="/"
-        className="absolute top-4 left-4 flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white px-3 py-2 rounded-xl text-sm font-medium transition-colors backdrop-blur-sm"
+    <div className="min-h-screen flex" dir="rtl">
+      {/* Left panel — info/image (desktop only) */}
+      <div
+        className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[#2d5d89] overflow-hidden"
       >
-        <Home className="w-4 h-4" />
-        الرئيسية
-      </Link>
-
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
-            <Building2 className="w-8 h-8 text-white" />
+        {/* Background image overlay */}
+        {cms.heroImage && (
+          <div className="absolute inset-0">
+            <img src={cms.heroImage} alt="" className="w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0f2336]/80 to-[#2d5d89]/60" />
           </div>
-          <h1 className="text-2xl font-bold text-white">الصرح للتطوير العقاري</h1>
-          <p className="text-white/60 mt-1">تسجيل الدخول إلى لوحة التحكم</p>
-          <p className="text-white/80 mt-2 text-sm font-medium">ندير أعمالك بكفاءة واحترافية</p>
+        )}
+        <div className="relative z-10 text-center text-white">
+          <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
+            <Building2 className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-3xl font-black mb-3 leading-tight">{cms.heroTitle}</h1>
+          <p className="text-white/70 text-lg mb-2">{cms.heroSubtitle}</p>
+          <p className="text-white/90 text-base font-medium">{cms.heroTagline}</p>
+          <div className="mt-10 flex flex-col gap-3 text-sm text-white/50">
+            <div className="w-32 h-0.5 bg-white/20 mx-auto" />
+            <p>© {new Date().getFullYear()} الصرح للتطوير العقاري</p>
+          </div>
         </div>
+      </div>
 
-        {/* Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">تسجيل الدخول</h2>
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[#2d5d89] via-[#1a3d5c] to-[#0f2336] lg:bg-none lg:bg-[#f8fafc] relative p-4">
+        {/* Home button */}
+        <Link
+          to="/"
+          className="absolute top-4 left-4 flex items-center gap-2 bg-white/15 hover:bg-white/25 lg:bg-gray-100 lg:hover:bg-gray-200 text-white lg:text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition-colors backdrop-blur-sm"
+        >
+          <Home className="w-4 h-4" />
+          <span className="hidden sm:inline">الرئيسية</span>
+        </Link>
 
-          {/* Google Button */}
-          <button
-            onClick={handleGoogle}
-            disabled={googleLoading || loading}
-            className="w-full flex items-center justify-center gap-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 mb-4 text-sm"
-          >
-            {googleLoading ? (
-              <span className="w-5 h-5 border-2 border-gray-400 border-t-[#4285F4] rounded-full animate-spin" />
-            ) : (
-              <GoogleIcon />
-            )}
-            {googleLoading ? "جاري التسجيل..." : "تسجيل الدخول بـ Google"}
-          </button>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
-            <span className="text-gray-400 text-xs">أو بالبريد الإلكتروني</span>
-            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
+        <div className="w-full max-w-md">
+          {/* Mobile logo/title */}
+          <div className="text-center mb-8 lg:hidden">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">{cms.heroTitle}</h1>
+            <p className="text-white/60 mt-1 text-sm">{cms.heroSubtitle}</p>
+            <p className="text-white/80 mt-1 text-sm font-medium">{cms.heroTagline}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                البريد الإلكتروني
-              </label>
-              <div className="relative">
-                <Mail className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="admin@elsarh.com"
-                  required
-                  className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
-                />
-              </div>
-            </div>
+          {/* Desktop heading */}
+          <div className="hidden lg:block mb-8 text-center">
+            <h2 className="text-2xl font-black text-gray-900">مرحباً بعودتك</h2>
+            <p className="text-gray-500 mt-1 text-sm">{cms.heroSubtitle}</p>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                كلمة المرور
-              </label>
-              <div className="relative">
-                <Lock className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-                <input
-                  type={showPass ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="••••••••"
-                  required
-                  className="w-full pr-10 pl-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
+          {/* Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">تسجيل الدخول</h2>
 
+            {/* Google Button */}
             <button
-              type="submit"
-              disabled={loading || googleLoading}
-              className="w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 text-sm"
+              onClick={handleGoogle}
+              disabled={googleLoading || loading}
+              className="w-full flex items-center justify-center gap-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 mb-4 text-sm"
             >
-              {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+              {googleLoading ? (
+                <span className="w-5 h-5 border-2 border-gray-400 border-t-[#4285F4] rounded-full animate-spin" />
+              ) : (
+                <GoogleIcon />
+              )}
+              {googleLoading ? "جاري التسجيل..." : "تسجيل الدخول بـ Google"}
             </button>
-          </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
+              <span className="text-gray-400 text-xs">أو بالبريد الإلكتروني</span>
+              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  البريد الإلكتروني
+                </label>
+                <div className="relative">
+                  <Mail className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="admin@elsarh.com"
+                    required
+                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  كلمة المرور
+                </label>
+                <div className="relative">
+                  <Lock className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+                  <input
+                    type={showPass ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="••••••••"
+                    required
+                    className="w-full pr-10 pl-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || googleLoading}
+                className="w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 text-sm"
+              >
+                {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

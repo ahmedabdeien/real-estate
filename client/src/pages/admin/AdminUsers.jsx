@@ -92,7 +92,7 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المستخدمون</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{users.length} مستخدم</p>
@@ -100,7 +100,8 @@ export default function AdminUsers() {
         <button onClick={openCreate}
           className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
           <Plus className="w-4 h-4" />
-          إضافة مستخدم
+          <span className="hidden sm:inline">إضافة مستخدم</span>
+          <span className="sm:hidden">إضافة</span>
         </button>
       </div>
 
@@ -112,9 +113,11 @@ export default function AdminUsers() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
                 <tr>
-                  {["المستخدم", "الدور", "الحالة", "آخر نشاط", "إجراءات"].map((h) => (
-                    <th key={h} className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">{h}</th>
-                  ))}
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المستخدم</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الدور</th>
+                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
+                  <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">آخر نشاط</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -123,26 +126,25 @@ export default function AdminUsers() {
                   return (
                     <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="w-9 h-9 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-bold text-sm">
+                      <td className="px-4 sm:px-6 py-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="relative flex-shrink-0">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-bold text-sm">
                               {u.name?.[0]?.toUpperCase()}
                             </div>
-                            {/* Online indicator */}
                             <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 ${isOnline(u.lastSeen) ? "bg-emerald-500" : "bg-gray-300 dark:bg-gray-600"}`} title={isOnline(u.lastSeen) ? "متصل الآن" : "غير متصل"} />
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white text-sm">{u.name}</p>
-                            <p className="text-gray-400 text-xs">{u.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{u.name}</p>
+                            <p className="text-gray-400 text-xs truncate max-w-[120px] sm:max-w-none">{u.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
                         <Badge variant={u.isActive ? "success" : "error"}>{u.isActive ? "نشط" : "معطل"}</Badge>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="hidden md:table-cell px-4 sm:px-6 py-4">
                         {isOnline(u.lastSeen) ? (
                           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -158,7 +160,7 @@ export default function AdminUsers() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEdit(u)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">

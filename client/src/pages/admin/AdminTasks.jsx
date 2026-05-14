@@ -272,7 +272,9 @@ export default function AdminTasks() {
         {canManage && (
           <button onClick={openCreate}
             className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-            <Plus className="w-4 h-4" />مهمة جديدة
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">مهمة جديدة</span>
+            <span className="sm:hidden">إضافة</span>
           </button>
         )}
       </div>

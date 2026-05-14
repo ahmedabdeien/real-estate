@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Calendar, Home, Building2, Phone, ArrowRight } from "lucide-react";
+import { MapPin, Home, Building2, Phone, ArrowRight } from "lucide-react";
 import api from "../../api/axios";
 import { PageLoader } from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
@@ -99,12 +99,6 @@ export default function ProjectDetailPage() {
                   <div className="text-center">
                     <p className="text-2xl font-black text-[#2d5d89]">{project.totalUnits}</p>
                     <p className="text-xs text-gray-500 mt-0.5">وحدة</p>
-                  </div>
-                )}
-                {project.deliveryDate && (
-                  <div className="text-center">
-                    <p className="text-2xl font-black text-[#2d5d89]">{new Date(project.deliveryDate).getFullYear()}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">تسليم</p>
                   </div>
                 )}
               </div>

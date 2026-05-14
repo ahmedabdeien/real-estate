@@ -31,7 +31,6 @@ const emptyProject = {
   published: false,
   startingPrice: "",
   totalUnits: "",
-  deliveryDate: "",
 };
 
 export default function AdminProjects() {
@@ -81,7 +80,6 @@ export default function AdminProjects() {
       startingPrice: p.startingPrice ?? "",
       totalUnits: p.totalUnits ?? "",
       coverImage: p.coverImage ?? "",
-      deliveryDate: p.deliveryDate ?? "",
     });
     setModal(true);
   };
@@ -136,7 +134,7 @@ export default function AdminProjects() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المشاريع</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} مشروع</p>
@@ -146,20 +144,21 @@ export default function AdminProjects() {
           className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
-          إضافة مشروع
+          <span className="hidden sm:inline">إضافة مشروع</span>
+          <span className="sm:hidden">إضافة</span>
         </button>
       </div>
 
       {/* Filters */}
       <div className="flex gap-3 flex-wrap">
-        <div className="relative">
+        <div className="relative flex-1 min-w-[160px]">
           <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
           <input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             onKeyDown={(e) => e.key === "Enter" && load()}
             placeholder="بحث..."
-            className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-56"
+            className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
           />
         </div>
         <select
@@ -186,12 +185,12 @@ export default function AdminProjects() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
                 <tr>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">المشروع</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">الحالة</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">السعر من</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">الوحدات</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">النشر</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">إجراءات</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
+                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر من</th>
+                  <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الوحدات</th>
+                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النشر</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -200,30 +199,30 @@ export default function AdminProjects() {
                   return (
                     <motion.tr key={p._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-4 sm:px-6 py-4">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           {p.coverImage ? (
-                            <img src={p.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                            <img src={p.coverImage} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover flex-shrink-0" />
                           ) : (
-                            <div className="w-10 h-10 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-[#2d5d89]" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
+                              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#2d5d89]" />
                             </div>
                           )}
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white text-sm">{p.name?.ar}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 dark:text-white text-sm truncate max-w-[120px] sm:max-w-none">{p.name?.ar}</p>
                             <p className="text-gray-400 text-xs">{p.location?.city?.ar}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
-                      <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
                         {p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : "—"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{p.totalUnits || "—"}</td>
-                      <td className="px-6 py-4">
+                      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{p.totalUnits || "—"}</td>
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
                         <Badge variant={p.published ? "success" : "gray"}>{p.published ? "منشور" : "مسودة"}</Badge>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEdit(p)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
@@ -280,12 +279,6 @@ export default function AdminProjects() {
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
               {statusOptions.slice(1).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ التسليم</label>
-            <input type="date" value={form.deliveryDate ? form.deliveryDate.split("T")[0] : ""}
-              onChange={(e) => f("deliveryDate", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">السعر الابتدائي (جنيه)</label>

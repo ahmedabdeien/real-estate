@@ -158,7 +158,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Middle row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Unit status bar */}
         <UnitStatusBar
           available={unitsByStatus.available}
@@ -198,9 +198,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Leads */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-          <h2 className="font-bold text-gray-900 dark:text-white">آخر العملاء المحتملين</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <h2 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">آخر العملاء المحتملين</h2>
           <Link to="/admin/leads" className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
             عرض الكل <ArrowUpRight className="w-3 h-3" />
           </Link>
@@ -213,7 +213,7 @@ export default function AdminDashboard() {
             const { label, variant } = statusBadge(lead.status);
             return (
               <motion.div key={lead._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                className="flex items-center gap-3 px-4 sm:px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <div className="w-9 h-9 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-bold text-sm flex-shrink-0">
                   {lead.name?.[0]?.toUpperCase()}
                 </div>

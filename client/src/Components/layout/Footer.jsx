@@ -1,16 +1,27 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Building2, Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
+import api from "../../api/axios";
 
 export default function Footer() {
   const year = new Date().getFullYear();
   const { settings, contact } = useSiteSettings();
 
-  const phone   = contact.phone    || settings.company_phone   || "01234567890";
-  const email   = contact.email    || settings.company_email   || "info@elsarh.com";
-  const address = contact.address_ar || settings.company_address || "القاهرة، مصر";
+  const [cmsFooter, setCmsFooter] = useState({});
+
+  useEffect(() => {
+    api.get("/content/footer")
+      .then((r) => setCmsFooter(r.data.data || {}))
+      .catch(() => {});
+  }, []);
+
+  const phone   = cmsFooter.phone    || contact.phone    || settings.company_phone   || "01234567890";
+  const email   = cmsFooter.email    || contact.email    || settings.company_email   || "info@elsarh.com";
+  const address = cmsFooter.address  || contact.address_ar || settings.company_address || "القاهرة، مصر";
   const logo    = settings.company_logo;
-  const name    = settings.company_name_ar || "الصرح للتطوير العقاري";
+  const name    = cmsFooter.companyName || settings.company_name_ar || "الصرح للتطوير العقاري";
+  const desc    = cmsFooter.companyDesc || "شركة عقارية رائدة متخصصة في توفير أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة.";
 
   const facebook  = contact.facebook  || settings.facebook_url  || "#";
   const instagram = contact.instagram || settings.instagram_url || "#";
@@ -32,9 +43,7 @@ export default function Footer() {
               )}
               <span className="font-bold text-lg">{name}</span>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              شركة عقارية رائدة متخصصة في توفير أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة.
-            </p>
+            <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
             <div className="flex items-center gap-3 mt-4">
               {facebook !== "#" || true ? (
                 <a href={facebook || "#"} target="_blank" rel="noreferrer"

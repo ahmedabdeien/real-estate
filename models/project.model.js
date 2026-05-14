@@ -28,7 +28,6 @@ const projectSchema = new mongoose.Schema(
       enum: ["under_construction", "ready", "sold_out", "coming_soon"],
       default: "under_construction",
     },
-    deliveryDate: { type: Date },
     images: [{ type: String }],
     coverImage: { type: String, default: "" },
     featured: { type: Boolean, default: false },

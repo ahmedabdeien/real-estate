@@ -119,7 +119,7 @@ export default function AdminLeads() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">العملاء المحتملون</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} عميل</p>
@@ -127,17 +127,18 @@ export default function AdminLeads() {
         <button onClick={openCreate}
           className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
           <Plus className="w-4 h-4" />
-          إضافة عميل
+          <span className="hidden sm:inline">إضافة عميل</span>
+          <span className="sm:hidden">إضافة</span>
         </button>
       </div>
 
       <div className="flex gap-3 flex-wrap">
-        <div className="relative">
+        <div className="relative flex-1 min-w-[160px]">
           <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && load()}
             placeholder="بحث بالاسم أو الهاتف..."
-            className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-60" />
+            className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
         </div>
         <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
@@ -156,9 +157,13 @@ export default function AdminLeads() {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
                 <tr>
-                  {["العميل", "الهاتف", "المشروع", "المصدر", "الحالة", "التاريخ", "إجراءات"].map((h) => (
-                    <th key={h} className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-6 py-3">{h}</th>
-                  ))}
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">العميل</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الهاتف</th>
+                  <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
+                  <th className="hidden lg:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المصدر</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
+                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">التاريخ</th>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -167,15 +172,15 @@ export default function AdminLeads() {
                   return (
                     <motion.tr key={l._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div>
                           <p className="font-medium text-gray-900 dark:text-white text-sm">{l.name}</p>
-                          {l.email && <p className="text-gray-400 text-xs">{l.email}</p>}
+                          {l.email && <p className="text-gray-400 text-xs hidden sm:block">{l.email}</p>}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm text-gray-600 dark:text-gray-400 font-mono">{l.phone}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400 font-mono text-xs sm:text-sm">{l.phone}</span>
                           {l.phone && (
                             <>
                               <a href={`tel:${l.phone}`} title="اتصال"
@@ -190,11 +195,11 @@ export default function AdminLeads() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                         {l.interestedProject?.name?.ar || "—"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{sourceAr[l.source] || l.source}</td>
-                      <td className="px-6 py-4">
+                      <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{sourceAr[l.source] || l.source}</td>
+                      <td className="px-4 sm:px-6 py-4">
                         <select
                           value={l.status}
                           onChange={(e) => quickStatus(l._id, e.target.value)}
@@ -206,8 +211,8 @@ export default function AdminLeads() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-400">{new Date(l.createdAt).toLocaleDateString("ar-EG")}</td>
-                      <td className="px-6 py-4">
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-xs text-gray-400">{new Date(l.createdAt).toLocaleDateString("ar-EG")}</td>
+                      <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1">
                           <button onClick={() => openEdit(l)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">

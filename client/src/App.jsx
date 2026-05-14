@@ -10,6 +10,7 @@ import { useAuth } from "./context/AuthContext";
 // Layouts
 import PublicLayout from "./layouts/PublicLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import StaffLayout from "./layouts/StaffLayout";
 
 // Public Pages
 import HomePage from "./pages/public/Home";
@@ -41,11 +42,14 @@ import AdminActivity from "./pages/admin/AdminActivity";
 import TasksPage from "./pages/tasks/TasksPage";
 import AdminTasks from "./pages/admin/AdminTasks";
 
-// Guard: admin-only routes redirect non-admins to /tasks
+// Staff
+import StaffProfile from "./pages/staff/StaffProfile";
+
+// Guard: admin-only routes redirect non-admins to /staff
 function AdminOnlyRoute({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/admin/login" replace />;
-  if (user.role !== "admin") return <Navigate to="/tasks" replace />;
+  if (user.role !== "admin") return <Navigate to="/staff" replace />;
   return children;
 }
 
@@ -96,6 +100,13 @@ export default function App() {
 
               {/* Tasks — standalone page (not inside admin layout) */}
               <Route path="/tasks" element={<TasksRoute />} />
+
+              {/* Staff dashboard — for supervisor/manager/employee/sales */}
+              <Route path="/staff" element={<StaffLayout />}>
+                <Route index element={<Navigate to="/staff/tasks" replace />} />
+                <Route path="tasks" element={<TasksPage />} />
+                <Route path="profile" element={<StaffProfile />} />
+              </Route>
 
               {/* Admin Dashboard */}
               <Route path="/admin" element={<AdminLayout />}>

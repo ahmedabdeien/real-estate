@@ -56,7 +56,7 @@ function NotificationPanel({ onClose }) {
   return (
     <div
       ref={ref}
-      className="absolute left-0 top-12 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden"
+      className="absolute left-0 sm:left-0 top-12 w-[calc(100vw-2rem)] sm:w-80 max-w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden"
       dir="rtl"
     >
       {/* Header */}

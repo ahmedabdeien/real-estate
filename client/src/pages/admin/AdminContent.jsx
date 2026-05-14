@@ -7,6 +7,27 @@ import { useToast } from "../../context/ToastContext";
 
 const sections = [
   {
+    key: "login_page",
+    label: "صفحة تسجيل الدخول",
+    fields: [
+      { key: "heroTitle",    label: "العنوان الرئيسي",    type: "text" },
+      { key: "heroSubtitle", label: "العنوان الفرعي",     type: "text" },
+      { key: "heroTagline",  label: "الشعار / الوصف",    type: "text" },
+      { key: "heroImage",    label: "صورة الخلفية (URL)", type: "image" },
+    ],
+  },
+  {
+    key: "footer",
+    label: "الفوتر — معلومات الشركة",
+    fields: [
+      { key: "companyName", label: "اسم الشركة",         type: "text" },
+      { key: "companyDesc", label: "وصف الشركة",         type: "textarea" },
+      { key: "phone",       label: "رقم الهاتف",          type: "text" },
+      { key: "email",       label: "البريد الإلكتروني",  type: "text" },
+      { key: "address",     label: "العنوان",             type: "text" },
+    ],
+  },
+  {
     key: "hero",
     label: "الصفحة الرئيسية — Hero",
     fields: [
@@ -97,38 +118,40 @@ export default function AdminContent() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة المحتوى</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">تحكم في محتوى الموقع بالكامل بدون كود — التغييرات فورية</p>
         </div>
         <div className="flex items-center gap-2">
           <a href="/" target="_blank"
-            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-3 sm:px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <Eye className="w-4 h-4" />
-            معاينة الموقع
+            <span className="hidden sm:inline">معاينة الموقع</span>
           </a>
           <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
             <Save className="w-4 h-4" />
-            {saving ? "جاري الحفظ..." : "حفظ التغييرات"}
+            {saving ? "جاري..." : "حفظ"}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Section Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 h-fit">
-          {sections.map((s) => (
-            <button key={s.key} onClick={() => setActiveSection(s.key)}
-              className={`w-full text-right px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                activeSection === s.key
-                  ? "bg-[#2d5d89] text-white"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }`}>
-              {s.label}
-            </button>
-          ))}
+          <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+            {sections.map((s) => (
+              <button key={s.key} onClick={() => setActiveSection(s.key)}
+                className={`flex-shrink-0 lg:flex-shrink text-right px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeSection === s.key
+                    ? "bg-[#2d5d89] text-white"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                }`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Fields */}
