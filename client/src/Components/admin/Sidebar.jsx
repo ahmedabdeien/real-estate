@@ -74,7 +74,10 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       <aside
         className={`fixed top-0 right-0 h-full bg-[#2d5d89] text-white z-40 flex flex-col transition-all duration-300
-          ${collapsed ? "-right-64 lg:right-0 lg:w-16" : "right-0 w-64"}`}
+          ${collapsed
+            ? "translate-x-full lg:translate-x-0 w-64 lg:w-16"
+            : "translate-x-0 w-64"
+          }`}
       >
         {/* Logo */}
         <div className="flex items-center gap-3 p-4 border-b border-white/10 min-h-[64px]">

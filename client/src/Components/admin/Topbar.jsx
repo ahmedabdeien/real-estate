@@ -134,8 +134,8 @@ export default function Topbar({ onMenuClick, collapsed }) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-20 flex items-center gap-4 px-4 transition-all duration-300
-        ${collapsed ? "lg:mr-16" : "lg:mr-64"}`}
+      className={`fixed top-0 left-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-20 flex items-center gap-4 px-4 transition-all duration-300
+        ${collapsed ? "right-0 lg:right-16" : "right-0 lg:right-64"}`}
     >
       <button
         onClick={onMenuClick}

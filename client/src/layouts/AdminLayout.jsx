@@ -29,7 +29,7 @@ export default function AdminLayout() {
 
       <main
         className={`pt-16 min-h-screen transition-all duration-300 ${
-          sidebarCollapsed ? "lg:mr-16" : "lg:mr-64"
+          sidebarCollapsed ? "mr-0 lg:mr-16" : "mr-0 lg:mr-64"
         }`}
       >
         <div className="p-6">
