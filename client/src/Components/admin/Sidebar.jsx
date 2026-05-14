@@ -21,8 +21,10 @@ const navItems = [
   { to: "/admin/users",    label: "المستخدمين",    icon: Users,     roles: ["admin"] },
   { to: "/admin/activity", label: "سجل النشاط",   icon: Activity,  roles: ["admin"] },
   { to: "/admin/settings", label: "الإعدادات",     icon: Settings,  roles: ["admin"] },
-  // Tasks — shown to all panel roles except viewer
-  { to: "/tasks",          label: "المهام",        icon: CheckSquare, roles: ["admin", "supervisor", "manager", "employee", "sales"], external: true },
+  // Tasks inside admin panel (admin/supervisor/manager)
+  { to: "/admin/tasks",    label: "المهام",        icon: CheckSquare, roles: ["admin", "supervisor", "manager"] },
+  // Tasks standalone for employees/sales
+  { to: "/tasks",          label: "مهامي",         icon: CheckSquare, roles: ["employee", "sales"], external: true },
 ];
 
 const roleLabels = {

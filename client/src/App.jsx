@@ -39,6 +39,7 @@ import AdminActivity from "./pages/admin/AdminActivity";
 
 // Tasks
 import TasksPage from "./pages/tasks/TasksPage";
+import AdminTasks from "./pages/admin/AdminTasks";
 
 // Guard: admin-only routes redirect non-admins to /admin/projects
 function AdminOnlyRoute({ children }) {
@@ -108,6 +109,8 @@ export default function App() {
                 <Route path="users" element={<AdminOnlyRoute><AdminUsers /></AdminOnlyRoute>} />
                 <Route path="settings" element={<AdminOnlyRoute><AdminSettings /></AdminOnlyRoute>} />
                 <Route path="activity" element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
+                {/* Tasks inside admin panel — admin/supervisor/manager */}
+                <Route path="tasks" element={<AdminTasks />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
