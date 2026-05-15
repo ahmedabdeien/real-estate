@@ -5,6 +5,7 @@ import { Building2, Home as HomeIcon, Users, Award, ArrowLeft, Phone, MapPin, Se
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
+import { useCms } from "../../hooks/useCms";
 
 // Badge labels for search result types
 const typeBg = { project: "bg-blue-500", unit: "bg-emerald-500", blog: "bg-purple-500", career: "bg-amber-500" };
@@ -189,6 +190,7 @@ export default function HomePage() {
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [hero, setHero] = useState({});
   const [stats, setStats] = useState({});
+  const { data: servicesCms } = useCms("home_services");
 
   useEffect(() => {
     api.get("/projects", { params: { featured: true, published: true, limit: 6 } })
@@ -256,6 +258,56 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Services */}
+      {(servicesCms?.services_title || servicesCms?.service1_title) && (
+        <section className="py-20 bg-white" dir="rtl">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <span className="text-[#2d5d89] font-semibold text-sm uppercase tracking-widest">خدماتنا</span>
+              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mt-2 mb-4">
+                {servicesCms?.services_title || "ما نقدمه لك"}
+              </h2>
+              {servicesCms?.services_subtitle && (
+                <p className="text-gray-500 max-w-xl mx-auto">{servicesCms.services_subtitle}</p>
+              )}
+            </motion.div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((n) => {
+                const title = servicesCms?.[`service${n}_title`];
+                const desc  = servicesCms?.[`service${n}_desc`];
+                const icon  = servicesCms?.[`service${n}_icon`];
+                if (!title) return null;
+                return (
+                  <motion.div
+                    key={n}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: (n - 1) * 0.1 }}
+                    className="bg-[#f8fafc] rounded-2xl p-6 text-center hover:shadow-lg transition-shadow border border-gray-100"
+                  >
+                    <div className="w-14 h-14 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center mx-auto mb-4">
+                      {icon ? (
+                        <span className="text-2xl">{icon}</span>
+                      ) : (
+                        <Building2 className="w-7 h-7 text-[#2d5d89]" />
+                      )}
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2 text-base">{title}</h3>
+                    {desc && <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Featured Projects */}
       <section className="py-20 bg-[#f8fafc]" dir="rtl">

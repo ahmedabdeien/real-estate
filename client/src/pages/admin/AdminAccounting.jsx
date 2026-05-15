@@ -2,9 +2,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit2, Check, X, Printer, Download, ChevronRight,
-  BookOpen, Table2, MoreVertical, Search, AlertTriangle, GripVertical,
-  FileSpreadsheet, Building2, RefreshCw, Settings2, Copy,
+  BookOpen, Table2, Search, AlertTriangle, GripVertical,
+  FileSpreadsheet, RefreshCw, Menu, Upload, ClipboardList,
+  BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown,
+  PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
+  Archive, Building2, BarChart3,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
@@ -20,9 +24,34 @@ const COLUMN_TYPES = [
 ];
 
 const LEDGER_COLORS = [
-  "#2d5d89", "#16a34a", "#dc2626", "#d97706",
-  "#7c3aed", "#0891b2", "#be185d", "#374151",
+  "#2d5d89", "#1a7a4a", "#8b2500", "#5b2d89",
+  "#89602d", "#2d7a89", "#333333",
 ];
+
+const LEDGER_ICONS = [
+  { name: "BookOpen",    Icon: BookOpen },
+  { name: "BookMarked",  Icon: BookMarked },
+  { name: "Calculator",  Icon: Calculator },
+  { name: "DollarSign",  Icon: DollarSign },
+  { name: "TrendingUp",  Icon: TrendingUp },
+  { name: "TrendingDown",Icon: TrendingDown },
+  { name: "PiggyBank",   Icon: PiggyBank },
+  { name: "Wallet",      Icon: Wallet },
+  { name: "CreditCard",  Icon: CreditCard },
+  { name: "Receipt",     Icon: Receipt },
+  { name: "FileText",    Icon: FileText },
+  { name: "Layers",      Icon: Layers },
+  { name: "Archive",     Icon: Archive },
+  { name: "Building2",   Icon: Building2 },
+  { name: "BarChart3",   Icon: BarChart3 },
+];
+
+function getLedgerIcon(iconName) {
+  const found = LEDGER_ICONS.find((i) => i.name === iconName);
+  return found ? found.Icon : BookOpen;
+}
+
+const ACTION_LABELS = { create: "أضاف", update: "عدّل", delete: "حذف" };
 
 function formatCell(val, type) {
   if (val === undefined || val === null || val === "") return "";
@@ -48,11 +77,11 @@ function Modal({ open, onClose, title, children, size = "md" }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-        className={`bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-y-auto`}
+        className={`bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="font-bold text-gray-900 dark:text-white text-lg">{title}</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"><X className="w-4 h-4" /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900 text-lg">{title}</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-6">{children}</div>
       </motion.div>
@@ -67,10 +96,10 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, loading }) {
         <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
           <AlertTriangle className="w-5 h-5 text-red-600" />
         </div>
-        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mt-1">{message}</p>
+        <p className="text-gray-600 text-sm leading-relaxed mt-1">{message}</p>
       </div>
       <div className="flex gap-3 justify-end">
-        <button onClick={onClose} className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700">إلغاء</button>
+        <button onClick={onClose} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
         <button onClick={onConfirm} disabled={loading}
           className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50">
           {loading ? "جاري الحذف..." : "حذف"}
@@ -83,52 +112,58 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, loading }) {
 // ─── Ledger Form ─────────────────────────────────────────────────────────────
 
 function LedgerForm({ initial, onSave, onClose }) {
-  const [form, setForm] = useState(initial || { name: "", description: "", branch: "", color: "#2d5d89", icon: "📒" });
+  const [form, setForm] = useState(initial || { name: "", description: "", branch: "", color: "#2d5d89", icon: "BookOpen" });
   const [saving, setSaving] = useState(false);
   const toast = useToast();
-  const ICONS = ["📒", "📗", "📘", "📕", "📙", "💼", "🏦", "📊", "🏢", "📋"];
 
   const submit = async () => {
     if (!form.name.trim()) return toast.error("اسم السجل مطلوب");
     setSaving(true);
     try { await onSave(form); onClose(); }
-    catch (e) { toast.error("فشل الحفظ"); }
+    catch { toast.error("فشل الحفظ"); }
     finally { setSaving(false); }
   };
+
+  const SelectedIcon = getLedgerIcon(form.icon);
 
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">الاسم *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">الاسم *</label>
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
           placeholder="مثال: سجل المركز الرئيسي"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">الوصف</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">الوصف</label>
         <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
           placeholder="وصف مختصر للسجل"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">الفرع</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">الفرع</label>
         <input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })}
-          placeholder="مثال: القاهرة، الإسكندرية، المركز الرئيسي"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          placeholder="مثال: القاهرة، الإسكندرية"
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">الأيقونة</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">الأيقونة</label>
         <div className="flex flex-wrap gap-2">
-          {ICONS.map((ic) => (
-            <button key={ic} type="button" onClick={() => setForm({ ...form, icon: ic })}
-              className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center transition-all ${form.icon === ic ? "ring-2 ring-[#2d5d89] bg-[#2d5d89]/10 scale-110" : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200"}`}>
-              {ic}
+          {LEDGER_ICONS.map(({ name, Icon }) => (
+            <button key={name} type="button" onClick={() => setForm({ ...form, icon: name })}
+              title={name}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                form.icon === name
+                  ? "ring-2 ring-[#2d5d89] bg-[#2d5d89]/10 scale-110"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}>
+              <Icon className="w-5 h-5" style={{ color: form.icon === name ? form.color : "#6b7280" }} />
             </button>
           ))}
         </div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">اللون</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">اللون</label>
         <div className="flex gap-2">
           {LEDGER_COLORS.map((c) => (
             <button key={c} type="button" onClick={() => setForm({ ...form, color: c })}
@@ -138,7 +173,7 @@ function LedgerForm({ initial, onSave, onClose }) {
         </div>
       </div>
       <div className="flex gap-3 pt-2">
-        <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700">إلغاء</button>
+        <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
         <button onClick={submit} disabled={saving}
           className="flex-1 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium disabled:opacity-50">
           {saving ? "جاري الحفظ..." : "حفظ"}
@@ -179,15 +214,14 @@ function SheetForm({ initial, onSave, onClose }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">اسم الجدول *</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">اسم الجدول *</label>
         <input value={name} onChange={(e) => setName(e.target.value)}
           placeholder="مثال: المصروفات الشهرية"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
       </div>
-
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">الأعمدة</label>
+          <label className="text-sm font-medium text-gray-700">الأعمدة</label>
           <button onClick={addCol}
             className="flex items-center gap-1 text-xs text-[#2d5d89] hover:underline font-medium">
             <Plus className="w-3.5 h-3.5" /> إضافة عمود
@@ -195,13 +229,13 @@ function SheetForm({ initial, onSave, onClose }) {
         </div>
         <div className="space-y-2 max-h-60 overflow-y-auto">
           {columns.map((col, i) => (
-            <div key={col.key} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
+            <div key={col.key} className="flex items-center gap-2 bg-gray-50 rounded-xl p-2">
               <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
               <input value={col.label} onChange={(e) => updateCol(i, "label", e.target.value)}
-                className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
                 placeholder="اسم العمود" />
               <select value={col.type} onChange={(e) => updateCol(i, "type", e.target.value)}
-                className="px-2 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+                className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
                 {COLUMN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
               {columns.length > 1 && (
@@ -213,9 +247,8 @@ function SheetForm({ initial, onSave, onClose }) {
           ))}
         </div>
       </div>
-
       <div className="flex gap-3 pt-2">
-        <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700">إلغاء</button>
+        <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
         <button onClick={submit} disabled={saving}
           className="flex-1 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium disabled:opacity-50">
           {saving ? "جاري الحفظ..." : "حفظ"}
@@ -232,7 +265,7 @@ function CellInput({ col, value, onChange, onBlur, onKeyDown }) {
     return (
       <select value={value || ""} onChange={(e) => onChange(e.target.value)} onBlur={onBlur}
         autoFocus
-        className="w-full h-full px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-gray-900 dark:text-white text-sm focus:outline-none border-2 border-blue-400 rounded">
+        className="w-full h-full px-2 py-1 bg-blue-50 text-gray-900 text-sm focus:outline-none border-2 border-blue-400 rounded">
         <option value="">—</option>
         {(col.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -242,7 +275,80 @@ function CellInput({ col, value, onChange, onBlur, onKeyDown }) {
   return (
     <input type={inputType} value={value || ""} onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur} onKeyDown={onKeyDown} autoFocus
-      className="w-full h-full px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-gray-900 dark:text-white text-sm focus:outline-none border-2 border-blue-400 rounded" />
+      className="w-full h-full px-2 py-1 bg-blue-50 text-gray-900 text-sm focus:outline-none border-2 border-blue-400 rounded" />
+  );
+}
+
+// ─── Audit Log Panel ──────────────────────────────────────────────────────────
+
+function AuditLogPanel() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const toast = useToast();
+
+  useEffect(() => {
+    api.get("/accounting/audit-log")
+      .then((r) => setLogs(r.data.logs || []))
+      .catch(() => toast.error("فشل تحميل سجل العمليات"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-40">
+        <div className="w-6 h-6 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex items-center gap-2 mb-4">
+        <ClipboardList className="w-5 h-5 text-[#2d5d89]" />
+        <h3 className="font-bold text-gray-900 text-base">سجل العمليات</h3>
+        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{logs.length} عملية</span>
+      </div>
+      <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
+        <table className="w-full text-sm">
+          <thead className="sticky top-0">
+            <tr className="bg-[#2d5d89] text-white">
+              <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">المستخدم</th>
+              <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">البريد</th>
+              <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">العملية</th>
+              <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">العنصر</th>
+              <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">التاريخ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.length === 0 && (
+              <tr>
+                <td colSpan={5} className="text-center py-10 text-gray-400 text-sm">لا توجد عمليات مسجلة</td>
+              </tr>
+            )}
+            {logs.map((log, i) => (
+              <tr key={log._id || i}
+                className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
+                <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">{log.userName || "—"}</td>
+                <td className="px-4 py-2.5 text-gray-500 text-xs whitespace-nowrap">{log.userEmail || "—"}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                    log.action === "create" ? "bg-emerald-100 text-emerald-700" :
+                    log.action === "delete" ? "bg-red-100 text-red-700" :
+                    "bg-amber-100 text-amber-700"
+                  }`}>
+                    {ACTION_LABELS[log.action] || log.action}
+                  </span>
+                </td>
+                <td className="px-4 py-2.5 text-gray-700 whitespace-nowrap">{log.entityName || "—"}</td>
+                <td className="px-4 py-2.5 text-gray-400 text-xs whitespace-nowrap">
+                  {log.createdAt ? new Date(log.createdAt).toLocaleString("ar-EG") : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
@@ -250,8 +356,9 @@ function CellInput({ col, value, onChange, onBlur, onKeyDown }) {
 
 function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const toast = useToast();
+  const { user } = useAuth();
   const [rows, setRows] = useState(sheet.rows || []);
-  const [editCell, setEditCell] = useState(null); // { rowIdx, colKey }
+  const [editCell, setEditCell] = useState(null);
   const [cellVal, setCellVal] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [saving, setSaving] = useState(false);
@@ -259,8 +366,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [newRowData, setNewRowData] = useState({});
   const [addingRow, setAddingRow] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [activeTab, setActiveTab] = useState("table"); // "table" | "audit"
+  const fileInputRef = useRef(null);
 
   const cols = sheet.columns || [];
+  const isAdmin = user?.role === "admin";
 
   // ── inline editing ──
   const startEdit = (rowIdx, colKey) => {
@@ -271,7 +382,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const commitCell = async (rowIdx, colKey, val) => {
     const row = rows[rowIdx];
     if (!row) return;
-    const newCells = { ...Object.fromEntries(row.cells || []), [colKey]: val };
+    const newCells = { ...Object.fromEntries(Object.entries(row.cells || {})), [colKey]: val };
     const updated = rows.map((r, i) => i === rowIdx ? { ...r, cells: newCells } : r);
     setRows(updated);
     setEditCell(null);
@@ -349,6 +460,58 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     else setSelected(new Set(rows.map((r) => r._id)));
   };
 
+  // ── Excel Import ──
+  const handleExcelImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+      if (rawData.length < 2) { toast.error("الملف فارغ أو لا يحتوي على بيانات"); return; }
+
+      const headerRow = rawData[0];
+      // Build columns from header row — all text type
+      const newColumns = headerRow.map((h, i) => ({
+        key: `col_${i}_${Date.now()}`,
+        label: String(h || `عمود ${i + 1}`),
+        type: "text",
+        width: 150,
+      }));
+
+      // Create new sheet with these columns
+      const sheetRes = await api.post(`/accounting/${ledgerId}/sheets`, {
+        name: file.name.replace(/\.[^.]+$/, ""),
+        columns: newColumns,
+      });
+      const newSheet = sheetRes.data.sheet;
+
+      // Import rows
+      const dataRows = rawData.slice(1);
+      const importedRows = [];
+      for (const row of dataRows) {
+        if (row.every((c) => c === "" || c === null || c === undefined)) continue;
+        const cells = {};
+        newColumns.forEach((col, i) => { cells[col.key] = String(row[i] ?? ""); });
+        try {
+          const rowRes = await api.post(`/accounting/${ledgerId}/sheets/${newSheet._id}/rows`, { cells });
+          importedRows.push(rowRes.data.row);
+        } catch {}
+      }
+
+      toast.success(`تم استيراد ${importedRows.length} سطر من Excel`);
+      // Notify parent to reload
+      onUpdate && onUpdate({ ...newSheet, rows: importedRows });
+    } catch (err) {
+      toast.error("فشل استيراد الملف");
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   // ── print ──
   const handlePrint = () => {
     const printContent = printRef.current?.innerHTML;
@@ -390,162 +553,187 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     URL.revokeObjectURL(url);
   };
 
-  const displayRows = selected.size > 0 && confirmBulk
-    ? rows.filter((r) => selected.has(r._id))
-    : rows;
-
   return (
     <div className="flex flex-col h-full">
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <span className="text-sm text-gray-500 dark:text-gray-400">{rows.length} سطر</span>
-        {selected.size > 0 && (
-          <span className="text-sm font-medium text-[#2d5d89]">({selected.size} محدد)</span>
-        )}
-        <div className="mr-auto flex items-center gap-2">
-          {selected.size > 0 && (
-            <button onClick={() => setConfirmBulk(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium">
-              <Trash2 className="w-3.5 h-3.5" /> حذف المحدد ({selected.size})
-            </button>
-          )}
-          <button onClick={exportCsv}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium">
-            <Download className="w-3.5 h-3.5" /> {selected.size > 0 ? "تحميل المحدد" : "CSV"}
+      {/* Tab bar (admin only shows audit tab) */}
+      {isAdmin && (
+        <div className="flex items-center gap-1 mb-3 border-b border-gray-200 pb-0">
+          <button onClick={() => setActiveTab("table")}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "table" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}>
+            <Table2 className="w-3.5 h-3.5" /> البيانات
           </button>
-          <button onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-xs font-medium">
-            <Printer className="w-3.5 h-3.5" /> طباعة
-          </button>
-          <button onClick={() => setAddingRow(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
-            <Plus className="w-3.5 h-3.5" /> سطر جديد
+          <button onClick={() => setActiveTab("audit")}
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "audit" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}>
+            <ClipboardList className="w-3.5 h-3.5" /> سجل العمليات
           </button>
         </div>
-      </div>
+      )}
 
-      {/* Table */}
-      <div className="flex-1 overflow-auto rounded-xl border border-gray-200 dark:border-gray-700">
-        <div ref={printRef}>
-          <table className="w-full min-w-max text-sm">
-            <thead className="sticky top-0 z-10">
-              <tr className="bg-[#2d5d89] text-white">
-                <th className="w-10 px-3 py-3">
-                  <input type="checkbox" checked={rows.length > 0 && selected.size === rows.length}
-                    onChange={toggleAll}
-                    className="rounded border-white/40 text-white accent-white cursor-pointer" />
-                </th>
-                {cols.map((col) => (
-                  <th key={col.key} className="px-3 py-3 text-right font-semibold whitespace-nowrap text-sm"
-                    style={{ minWidth: col.width || 120, maxWidth: col.width || 200 }}>
-                    {col.label}
-                  </th>
-                ))}
-                <th className="w-12 px-3 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 && !addingRow && (
-                <tr>
-                  <td colSpan={cols.length + 2} className="text-center py-12 text-gray-400 text-sm">
-                    <Table2 className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-                    لا توجد بيانات — اضغط "سطر جديد" لإضافة البيانات
-                  </td>
-                </tr>
+      {activeTab === "audit" && isAdmin ? (
+        <AuditLogPanel />
+      ) : (
+        <>
+          {/* Toolbar */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-sm text-gray-500">{rows.length} سطر</span>
+            {selected.size > 0 && (
+              <span className="text-sm font-medium text-[#2d5d89]">({selected.size} محدد)</span>
+            )}
+            <div className="mr-auto flex items-center gap-2 flex-wrap">
+              {selected.size > 0 && (
+                <button onClick={() => setConfirmBulk(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium">
+                  <Trash2 className="w-3.5 h-3.5" /> حذف المحدد ({selected.size})
+                </button>
               )}
-              {rows.map((row, rowIdx) => (
-                <tr key={row._id}
-                  className={`border-b border-gray-100 dark:border-gray-700 transition-colors ${
-                    selected.has(row._id)
-                      ? "bg-blue-50 dark:bg-blue-900/20"
-                      : rowIdx % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50/50 dark:bg-gray-800/50"
-                  } hover:bg-blue-50/50 dark:hover:bg-blue-900/10`}>
-                  <td className="px-3 py-2 w-10">
-                    <input type="checkbox" checked={selected.has(row._id)} onChange={() => toggleRow(row._id)}
-                      className="rounded cursor-pointer accent-[#2d5d89]" />
-                  </td>
-                  {cols.map((col) => {
-                    const isEditing = editCell?.rowIdx === rowIdx && editCell?.colKey === col.key;
-                    const val = row.cells?.[col.key] ?? "";
-                    return (
-                      <td key={col.key} style={{ minWidth: col.width || 120 }}
-                        className="px-1 py-1 cursor-pointer"
-                        onDoubleClick={() => startEdit(rowIdx, col.key)}>
-                        {isEditing ? (
-                          <CellInput col={col} value={cellVal} onChange={setCellVal}
-                            onBlur={handleCellBlur} onKeyDown={handleCellKey} />
-                        ) : (
-                          <div className="px-2 py-1 min-h-[28px] text-gray-800 dark:text-gray-200 text-sm whitespace-nowrap overflow-hidden text-ellipsis rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-                            {formatCell(val, col.type) || <span className="text-gray-300">—</span>}
-                          </div>
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td className="px-2 py-1 w-12">
-                    <button onClick={() => deleteRow(row._id)}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              <button onClick={exportCsv}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium">
+                <Download className="w-3.5 h-3.5" /> {selected.size > 0 ? "تحميل المحدد" : "CSV"}
+              </button>
+              <button onClick={handlePrint}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium">
+                <Printer className="w-3.5 h-3.5" /> طباعة
+              </button>
+              <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium cursor-pointer ${importing ? "opacity-50 pointer-events-none" : ""}`}>
+                <Upload className="w-3.5 h-3.5" />
+                {importing ? "جاري الاستيراد..." : "استيراد Excel"}
+                <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelImport} />
+              </label>
+              <button onClick={() => setAddingRow(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
+                <Plus className="w-3.5 h-3.5" /> سطر جديد
+              </button>
+            </div>
+          </div>
 
-              {/* New row input */}
-              {addingRow && (
-                <tr className="bg-emerald-50/50 dark:bg-emerald-900/10 border-b border-emerald-100 dark:border-emerald-900/20">
-                  <td className="px-3 py-2 w-10 text-emerald-500">
-                    <Plus className="w-4 h-4 mx-auto" />
-                  </td>
-                  {cols.map((col) => (
-                    <td key={col.key} className="px-1 py-1" style={{ minWidth: col.width || 120 }}>
-                      <input
-                        type={col.type === "date" ? "date" : col.type === "number" || col.type === "currency" ? "number" : "text"}
-                        value={newRowData[col.key] || ""}
-                        onChange={(e) => setNewRowData({ ...newRowData, [col.key]: e.target.value })}
-                        placeholder={col.label}
-                        className="w-full px-2 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </td>
+          {/* Table */}
+          <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
+            <div ref={printRef}>
+              <table className="w-full min-w-max text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-[#2d5d89] text-white">
+                    <th className="w-10 px-3 py-3">
+                      <input type="checkbox" checked={rows.length > 0 && selected.size === rows.length}
+                        onChange={toggleAll}
+                        className="rounded border-white/40 text-white accent-white cursor-pointer" />
+                    </th>
+                    {cols.map((col) => (
+                      <th key={col.key} className="px-3 py-3 text-right font-semibold whitespace-nowrap text-sm"
+                        style={{ minWidth: col.width || 120, maxWidth: col.width || 200 }}>
+                        {col.label}
+                      </th>
+                    ))}
+                    <th className="w-12 px-3 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.length === 0 && !addingRow && (
+                    <tr>
+                      <td colSpan={cols.length + 2} className="text-center py-12 text-gray-400 text-sm">
+                        <Table2 className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                        لا توجد بيانات — اضغط "سطر جديد" لإضافة البيانات
+                      </td>
+                    </tr>
+                  )}
+                  {rows.map((row, rowIdx) => (
+                    <tr key={row._id}
+                      className={`border-b border-gray-100 transition-colors group ${
+                        selected.has(row._id)
+                          ? "bg-blue-50"
+                          : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                      } hover:bg-blue-50/50`}>
+                      <td className="px-3 py-2 w-10">
+                        <input type="checkbox" checked={selected.has(row._id)} onChange={() => toggleRow(row._id)}
+                          className="rounded cursor-pointer accent-[#2d5d89]" />
+                      </td>
+                      {cols.map((col) => {
+                        const isEditing = editCell?.rowIdx === rowIdx && editCell?.colKey === col.key;
+                        const val = row.cells?.[col.key] ?? "";
+                        return (
+                          <td key={col.key} style={{ minWidth: col.width || 120 }}
+                            className="px-1 py-1 cursor-pointer"
+                            onDoubleClick={() => startEdit(rowIdx, col.key)}>
+                            {isEditing ? (
+                              <CellInput col={col} value={cellVal} onChange={setCellVal}
+                                onBlur={handleCellBlur} onKeyDown={handleCellKey} />
+                            ) : (
+                              <div className="px-2 py-1 min-h-[28px] text-gray-800 text-sm whitespace-nowrap overflow-hidden text-ellipsis rounded hover:bg-gray-100">
+                                {formatCell(val, col.type) || <span className="text-gray-300">—</span>}
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                      <td className="px-2 py-1 w-12">
+                        <button onClick={() => deleteRow(row._id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                  <td className="px-2 py-1">
-                    <div className="flex flex-col gap-1">
-                      <button onClick={addRow} disabled={saving}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white">
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => { setAddingRow(false); setNewRowData({}); }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              )}
 
-              {/* Totals row */}
-              {rows.length > 0 && (
-                <tr className="bg-[#f1f5f9] dark:bg-gray-700 font-bold border-t-2 border-[#2d5d89]/30">
-                  <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap" colSpan={2}>
-                    الإجمالي
-                  </td>
-                  {cols.slice(1).map((col) => {
-                    const total = sumColumn(rows, col.key, col.type);
-                    return (
-                      <td key={col.key} className="px-3 py-2 text-sm text-[#2d5d89] dark:text-blue-400 whitespace-nowrap">
-                        {total !== null ? formatCell(total, col.type) : ""}
+                  {/* New row input */}
+                  {addingRow && (
+                    <tr className="bg-emerald-50/50 border-b border-emerald-100">
+                      <td className="px-3 py-2 w-10 text-emerald-500">
+                        <Plus className="w-4 h-4 mx-auto" />
                       </td>
-                    );
-                  })}
-                  <td />
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                      {cols.map((col) => (
+                        <td key={col.key} className="px-1 py-1" style={{ minWidth: col.width || 120 }}>
+                          <input
+                            type={col.type === "date" ? "date" : col.type === "number" || col.type === "currency" ? "number" : "text"}
+                            value={newRowData[col.key] || ""}
+                            onChange={(e) => setNewRowData({ ...newRowData, [col.key]: e.target.value })}
+                            placeholder={col.label}
+                            className="w-full px-2 py-1.5 rounded-lg border border-emerald-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          />
+                        </td>
+                      ))}
+                      <td className="px-2 py-1">
+                        <div className="flex flex-col gap-1">
+                          <button onClick={addRow} disabled={saving}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white">
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => { setAddingRow(false); setNewRowData({}); }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
 
-      <p className="text-xs text-gray-400 mt-2 text-center">انقر مرتين على أي خلية لتعديلها • Tab للانتقال • Enter للتأكيد • Esc للإلغاء</p>
+                  {/* Totals row */}
+                  {rows.length > 0 && (
+                    <tr className="bg-[#f1f5f9] font-bold border-t-2 border-[#2d5d89]/30">
+                      <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap" colSpan={2}>
+                        الإجمالي
+                      </td>
+                      {cols.slice(1).map((col) => {
+                        const total = sumColumn(rows, col.key, col.type);
+                        return (
+                          <td key={col.key} className="px-3 py-2 text-sm text-[#2d5d89] whitespace-nowrap">
+                            {total !== null ? formatCell(total, col.type) : ""}
+                          </td>
+                        );
+                      })}
+                      <td />
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-2 text-center">انقر مرتين على أي خلية لتعديلها • Tab للانتقال • Enter للتأكيد • Esc للإلغاء</p>
+        </>
+      )}
 
       {/* Bulk delete confirm */}
       <ConfirmModal
@@ -566,7 +754,6 @@ export default function AdminAccounting() {
   const { user } = useAuth();
   const toast = useToast();
 
-  // Access check
   const hasAccess = user?.role === "admin" || user?.department === "accounts";
 
   const [ledgers, setLedgers] = useState([]);
@@ -575,6 +762,7 @@ export default function AdminAccounting() {
   const [activeSheet, setActiveSheet] = useState(null);
   const [fullLedger, setFullLedger] = useState(null);
   const [loadingLedger, setLoadingLedger] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
 
   const [ledgerModal, setLedgerModal] = useState(false);
   const [editLedger, setEditLedger] = useState(null);
@@ -625,7 +813,7 @@ export default function AdminAccounting() {
   };
 
   const updateLedger = async (form) => {
-    const r = await api.put(`/accounting/${editLedger._id}`, form);
+    await api.put(`/accounting/${editLedger._id}`, form);
     setLedgers((prev) => prev.map((l) => l._id === editLedger._id ? { ...l, ...form } : l));
     if (activeLedger?._id === editLedger._id) setActiveLedger({ ...activeLedger, ...form });
     toast.success("تم تحديث السجل");
@@ -683,52 +871,52 @@ export default function AdminAccounting() {
           <div className="w-20 h-20 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-10 h-10 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">غير مصرح بالدخول</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">غير مصرح بالدخول</h2>
           <p className="text-gray-500 text-sm">هذه الصفحة مخصصة لقسم الحسابات والمديرين فقط</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="flex h-[calc(100vh-4rem)] -m-6 overflow-hidden" dir="rtl">
-      {/* ── Sidebar: Ledgers list ── */}
-      <div className="w-72 flex-shrink-0 bg-white dark:bg-gray-800 border-l border-gray-100 dark:border-gray-700 flex flex-col">
-        <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold text-gray-900 dark:text-white text-sm">السجلات المحاسبية</h2>
+  // Sidebar content (shared between desktop & mobile drawer)
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-gray-900 text-sm">السجلات المحاسبية</h2>
+          <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="w-6 h-6 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : ledgers.length === 0 ? (
+          <div className="text-center py-12 px-4">
+            <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-400 text-xs">لا توجد سجلات بعد</p>
             <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">
-              <Plus className="w-4 h-4" />
+              className="mt-3 text-xs text-[#2d5d89] hover:underline font-medium">
+              إنشاء أول سجل
             </button>
           </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : ledgers.length === 0 ? (
-            <div className="text-center py-12 px-4">
-              <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 text-xs">لا توجد سجلات بعد</p>
-              <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-                className="mt-3 text-xs text-[#2d5d89] hover:underline font-medium">
-                إنشاء أول سجل
-              </button>
-            </div>
-          ) : (
-            ledgers.map((l) => (
-              <button key={l._id} onClick={() => setActiveLedger(l)}
+        ) : (
+          ledgers.map((l) => {
+            const LIcon = getLedgerIcon(l.icon);
+            return (
+              <button key={l._id} onClick={() => { setActiveLedger(l); setSidebarOpen(false); }}
                 className={`w-full text-right px-3 py-2.5 rounded-xl flex items-center gap-3 transition-colors group ${
                   activeLedger?._id === l._id
                     ? "bg-[#2d5d89]/10 text-[#2d5d89]"
-                    : "hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                    : "hover:bg-gray-50 text-gray-700"
                 }`}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: l.color + "20" }}>
-                  {l.icon}
+                  <LIcon className="w-5 h-5" style={{ color: l.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{l.name}</p>
@@ -736,25 +924,57 @@ export default function AdminAccounting() {
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={(e) => { e.stopPropagation(); setEditLedger(l); setLedgerModal(true); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400">
+                    className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-400">
                     <Edit2 className="w-3 h-3" />
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteLedger(l); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500">
+                    className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               </button>
-            ))
-          )}
+            );
+          })
+        )}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex h-full overflow-hidden" dir="rtl">
+      {/* ── Mobile sidebar overlay ── */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-72 bg-white flex flex-col shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <h2 className="font-bold text-gray-900 text-sm">السجلات</h2>
+              <button onClick={() => setSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <SidebarContent />
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* ── Desktop sidebar ── */}
+      <div className="hidden lg:flex w-72 flex-shrink-0 bg-white border-l border-gray-100 flex-col">
+        <SidebarContent />
       </div>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#f8fafc] dark:bg-gray-900">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f8fafc]">
         {!activeLedger ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
+            <div className="text-center px-4">
+              {/* Mobile hamburger */}
+              <button onClick={() => setSidebarOpen(true)}
+                className="lg:hidden mb-4 flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm">
+                <Menu className="w-4 h-4" /> عرض السجلات
+              </button>
               <FileSpreadsheet className="w-20 h-20 text-gray-200 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-gray-400 mb-2">اختر سجلاً من القائمة</h3>
               <p className="text-gray-400 text-sm">أو أنشئ سجلاً جديداً لبدء إدارة الحسابات</p>
@@ -771,18 +991,28 @@ export default function AdminAccounting() {
         ) : (
           <>
             {/* Ledger header */}
-            <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 px-6 py-3 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ backgroundColor: activeLedger.color + "20" }}>
-                {activeLedger.icon}
-              </div>
+            <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+              {/* Mobile hamburger */}
+              <button onClick={() => setSidebarOpen(true)}
+                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500">
+                <Menu className="w-4 h-4" />
+              </button>
+              {(() => {
+                const LIcon = getLedgerIcon(activeLedger.icon);
+                return (
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: activeLedger.color + "20" }}>
+                    <LIcon className="w-5 h-5" style={{ color: activeLedger.color }} />
+                  </div>
+                );
+              })()}
               <div>
-                <h2 className="font-bold text-gray-900 dark:text-white text-base leading-tight">{activeLedger.name}</h2>
+                <h2 className="font-bold text-gray-900 text-base leading-tight">{activeLedger.name}</h2>
                 {activeLedger.branch && <p className="text-xs text-gray-400">{activeLedger.branch}</p>}
               </div>
               <div className="mr-auto flex items-center gap-2">
                 <button onClick={() => loadFullLedger(activeLedger._id)}
-                  className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400">
+                  className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400">
                   <RefreshCw className="w-4 h-4" />
                 </button>
               </div>
@@ -791,24 +1021,24 @@ export default function AdminAccounting() {
             {/* Sheets tabs + content */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Sheet tabs */}
-              <div className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 px-4 flex items-center gap-1 overflow-x-auto">
+              <div className="bg-white border-b border-gray-100 px-4 flex items-center gap-1 overflow-x-auto">
                 {(fullLedger?.sheets || []).map((s) => (
                   <button key={s._id}
                     onClick={() => setActiveSheet(s)}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors group ${
                       activeSheet?._id === s._id
                         ? "border-[#2d5d89] text-[#2d5d89]"
-                        : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
                     }`}>
                     <Table2 className="w-3.5 h-3.5" />
                     {s.name}
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
-                        className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-400">
+                        className="p-0.5 rounded hover:bg-gray-200 text-gray-400">
                         <Edit2 className="w-3 h-3" />
                       </span>
                       <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteSheet(s); }}
-                        className="p-0.5 rounded hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500">
+                        className="p-0.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500">
                         <X className="w-3 h-3" />
                       </span>
                     </div>
@@ -841,7 +1071,7 @@ export default function AdminAccounting() {
                     onUpdate={(updated) => {
                       setFullLedger((prev) => ({
                         ...prev,
-                        sheets: prev.sheets.map((s) => s._id === updated._id ? updated : s),
+                        sheets: [...(prev?.sheets || []), updated],
                       }));
                       setActiveSheet(updated);
                     }}

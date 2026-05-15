@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, Navigate, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, Navigate, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { Building2, LogOut, User, CheckSquare, Menu, X, Calculator } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -20,6 +20,8 @@ export default function StaffLayout() {
   const { user, loading, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAccounting = location.pathname.startsWith("/staff/accounting");
   const [menuOpen, setMenuOpen] = useState(false);
 
   if (loading) return <PageLoader />;
@@ -142,7 +144,7 @@ export default function StaffLayout() {
         )}
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className={isAccounting ? "h-[calc(100vh-64px)] overflow-hidden" : "max-w-5xl mx-auto px-4 py-6"}>
         <Outlet />
       </main>
     </div>

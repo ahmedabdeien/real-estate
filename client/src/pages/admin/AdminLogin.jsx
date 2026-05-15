@@ -4,6 +4,7 @@ import { Building2, Mail, Lock, Eye, EyeOff, Home } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../api/axios";
+import { useCms } from "../../hooks/useCms";
 
 // Google icon SVG
 function GoogleIcon() {
@@ -25,6 +26,7 @@ export default function AdminLogin() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const { data: loginCms } = useCms("login_page");
 
   // CMS content
   const [cms, setCms] = useState({
@@ -95,7 +97,11 @@ export default function AdminLogin() {
         )}
         <div className="relative z-10 text-center text-white">
           <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
-            <Building2 className="w-10 h-10 text-white" />
+            {loginCms?.logo_url ? (
+              <img src={loginCms.logo_url} alt="logo" className="h-12 object-contain" />
+            ) : (
+              <Building2 className="w-10 h-10 text-white" />
+            )}
           </div>
           <h1 className="text-3xl font-black mb-3 leading-tight">{cms.heroTitle}</h1>
           <p className="text-white/70 text-lg mb-2">{cms.heroSubtitle}</p>
@@ -122,7 +128,11 @@ export default function AdminLogin() {
           {/* Mobile logo/title */}
           <div className="text-center mb-8 lg:hidden">
             <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
-              <Building2 className="w-8 h-8 text-white" />
+              {loginCms?.logo_url ? (
+                <img src={loginCms.logo_url} alt="logo" className="h-10 object-contain" />
+              ) : (
+                <Building2 className="w-8 h-8 text-white" />
+              )}
             </div>
             <h1 className="text-2xl font-bold text-white">{cms.heroTitle}</h1>
             <p className="text-white/60 mt-1 text-sm">{cms.heroSubtitle}</p>

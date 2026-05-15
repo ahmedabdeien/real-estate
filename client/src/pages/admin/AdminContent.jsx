@@ -5,148 +5,180 @@ import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 
-const sections = [
+// Sections organized into logical groups
+const GROUPS = [
   {
-    key: "login_page",
-    label: "صفحة تسجيل الدخول",
-    fields: [
-      { key: "heroTitle",    label: "العنوان الرئيسي",    type: "text" },
-      { key: "heroSubtitle", label: "العنوان الفرعي",     type: "text" },
-      { key: "heroTagline",  label: "الشعار / الوصف",    type: "text" },
-      { key: "heroImage",    label: "صورة الخلفية (URL)", type: "image" },
+    label: "الصفحة الرئيسية",
+    sections: [
+      {
+        key: "hero",
+        label: "الرئيسية — Hero",
+        fields: [
+          { key: "title_ar",         label: "العنوان الرئيسي (عربي)",         type: "text" },
+          { key: "title_en",         label: "العنوان الرئيسي (إنجليزي)",       type: "text" },
+          { key: "subtitle_ar",      label: "العنوان الفرعي (عربي)",           type: "textarea" },
+          { key: "subtitle_en",      label: "العنوان الفرعي (إنجليزي)",         type: "textarea" },
+          { key: "cta_text_ar",      label: "نص زر الدعوة للإجراء",            type: "text" },
+          { key: "background_image", label: "صورة خلفية Hero",                  type: "image" },
+        ],
+      },
+      {
+        key: "stats",
+        label: "الإحصائيات",
+        fields: [
+          { key: "projects_count",   label: "عدد المشاريع (مثال: +50)",   type: "text" },
+          { key: "units_count",      label: "عدد الوحدات (مثال: +2000)",  type: "text" },
+          { key: "clients_count",    label: "عدد العملاء (مثال: +5000)",  type: "text" },
+          { key: "years_experience", label: "سنوات الخبرة (مثال: +15)",   type: "text" },
+        ],
+      },
+      {
+        key: "home_services",
+        label: "خدماتنا",
+        fields: [
+          { key: "services_title",    label: "عنوان القسم",              type: "text" },
+          { key: "services_subtitle", label: "وصف القسم",               type: "textarea" },
+          { key: "service1_title",    label: "خدمة 1 — العنوان",        type: "text" },
+          { key: "service1_desc",     label: "خدمة 1 — الوصف",         type: "textarea" },
+          { key: "service1_icon",     label: "خدمة 1 — الأيقونة (رمز)", type: "text" },
+          { key: "service2_title",    label: "خدمة 2 — العنوان",        type: "text" },
+          { key: "service2_desc",     label: "خدمة 2 — الوصف",         type: "textarea" },
+          { key: "service2_icon",     label: "خدمة 2 — الأيقونة (رمز)", type: "text" },
+          { key: "service3_title",    label: "خدمة 3 — العنوان",        type: "text" },
+          { key: "service3_desc",     label: "خدمة 3 — الوصف",         type: "textarea" },
+          { key: "service3_icon",     label: "خدمة 3 — الأيقونة (رمز)", type: "text" },
+          { key: "service4_title",    label: "خدمة 4 — العنوان",        type: "text" },
+          { key: "service4_desc",     label: "خدمة 4 — الوصف",         type: "textarea" },
+          { key: "service4_icon",     label: "خدمة 4 — الأيقونة (رمز)", type: "text" },
+        ],
+      },
     ],
   },
   {
-    key: "footer",
-    label: "الفوتر — معلومات الشركة",
-    fields: [
-      { key: "companyName", label: "اسم الشركة",         type: "text" },
-      { key: "companyDesc", label: "وصف الشركة",         type: "textarea" },
-      { key: "phone",       label: "رقم الهاتف",          type: "text" },
-      { key: "email",       label: "البريد الإلكتروني",  type: "text" },
-      { key: "address",     label: "العنوان",             type: "text" },
+    label: "صفحات المحتوى",
+    sections: [
+      {
+        key: "about",
+        label: "عن الشركة",
+        fields: [
+          { key: "title_ar",     label: "العنوان (عربي)",          type: "text" },
+          { key: "body_ar",      label: "النص الرئيسي (عربي)",     type: "textarea" },
+          { key: "vision_ar",    label: "الرؤية (عربي)",           type: "textarea" },
+          { key: "mission_ar",   label: "الرسالة (عربي)",          type: "textarea" },
+          { key: "image",        label: "صورة الشركة",              type: "image" },
+          { key: "founded_year", label: "سنة التأسيس",             type: "text" },
+        ],
+      },
+      {
+        key: "about_hero",
+        label: "عن الشركة — الهيدر",
+        fields: [
+          { key: "title_ar",    label: "عنوان الهيدر",    type: "text" },
+          { key: "subtitle_ar", label: "الوصف",           type: "textarea" },
+          { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+        ],
+      },
+      {
+        key: "projects_page",
+        label: "صفحة المشاريع",
+        fields: [
+          { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+          { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+          { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+        ],
+      },
+      {
+        key: "units_page",
+        label: "صفحة الوحدات",
+        fields: [
+          { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+          { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+          { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+        ],
+      },
+      {
+        key: "blog_page",
+        label: "صفحة الأخبار والمقالات",
+        fields: [
+          { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+          { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+          { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+        ],
+      },
+      {
+        key: "careers_page",
+        label: "صفحة الوظائف",
+        fields: [
+          { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+          { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+          { key: "image",       label: "صورة الصفحة",     type: "image" },
+        ],
+      },
     ],
   },
   {
-    key: "hero",
-    label: "الصفحة الرئيسية — Hero",
-    fields: [
-      { key: "title_ar",          label: "العنوان الرئيسي (عربي)",         type: "text" },
-      { key: "title_en",          label: "العنوان الرئيسي (إنجليزي)",       type: "text" },
-      { key: "subtitle_ar",       label: "العنوان الفرعي (عربي)",           type: "textarea" },
-      { key: "subtitle_en",       label: "العنوان الفرعي (إنجليزي)",         type: "textarea" },
-      { key: "cta_text_ar",       label: "نص زر الدعوة للإجراء",            type: "text" },
-      { key: "background_image",  label: "صورة خلفية Hero",                  type: "image" },
+    label: "التواصل والتذييل",
+    sections: [
+      {
+        key: "contact",
+        label: "معلومات التواصل",
+        fields: [
+          { key: "phone",         label: "رقم الهاتف",              type: "text" },
+          { key: "whatsapp",      label: "واتساب",                   type: "text" },
+          { key: "email",         label: "البريد الإلكتروني",        type: "text" },
+          { key: "address_ar",    label: "العنوان (عربي)",           type: "text" },
+          { key: "working_hours", label: "أوقات العمل",              type: "text" },
+          { key: "facebook",      label: "فيسبوك",                   type: "text" },
+          { key: "instagram",     label: "إنستجرام",                 type: "text" },
+          { key: "youtube",       label: "يوتيوب",                   type: "text" },
+          { key: "map_embed",     label: "رابط Google Maps embed",  type: "text" },
+        ],
+      },
+      {
+        key: "footer",
+        label: "الفوتر",
+        fields: [
+          { key: "companyName", label: "اسم الشركة",         type: "text" },
+          { key: "companyDesc", label: "وصف الشركة",         type: "textarea" },
+          { key: "phone",       label: "رقم الهاتف",          type: "text" },
+          { key: "email",       label: "البريد الإلكتروني",  type: "text" },
+          { key: "address",     label: "العنوان",             type: "text" },
+        ],
+      },
     ],
   },
   {
-    key: "stats",
-    label: "إحصائيات الرئيسية",
-    fields: [
-      { key: "projects_count",   label: "عدد المشاريع (مثال: +50)",   type: "text" },
-      { key: "units_count",      label: "عدد الوحدات (مثال: +2000)",  type: "text" },
-      { key: "clients_count",    label: "عدد العملاء (مثال: +5000)",  type: "text" },
-      { key: "years_experience", label: "سنوات الخبرة (مثال: +15)",   type: "text" },
-    ],
-  },
-  {
-    key: "about",
-    label: "صفحة عن الشركة",
-    fields: [
-      { key: "title_ar",       label: "العنوان (عربي)",          type: "text" },
-      { key: "body_ar",        label: "النص الرئيسي (عربي)",     type: "textarea" },
-      { key: "vision_ar",      label: "الرؤية (عربي)",           type: "textarea" },
-      { key: "mission_ar",     label: "الرسالة (عربي)",          type: "textarea" },
-      { key: "image",          label: "صورة الشركة",              type: "image" },
-      { key: "founded_year",   label: "سنة التأسيس",             type: "text" },
-    ],
-  },
-  {
-    key: "contact",
-    label: "معلومات التواصل",
-    fields: [
-      { key: "phone",          label: "رقم الهاتف",              type: "text" },
-      { key: "whatsapp",       label: "واتساب",                   type: "text" },
-      { key: "email",          label: "البريد الإلكتروني",        type: "text" },
-      { key: "address_ar",     label: "العنوان (عربي)",           type: "text" },
-      { key: "working_hours",  label: "أوقات العمل",              type: "text" },
-      { key: "facebook",       label: "فيسبوك",                   type: "text" },
-      { key: "instagram",      label: "إنستجرام",                 type: "text" },
-      { key: "youtube",        label: "يوتيوب",                   type: "text" },
-      { key: "map_embed",      label: "رابط Google Maps embed",  type: "text" },
-    ],
-  },
-  {
-    key: "home_services",
-    label: "الرئيسية — خدماتنا",
-    fields: [
-      { key: "title_ar",       label: "عنوان القسم",          type: "text" },
-      { key: "service1_title", label: "خدمة 1 — العنوان",     type: "text" },
-      { key: "service1_desc",  label: "خدمة 1 — الوصف",      type: "textarea" },
-      { key: "service2_title", label: "خدمة 2 — العنوان",     type: "text" },
-      { key: "service2_desc",  label: "خدمة 2 — الوصف",      type: "textarea" },
-      { key: "service3_title", label: "خدمة 3 — العنوان",     type: "text" },
-      { key: "service3_desc",  label: "خدمة 3 — الوصف",      type: "textarea" },
-    ],
-  },
-  {
-    key: "careers_page",
-    label: "صفحة الوظائف",
-    fields: [
-      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
-      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
-      { key: "image",       label: "صورة الصفحة",     type: "image" },
-    ],
-  },
-  {
-    key: "projects_page",
-    label: "صفحة المشاريع",
-    fields: [
-      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
-      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
-      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
-    ],
-  },
-  {
-    key: "units_page",
-    label: "صفحة الوحدات",
-    fields: [
-      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
-      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
-      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
-    ],
-  },
-  {
-    key: "blog_page",
-    label: "صفحة الأخبار والمقالات",
-    fields: [
-      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
-      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
-      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
-    ],
-  },
-  {
-    key: "about_hero",
-    label: "صفحة عن الشركة — الهيدر",
-    fields: [
-      { key: "title_ar",    label: "عنوان الهيدر",    type: "text" },
-      { key: "subtitle_ar", label: "الوصف",           type: "textarea" },
-      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
-    ],
-  },
-  {
-    key: "theme",
-    label: "🎨 الألوان والأزرار",
-    fields: [
-      { key: "primary_color",    label: "اللون الرئيسي (hex مثال: #2d5d89)",       type: "text" },
-      { key: "secondary_color",  label: "اللون الثانوي (hex مثال: #f59e0b)",       type: "text" },
-      { key: "cta_text",         label: "نص زر الدعوة للإجراء (الرئيسية)",         type: "text" },
-      { key: "cta_secondary",    label: "نص الزر الثانوي (تواصل معنا)",            type: "text" },
-      { key: "nav_logo_text",    label: "اسم الشركة في القائمة العلوية",            type: "text" },
-      { key: "whatsapp_number",  label: "رقم واتساب (للزر العائم)",               type: "text" },
+    label: "الإعدادات",
+    sections: [
+      {
+        key: "login_page",
+        label: "صفحة تسجيل الدخول",
+        fields: [
+          { key: "heroTitle",    label: "العنوان الرئيسي",    type: "text" },
+          { key: "heroSubtitle", label: "العنوان الفرعي",     type: "text" },
+          { key: "heroTagline",  label: "الشعار / الوصف",    type: "text" },
+          { key: "heroImage",    label: "صورة الخلفية",       type: "image" },
+          { key: "logo_url",     label: "شعار الشركة (Logo)", type: "image" },
+        ],
+      },
+      {
+        key: "theme",
+        label: "الألوان والأزرار",
+        fields: [
+          { key: "primary_color",   label: "اللون الرئيسي (hex مثال: #2d5d89)",       type: "text" },
+          { key: "secondary_color", label: "اللون الثانوي (hex مثال: #f59e0b)",       type: "text" },
+          { key: "cta_text",        label: "نص زر الدعوة للإجراء (الرئيسية)",         type: "text" },
+          { key: "cta_secondary",   label: "نص الزر الثانوي (تواصل معنا)",            type: "text" },
+          { key: "nav_logo_text",   label: "اسم الشركة في القائمة العلوية",            type: "text" },
+          { key: "whatsapp_number", label: "رقم واتساب (للزر العائم)",               type: "text" },
+        ],
+      },
     ],
   },
 ];
+
+// Flat list for lookup
+const sections = GROUPS.flatMap((g) => g.sections);
 
 const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon };
 
@@ -208,18 +240,27 @@ export default function AdminContent() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Section Tabs */}
+        {/* Section Tabs — Grouped */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 h-fit">
           <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
-            {sections.map((s) => (
-              <button key={s.key} onClick={() => setActiveSection(s.key)}
-                className={`flex-shrink-0 lg:flex-shrink text-right px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeSection === s.key
-                    ? "bg-[#2d5d89] text-white"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}>
-                {s.label}
-              </button>
+            {GROUPS.map((group) => (
+              <div key={group.label} className="flex lg:flex-col gap-1 flex-shrink-0 lg:flex-shrink-0">
+                {/* Group header */}
+                <div className="hidden lg:block px-3 pt-3 pb-1">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{group.label}</p>
+                </div>
+                {group.sections.map((s) => (
+                  <button key={s.key} onClick={() => setActiveSection(s.key)}
+                    className={`flex-shrink-0 lg:flex-shrink text-right px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
+                      activeSection === s.key
+                        ? "bg-[#2d5d89] text-white"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}>
+                    {s.label}
+                  </button>
+                ))}
+                <div className="hidden lg:block h-px bg-gray-100 dark:bg-gray-700 my-1" />
+              </div>
             ))}
           </div>
         </div>

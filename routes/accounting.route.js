@@ -5,6 +5,7 @@ import {
   getLedgers, getLedger, createLedger, updateLedger, deleteLedger,
   addSheet, updateSheet, deleteSheet,
   addRow, updateRow, deleteRow, bulkDeleteRows,
+  getAuditLog,
 } from "../controllers/accounting.controller.js";
 
 const router = express.Router();
@@ -32,6 +33,9 @@ const securityHeaders = (req, res, next) => {
 router.use(accountingLimiter);
 router.use(securityHeaders);
 router.use(authenticate);
+
+// ── Audit Log ─────────────────────────────────────────────────────────────────
+router.get("/audit-log", getAuditLog);
 
 // ── Ledgers ───────────────────────────────────────────────────────────────────
 router.get("/",        getLedgers);
