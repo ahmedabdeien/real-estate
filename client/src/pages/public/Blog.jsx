@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FileText, Search, Calendar, Eye } from "lucide-react";
@@ -14,11 +14,12 @@ export default function BlogPage() {
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const timerRef = useRef(null);
 
-  const load = async () => {
+  const load = async (s = search, p = page) => {
     setLoading(true);
     try {
-      const res = await api.get("/blogs", { params: { page, search, status: "published" } });
+      const res = await api.get("/blogs", { params: { page: p, search: s, status: "published" } });
       setBlogs(res.data.blogs || []);
       setTotal(res.data.total);
       setPages(res.data.pages);
@@ -28,7 +29,14 @@ export default function BlogPage() {
     }
   };
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(search, page); }, [page]);
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => { setPage(1); load(val, 1); }, 400);
+  };
 
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
@@ -43,7 +51,7 @@ export default function BlogPage() {
         <div className="flex gap-3 mb-8">
           <div className="relative">
             <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()}
+            <input value={search} onChange={handleSearchChange} onKeyDown={(e) => { if (e.key === "Enter") { clearTimeout(timerRef.current); setPage(1); load(search, 1); } }}
               placeholder="ابحث عن مقال..."
               className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-64" />
           </div>

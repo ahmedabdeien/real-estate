@@ -37,6 +37,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminActivity from "./pages/admin/AdminActivity";
+import AdminAccounting from "./pages/admin/AdminAccounting";
 
 // Tasks
 import TasksPage from "./pages/tasks/TasksPage";
@@ -106,6 +107,7 @@ export default function App() {
                 <Route index element={<Navigate to="/staff/tasks" replace />} />
                 <Route path="tasks" element={<TasksPage />} />
                 <Route path="profile" element={<StaffProfile />} />
+                <Route path="accounting" element={<AdminAccounting />} />
               </Route>
 
               {/* Admin Dashboard */}
@@ -123,6 +125,8 @@ export default function App() {
                 <Route path="activity" element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
                 {/* Tasks inside admin panel — admin/supervisor/manager */}
                 <Route path="tasks" element={<AdminTasks />} />
+                {/* Accounting — admin + accounts dept */}
+                <Route path="accounting" element={<AdminAccounting />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

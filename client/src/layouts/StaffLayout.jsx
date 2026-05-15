@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Navigate, NavLink, useNavigate } from "react-router-dom";
-import { Building2, LogOut, User, CheckSquare, Menu, X } from "lucide-react";
+import { Building2, LogOut, User, CheckSquare, Menu, X, Calculator } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { PageLoader } from "../Components/UI/LoadingSpinner";
@@ -36,8 +36,11 @@ export default function StaffLayout() {
   };
 
   const navLinks = [
-    { to: "/staff/tasks",   label: "مهامي",        icon: CheckSquare },
-    { to: "/staff/profile", label: "الملف الشخصي", icon: User },
+    { to: "/staff/tasks",      label: "مهامي",          icon: CheckSquare },
+    { to: "/staff/profile",    label: "الملف الشخصي",   icon: User },
+    ...(user?.department === "accounts"
+      ? [{ to: "/staff/accounting", label: "الحسابات", icon: Calculator }]
+      : []),
   ];
 
   return (

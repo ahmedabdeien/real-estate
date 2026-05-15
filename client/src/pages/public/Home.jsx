@@ -243,7 +243,6 @@ export default function HomePage() {
             </div>
           </motion.div>
         </div>
-        <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#2d5d89]/80 to-transparent" />
       </section>
 
       {/* Stats */}
@@ -252,7 +251,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8" dir="rtl">
             <StatItem icon={Building2} value={stats.projects_count   || "50+"}  label="مشروع ناجح" />
             <StatItem icon={HomeIcon}  value={stats.units_count      || "2000+"} label="وحدة سكنية" />
-            <StatItem icon={Users}     value={stats.clients_count    || "5000+"} label="عميل سعيد" />
+            <StatItem icon={Users}     value={stats.clients_count    || "5000+"} label="عملاء" />
             <StatItem icon={Award}     value={stats.years_experience || "15+"}   label="سنة خبرة" />
           </div>
         </div>

@@ -20,7 +20,7 @@ const DEPARTMENTS = {
   purchasing:     "المشتريات",
 };
 
-const ROLES_NEED_DEPT = ["manager", "employee"];
+const ROLES_NEED_DEPT = ["manager", "employee", "sales"];
 
 const emptyUser = { name: "", email: "", password: "", role: "viewer", department: "", phone: "" };
 
@@ -202,7 +202,12 @@ export default function AdminUsers() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الدور</label>
-            <select value={form.role} onChange={(e) => f("role", e.target.value)}
+            <select value={form.role} onChange={(e) => {
+              const role = e.target.value;
+              f("role", role);
+              if (role === "sales") f("department", "marketing");
+              else if (!ROLES_NEED_DEPT.includes(role)) f("department", "");
+            }}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
               <option value="admin">مدير عام</option>
               <option value="supervisor">مشرف عام</option>

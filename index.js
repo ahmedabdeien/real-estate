@@ -24,6 +24,7 @@ import activityRouter from "./routes/activity.route.js";
 import searchRouter from "./routes/search.route.js";
 import taskRouter from "./routes/task.route.js";
 import notificationRouter from "./routes/notification.route.js";
+import accountingRouter from "./routes/accounting.route.js";
 
 dotenv.config();
 const app = express();
@@ -102,6 +103,7 @@ app.use("/api/activity", activityRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/accounting", accountingRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");

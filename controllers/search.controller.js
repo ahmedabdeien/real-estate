@@ -32,7 +32,7 @@ export const globalSearch = async (req, res) => {
       }).populate("project", "name slug").select("unitNumber type area price status project").limit(5),
 
       Blog.find({
-        published: true,
+        status: "published",
         $or: [
           { "title.ar": regex },
           { "title.en": regex },

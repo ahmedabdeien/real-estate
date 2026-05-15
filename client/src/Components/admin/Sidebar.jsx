@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare
+  CheckSquare, Calculator
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -22,7 +22,8 @@ const navItems = [
   { to: "/admin/activity", label: "سجل النشاط",   icon: Activity,  roles: ["admin"] },
   { to: "/admin/settings", label: "الإعدادات",     icon: Settings,  roles: ["admin"] },
   // Tasks inside admin panel (admin/supervisor/manager)
-  { to: "/admin/tasks",    label: "المهام",        icon: CheckSquare, roles: ["admin", "supervisor", "manager"] },
+  { to: "/admin/tasks",      label: "المهام",        icon: CheckSquare,  roles: ["admin", "supervisor", "manager"] },
+  { to: "/admin/accounting", label: "الحسابات",     icon: Calculator,   roles: ["admin"] },
   // Tasks standalone for employees/sales
   { to: "/staff/tasks",    label: "مهامي",         icon: CheckSquare, roles: ["employee", "sales"], external: true },
 ];
