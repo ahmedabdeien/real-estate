@@ -17,12 +17,32 @@ export default function AboutPage() {
     years_experience: "15+",
   });
 
+  const { data: hero } = useCms("about_hero", {
+    title_ar: "",
+    subtitle_ar: "شركة رائدة في مجال التطوير العقاري",
+    hero_image: "",
+  });
+
   return (
     <div className="min-h-screen" dir="rtl">
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">{content.title_ar}</h1>
-          <p className="text-white/70 text-lg">شركة رائدة في مجال التطوير العقاري</p>
+      {/* Hero */}
+      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden">
+        {hero.hero_image && (
+          <>
+            <img src={hero.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d5c]/80 to-[#2d5d89]/60" />
+          </>
+        )}
+        <div className="relative container mx-auto px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="inline-block bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4 backdrop-blur">
+              الصرح للتطوير العقاري
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
+              {hero.title_ar || content.title_ar}
+            </h1>
+            <p className="text-white/70 text-lg max-w-xl mx-auto">{hero.subtitle_ar}</p>
+          </motion.div>
         </div>
       </div>
 
@@ -42,7 +62,7 @@ export default function AboutPage() {
                 {[
                   { label: "مشروع", value: stats.projects_count },
                   { label: "وحدة سكنية", value: stats.units_count },
-                  { label: "عميل سعيد", value: stats.clients_count },
+                  { label: "عملاء", value: stats.clients_count },
                   { label: "سنة خبرة", value: stats.years_experience },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-[#f8fafc] rounded-xl p-4">

@@ -107,6 +107,45 @@ const sections = [
       { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
     ],
   },
+  {
+    key: "units_page",
+    label: "صفحة الوحدات",
+    fields: [
+      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+    ],
+  },
+  {
+    key: "blog_page",
+    label: "صفحة الأخبار والمقالات",
+    fields: [
+      { key: "title_ar",    label: "عنوان الصفحة",    type: "text" },
+      { key: "subtitle_ar", label: "وصف الصفحة",      type: "textarea" },
+      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+    ],
+  },
+  {
+    key: "about_hero",
+    label: "صفحة عن الشركة — الهيدر",
+    fields: [
+      { key: "title_ar",    label: "عنوان الهيدر",    type: "text" },
+      { key: "subtitle_ar", label: "الوصف",           type: "textarea" },
+      { key: "hero_image",  label: "صورة الهيدر",     type: "image" },
+    ],
+  },
+  {
+    key: "theme",
+    label: "🎨 الألوان والأزرار",
+    fields: [
+      { key: "primary_color",    label: "اللون الرئيسي (hex مثال: #2d5d89)",       type: "text" },
+      { key: "secondary_color",  label: "اللون الثانوي (hex مثال: #f59e0b)",       type: "text" },
+      { key: "cta_text",         label: "نص زر الدعوة للإجراء (الرئيسية)",         type: "text" },
+      { key: "cta_secondary",    label: "نص الزر الثانوي (تواصل معنا)",            type: "text" },
+      { key: "nav_logo_text",    label: "اسم الشركة في القائمة العلوية",            type: "text" },
+      { key: "whatsapp_number",  label: "رقم واتساب (للزر العائم)",               type: "text" },
+    ],
+  },
 ];
 
 const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon };

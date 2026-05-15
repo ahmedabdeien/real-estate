@@ -7,10 +7,16 @@ import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
+import { useCms } from "../../hooks/useCms";
 
 const unitTypeAr = { apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس", penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه" };
 
 export default function UnitsPage() {
+  const { data: cms } = useCms("units_page", {
+    title_ar: "الوحدات المتاحة",
+    subtitle_ar: "اختر وحدتك المثالية من مجموعة متنوعة من الخيارات",
+    hero_image: "",
+  });
   const [units, setUnits] = useState([]);
   const [projects, setProjects] = useState([]);
   const [total, setTotal] = useState(0);
@@ -40,10 +46,22 @@ export default function UnitsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">الوحدات المتاحة</h1>
-          <p className="text-white/70 text-lg">اختر وحدتك المثالية من مجموعة متنوعة من الخيارات</p>
+      {/* Hero */}
+      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden">
+        {cms.hero_image && (
+          <>
+            <img src={cms.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d5c]/80 to-[#2d5d89]/60" />
+          </>
+        )}
+        <div className="relative container mx-auto px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="inline-block bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4 backdrop-blur">
+              الصرح للتطوير العقاري
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-3">{cms.title_ar}</h1>
+            <p className="text-white/70 text-lg max-w-xl mx-auto">{cms.subtitle_ar}</p>
+          </motion.div>
         </div>
       </div>
 

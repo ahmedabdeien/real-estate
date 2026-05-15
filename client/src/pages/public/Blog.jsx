@@ -6,8 +6,14 @@ import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
+import { useCms } from "../../hooks/useCms";
 
 export default function BlogPage() {
+  const { data: cms } = useCms("blog_page", {
+    title_ar: "الأخبار والمقالات",
+    subtitle_ar: "آخر أخبار السوق العقاري والمقالات المتخصصة",
+    hero_image: "",
+  });
   const [blogs, setBlogs] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -40,10 +46,22 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">الأخبار والمقالات</h1>
-          <p className="text-white/70 text-lg">آخر أخبار السوق العقاري والمقالات المتخصصة</p>
+      {/* Hero */}
+      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden">
+        {cms.hero_image && (
+          <>
+            <img src={cms.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d5c]/80 to-[#2d5d89]/60" />
+          </>
+        )}
+        <div className="relative container mx-auto px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="inline-block bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4 backdrop-blur">
+              الصرح للتطوير العقاري
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-3">{cms.title_ar}</h1>
+            <p className="text-white/70 text-lg max-w-xl mx-auto">{cms.subtitle_ar}</p>
+          </motion.div>
         </div>
       </div>
 
