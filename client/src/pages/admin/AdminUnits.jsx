@@ -26,9 +26,21 @@ const formatPrice = (p) => {
   }
 };
 
-const AMENITIES = [
-  "مكيف", "مصعد", "جراج", "حديقة", "حمام سباحة", "أمن", "إنترنت", "غاز طبيعي",
+const AMENITY_GROUPS = [
+  { title: "الأساسيات", items: ["تكييف مركزي", "تكييف سبليت", "تدفئة مركزية"] },
+  { title: "الخدمات", items: ["مصعد", "جنرايتور", "مولد كهربائي", "خزان مياه", "سخان شمسي"] },
+  { title: "الأمن", items: ["أمن وحراسة 24 ساعة", "كاميرات مراقبة", "إنتركم", "باب أوتوماتيكي"] },
+  { title: "السيارات", items: ["جراج خاص", "مواقف مشتركة", "جراج ثنائي"] },
+  { title: "الخارج", items: ["حديقة خاصة", "حديقة مشتركة", "حمام سباحة خاص", "حمام سباحة مشتركة", "ملعب أطفال"] },
+  { title: "الداخل", items: ["غرفة غسيل", "مخزن", "خادمة", "غرفة سائق"] },
+  { title: "التقنية", items: ["إنترنت فايبر", "كابل/IPTV", "نظام ذكي (Smart Home)"] },
+  { title: "المرافق", items: ["غاز طبيعي", "خطوط تليفون", "تمديدات كهرباء أمريكي"] },
+  { title: "الموقع", items: ["إطلالة على البحر", "إطلالة على الحديقة", "إطلالة بانورامية", "طابق أرضي مع حديقة"] },
 ];
+const AMENITIES = AMENITY_GROUPS.flatMap((g) => g.items);
+
+const FINISHING_OPTIONS = ["تشطيب سوبر لوكس", "تشطيب لوكس", "تشطيب نصف تشطيب", "بدون تشطيب"];
+const FACING_OPTIONS = ["شمال", "جنوب", "شرق", "غرب", "شمال شرق", "شمال غرب", "جنوب شرق", "جنوب غرب"];
 
 const unitTypes = ["apartment", "villa", "studio", "duplex", "penthouse", "office", "shop", "chalet"];
 const unitTypeAr = { apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس", penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه" };
@@ -48,6 +60,8 @@ const emptyUnit = {
   published: true,
   description: { ar: "", en: "" },
   amenities: [],
+  finishing: "",
+  facing: "",
 };
 
 export default function AdminUnits() {
@@ -150,7 +164,7 @@ export default function AdminUnits() {
       ...form,
       area:      Number(form.area)      || 0,
       price:     Number(form.price)     || 0,
-      floor:     Number(form.floor)     || 0,
+      floor:     form.floor || "",
       rooms:     Number(form.rooms)     || 1,
       bathrooms: Number(form.bathrooms) || 1,
     };
@@ -322,7 +336,7 @@ export default function AdminUnits() {
                   <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النوع</th>
                   <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المساحة</th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر</th>
-                  <th className="hidden lg:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الطابق</th>
+                  <th className="hidden lg:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الدور</th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                 </tr>
@@ -421,9 +435,26 @@ export default function AdminUnits() {
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الطابق</label>
-            <input type="number" value={form.floor} onChange={(e) => f("floor", e.target.value)}
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الدور</label>
+            <input type="text" value={form.floor} onChange={(e) => f("floor", e.target.value)}
+              placeholder="مثال: الأرضي، الدور الأول، B1"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع الإنهاء</label>
+            <select value={form.finishing} onChange={(e) => f("finishing", e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
+              <option value="">— اختر —</option>
+              {FINISHING_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الجهة</label>
+            <select value={form.facing} onChange={(e) => f("facing", e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
+              <option value="">— اختر —</option>
+              {FACING_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">غرف النوم</label>

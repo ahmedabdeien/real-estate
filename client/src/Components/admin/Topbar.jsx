@@ -76,7 +76,7 @@ function NotificationPanel({ onClose }) {
       </div>
 
       {/* List */}
-      <div className="max-h-80 overflow-y-auto">
+      <div className="max-h-80 overflow-y-auto" id="notif-list">
         {loading ? (
           <div className="p-4 text-center text-sm text-gray-400">جاري التحميل...</div>
         ) : notifications.length === 0 ? (
@@ -101,6 +101,17 @@ function NotificationPanel({ onClose }) {
             </button>
           ))
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 text-center">
+        <Link
+          to="/admin/notifications"
+          onClick={onClose}
+          className="text-xs text-[#2d5d89] hover:underline font-medium"
+        >
+          عرض كل الإشعارات
+        </Link>
       </div>
     </div>
   );

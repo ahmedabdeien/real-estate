@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -8,10 +8,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import api from "../../api/axios";
 
 const navItems = [
   // Admin only - full dashboard
   { to: "/admin",               label: "لوحة التحكم",      icon: LayoutDashboard, exact: true, show: (u) => u?.role === "admin" },
+
+  // Notifications - near top for visibility (all authenticated roles except viewer)
+  { to: "/admin/notifications", label: "الإشعارات",         icon: Bell,            show: (u) => u?.role !== "viewer" },
 
   // Admin sees everything below too
   { to: "/admin/projects",      label: "المشاريع",          icon: Building2,       show: (u) => ["admin","sales"].includes(u?.role) },
@@ -36,7 +40,6 @@ const navItems = [
   { to: "/admin/settings",      label: "الإعدادات",         icon: Settings,        show: (u) => u?.role === "admin" },
 
   // All authenticated roles
-  { to: "/admin/notifications", label: "الإشعارات",         icon: Bell,            show: (u) => u?.role !== "viewer" },
   { to: "/admin/profile",       label: "الملف الشخصي",     icon: UserCircle,      show: (u) => u?.role !== "viewer" },
   { to: "/admin/changelog",     label: "التحديثات",         icon: History,         show: (u) => u?.role !== "viewer" },
 ];
@@ -54,6 +57,19 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user || user.role === "viewer") return;
+    const fetchCount = () => {
+      api.get("/notifications/unread-count")
+        .then((r) => setUnreadCount(r.data.count || 0))
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // Close sidebar on mobile when nav link is clicked
   const handleNavClick = () => {
@@ -121,37 +137,53 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-          {filtered.map(({ to, label, icon: Icon, exact, external }, idx) => (
-            <NavLink
-              key={`${to}-${idx}`}
-              to={to}
-              end={exact}
-              onClick={handleNavClick}
-              target={external ? "_blank" : undefined}
-              rel={external ? "noopener noreferrer" : undefined}
-              className={({ isActive }) =>
-                `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium ${
-                  isActive && !external
-                    ? "bg-white/20 text-white"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
-                }`
-              }
-            >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              <AnimatePresence>
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: "auto" }}
-                    exit={{ opacity: 0, width: 0 }}
-                    className="overflow-hidden whitespace-nowrap"
-                  >
-                    {label}
-                  </motion.span>
+          {filtered.map(({ to, label, icon: Icon, exact, external }, idx) => {
+            const isNotifications = to === "/admin/notifications";
+            const showBadge = isNotifications && unreadCount > 0;
+            return (
+              <NavLink
+                key={`${to}-${idx}`}
+                to={to}
+                end={exact}
+                onClick={handleNavClick}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noopener noreferrer" : undefined}
+                className={({ isActive }) =>
+                  `group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium relative ${
+                    isActive && !external
+                      ? "bg-white/20 text-white"
+                      : "text-white/70 hover:bg-white/10 hover:text-white"
+                  }`
+                }
+              >
+                <span className="relative flex-shrink-0">
+                  <Icon className="w-5 h-5" />
+                  {showBadge && collapsed && (
+                    <span className="absolute -top-1.5 -left-1.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </span>
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "auto" }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className="overflow-hidden whitespace-nowrap"
+                    >
+                      {label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {showBadge && !collapsed && (
+                  <span className="mr-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1.5 leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
-              </AnimatePresence>
-            </NavLink>
-          ))}
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* User + Logout */}

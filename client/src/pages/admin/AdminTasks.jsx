@@ -13,6 +13,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import ConfirmModal from "../../Components/UI/ConfirmModal";
 import Modal from "../../Components/UI/Modal";
+import HelpCard from "../../Components/UI/HelpCard";
 import {
   DEPARTMENTS, STATUS_LABELS, ROLE_LABELS, Countdown,
 } from "../tasks/TasksPage";
@@ -307,6 +308,17 @@ export default function AdminTasks() {
           </button>
         )}
       </div>
+
+      <HelpCard
+        title="دليل إدارة المهام"
+        tips={[
+          "اضغط 'مهمة جديدة' لإنشاء مهمة وتعيينها لموظف أو أكثر",
+          "الموظف يرى مهامه فقط — المدير يرى مهام قسمه — الأدمن يرى الكل",
+          "انقر على حالة المهمة في الجدول لتغييرها مباشرة بدون فتح نافذة",
+          "حدد مهام متعددة بمربعات الاختيار لتغيير حالتها دفعة واحدة",
+          "استخدم عرض الكانبان لمتابعة تقدم المهام بصرياً",
+        ]}
+      />
 
       {/* ── Dept stats (admin/supervisor) ── */}
       {canSeeAll && (

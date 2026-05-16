@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import HelpCard from "../../Components/UI/HelpCard";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -1255,7 +1256,21 @@ export default function AdminAccounting() {
   );
 
   return (
-    <div className="flex h-full overflow-hidden" dir="rtl">
+    <div className="flex flex-col h-full overflow-hidden" dir="rtl">
+    <div className="px-4 pt-3 flex-shrink-0">
+      <HelpCard
+        title="دليل استخدام الحسابات"
+        tips={[
+          "أنشئ دفتراً جديداً بالضغط على '+' في الشريط الجانبي",
+          "لكل دفتر يمكنك إضافة جداول متعددة (أعمدة قابلة للتخصيص)",
+          "انقر نقراً مزدوجاً على أي خلية لتعديلها مباشرة",
+          "أعمدة 'معادلة' تحسب القيم تلقائياً من أعمدة أخرى (مثال: col1 * col2)",
+          "استخدم زر 'استيراد Excel' لرفع ملف جدول بيانات مباشرة",
+          "حدد صفوفاً ثم اضغط 'طباعة المحدد' لطباعة الصفوف المختارة فقط",
+        ]}
+      />
+    </div>
+    <div className="flex flex-1 overflow-hidden">
       {/* ── Mobile sidebar overlay ── */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -1438,6 +1453,7 @@ export default function AdminAccounting() {
         title="حذف الجدول"
         message={`هل تريد حذف الجدول "${confirmDeleteSheet?.name}"؟ سيتم فقدان جميع بيانات هذا الجدول.`}
       />
+    </div>
     </div>
   );
 }
