@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { lazy, Suspense } from "react";
 
 // Contexts
 import { AuthProvider } from "./context/AuthContext";
@@ -24,30 +25,35 @@ import ContactPage from "./pages/public/Contact";
 import CareersPage from "./pages/public/Careers";
 import ProfilePage from "./pages/public/Profile";
 
-// Admin Pages
+// Admin Login (not lazy — small, needed immediately)
 import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminProjects from "./pages/admin/AdminProjects";
-import AdminUnits from "./pages/admin/AdminUnits";
-import AdminLeads from "./pages/admin/AdminLeads";
-import AdminBlogs from "./pages/admin/AdminBlogs";
-import AdminContent from "./pages/admin/AdminContent";
-import AdminMedia from "./pages/admin/AdminMedia";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminCareers from "./pages/admin/AdminCareers";
-import AdminActivity from "./pages/admin/AdminActivity";
-import AdminAccounting from "./pages/admin/AdminAccounting";
-import AdminAccountingRecords from "./pages/admin/AdminAccountingRecords";
-import AdminChangelog from "./pages/admin/AdminChangelog";
-import AdminNotifications from "./pages/admin/AdminNotifications";
+
+// Loading fallback
+import { PageLoader } from "./Components/UI/LoadingSpinner";
+
+// Admin Pages — lazy loaded for code splitting (faster initial page load)
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
+const AdminUnits = lazy(() => import("./pages/admin/AdminUnits"));
+const AdminLeads = lazy(() => import("./pages/admin/AdminLeads"));
+const AdminBlogs = lazy(() => import("./pages/admin/AdminBlogs"));
+const AdminContent = lazy(() => import("./pages/admin/AdminContent"));
+const AdminMedia = lazy(() => import("./pages/admin/AdminMedia"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
+const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
+const AdminAccounting = lazy(() => import("./pages/admin/AdminAccounting"));
+const AdminAccountingRecords = lazy(() => import("./pages/admin/AdminAccountingRecords"));
+const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
+const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 
 // Tasks
-import TasksPage from "./pages/tasks/TasksPage";
-import AdminTasks from "./pages/admin/AdminTasks";
+const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
 
 // Staff
-import StaffProfile from "./pages/staff/StaffProfile";
+const StaffProfile = lazy(() => import("./pages/staff/StaffProfile"));
 
 // Guard: admin-only routes — non-admins are redirected to a sensible default page
 function AdminOnlyRoute({ children }) {
@@ -95,6 +101,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <SiteSettingsProvider>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Website */}
               <Route element={<PublicLayout />}>
@@ -153,6 +160,7 @@ export default function App() {
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </SiteSettingsProvider>
         </ToastProvider>
       </AuthProvider>

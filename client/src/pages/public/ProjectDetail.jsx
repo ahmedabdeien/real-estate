@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, Home, Building2, Phone, ArrowRight, MessageCircle,
   CheckCircle, Star, ChevronLeft, ChevronRight, Play,
-  BedDouble, Bath, Maximize2, Layers, Scale, X, Filter, Eye
+  BedDouble, Bath, Maximize2, Layers, Scale, X, Filter, Eye, Pencil
 } from "lucide-react";
 import api from "../../api/axios";
 import { PageLoader } from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
+import { useAuth } from "../../context/AuthContext";
 
 const unitTypeAr = {
   apartment: "شقة", villa: "فيلا", studio: "استوديو",
@@ -41,6 +42,7 @@ export default function ProjectDetailPage() {
   const [compareIds, setCompareIds] = useState([]);
   const [showCompare, setShowCompare] = useState(false);
   const { contact } = useSiteSettings();
+  const { user } = useAuth();
   const waNumber = (contact.whatsapp_number || contact.whatsapp || contact.phone || "201000000000").replace(/\D/g, "");
 
   useEffect(() => {
@@ -522,6 +524,16 @@ export default function ProjectDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Admin quick-edit floating button */}
+      {user && ["admin", "supervisor"].includes(user.role) && (
+        <a href="/admin/projects"
+          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-full shadow-lg hover:bg-[#245079] transition-all text-sm font-medium"
+          title="تعديل من لوحة التحكم">
+          <Pencil className="w-4 h-4" />
+          تعديل
+        </a>
+      )}
     </div>
   );
 }

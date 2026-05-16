@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, MapPin, ArrowLeft, Search, LayoutGrid, List, Sparkles } from "lucide-react";
+import { Building2, MapPin, ArrowLeft, Search, LayoutGrid, List, Sparkles, Settings } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useCms } from "../../hooks/useCms";
+import { useAuth } from "../../context/AuthContext";
 
 const statusOptions = [
   { value: "", label: "كل المشاريع" },
@@ -118,6 +119,7 @@ function ProjectCard({ p, view = "grid" }) {
 }
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
   const { data: cmsPage } = useCms("projects_page", {
     title_ar: "مشاريعنا",
     subtitle_ar: "اكتشف مجموعة مشاريعنا المتميزة",
@@ -268,6 +270,16 @@ export default function ProjectsPage() {
           </>
         )}
       </div>
+
+      {/* Admin floating manage button */}
+      {user && ["admin", "supervisor"].includes(user.role) && (
+        <a href="/admin/projects"
+          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-full shadow-lg hover:bg-[#245079] transition-all text-sm font-medium"
+          title="إدارة المشاريع">
+          <Settings className="w-4 h-4" />
+          إدارة المشاريع
+        </a>
+      )}
     </div>
   );
 }

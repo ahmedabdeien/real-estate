@@ -13,6 +13,7 @@ import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import HelpCard from "../../Components/UI/HelpCard";
+import ArabicDatePicker from "../../Components/UI/ArabicDatePicker";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -380,7 +381,12 @@ function CellInput({ col, value, onChange, onBlur, onKeyDown }) {
     );
   }
   const numericTypes = ["number", "currency", "percentage"];
-  const inputType = col.type === "date" ? "date" : numericTypes.includes(col.type) ? "number" : "text";
+  if (col.type === "date") {
+    return (
+      <ArabicDatePicker value={value || ""} onChange={(v) => { onChange(v); onBlur(); }} />
+    );
+  }
+  const inputType = numericTypes.includes(col.type) ? "number" : "text";
   return (
     <input type={inputType} value={value || ""} onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur} onKeyDown={onKeyDown} autoFocus
@@ -1130,13 +1136,21 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                       </td>
                       {cols.map((col) => (
                         <td key={col.key} className="px-1 py-1" style={{ minWidth: col.width || 120 }}>
-                          <input
-                            type={col.type === "date" ? "date" : col.type === "number" || col.type === "currency" ? "number" : "text"}
-                            value={newRowData[col.key] || ""}
-                            onChange={(e) => setNewRowData({ ...newRowData, [col.key]: e.target.value })}
-                            placeholder={col.label}
-                            className="w-full px-2 py-1.5 rounded-lg border border-emerald-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                          />
+                          {col.type === "date" ? (
+                            <ArabicDatePicker
+                              value={newRowData[col.key] || ""}
+                              onChange={(v) => setNewRowData({ ...newRowData, [col.key]: v })}
+                              placeholder={col.label}
+                            />
+                          ) : (
+                            <input
+                              type={col.type === "number" || col.type === "currency" ? "number" : "text"}
+                              value={newRowData[col.key] || ""}
+                              onChange={(e) => setNewRowData({ ...newRowData, [col.key]: e.target.value })}
+                              placeholder={col.label}
+                              className="w-full px-2 py-1.5 rounded-lg border border-emerald-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            />
+                          )}
                         </td>
                       ))}
                       <td className="px-2 py-1">

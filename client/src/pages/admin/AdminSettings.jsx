@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save, Globe, Share2, Building2, Palette, MapPin, Plus, Trash2, Mail, Shield, Database, Info, Download } from "lucide-react";
+import { Save, Globe, Share2, Building2, Palette, MapPin, Plus, Trash2, Mail, Shield, Database, Info, Download, Cloud, ExternalLink } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
@@ -85,6 +85,12 @@ const settingsGroups = [
       { key: "allow_google_login",      label: "السماح بتسجيل الدخول بجوجل", type: "toggle" },
       { key: "two_factor_auth",         label: "المصادقة الثنائية",         type: "readonly", value: "قريباً" },
     ],
+  },
+  {
+    key: "cloudinary",
+    label: "Cloudinary",
+    icon: Cloud,
+    settings: [], // handled separately
   },
   {
     key: "backup",
@@ -205,6 +211,17 @@ export default function AdminSettings() {
         </button>
       </div>
 
+      {/* Sticky Save All button */}
+      {!loading && (
+        <div className="sticky bottom-4 z-30 flex justify-end pointer-events-none">
+          <button onClick={handleSave} disabled={saving}
+            className="pointer-events-auto flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-6 py-3 rounded-full shadow-xl text-sm font-semibold transition-all disabled:opacity-50 hover:shadow-2xl">
+            <Save className="w-4 h-4" />
+            {saving ? "جاري الحفظ..." : "حفظ الكل"}
+          </button>
+        </div>
+      )}
+
       {loading ? <LoadingSpinner className="h-64" size="lg" /> : (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Tabs */}
@@ -228,8 +245,52 @@ export default function AdminSettings() {
               {currentGroup?.label}
             </h2>
 
-            {/* Backup special UI */}
-            {activeGroup === "backup" ? (
+            {/* Cloudinary special UI */}
+            {activeGroup === "cloudinary" ? (
+              <div className="space-y-5">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Cloudinary هي خدمة التخزين السحابي المستخدمة لرفع وتخزين الصور في الموقع.
+                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Cloud className="w-5 h-5 text-[#2d5d89]" />
+                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm">إعداد Cloudinary الحالي</h3>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Cloud Name (من ملف .env)</label>
+                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-mono">
+                      <Cloud className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span>{import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "غير محدد — أضف VITE_CLOUDINARY_CLOUD_NAME في .env"}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 mb-1 block">Upload Preset</label>
+                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-sm">
+                      <Info className="w-4 h-4 flex-shrink-0" />
+                      <span>elsarh_unsigned (Unsigned Preset)</span>
+                    </div>
+                  </div>
+                </div>
+                <a
+                  href="https://cloudinary.com/console"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  فتح لوحة تحكم Cloudinary
+                </a>
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-400 space-y-1">
+                  <p className="font-semibold">خطوات الإعداد:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>اشترك مجاناً على cloudinary.com</li>
+                    <li>من Dashboard انسخ الـ Cloud Name</li>
+                    <li>Settings → Upload → Upload Presets → Add preset → Unsigned → سمّيه elsarh_unsigned</li>
+                    <li>أضف للـ .env: VITE_CLOUDINARY_CLOUD_NAME=اسم_السحابة</li>
+                  </ol>
+                </div>
+              </div>
+            ) : activeGroup === "backup" ? (
               <div className="space-y-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400">قم بتصدير بيانات الموقع للحفاظ على نسخة احتياطية منها.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

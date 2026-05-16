@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Trash2, Upload, Image as ImageIcon, Copy, Check, CloudUpload, AlertCircle, Cloud } from "lucide-react";
+import { Trash2, Upload, Image as ImageIcon, Copy, Check, CloudUpload, AlertCircle, Cloud, HardDrive, Wifi, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadToCloudinary, getCloudinaryThumb } from "../../lib/cloudinary";
 import api from "../../api/axios";
@@ -47,7 +47,7 @@ function UploadItem({ file, queueId, onDone, onError }) {
             <p className={`text-xs mt-0.5 ${style.text}`}>{progress}%</p>
           </div>
         )}
-        {status === "done"  && <p className={`text-xs ${style.text}`}>تم الرفع ✓</p>}
+        {status === "done"  && <p className={`text-xs ${style.text}`}>تم الرفع بنجاح</p>}
         {status === "error" && <p className={`text-xs ${style.text}`}>فشل الرفع</p>}
       </div>
     </div>
@@ -189,45 +189,63 @@ export default function AdminMedia() {
 
       {/* Cloudinary usage */}
       {cloudUsage && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl border border-blue-100 dark:border-gray-700 p-5 mb-4">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Cloud className="w-5 h-5 text-[#2d5d89]" />
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">مساحة Cloudinary</h3>
+              <div className="w-9 h-9 rounded-xl bg-[#2d5d89] flex items-center justify-center">
+                <Cloud className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">مساحة Cloudinary</h3>
+                <p className="text-xs text-gray-400">إحصائيات التخزين السحابي</p>
+              </div>
             </div>
-            {cloudUsage.estimated && <span className="text-xs text-gray-400">(تقديرية)</span>}
+            {cloudUsage.estimated && <span className="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full">تقديرية</span>}
           </div>
           {cloudUsage.usage ? (
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
-                  <span>التخزين</span>
-                  <span>{formatBytes(cloudUsage.usage.storage_used)} / {formatBytes(cloudUsage.usage.storage_limit)}</span>
+            <div className="space-y-4">
+              {/* Storage bar */}
+              <div className="bg-white dark:bg-gray-700 rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <HardDrive className="w-4 h-4 text-[#2d5d89]" />
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">التخزين</span>
+                  <span className="text-xs text-gray-400 mr-auto">
+                    {formatBytes(cloudUsage.usage.storage_used)} / {formatBytes(cloudUsage.usage.storage_limit)}
+                  </span>
                 </div>
-                <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#2d5d89] rounded-full transition-all"
+                    className="h-full bg-gradient-to-r from-[#2d5d89] to-indigo-500 rounded-full transition-all"
                     style={{ width: `${Math.min(100, (cloudUsage.usage.storage_used / cloudUsage.usage.storage_limit) * 100).toFixed(1)}%` }}
                   />
                 </div>
+                <p className="text-[10px] text-gray-400 mt-1 text-left">
+                  {Math.min(100, (cloudUsage.usage.storage_used / cloudUsage.usage.storage_limit) * 100).toFixed(1)}% مستخدمة
+                </p>
               </div>
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
-                  <p className="text-lg font-bold text-[#2d5d89]">{cloudUsage.usage.credits_used}</p>
+              {/* Stats grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white dark:bg-gray-700 rounded-xl p-3 text-center">
+                  <Zap className="w-4 h-4 text-amber-500 mx-auto mb-1" />
+                  <p className="text-base font-bold text-gray-800 dark:text-gray-200">{cloudUsage.usage.credits_used}</p>
                   <p className="text-[10px] text-gray-400">كريدت مستخدم</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
-                  <p className="text-lg font-bold text-gray-700 dark:text-gray-300">{cloudUsage.usage.credits_limit - cloudUsage.usage.credits_used}</p>
-                  <p className="text-[10px] text-gray-400">كريدت متبقي</p>
+                <div className="bg-white dark:bg-gray-700 rounded-xl p-3 text-center">
+                  <ImageIcon className="w-4 h-4 text-[#2d5d89] mx-auto mb-1" />
+                  <p className="text-base font-bold text-gray-800 dark:text-gray-200">{cloudUsage.usage.media_count}</p>
+                  <p className="text-[10px] text-gray-400">ملف وسائط</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
-                  <p className="text-lg font-bold text-gray-700 dark:text-gray-300">{cloudUsage.usage.media_count}</p>
-                  <p className="text-[10px] text-gray-400">وسائط</p>
+                <div className="bg-white dark:bg-gray-700 rounded-xl p-3 text-center">
+                  <Wifi className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
+                  <p className="text-base font-bold text-gray-800 dark:text-gray-200">
+                    {cloudUsage.usage.credits_limit - cloudUsage.usage.credits_used}
+                  </p>
+                  <p className="text-[10px] text-gray-400">كريدت متبقي</p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">{cloudUsage.message || "جاري تحميل البيانات..."}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{cloudUsage.message || "جاري تحميل البيانات..."}</p>
           )}
         </div>
       )}
@@ -261,11 +279,11 @@ export default function AdminMedia() {
       >
         <CloudUpload className={`w-14 h-14 mx-auto mb-4 transition-colors duration-200 ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
         <p className={`font-bold text-xl transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-500 dark:text-gray-400"}`}>
-          {isDragging ? "🎉 أفلت الصور هنا!" : "اسحب وأفلت الصور هنا"}
+          {isDragging ? "أفلت الصور هنا!" : "اسحب وأفلت الصور هنا"}
         </p>
         <p className="text-sm text-gray-400 mt-2">أو اضغط هنا • PNG, JPG, WEBP, GIF • الحد الأقصى 2MB</p>
         <div className="mt-4 inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium px-3 py-1.5 rounded-full border border-green-200 dark:border-green-700">
-          <span>🆓</span>
+          <Check className="w-3.5 h-3.5" />
           <span>Cloudinary — 25GB مجاني بدون بطاقة بنكية</span>
         </div>
       </div>
@@ -296,35 +314,36 @@ export default function AdminMedia() {
         <EmptyState icon={ImageIcon} title="لا توجد صور بعد" description="ارفع أول صورة بالسحب والإفلات" />
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             <AnimatePresence>
               {media.map((item) => (
                 <motion.div
                   key={item._id} layout
                   initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }}
-                  className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all"
+                  className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-[#2d5d89]/30 transition-all duration-200"
                 >
                   <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
                     <img
                       src={getCloudinaryThumb(item.url, 300)}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
                     />
                   </div>
                   {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-end pb-3 gap-2">
                     <button onClick={() => copyUrl(item.url, item._id)} title="نسخ الرابط"
-                      className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-700 hover:bg-gray-100 transition-colors shadow">
-                      {copied === item._id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                      className="flex items-center gap-1.5 bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow px-3 py-1.5 rounded-lg text-xs font-medium">
+                      {copied === item._id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied === item._id ? "تم النسخ" : "نسخ الرابط"}
                     </button>
                     <button onClick={() => setDeleteId(item._id)} title="حذف"
-                      className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow">
-                      <Trash2 className="w-4 h-4" />
+                      className="w-8 h-8 bg-red-500 rounded-xl flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow">
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="p-2">
-                    <p className="text-xs text-gray-400 truncate">{item.name}</p>
+                  <div className="p-2.5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">{item.name}</p>
                   </div>
                 </motion.div>
               ))}

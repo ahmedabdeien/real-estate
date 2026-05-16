@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save, Eye, Image as ImageIcon, AlignLeft, Type, Megaphone, Bell, Copy } from "lucide-react";
+import { Save, Eye, Image as ImageIcon, AlignLeft, Type, Megaphone, Bell, Copy, RotateCcw, ExternalLink } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
@@ -220,6 +220,25 @@ const sections = GROUPS.flatMap((g) => g.sections);
 
 const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon };
 
+// Section → public URL mapping for preview
+const SECTION_URLS = {
+  hero: "/",
+  stats: "/",
+  home_services: "/",
+  home_cta: "/",
+  about: "/about",
+  about_hero: "/about",
+  projects_page: "/projects",
+  units_page: "/projects",
+  blog_page: "/blog",
+  careers_page: "/careers",
+  contact: "/contact",
+  footer: "/",
+  login_page: "/admin/login",
+  theme: "/",
+  popup_announcement: "/",
+};
+
 export default function AdminContent() {
   const toast = useToast();
   const [activeSection, setActiveSection] = useState(sections[0].key);
@@ -259,6 +278,12 @@ export default function AdminContent() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleReset = () => {
+    if (!window.confirm("هل تريد إعادة تعيين هذا القسم وتحميل البيانات المحفوظة من السيرفر؟")) return;
+    loadSection(activeSection);
+    toast.success("تم إعادة تحميل البيانات");
   };
 
   const currentSection = sections.find((s) => s.key === activeSection);
@@ -323,11 +348,31 @@ export default function AdminContent() {
 
         {/* Fields */}
         <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-100 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-100 dark:border-gray-700 flex-wrap gap-2">
             <h2 className="font-bold text-gray-900 dark:text-white">{currentSection?.label}</h2>
-            <span className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-700">
-              التغييرات فورية على الموقع
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-lg border border-emerald-200 dark:border-emerald-700">
+                التغييرات فورية على الموقع
+              </span>
+              {SECTION_URLS[activeSection] && (
+                <a
+                  href={SECTION_URLS[activeSection]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  معاينة
+                </a>
+              )}
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-xs bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" />
+                إعادة تعيين
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -351,8 +396,13 @@ export default function AdminContent() {
                     ) : field.type === "textarea" ? (
                       <>
                         <textarea rows={3} value={data[field.key] || ""}
-                          onChange={(e) => setData({ ...data, [field.key]: e.target.value })}
-                          className={inputClass + " resize-none"} />
+                          onChange={(e) => {
+                            setData({ ...data, [field.key]: e.target.value });
+                            e.target.style.height = "auto";
+                            e.target.style.height = `${e.target.scrollHeight}px`;
+                          }}
+                          onFocus={(e) => { e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }}
+                          className={inputClass + " resize-none overflow-hidden"} />
                         <p className="text-xs text-gray-400 mt-1 text-left">{(data[field.key] || "").length} حرف</p>
                       </>
                     ) : (
