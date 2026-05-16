@@ -38,6 +38,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminAccounting from "./pages/admin/AdminAccounting";
+import AdminChangelog from "./pages/admin/AdminChangelog";
 
 // Tasks
 import TasksPage from "./pages/tasks/TasksPage";
@@ -108,6 +109,10 @@ export default function App() {
                 <Route path="tasks" element={<TasksPage />} />
                 <Route path="profile" element={<StaffProfile />} />
                 <Route path="accounting" element={<AdminAccounting />} />
+                <Route path="projects" element={<AdminProjects />} />
+                <Route path="units" element={<AdminUnits />} />
+                <Route path="leads" element={<AdminLeads />} />
+                <Route path="blogs" element={<AdminBlogs />} />
               </Route>
 
               {/* Admin Dashboard */}
@@ -127,6 +132,7 @@ export default function App() {
                 <Route path="tasks" element={<AdminTasks />} />
                 {/* Accounting — admin + accounts dept */}
                 <Route path="accounting" element={<AdminAccounting />} />
+                <Route path="changelog" element={<AdminOnlyRoute><AdminChangelog /></AdminOnlyRoute>} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

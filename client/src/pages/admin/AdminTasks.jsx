@@ -158,6 +158,7 @@ export default function AdminTasks() {
   const [search,     setSearch]     = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selected,   setSelected]   = useState(new Set());
 
   const canManage = ["admin", "supervisor", "manager"].includes(user?.role);
   const canSeeAll = ["admin", "supervisor"].includes(user?.role);
@@ -190,11 +191,39 @@ export default function AdminTasks() {
     return matchSearch && matchDept && matchStatus;
   });
 
-  // Stats by dept
+  // Stats by dept — include completion percentage
   const deptStats = Object.keys(DEPARTMENTS).reduce((acc, d) => {
-    acc[d] = tasks.filter((t) => t.department === d).length;
+    const total = tasks.filter((t) => t.department === d).length;
+    const done  = tasks.filter((t) => t.department === d && t.status === "done").length;
+    acc[d] = { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
     return acc;
   }, {});
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((t) => t._id)));
+  };
+
+  const bulkStatus = async (status) => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    try {
+      await Promise.all(ids.map((id) => api.put(`/tasks/${id}`, { status })));
+      setTasks((p) => p.map((t) => ids.includes(t._id) ? { ...t, status } : t));
+      setSelected(new Set());
+      toast.success(`تم تحديث ${ids.length} مهمة`);
+    } catch {
+      toast.error("فشل التحديث المجمّع");
+    }
+  };
 
   const openCreate = () => {
     setEditItem(null);
@@ -287,8 +316,17 @@ export default function AdminTasks() {
               className={`bg-white dark:bg-gray-800 rounded-xl border p-3 text-center transition-all ${
                 deptFilter === k ? "border-[#2d5d89] ring-2 ring-[#2d5d89]/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
               }`}>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">{deptStats[k] || 0}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">{deptStats[k]?.total || 0}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">{v}</p>
+              {deptStats[k]?.total > 0 && (
+                <div className="mt-1.5">
+                  <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full transition-all"
+                      style={{ width: `${deptStats[k].pct}%` }} />
+                  </div>
+                  <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{deptStats[k].pct}%</p>
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -325,6 +363,34 @@ export default function AdminTasks() {
         )}
       </div>
 
+      {/* ── Bulk actions ── */}
+      {canManage && selected.size > 0 && (
+        <div className="bg-[#2d5d89]/5 border border-[#2d5d89]/20 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-bold text-[#2d5d89]">
+            تم تحديد {selected.size} مهمة
+          </span>
+          <div className="mr-auto flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-gray-500">تغيير الحالة:</span>
+            <button onClick={() => bulkStatus("pending")}
+              className="px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs font-medium">
+              معلق
+            </button>
+            <button onClick={() => bulkStatus("in_progress")}
+              className="px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium">
+              جارٍ
+            </button>
+            <button onClick={() => bulkStatus("done")}
+              className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium">
+              مكتمل
+            </button>
+            <button onClick={() => setSelected(new Set())}
+              className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50">
+              إلغاء
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Tasks list ── */}
       {loading ? (
         <div className="space-y-2">
@@ -343,6 +409,14 @@ export default function AdminTasks() {
             <table className="w-full text-sm" dir="rtl">
               <thead className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
                 <tr className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  {canManage && (
+                    <th className="text-right px-3 py-3 w-10">
+                      <input type="checkbox"
+                        checked={filtered.length > 0 && selected.size === filtered.length}
+                        onChange={toggleSelectAll}
+                        className="rounded accent-[#2d5d89] cursor-pointer" />
+                    </th>
+                  )}
                   <th className="text-right px-4 py-3">المهمة</th>
                   <th className="text-right px-4 py-3 hidden sm:table-cell">القسم</th>
                   <th className="text-right px-4 py-3">الحالة</th>
@@ -359,7 +433,16 @@ export default function AdminTasks() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${
+                        selected.has(task._id) ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                      }`}>
+                      {canManage && (
+                        <td className="px-3 py-3 w-10">
+                          <input type="checkbox" checked={selected.has(task._id)}
+                            onChange={() => toggleSelect(task._id)}
+                            className="rounded accent-[#2d5d89] cursor-pointer" />
+                        </td>
+                      )}
                       {/* Title */}
                       <td className="px-4 py-3">
                         <p className="font-medium text-gray-900 dark:text-white">{task.title}</p>

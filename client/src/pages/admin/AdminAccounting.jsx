@@ -368,46 +368,51 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [importing, setImporting] = useState(false);
   const [activeTab, setActiveTab] = useState("table"); // "table" | "audit"
+  const [quickFilter, setQuickFilter] = useState("");
+  const [notePopover, setNotePopover] = useState(null); // { rowId, value }
   const fileInputRef = useRef(null);
 
   const cols = sheet.columns || [];
   const isAdmin = user?.role === "admin";
 
-  // ── inline editing ──
-  const startEdit = (rowIdx, colKey) => {
-    setEditCell({ rowIdx, colKey });
-    setCellVal(rows[rowIdx]?.cells?.[colKey] ?? "");
+  // ── inline editing (keyed by rowId) ──
+  const startEdit = (rowId, colKey) => {
+    const row = rows.find((r) => r._id === rowId);
+    setEditCell({ rowId, colKey });
+    setCellVal(row?.cells?.[colKey] ?? "");
   };
 
-  const commitCell = async (rowIdx, colKey, val) => {
-    const row = rows[rowIdx];
+  const commitCell = async (rowId, colKey, val) => {
+    const row = rows.find((r) => r._id === rowId);
     if (!row) return;
-    const newCells = { ...Object.fromEntries(Object.entries(row.cells || {})), [colKey]: val };
-    const updated = rows.map((r, i) => i === rowIdx ? { ...r, cells: newCells } : r);
-    setRows(updated);
+    const newCells = { ...(row.cells || {}), [colKey]: val };
+    setRows((prev) => prev.map((r) => r._id === rowId ? { ...r, cells: newCells } : r));
     setEditCell(null);
     try {
-      await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${row._id}`, { cells: newCells });
+      await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}`, { cells: newCells });
     } catch { toast.error("فشل حفظ الخلية"); }
   };
 
   const handleCellBlur = () => {
-    if (editCell) commitCell(editCell.rowIdx, editCell.colKey, cellVal);
+    if (editCell) commitCell(editCell.rowId, editCell.colKey, cellVal);
   };
 
   const handleCellKey = (e) => {
-    if (e.key === "Enter") { e.preventDefault(); commitCell(editCell.rowIdx, editCell.colKey, cellVal); }
+    if (!editCell) return;
+    if (e.key === "Enter") { e.preventDefault(); commitCell(editCell.rowId, editCell.colKey, cellVal); }
     if (e.key === "Escape") setEditCell(null);
     if (e.key === "Tab") {
       e.preventDefault();
       const colIdx = cols.findIndex((c) => c.key === editCell.colKey);
       const nextColIdx = colIdx + 1;
+      const curIdx = filteredRows.findIndex((r) => r._id === editCell.rowId);
       if (nextColIdx < cols.length) {
-        commitCell(editCell.rowIdx, editCell.colKey, cellVal);
-        setTimeout(() => startEdit(editCell.rowIdx, cols[nextColIdx].key), 0);
-      } else if (editCell.rowIdx + 1 < rows.length) {
-        commitCell(editCell.rowIdx, editCell.colKey, cellVal);
-        setTimeout(() => startEdit(editCell.rowIdx + 1, cols[0].key), 0);
+        commitCell(editCell.rowId, editCell.colKey, cellVal);
+        setTimeout(() => startEdit(editCell.rowId, cols[nextColIdx].key), 0);
+      } else if (curIdx + 1 < filteredRows.length) {
+        commitCell(editCell.rowId, editCell.colKey, cellVal);
+        const nextRowId = filteredRows[curIdx + 1]._id;
+        setTimeout(() => startEdit(nextRowId, cols[0].key), 0);
       }
     }
   };
@@ -456,8 +461,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   };
 
   const toggleAll = () => {
-    if (selected.size === rows.length) setSelected(new Set());
-    else setSelected(new Set(rows.map((r) => r._id)));
+    const visibleIds = (quickFilter.trim()
+      ? rows.filter((r) => {
+          const q = quickFilter.toLowerCase();
+          return Object.values(r.cells || {}).some((v) => String(v ?? "").toLowerCase().includes(q));
+        })
+      : rows).map((r) => r._id);
+    const allSelected = visibleIds.every((id) => selected.has(id));
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(visibleIds));
   };
 
   // ── Excel Import ──
@@ -512,31 +524,77 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     }
   };
 
-  // ── print ──
-  const handlePrint = () => {
-    const printContent = printRef.current?.innerHTML;
+  // ── print (all or selected only) ──
+  const handlePrint = (onlySelected = false) => {
+    const targetRows = onlySelected
+      ? rows.filter((r) => selected.has(r._id))
+      : rows;
+    if (targetRows.length === 0) { toast.error("لا توجد صفوف للطباعة"); return; }
+
+    const headHtml = `<tr>${cols.map((c) => `<th>${c.label}</th>`).join("")}</tr>`;
+    const bodyHtml = targetRows.map((row) => {
+      const cells = cols.map((c) => `<td>${formatCell(row.cells?.[c.key] ?? "", c.type) || ""}</td>`).join("");
+      return `<tr>${cells}</tr>`;
+    }).join("");
+
+    // Totals row
+    const totalsCells = cols.map((c, i) => {
+      if (i === 0) return `<td><b>الإجمالي</b></td>`;
+      const t = sumColumn(targetRows, c.key, c.type);
+      return `<td>${t !== null ? formatCell(t, c.type) : ""}</td>`;
+    }).join("");
+    const totalsHtml = `<tr class="total-row">${totalsCells}</tr>`;
+
     const win = window.open("", "_blank");
     win.document.write(`
       <!DOCTYPE html><html dir="rtl"><head>
         <meta charset="UTF-8"><title>${sheet.name}</title>
         <style>
           body { font-family: 'Segoe UI', sans-serif; direction: rtl; padding: 20px; font-size: 12px; }
-          h2 { color: #2d5d89; margin-bottom: 16px; }
+          h2 { color: #2d5d89; margin-bottom: 4px; }
+          .meta { color: #64748b; font-size: 11px; margin-bottom: 16px; }
           table { width: 100%; border-collapse: collapse; }
           th { background: #2d5d89; color: white; padding: 8px 12px; text-align: right; font-size: 12px; }
-          td { padding: 6px 12px; border-bottom: 1px solid #e5e7eb; font-size: 11px; }
+          td { padding: 6px 12px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: right; }
           tr:nth-child(even) td { background: #f8fafc; }
-          .total-row td { font-weight: bold; background: #f1f5f9; border-top: 2px solid #2d5d89; }
+          .total-row td { font-weight: bold; background: #dbeafe; border-top: 2px solid #2d5d89; color: #2d5d89; }
           @media print { button { display: none; } }
         </style>
       </head><body>
         <h2>${sheet.name}</h2>
-        ${printContent || ""}
+        <p class="meta">${onlySelected ? `طباعة الصفوف المحددة (${targetRows.length})` : `كل الصفوف (${targetRows.length})`} — ${new Date().toLocaleString("ar-EG")}</p>
+        <table>
+          <thead>${headHtml}</thead>
+          <tbody>${bodyHtml}${totalsHtml}</tbody>
+        </table>
       </body></html>
     `);
     win.document.close();
     win.print();
   };
+
+  // ── save row note ──
+  const saveRowNote = async (rowId, value) => {
+    const row = rows.find((r) => r._id === rowId);
+    if (!row) return;
+    const newCells = { ...(row.cells || {}), _notes: value };
+    setRows((prev) => prev.map((r) => r._id === rowId ? { ...r, cells: newCells } : r));
+    setNotePopover(null);
+    try {
+      await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}`, { cells: newCells });
+      toast.success("تم حفظ الملاحظة");
+    } catch { toast.error("فشل حفظ الملاحظة"); }
+  };
+
+  // ── quick filter ──
+  const filteredRows = quickFilter.trim()
+    ? rows.filter((r) => {
+        const q = quickFilter.toLowerCase();
+        return Object.values(r.cells || {}).some((v) =>
+          String(v ?? "").toLowerCase().includes(q)
+        );
+      })
+    : rows;
 
   // ── export CSV ──
   const exportCsv = () => {
@@ -579,10 +637,16 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         <>
           {/* Toolbar */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <span className="text-sm text-gray-500">{rows.length} سطر</span>
+            <span className="text-sm text-gray-500">{filteredRows.length} / {rows.length} سطر</span>
             {selected.size > 0 && (
               <span className="text-sm font-medium text-[#2d5d89]">({selected.size} محدد)</span>
             )}
+            <div className="relative flex-1 min-w-40 max-w-xs">
+              <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
+                placeholder="فلتر سريع..."
+                className="w-full pr-8 pl-2 py-1.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+            </div>
             <div className="mr-auto flex items-center gap-2 flex-wrap">
               {selected.size > 0 && (
                 <button onClick={() => setConfirmBulk(true)}
@@ -594,9 +658,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium">
                 <Download className="w-3.5 h-3.5" /> {selected.size > 0 ? "تحميل المحدد" : "CSV"}
               </button>
-              <button onClick={handlePrint}
+              {selected.size > 0 && (
+                <button onClick={() => handlePrint(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
+                  <Printer className="w-3.5 h-3.5" /> طباعة المحدد ({selected.size})
+                </button>
+              )}
+              <button onClick={() => handlePrint(false)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium">
-                <Printer className="w-3.5 h-3.5" /> طباعة
+                <Printer className="w-3.5 h-3.5" /> طباعة الكل
               </button>
               <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium cursor-pointer ${importing ? "opacity-50 pointer-events-none" : ""}`}>
                 <Upload className="w-3.5 h-3.5" />
@@ -614,10 +684,11 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
             <div ref={printRef}>
               <table className="w-full min-w-max text-sm">
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-[#2d5d89] text-white">
-                    <th className="w-10 px-3 py-3">
-                      <input type="checkbox" checked={rows.length > 0 && selected.size === rows.length}
+                <thead className="sticky top-0 z-10 bg-[#2d5d89]">
+                  <tr className="bg-[#2d5d89] text-white sticky top-0 z-10">
+                    <th className="w-10 px-3 py-3 sticky top-0 bg-[#2d5d89] z-10">
+                      <input type="checkbox"
+                        checked={filteredRows.length > 0 && filteredRows.every((r) => selected.has(r._id))}
                         onChange={toggleAll}
                         className="rounded border-white/40 text-white accent-white cursor-pointer" />
                     </th>
@@ -631,7 +702,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.length === 0 && !addingRow && (
+                  {filteredRows.length === 0 && !addingRow && (
                     <tr>
                       <td colSpan={cols.length + 2} className="text-center py-12 text-gray-400 text-sm">
                         <Table2 className="w-10 h-10 mx-auto mb-2 text-gray-300" />
@@ -639,7 +710,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                       </td>
                     </tr>
                   )}
-                  {rows.map((row, rowIdx) => (
+                  {filteredRows.map((row, rowIdx) => (
                     <tr key={row._id}
                       className={`border-b border-gray-100 transition-colors group ${
                         selected.has(row._id)
@@ -651,12 +722,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           className="rounded cursor-pointer accent-[#2d5d89]" />
                       </td>
                       {cols.map((col) => {
-                        const isEditing = editCell?.rowIdx === rowIdx && editCell?.colKey === col.key;
+                        const isEditing = editCell?.rowId === row._id && editCell?.colKey === col.key;
                         const val = row.cells?.[col.key] ?? "";
                         return (
                           <td key={col.key} style={{ minWidth: col.width || 120 }}
                             className="px-1 py-1 cursor-pointer"
-                            onDoubleClick={() => startEdit(rowIdx, col.key)}>
+                            onDoubleClick={() => startEdit(row._id, col.key)}>
                             {isEditing ? (
                               <CellInput col={col} value={cellVal} onChange={setCellVal}
                                 onBlur={handleCellBlur} onKeyDown={handleCellKey} />
@@ -668,11 +739,42 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           </td>
                         );
                       })}
-                      <td className="px-2 py-1 w-12">
-                        <button onClick={() => deleteRow(row._id)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                      <td className="px-2 py-1 w-20 relative">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => setNotePopover({ rowId: row._id, value: row.cells?._notes || "" })}
+                            title={row.cells?._notes || "إضافة ملاحظة"}
+                            className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                              row.cells?._notes
+                                ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
+                                : "text-gray-300 hover:text-amber-500 hover:bg-amber-50 opacity-0 group-hover:opacity-100"
+                            }`}>
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                          <button onClick={() => deleteRow(row._id)}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        {notePopover?.rowId === row._id && (
+                          <div className="absolute left-0 top-9 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 w-64" dir="rtl">
+                            <label className="block text-xs font-bold text-gray-700 mb-1.5">ملاحظة السطر</label>
+                            <textarea
+                              value={notePopover.value}
+                              onChange={(e) => setNotePopover({ ...notePopover, value: e.target.value })}
+                              rows={3}
+                              className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none"
+                              placeholder="اكتب ملاحظة..."
+                              autoFocus
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                              <button onClick={() => setNotePopover(null)}
+                                className="px-2 py-1 text-xs rounded-lg border border-gray-200 hover:bg-gray-50">إلغاء</button>
+                              <button onClick={() => saveRowNote(row._id, notePopover.value)}
+                                className="px-3 py-1 text-xs rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">حفظ</button>
+                            </div>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -710,15 +812,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   )}
 
                   {/* Totals row */}
-                  {rows.length > 0 && (
-                    <tr className="bg-[#f1f5f9] font-bold border-t-2 border-[#2d5d89]/30">
-                      <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap" colSpan={2}>
+                  {filteredRows.length > 0 && (
+                    <tr className="bg-blue-50 font-bold border-t-2 border-[#2d5d89] sticky bottom-0">
+                      <td className="px-3 py-3 text-xs text-[#2d5d89] whitespace-nowrap" colSpan={2}>
                         الإجمالي
                       </td>
                       {cols.slice(1).map((col) => {
-                        const total = sumColumn(rows, col.key, col.type);
+                        const total = sumColumn(filteredRows, col.key, col.type);
                         return (
-                          <td key={col.key} className="px-3 py-2 text-sm text-[#2d5d89] whitespace-nowrap">
+                          <td key={col.key} className="px-3 py-3 text-sm text-[#2d5d89] whitespace-nowrap font-bold">
                             {total !== null ? formatCell(total, col.type) : ""}
                           </td>
                         );

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, LogOut, CheckCircle2, Clock, AlertCircle, Trash2, Edit2,
   User, Flag, X, ChevronDown, AlignLeft, Layers, Building2,
-  ChevronUp, MoreVertical, ArrowRight,
+  ChevronUp, MoreVertical, ArrowRight, Check,
 } from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -37,11 +37,11 @@ const STATUS_COLORS = {
   in_progress: "bg-blue-100   text-blue-700   border-blue-200",
   done:        "bg-green-100  text-green-700  border-green-200",
 };
-const PRIORITY_LABELS = { low: "منخفض", medium: "متوسط", high: "عالي" };
+const PRIORITY_LABELS = { low: "منخفضة", medium: "متوسطة", high: "عالية" };
 const PRIORITY_COLORS = {
-  low:    "bg-gray-100   text-gray-500",
-  medium: "bg-orange-100 text-orange-600",
-  high:   "bg-red-100    text-red-600",
+  low:    "bg-green-100  text-green-700  border-green-200",
+  medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  high:   "bg-red-100    text-red-700    border-red-200",
 };
 export const ROLE_LABELS = {
   admin:      "مدير عام",
@@ -187,10 +187,19 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }) {
           <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[task.status]}`}>
             {STATUS_LABELS[task.status]}
           </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${PRIORITY_COLORS[task.priority]}`}>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 border ${PRIORITY_COLORS[task.priority]}`}>
             <Flag className="w-3 h-3" />{PRIORITY_LABELS[task.priority]}
           </span>
           <Countdown dueDate={task.dueDate} compact />
+          {task.status !== "done" && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onStatusChange(task._id, "done"); }}
+              className="ml-auto text-xs px-2 py-0.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center gap-1 transition-colors active:scale-95"
+              title="إنجاز سريع"
+            >
+              <Check className="w-3 h-3" />إنجاز
+            </button>
+          )}
         </div>
 
         {/* Due date */}
@@ -424,6 +433,7 @@ export default function TasksPage() {
   const [editItem,   setEditItem]   = useState(null);
   const [statusTab,  setStatusTab]  = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
   const canManage  = ["admin", "supervisor", "manager"].includes(user?.role);
   const canSeeAll  = ["admin", "supervisor"].includes(user?.role);
@@ -448,10 +458,15 @@ export default function TasksPage() {
   useEffect(() => { loadTasks(); loadUsers(); }, [loadTasks, loadUsers]);
 
   const filtered = tasks.filter((t) => {
-    const statusOk = statusTab === "all" || t.status === statusTab;
-    const deptOk   = deptFilter === "all" || t.department === deptFilter;
-    return statusOk && deptOk;
+    const statusOk   = statusTab === "all" || t.status === statusTab;
+    const deptOk     = deptFilter === "all" || t.department === deptFilter;
+    const priorityOk = priorityFilter === "all" || t.priority === priorityFilter;
+    return statusOk && deptOk && priorityOk;
   });
+
+  const doneCount  = tasks.filter((t) => t.status === "done").length;
+  const totalCount = tasks.length;
+  const donePct    = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
 
   const counts = {
     all:         tasks.length,
@@ -540,6 +555,22 @@ export default function TasksPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+        {/* ── Progress bar ── */}
+        {totalCount > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <div className="flex items-center justify-between mb-2 text-sm">
+              <span className="font-bold text-gray-900">{doneCount} من {totalCount} مهمة مكتملة</span>
+              <span className="text-[#2d5d89] font-bold">{donePct}%</span>
+            </div>
+            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-l from-emerald-500 to-[#2d5d89] rounded-full transition-all duration-500"
+                style={{ width: `${donePct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* ── Status tabs ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {statusTabs.map(({ key, label, count, icon: Icon, cls }) => (
@@ -552,6 +583,26 @@ export default function TasksPage() {
               <Icon className={`w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 ${cls}`} />
               <p className="text-lg sm:text-2xl font-bold text-gray-900 leading-none">{count}</p>
               <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">{label}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* ── Priority filter ── */}
+        <div className="flex flex-wrap gap-2 pb-1 items-center">
+          <span className="text-xs text-gray-400 font-medium">الأولوية:</span>
+          {[
+            ["all", "الكل", "bg-gray-100 text-gray-600 border-gray-200"],
+            ["high", "عالية", "bg-red-100 text-red-700 border-red-200"],
+            ["medium", "متوسطة", "bg-yellow-100 text-yellow-700 border-yellow-200"],
+            ["low", "منخفضة", "bg-green-100 text-green-700 border-green-200"],
+          ].map(([k, v, cls]) => (
+            <button key={k} onClick={() => setPriorityFilter(k)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
+                priorityFilter === k
+                  ? "bg-[#2d5d89] text-white border-[#2d5d89]"
+                  : cls
+              }`}>
+              {v}
             </button>
           ))}
         </div>
