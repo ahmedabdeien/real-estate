@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search, Phone, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Phone, Mail, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -8,6 +8,7 @@ import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
+import HelpCard from "../../Components/UI/HelpCard";
 import { useToast } from "../../context/ToastContext";
 import { TrendingUp } from "lucide-react";
 
@@ -117,8 +118,51 @@ export default function AdminLeads() {
   const sourceAr = { website: "الموقع", whatsapp: "واتساب", phone: "هاتف", referral: "إحالة", campaign: "حملة", other: "أخرى" };
   const statusAr = { new: "جديد", contacted: "تم التواصل", interested: "مهتم", not_interested: "غير مهتم", converted: "محوّل", lost: "خسرناه" };
 
+  function sendWhatsApp(lead) {
+    let phone = (lead.phone || "").replace(/[\s\-\(\)]/g, "");
+    if (phone.startsWith("0")) phone = "20" + phone.slice(1);
+    if (!phone.startsWith("+") && !phone.startsWith("20")) phone = "20" + phone;
+    phone = phone.replace(/^\+/, "");
+
+    const statusArMsg = {
+      new: "جديد", contacted: "تم التواصل", interested: "مهتم",
+      not_interested: "غير مهتم", converted: "تحوّل لعميل", lost: "خسرنا"
+    };
+    const sourceArMsg = {
+      website: "الموقع", whatsapp: "واتساب", phone: "هاتف",
+      referral: "إحالة", campaign: "حملة", other: "أخرى"
+    };
+
+    const date = new Date(lead.createdAt).toLocaleDateString("ar-EG", {
+      year: "numeric", month: "long", day: "numeric"
+    });
+
+    const text = `🏢 *الصرح للتطوير العقاري*
+━━━━━━━━━━━━━━━━━━━
+👤 *الاسم:* ${lead.name || "—"}
+📱 *الهاتف:* ${lead.phone || "—"}
+📧 *البريد:* ${lead.email || "—"}
+🏠 *المشروع:* ${lead.interestedProject?.name?.ar || lead.interestedProject?.name || "—"}
+📥 *المصدر:* ${sourceArMsg[lead.source] || lead.source || "—"}
+📊 *الحالة:* ${statusArMsg[lead.status] || lead.status || "—"}
+💬 *الرسالة:* ${lead.message || "لا توجد رسالة"}
+━━━━━━━━━━━━━━━━━━━
+📅 ${date}`;
+
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
+  }
+
   return (
     <div className="space-y-5">
+      <HelpCard
+        title="دليل إدارة العملاء"
+        tips={[
+          "اضغط أيقونة واتساب لإرسال رسالة تلقائية للعميل بتفاصيله كاملة",
+          "غيّر حالة العميل مباشرة من القائمة المنسدلة في الجدول",
+          "يمكن تعيين العميل لموظف مبيعات لمتابعته",
+          "استخدم الفلتر للبحث حسب الحالة أو الاسم أو الهاتف",
+        ]}
+      />
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">العملاء المحتملون</h1>
@@ -214,6 +258,10 @@ export default function AdminLeads() {
                       <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-xs text-gray-400">{new Date(l.createdAt).toLocaleDateString("ar-EG")}</td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1">
+                          <button onClick={() => sendWhatsApp(l)} title="إرسال واتساب"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 transition-colors">
+                            <MessageCircle className="w-4 h-4" />
+                          </button>
                           <button onClick={() => openEdit(l)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
                             <Pencil className="w-4 h-4" />

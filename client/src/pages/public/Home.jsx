@@ -45,7 +45,15 @@ function HeroSearch() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (query.trim()) navigate(`/projects?search=${encodeURIComponent(query.trim())}`);
+    if (!query.trim()) return;
+    setOpen(false);
+    // If any result is a unit, prefer units page; otherwise default to projects
+    const hasUnit = results.some((r) => r.type === "unit");
+    if (hasUnit) {
+      navigate(`/units?search=${encodeURIComponent(query.trim())}`);
+    } else {
+      navigate(`/projects?search=${encodeURIComponent(query.trim())}`);
+    }
   };
 
   const clear = () => { setQuery(""); setResults([]); setOpen(false); inputRef.current?.focus(); };
@@ -106,6 +114,15 @@ function HeroSearch() {
                 </span>
               </Link>
             ))}
+            {results.some((r) => r.type === "unit") && (
+              <Link
+                to={`/units?search=${encodeURIComponent(query)}`}
+                className="block w-full text-center text-xs text-[#2d5d89] py-2 border-t hover:bg-gray-50 font-medium"
+                onClick={() => setOpen(false)}
+              >
+                عرض كل نتائج الوحدات ←
+              </Link>
+            )}
           </motion.div>
         )}
         {open && results.length === 0 && !searching && query.length >= 2 && (
