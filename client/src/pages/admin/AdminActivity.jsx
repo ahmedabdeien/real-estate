@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw } from "lucide-react";
+import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw, Download, Printer } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import EmptyState from "../../Components/UI/EmptyState";
@@ -52,6 +52,27 @@ export default function AdminActivity() {
 
   useEffect(() => { load(); }, [page]);
 
+  const exportCSV = () => {
+    const rows = [
+      ["المستخدم", "الإجراء", "الكيان", "التفاصيل", "التاريخ"],
+      ...activities.map((a) => [
+        a.user?.name || "—",
+        a.action,
+        a.entity || "—",
+        a.details || "—",
+        new Date(a.createdAt).toLocaleString("ar-EG"),
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "activity_log.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => window.print();
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -59,11 +80,23 @@ export default function AdminActivity() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">سجل النشاط</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} حدث مسجّل</p>
         </div>
-        <button onClick={() => { setPage(1); load(); }}
-          className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-          <RefreshCw className="w-4 h-4" />
-          تحديث
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={exportCSV}
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Download className="w-4 h-4" />
+            تصدير CSV
+          </button>
+          <button onClick={handlePrint}
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Printer className="w-4 h-4" />
+            طباعة
+          </button>
+          <button onClick={() => { setPage(1); load(); }}
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <RefreshCw className="w-4 h-4" />
+            تحديث
+          </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">

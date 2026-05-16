@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Trash2, Upload, Image as ImageIcon, Copy, Check, CloudUpload, AlertCircle } from "lucide-react";
+import { Trash2, Upload, Image as ImageIcon, Copy, Check, CloudUpload, AlertCircle, Cloud } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadToCloudinary, getCloudinaryThumb } from "../../lib/cloudinary";
 import api from "../../api/axios";
@@ -7,6 +7,7 @@ import ConfirmModal from "../../Components/UI/ConfirmModal";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
+import HelpCard from "../../Components/UI/HelpCard";
 import { useToast } from "../../context/ToastContext";
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -86,6 +87,13 @@ export default function AdminMedia() {
   const [copied, setCopied]     = useState(null);
   const [uploadQueue, setUploadQueue] = useState([]);
   const [isDragging, setIsDragging]   = useState(false);
+  const [cloudUsage, setCloudUsage]   = useState(null);
+
+  useEffect(() => {
+    api.get("/media/cloudinary-usage")
+      .then((r) => setCloudUsage(r.data))
+      .catch(() => {});
+  }, []);
 
   const load = async () => {
     setLoading(true);
@@ -142,6 +150,12 @@ export default function AdminMedia() {
     setCopied(id); setTimeout(() => setCopied(null), 2000);
   };
 
+  function formatBytes(bytes) {
+    if (!bytes) return "0 MB";
+    const mb = bytes / (1024 * 1024);
+    return mb < 1024 ? `${mb.toFixed(1)} MB` : `${(mb / 1024).toFixed(2)} GB`;
+  }
+
   const confirmDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
@@ -172,6 +186,62 @@ export default function AdminMedia() {
         </button>
         <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={onFileInput} />
       </div>
+
+      {/* Cloudinary usage */}
+      {cloudUsage && (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Cloud className="w-5 h-5 text-[#2d5d89]" />
+              <h3 className="font-semibold text-gray-900 dark:text-white text-sm">مساحة Cloudinary</h3>
+            </div>
+            {cloudUsage.estimated && <span className="text-xs text-gray-400">(تقديرية)</span>}
+          </div>
+          {cloudUsage.usage ? (
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+                  <span>التخزين</span>
+                  <span>{formatBytes(cloudUsage.usage.storage_used)} / {formatBytes(cloudUsage.usage.storage_limit)}</span>
+                </div>
+                <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#2d5d89] rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (cloudUsage.usage.storage_used / cloudUsage.usage.storage_limit) * 100).toFixed(1)}%` }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
+                  <p className="text-lg font-bold text-[#2d5d89]">{cloudUsage.usage.credits_used}</p>
+                  <p className="text-[10px] text-gray-400">كريدت مستخدم</p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
+                  <p className="text-lg font-bold text-gray-700 dark:text-gray-300">{cloudUsage.usage.credits_limit - cloudUsage.usage.credits_used}</p>
+                  <p className="text-[10px] text-gray-400">كريدت متبقي</p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-2">
+                  <p className="text-lg font-bold text-gray-700 dark:text-gray-300">{cloudUsage.usage.media_count}</p>
+                  <p className="text-[10px] text-gray-400">وسائط</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">{cloudUsage.message || "جاري تحميل البيانات..."}</p>
+          )}
+        </div>
+      )}
+
+      <HelpCard
+        title="دليل مكتبة الوسائط"
+        tips={[
+          "اسحب الصور وأفلتها في منطقة الرفع أو انقر لاختيار ملفات",
+          "الحد الأقصى لحجم الملف 10 MB لكل صورة",
+          "انقر على أي صورة لنسخ رابطها مباشرة",
+          "الصور تُرفع على Cloudinary وتبقى متاحة دائماً",
+          "يمكنك رفع صور متعددة في آنٍ واحد",
+        ]}
+      />
 
       {/* Setup banner when no cloud name */}
       {!CLOUD_NAME && <SetupBanner />}

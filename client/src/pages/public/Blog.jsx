@@ -35,6 +35,7 @@ export default function BlogPage() {
     }
   };
 
+  useEffect(() => { document.title = "المقالات | الصرح للتطوير العقاري"; }, []);
   useEffect(() => { load(search, page); }, [page]);
 
   const handleSearchChange = (e) => {

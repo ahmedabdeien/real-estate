@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Building2, Users, Award, Target, Eye } from "lucide-react";
 import { useCms } from "../../hooks/useCms";
 
 export default function AboutPage() {
+  useEffect(() => { document.title = "عن الشركة | الصرح للتطوير العقاري"; }, []);
   const { data: content } = useCms("about", {
     title_ar: "عن الصرح للتطوير العقاري",
     body_ar: "الصرح للتطوير العقاري شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها.",

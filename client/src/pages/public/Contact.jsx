@@ -30,6 +30,8 @@ export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => { document.title = "تواصل معنا | الصرح للتطوير العقاري"; }, []);
+
   // Update form if user logs in after page load
   useEffect(() => {
     if (user) {

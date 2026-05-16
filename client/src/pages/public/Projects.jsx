@@ -43,6 +43,7 @@ export default function ProjectsPage() {
     }
   };
 
+  useEffect(() => { document.title = "المشاريع | الصرح للتطوير العقاري"; }, []);
   useEffect(() => { load(); }, [page, status]);
 
   return (

@@ -224,6 +224,8 @@ export default function HomePage() {
   });
   const { data: servicesCms } = useCms("home_services");
 
+  useEffect(() => { document.title = "الصرح للتطوير العقاري - الرئيسية"; }, []);
+
   useEffect(() => {
     api.get("/projects", { params: { featured: true, published: true, limit: 6 } })
       .then((r) => setProjects(r.data.projects || []))

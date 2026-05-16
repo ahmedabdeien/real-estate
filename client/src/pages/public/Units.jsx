@@ -56,6 +56,7 @@ export default function UnitsPage() {
     }
   };
 
+  useEffect(() => { document.title = "الوحدات | الصرح للتطوير العقاري"; }, []);
   useEffect(() => { load(); }, [page, status, project, search]);
   useEffect(() => {
     api.get("/projects", { params: { limit: 100, published: true } })

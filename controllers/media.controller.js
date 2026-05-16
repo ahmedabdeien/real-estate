@@ -33,6 +33,43 @@ export const uploadMedia = async (req, res) => {
   }
 };
 
+// GET /api/media/cloudinary-usage — fetch usage stats from Cloudinary
+export const getCloudinaryUsage = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false });
+
+    const cloudName = process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      const count = await Media.countDocuments();
+      return res.json({ success: true, estimated: true, count, message: "بيانات تقديرية — لم يتم إعداد Cloudinary API" });
+    }
+
+    const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/usage`, {
+      headers: { Authorization: `Basic ${auth}` },
+    });
+    const data = await response.json();
+
+    res.json({
+      success: true,
+      usage: {
+        storage_used: data.storage?.usage || 0,
+        storage_limit: data.storage?.limit || 25 * 1024 * 1024 * 1024,
+        bandwidth_used: data.bandwidth?.usage || 0,
+        credits_used: data.credits?.usage || 0,
+        credits_limit: data.credits?.limit || 25,
+        transformations: data.transformations?.usage || 0,
+        media_count: data.resources?.usage || 0,
+      },
+    });
+  } catch (err) {
+    res.json({ success: true, estimated: true, message: "تعذر جلب بيانات Cloudinary" });
+  }
+};
+
 // DELETE /api/media/:id — remove from DB (Firebase file deleted on frontend)
 export const deleteMedia = async (req, res) => {
   try {
