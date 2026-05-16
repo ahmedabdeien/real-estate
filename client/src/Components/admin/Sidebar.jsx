@@ -4,28 +4,40 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare, Calculator, History, UserCircle, Edit3
+  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 
 const navItems = [
-  { to: "/admin",           label: "لوحة التحكم",   icon: LayoutDashboard, exact: true, roles: ["admin", "supervisor"] },
-  { to: "/admin/projects",  label: "المشاريع",       icon: Building2,       roles: ["admin", "supervisor", "manager", "sales"] },
-  { to: "/admin/units",     label: "الوحدات",        icon: Home,            roles: ["admin", "supervisor", "manager", "sales"] },
-  { to: "/admin/leads",     label: "العملاء",        icon: TrendingUp,      roles: ["admin", "supervisor", "manager", "sales"] },
-  { to: "/admin/blogs",     label: "المقالات",       icon: FileText,        roles: ["admin", "supervisor", "manager", "sales"] },
-  { to: "/admin/tasks",     label: "إدارة المهام",   icon: CheckSquare,     roles: ["admin", "supervisor", "manager"] },
-  { to: "/admin/tasks",     label: "مهامي",          icon: CheckSquare,     roles: ["employee", "sales"] },
-  { to: "/admin/accounting",label: "الحسابات",      icon: Calculator,      show: (u) => u?.role === "admin" || u?.department === "accounts" },
-  { to: "/admin/content",   label: "المحتوى",        icon: Edit3,           roles: ["admin"] },
-  { to: "/admin/media",     label: "المكتبة",        icon: Image,           roles: ["admin"] },
-  { to: "/admin/careers",   label: "الوظائف",        icon: Briefcase,       roles: ["admin"] },
-  { to: "/admin/users",     label: "المستخدمين",     icon: Users,           roles: ["admin", "supervisor"] },
-  { to: "/admin/activity",  label: "سجل النشاط",    icon: Activity,        roles: ["admin", "supervisor"] },
-  { to: "/admin/settings",  label: "الإعدادات",      icon: Settings,        roles: ["admin"] },
-  { to: "/admin/profile",   label: "الملف الشخصي",  icon: UserCircle },
-  { to: "/admin/changelog", label: "التحديثات",     icon: History },
+  // Admin only - full dashboard
+  { to: "/admin",               label: "لوحة التحكم",      icon: LayoutDashboard, exact: true, show: (u) => u?.role === "admin" },
+
+  // Admin sees everything below too
+  { to: "/admin/projects",      label: "المشاريع",          icon: Building2,       show: (u) => ["admin","sales"].includes(u?.role) },
+  { to: "/admin/units",         label: "الوحدات",           icon: Home,            show: (u) => ["admin","sales"].includes(u?.role) },
+  { to: "/admin/leads",         label: "العملاء",           icon: TrendingUp,      show: (u) => ["admin","sales"].includes(u?.role) },
+  { to: "/admin/blogs",         label: "المقالات",          icon: FileText,        show: (u) => ["admin","supervisor","sales"].includes(u?.role) },
+
+  // Tasks - label differs by role
+  { to: "/admin/tasks",         label: "إدارة المهام",      icon: CheckSquare,     show: (u) => ["admin","supervisor"].includes(u?.role) },
+  { to: "/admin/tasks",         label: "مهامي",             icon: CheckSquare,     show: (u) => !["admin","supervisor"].includes(u?.role) && u?.role !== "viewer" },
+
+  // Accounting - admin OR accounts dept
+  { to: "/admin/accounting",    label: "الحسابات",          icon: Calculator,      show: (u) => u?.role === "admin" || u?.department === "accounts" },
+  { to: "/admin/accounting-records", label: "السجلات المحاسبية", icon: BookOpen,    show: (u) => u?.role === "admin" || u?.department === "accounts" },
+
+  // Admin only
+  { to: "/admin/content",       label: "المحتوى",           icon: Edit3,           show: (u) => u?.role === "admin" },
+  { to: "/admin/media",         label: "المكتبة",           icon: Image,           show: (u) => u?.role === "admin" },
+  { to: "/admin/careers",       label: "الوظائف",           icon: Briefcase,       show: (u) => u?.role === "admin" },
+  { to: "/admin/users",         label: "المستخدمين",        icon: Users,           show: (u) => u?.role === "admin" },
+  { to: "/admin/activity",      label: "سجل النشاط",        icon: Activity,        show: (u) => u?.role === "admin" },
+  { to: "/admin/settings",      label: "الإعدادات",         icon: Settings,        show: (u) => u?.role === "admin" },
+
+  // All authenticated roles
+  { to: "/admin/profile",       label: "الملف الشخصي",     icon: UserCircle,      show: (u) => u?.role !== "viewer" },
+  { to: "/admin/changelog",     label: "التحديثات",         icon: History,         show: (u) => u?.role !== "viewer" },
 ];
 
 const roleLabels = {
@@ -56,11 +68,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     }
   };
 
-  const filtered = navItems.filter((item) => {
-    if (item.show) return item.show(user);
-    if (item.roles && !item.roles.includes(user?.role)) return false;
-    return true;
-  });
+  const filtered = navItems.filter((item) => item.show ? item.show(user) : true);
 
   return (
     <>
@@ -112,9 +120,9 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-          {filtered.map(({ to, label, icon: Icon, exact, external }) => (
+          {filtered.map(({ to, label, icon: Icon, exact, external }, idx) => (
             <NavLink
-              key={to}
+              key={`${to}-${idx}`}
               to={to}
               end={exact}
               onClick={handleNavClick}

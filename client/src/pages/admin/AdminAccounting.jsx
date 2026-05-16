@@ -16,12 +16,39 @@ import { useAuth } from "../../context/AuthContext";
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 const COLUMN_TYPES = [
-  { value: "text",     label: "نص" },
-  { value: "number",   label: "رقم" },
-  { value: "currency", label: "عملة (ج.م)" },
-  { value: "date",     label: "تاريخ" },
-  { value: "select",   label: "قائمة" },
+  { value: "text",       label: "نص" },
+  { value: "number",     label: "رقم" },
+  { value: "currency",   label: "عملة (ج.م)" },
+  { value: "date",       label: "تاريخ" },
+  { value: "select",     label: "قائمة" },
+  { value: "percentage", label: "نسبة مئوية" },
+  { value: "formula",    label: "معادلة" },
 ];
+
+// Safe formula evaluator: substitutes column keys with their numeric values
+// then evaluates a restricted math expression (digits + + - * / . ( ) only)
+function evaluateFormula(formula, cells) {
+  if (!formula) return "—";
+  let expr = String(formula);
+  // sort keys longest-first so col10 isn't partially replaced when col1 exists
+  const keys = Object.keys(cells || {}).sort((a, b) => b.length - a.length);
+  keys.forEach((key) => {
+    const num = parseFloat(cells[key]);
+    const safe = isFinite(num) ? num : 0;
+    expr = expr.split(key).join(`(${safe})`);
+  });
+  // remove any remaining identifiers (other col refs) -> 0
+  expr = expr.replace(/[a-zA-Z_][a-zA-Z0-9_]*/g, "0");
+  if (!/^[\d\s\+\-\*\/\.\(\)]+$/.test(expr)) return "—";
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict"; return (' + expr + ')')();
+    if (!isFinite(result)) return "—";
+    return result;
+  } catch {
+    return "—";
+  }
+}
 
 const LEDGER_COLORS = [
   "#2d5d89", "#1a7a4a", "#8b2500", "#5b2d89",
@@ -55,18 +82,61 @@ const ACTION_LABELS = { create: "أضاف", update: "عدّل", delete: "حذف"
 
 function formatCell(val, type) {
   if (val === undefined || val === null || val === "") return "";
-  if (type === "currency") return Number(val).toLocaleString("ar-EG") + " ج";
-  if (type === "number")   return Number(val).toLocaleString("ar-EG");
-  if (type === "date")     return val ? new Date(val).toLocaleDateString("ar-EG") : "";
+  if (type === "currency")   return Number(val).toLocaleString("ar-EG") + " ج";
+  if (type === "number")     return Number(val).toLocaleString("ar-EG");
+  if (type === "percentage") return Number(val).toLocaleString("ar-EG", { maximumFractionDigits: 2 }) + " %";
+  if (type === "date")       return val ? new Date(val).toLocaleDateString("ar-EG") : "";
   return val;
 }
 
-function sumColumn(rows, colKey, type) {
-  if (!["currency", "number"].includes(type)) return null;
+// Returns the displayable cell value for a row, accounting for formula columns.
+function getDisplayCellValue(row, col) {
+  if (col.type === "formula") {
+    const v = evaluateFormula(col.formula || "", row?.cells || {});
+    return v;
+  }
+  return row?.cells?.[col.key] ?? "";
+}
+
+function sumColumn(rows, colKey, type, col) {
+  if (!["currency", "number", "percentage", "formula"].includes(type)) return null;
   return rows.reduce((acc, r) => {
-    const v = r.cells?.[colKey];
-    return acc + (v ? Number(v) : 0);
+    let v;
+    if (type === "formula" && col) {
+      const computed = evaluateFormula(col.formula || "", r.cells || {});
+      v = typeof computed === "number" ? computed : 0;
+    } else {
+      const raw = r.cells?.[colKey];
+      v = raw ? Number(raw) : 0;
+    }
+    return acc + (isFinite(v) ? v : 0);
   }, 0);
+}
+
+// Quick stats for a numeric/currency/percentage/formula column
+function colStats(rows, col) {
+  const isNumeric = ["currency", "number", "percentage", "formula"].includes(col.type);
+  if (!isNumeric) return null;
+  const nums = rows
+    .map((r) => {
+      if (col.type === "formula") {
+        const v = evaluateFormula(col.formula || "", r.cells || {});
+        return typeof v === "number" ? v : null;
+      }
+      const raw = r.cells?.[col.key];
+      const n = parseFloat(raw);
+      return isFinite(n) ? n : null;
+    })
+    .filter((n) => n !== null);
+  if (nums.length === 0) return { sum: 0, avg: 0, min: 0, max: 0, count: 0 };
+  const sum = nums.reduce((a, b) => a + b, 0);
+  return {
+    sum,
+    avg: sum / nums.length,
+    min: Math.min(...nums),
+    max: Math.max(...nums),
+    count: nums.length,
+  };
 }
 
 // ─── Modals ──────────────────────────────────────────────────────────────────
@@ -229,23 +299,40 @@ function SheetForm({ initial, onSave, onClose }) {
         </div>
         <div className="space-y-2 max-h-60 overflow-y-auto">
           {columns.map((col, i) => (
-            <div key={col.key} className="flex items-center gap-2 bg-gray-50 rounded-xl p-2">
-              <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
-              <input value={col.label} onChange={(e) => updateCol(i, "label", e.target.value)}
-                className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
-                placeholder="اسم العمود" />
-              <select value={col.type} onChange={(e) => updateCol(i, "type", e.target.value)}
-                className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
-                {COLUMN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-              {columns.length > 1 && (
-                <button onClick={() => removeCol(i)} className="text-red-400 hover:text-red-600 flex-shrink-0">
-                  <X className="w-4 h-4" />
-                </button>
+            <div key={col.key} className="bg-gray-50 rounded-xl p-2 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                <input value={col.label} onChange={(e) => updateCol(i, "label", e.target.value)}
+                  className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                  placeholder="اسم العمود" />
+                <select value={col.type} onChange={(e) => updateCol(i, "type", e.target.value)}
+                  className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+                  {COLUMN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+                <span className="px-2 py-1 rounded-lg bg-gray-200 text-gray-500 text-[10px] font-mono whitespace-nowrap">{col.key}</span>
+                {columns.length > 1 && (
+                  <button onClick={() => removeCol(i)} className="text-red-400 hover:text-red-600 flex-shrink-0">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {col.type === "formula" && (
+                <div className="pr-6 flex items-center gap-2">
+                  <span className="text-[10px] text-gray-500 font-bold">=</span>
+                  <input
+                    value={col.formula || ""}
+                    onChange={(e) => updateCol(i, "formula", e.target.value)}
+                    placeholder="مثال: col1 * col2 / 100"
+                    className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-blue-200 bg-white text-gray-900 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                  />
+                </div>
               )}
             </div>
           ))}
         </div>
+        <p className="text-[10px] text-gray-400 mt-2">
+          المعادلة: استخدم مفاتيح الأعمدة (مثلاً col1) مع العمليات الحسابية + − × ÷
+        </p>
       </div>
       <div className="flex gap-3 pt-2">
         <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
@@ -261,6 +348,15 @@ function SheetForm({ initial, onSave, onClose }) {
 // ─── Inline Cell Editor ──────────────────────────────────────────────────────
 
 function CellInput({ col, value, onChange, onBlur, onKeyDown }) {
+  if (col.type === "formula") {
+    // Formula columns are read-only — show computed value & close immediately
+    return (
+      <div onBlur={onBlur} tabIndex={0}
+        className="w-full h-full px-2 py-1 bg-gray-100 text-gray-500 text-sm flex items-center border-2 border-gray-300 rounded">
+        محسوب تلقائيًا
+      </div>
+    );
+  }
   if (col.type === "select") {
     return (
       <select value={value || ""} onChange={(e) => onChange(e.target.value)} onBlur={onBlur}
@@ -271,7 +367,8 @@ function CellInput({ col, value, onChange, onBlur, onKeyDown }) {
       </select>
     );
   }
-  const inputType = col.type === "date" ? "date" : col.type === "number" || col.type === "currency" ? "number" : "text";
+  const numericTypes = ["number", "currency", "percentage"];
+  const inputType = col.type === "date" ? "date" : numericTypes.includes(col.type) ? "number" : "text";
   return (
     <input type={inputType} value={value || ""} onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur} onKeyDown={onKeyDown} autoFocus
@@ -352,6 +449,66 @@ function AuditLogPanel() {
   );
 }
 
+// ─── Rates Panel ─────────────────────────────────────────────────────────────
+
+function RatesPanel({ rows, cols }) {
+  const numericCols = cols.filter((c) => ["currency", "number", "percentage", "formula"].includes(c.type));
+
+  if (numericCols.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-40">
+        <div className="text-center">
+          <BarChart3 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+          <p className="text-sm text-gray-400">لا توجد أعمدة رقمية لعرض المعدلات</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {numericCols.map((c) => {
+          const s = colStats(rows, c);
+          if (!s) return null;
+          return (
+            <div key={c.key} className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-bold text-gray-900 text-sm">{c.label}</h4>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                  {COLUMN_TYPES.find((t) => t.value === c.type)?.label}
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">المجموع:</span>
+                  <span className="font-bold text-[#2d5d89]">{formatCell(s.sum, c.type)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">المتوسط:</span>
+                  <span className="font-medium text-gray-700">{formatCell(s.avg, c.type)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">أعلى قيمة:</span>
+                  <span className="font-medium text-emerald-700">{formatCell(s.max, c.type)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">أدنى قيمة:</span>
+                  <span className="font-medium text-red-700">{formatCell(s.min, c.type)}</span>
+                </div>
+                <div className="flex justify-between text-sm border-t border-gray-100 pt-1.5 mt-1.5">
+                  <span className="text-gray-400 text-xs">عدد القيم:</span>
+                  <span className="text-xs text-gray-500">{s.count}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Sheet Table ─────────────────────────────────────────────────────────────
 
 function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
@@ -367,7 +524,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [addingRow, setAddingRow] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [activeTab, setActiveTab] = useState("table"); // "table" | "audit"
+  const [activeTab, setActiveTab] = useState("table"); // "table" | "audit" | "rates"
+  const [statsOpen, setStatsOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
   const fileInputRef = useRef(null);
@@ -377,6 +535,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
   // ── inline editing (keyed by rowId) ──
   const startEdit = (rowId, colKey) => {
+    const col = cols.find((c) => c.key === colKey);
+    if (col?.type === "formula") return; // formula cells are read-only
     const row = rows.find((r) => r._id === rowId);
     setEditCell({ rowId, colKey });
     setCellVal(row?.cells?.[colKey] ?? "");
@@ -533,14 +693,19 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
     const headHtml = `<tr>${cols.map((c) => `<th>${c.label}</th>`).join("")}</tr>`;
     const bodyHtml = targetRows.map((row) => {
-      const cells = cols.map((c) => `<td>${formatCell(row.cells?.[c.key] ?? "", c.type) || ""}</td>`).join("");
+      const cells = cols.map((c) => {
+        const v = c.type === "formula"
+          ? evaluateFormula(c.formula || "", row.cells || {})
+          : (row.cells?.[c.key] ?? "");
+        return `<td>${formatCell(v, c.type) || ""}</td>`;
+      }).join("");
       return `<tr>${cells}</tr>`;
     }).join("");
 
     // Totals row
     const totalsCells = cols.map((c, i) => {
       if (i === 0) return `<td><b>الإجمالي</b></td>`;
-      const t = sumColumn(targetRows, c.key, c.type);
+      const t = sumColumn(targetRows, c.key, c.type, c);
       return `<td>${t !== null ? formatCell(t, c.type) : ""}</td>`;
     }).join("");
     const totalsHtml = `<tr class="total-row">${totalsCells}</tr>`;
@@ -601,7 +766,9 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     const header = cols.map((c) => `"${c.label}"`).join(",");
     const rowsData = (selected.size > 0 ? rows.filter((r) => selected.has(r._id)) : rows)
       .map((row) => cols.map((c) => {
-        const val = row.cells?.[c.key] ?? "";
+        const val = c.type === "formula"
+          ? evaluateFormula(c.formula || "", row.cells || {})
+          : (row.cells?.[c.key] ?? "");
         return `"${String(val).replace(/"/g, '""')}"`;
       }).join(","));
     const csv = [header, ...rowsData].join("\n");
@@ -613,28 +780,68 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab bar (admin only shows audit tab) */}
-      {isAdmin && (
-        <div className="flex items-center gap-1 mb-3 border-b border-gray-200 pb-0">
-          <button onClick={() => setActiveTab("table")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "table" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}>
-            <Table2 className="w-3.5 h-3.5" /> البيانات
-          </button>
+      {/* Tab bar */}
+      <div className="flex items-center gap-1 mb-3 border-b border-gray-200 pb-0 overflow-x-auto">
+        <button onClick={() => setActiveTab("table")}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === "table" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}>
+          <Table2 className="w-3.5 h-3.5" /> البيانات
+        </button>
+        <button onClick={() => setActiveTab("rates")}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === "rates" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}>
+          <BarChart3 className="w-3.5 h-3.5" /> معدلات
+        </button>
+        {isAdmin && (
           <button onClick={() => setActiveTab("audit")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
               activeTab === "audit" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
             <ClipboardList className="w-3.5 h-3.5" /> سجل العمليات
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {activeTab === "audit" && isAdmin ? (
         <AuditLogPanel />
+      ) : activeTab === "rates" ? (
+        <RatesPanel rows={filteredRows} cols={cols} />
       ) : (
         <>
+          {/* Collapsible stats panel */}
+          <div className="mb-3">
+            <button
+              onClick={() => setStatsOpen((p) => !p)}
+              className="flex items-center gap-1.5 text-xs text-[#2d5d89] hover:underline font-medium"
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              {statsOpen ? "إخفاء" : "عرض"} معدلات وتحليل
+            </button>
+            {statsOpen && (
+              <div className="mt-2 overflow-x-auto">
+                <div className="flex gap-2 pb-2 min-w-max">
+                  {cols.filter((c) => ["currency", "number", "percentage", "formula"].includes(c.type)).map((c) => {
+                    const s = colStats(filteredRows, c);
+                    if (!s) return null;
+                    return (
+                      <div key={c.key} className="bg-white rounded-xl border border-gray-200 p-2.5 min-w-[160px] shadow-sm">
+                        <p className="text-[10px] text-gray-400 truncate">{c.label}</p>
+                        <p className="text-sm font-bold text-[#2d5d89] mt-0.5">{formatCell(s.sum, c.type)}</p>
+                        <div className="grid grid-cols-3 gap-1 mt-1.5 text-[10px]">
+                          <div><span className="text-gray-400">متوسط:</span><br/><span className="text-gray-700 font-medium">{formatCell(s.avg, c.type)}</span></div>
+                          <div><span className="text-gray-400">أدنى:</span><br/><span className="text-gray-700 font-medium">{formatCell(s.min, c.type)}</span></div>
+                          <div><span className="text-gray-400">أعلى:</span><br/><span className="text-gray-700 font-medium">{formatCell(s.max, c.type)}</span></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Toolbar */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             <span className="text-sm text-gray-500">{filteredRows.length} / {rows.length} سطر</span>
@@ -723,16 +930,21 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                       </td>
                       {cols.map((col) => {
                         const isEditing = editCell?.rowId === row._id && editCell?.colKey === col.key;
-                        const val = row.cells?.[col.key] ?? "";
+                        const val = col.type === "formula"
+                          ? evaluateFormula(col.formula || "", row.cells || {})
+                          : (row.cells?.[col.key] ?? "");
+                        const isFormula = col.type === "formula";
                         return (
                           <td key={col.key} style={{ minWidth: col.width || 120 }}
-                            className="px-1 py-1 cursor-pointer"
+                            className={`px-1 py-1 ${isFormula ? "cursor-default" : "cursor-pointer"}`}
                             onDoubleClick={() => startEdit(row._id, col.key)}>
                             {isEditing ? (
                               <CellInput col={col} value={cellVal} onChange={setCellVal}
                                 onBlur={handleCellBlur} onKeyDown={handleCellKey} />
                             ) : (
-                              <div className="px-2 py-1 min-h-[28px] text-gray-800 text-sm whitespace-nowrap overflow-hidden text-ellipsis rounded hover:bg-gray-100">
+                              <div className={`px-2 py-1 min-h-[28px] text-sm whitespace-nowrap overflow-hidden text-ellipsis rounded ${
+                                isFormula ? "bg-blue-50/40 text-[#2d5d89] font-medium" : "text-gray-800 hover:bg-gray-100"
+                              }`}>
                                 {formatCell(val, col.type) || <span className="text-gray-300">—</span>}
                               </div>
                             )}
@@ -818,7 +1030,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         الإجمالي
                       </td>
                       {cols.slice(1).map((col) => {
-                        const total = sumColumn(filteredRows, col.key, col.type);
+                        const total = sumColumn(filteredRows, col.key, col.type, col);
                         return (
                           <td key={col.key} className="px-3 py-3 text-sm text-[#2d5d89] whitespace-nowrap font-bold">
                             {total !== null ? formatCell(total, col.type) : ""}

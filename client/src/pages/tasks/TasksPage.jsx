@@ -5,6 +5,7 @@ import {
   Plus, LogOut, CheckCircle2, Clock, AlertCircle, Trash2, Edit2,
   User, Flag, X, ChevronDown, AlignLeft, Layers, Building2,
   ChevronUp, MoreVertical, ArrowRight, Check, FileText,
+  LayoutList, Columns, RefreshCw,
 } from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -97,11 +98,14 @@ export function Countdown({ dueDate, compact = false }) {
 
 // ─── TaskCard (mobile-first) ──────────────────────────────────────────────────
 
-function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }) {
+function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact = false }) {
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const dept = DEPARTMENTS[task.department] || task.department;
   const deptCls = DEPT_COLORS[task.department] || "bg-gray-50 text-gray-600 border-gray-200";
+  const priorityBar = task.priority === "high" ? "bg-red-400"
+    : task.priority === "medium" ? "bg-orange-300"
+    : "bg-gray-200";
 
   return (
     <motion.div
@@ -109,15 +113,12 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      className="bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.99] transition-transform"
+      className="bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.99] transition-transform relative overflow-hidden flex"
     >
-      {/* Card top strip (priority color) */}
-      <div className={`h-1 rounded-t-2xl ${
-        task.priority === "high" ? "bg-red-400" :
-        task.priority === "medium" ? "bg-orange-300" : "bg-gray-200"
-      }`} />
+      {/* Priority strip (right side, RTL — visible at start) */}
+      <div className={`w-1 flex-shrink-0 ${priorityBar}`} />
 
-      <div className="p-4 space-y-3">
+      <div className={`flex-1 ${compact ? "p-3 space-y-2" : "p-4 space-y-3"}`}>
         {/* Header row */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
@@ -435,6 +436,7 @@ export default function TasksPage() {
   const [statusTab,  setStatusTab]  = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [viewMode, setViewMode] = useState("list"); // "list" | "kanban"
 
   const canManage  = ["admin", "supervisor", "manager"].includes(user?.role);
   const canSeeAll  = ["admin", "supervisor"].includes(user?.role);
@@ -624,6 +626,36 @@ export default function TasksPage() {
           </div>
         )}
 
+        {/* ── View toggle + refresh ── */}
+        <div className="flex items-center gap-2">
+          <div className="flex bg-white border border-gray-200 rounded-xl p-0.5 shadow-sm">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                viewMode === "list" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <LayoutList className="w-3.5 h-3.5" /> قائمة
+            </button>
+            <button
+              onClick={() => setViewMode("kanban")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                viewMode === "kanban" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <Columns className="w-3.5 h-3.5" /> كانبان
+            </button>
+          </div>
+          <button
+            onClick={loadTasks}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 shadow-sm disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> تحديث
+          </button>
+          <span className="text-xs text-gray-400 mr-auto">{filtered.length} مهمة</span>
+        </div>
+
         {/* ── Tasks ── */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -646,6 +678,49 @@ export default function TasksPage() {
                 <Plus className="w-4 h-4" />إضافة مهمة
               </button>
             )}
+          </div>
+        ) : viewMode === "kanban" ? (
+          <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 min-w-[720px]">
+              {["pending", "in_progress", "done"].map((status) => {
+                const colTasks = filtered.filter((t) => t.status === status);
+                const dotColor =
+                  status === "pending" ? "bg-yellow-400"
+                  : status === "in_progress" ? "bg-blue-400"
+                  : "bg-emerald-400";
+                return (
+                  <div key={status} className="bg-gray-100/70 rounded-2xl p-2 sm:p-3 min-h-[200px]">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                        <h3 className="text-xs font-bold text-gray-700">{STATUS_LABELS[status]}</h3>
+                      </div>
+                      <span className="text-[10px] text-gray-400 bg-white rounded-full px-2 py-0.5">
+                        {colTasks.length}
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      <AnimatePresence>
+                        {colTasks.map((task) => (
+                          <TaskCard
+                            key={task._id}
+                            task={task}
+                            canManage={canManage}
+                            onEdit={openEdit}
+                            onDelete={handleDelete}
+                            onStatusChange={handleStatusChange}
+                            compact
+                          />
+                        ))}
+                      </AnimatePresence>
+                      {colTasks.length === 0 && (
+                        <p className="text-[10px] text-gray-300 text-center py-6">لا مهام</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         ) : (
           <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

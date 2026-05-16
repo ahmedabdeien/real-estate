@@ -38,6 +38,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminCareers from "./pages/admin/AdminCareers";
 import AdminActivity from "./pages/admin/AdminActivity";
 import AdminAccounting from "./pages/admin/AdminAccounting";
+import AdminAccountingRecords from "./pages/admin/AdminAccountingRecords";
 import AdminChangelog from "./pages/admin/AdminChangelog";
 
 // Tasks
@@ -143,6 +144,7 @@ export default function App() {
                 <Route path="tasks" element={<AdminTasks />} />
                 {/* Accounting — admin + accounts dept */}
                 <Route path="accounting" element={<AdminAccounting />} />
+                <Route path="accounting-records" element={<AdminAccountingRecords />} />
                 <Route path="profile" element={<StaffProfile />} />
                 <Route path="changelog" element={<AdminChangelog />} />
               </Route>
