@@ -1,5 +1,6 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import { body, validationResult } from "express-validator";
 import { authenticate } from "../middleware/auth.js";
 import {
   getLedgers, getLedger, createLedger, updateLedger, deleteLedger,
@@ -37,15 +38,36 @@ router.use(authenticate);
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 router.get("/audit-log", getAuditLog);
 
+// ── Validation ────────────────────────────────────────────────────────────────
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, message: errors.array()[0].msg });
+  }
+  next();
+};
+
+const ledgerValidation = [
+  body("name").trim().notEmpty().withMessage("الاسم مطلوب").isLength({ max: 200 }).withMessage("الاسم طويل جداً"),
+  body("description").optional().trim().isLength({ max: 1000 }).withMessage("الوصف طويل جداً"),
+  body("color").optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage("لون غير صحيح"),
+  validate,
+];
+
+const sheetValidation = [
+  body("name").trim().notEmpty().withMessage("اسم الجدول مطلوب").isLength({ max: 200 }).withMessage("اسم الجدول طويل جداً"),
+  validate,
+];
+
 // ── Ledgers ───────────────────────────────────────────────────────────────────
 router.get("/",        getLedgers);
 router.get("/:id",     getLedger);
-router.post("/",       createLedger);
-router.put("/:id",     updateLedger);
+router.post("/",       ledgerValidation, createLedger);
+router.put("/:id",     ledgerValidation, updateLedger);
 router.delete("/:id",  deleteLedger);
 
 // ── Sheets ────────────────────────────────────────────────────────────────────
-router.post("/:id/sheets",             addSheet);
+router.post("/:id/sheets",             sheetValidation, addSheet);
 router.put("/:id/sheets/:sheetId",     updateSheet);
 router.delete("/:id/sheets/:sheetId",  deleteSheet);
 

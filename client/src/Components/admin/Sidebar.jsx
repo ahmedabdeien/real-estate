@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen
+  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -36,6 +36,7 @@ const navItems = [
   { to: "/admin/settings",      label: "الإعدادات",         icon: Settings,        show: (u) => u?.role === "admin" },
 
   // All authenticated roles
+  { to: "/admin/notifications", label: "الإشعارات",         icon: Bell,            show: (u) => u?.role !== "viewer" },
   { to: "/admin/profile",       label: "الملف الشخصي",     icon: UserCircle,      show: (u) => u?.role !== "viewer" },
   { to: "/admin/changelog",     label: "التحديثات",         icon: History,         show: (u) => u?.role !== "viewer" },
 ];

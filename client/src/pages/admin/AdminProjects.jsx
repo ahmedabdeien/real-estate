@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -11,6 +11,12 @@ import Badge, { statusBadge } from "../../Components/UI/Badge";
 import ImageUpload from "../../Components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 import { Building2 } from "lucide-react";
+
+const FAVORITES_KEY = "favorites_projects";
+const loadFavorites = () => {
+  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; }
+};
+const saveFavorites = (arr) => localStorage.setItem(FAVORITES_KEY, JSON.stringify(arr));
 
 const statusOptions = [
   { value: "", label: "كل الحالات" },
@@ -27,10 +33,14 @@ const emptyProject = {
   status: "under_construction",
   coverImage: "",
   images: [],
+  gallery: [],
   featured: false,
   published: false,
   startingPrice: "",
   totalUnits: "",
+  latitude: "",
+  longitude: "",
+  deliveryDate: "",
 };
 
 export default function AdminProjects() {
@@ -48,6 +58,31 @@ export default function AdminProjects() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [view, setView] = useState("table"); // "table" | "grid"
+  const [favorites, setFavorites] = useState(loadFavorites());
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [galleryUrl, setGalleryUrl] = useState("");
+
+  const toggleFavorite = (id) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      saveFavorites(next);
+      return next;
+    });
+  };
+
+  // Stats from loaded projects
+  const stats = useMemo(() => ({
+    total,
+    active: projects.filter((p) => p.status === "ready" || p.status === "under_construction").length,
+    completed: projects.filter((p) => p.status === "ready").length,
+    underConstruction: projects.filter((p) => p.status === "under_construction").length,
+  }), [projects, total]);
+
+  const visibleProjects = useMemo(
+    () => (showFavorites ? projects.filter((p) => favorites.includes(p._id)) : projects),
+    [projects, favorites, showFavorites]
+  );
 
   const load = async () => {
     setLoading(true);
@@ -80,6 +115,10 @@ export default function AdminProjects() {
       startingPrice: p.startingPrice ?? "",
       totalUnits: p.totalUnits ?? "",
       coverImage: p.coverImage ?? "",
+      gallery: Array.isArray(p.gallery) ? p.gallery : (Array.isArray(p.images) ? p.images : []),
+      latitude: p.latitude ?? "",
+      longitude: p.longitude ?? "",
+      deliveryDate: p.deliveryDate ? new Date(p.deliveryDate).toISOString().slice(0, 10) : "",
     });
     setModal(true);
   };
@@ -149,8 +188,23 @@ export default function AdminProjects() {
         </button>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: "إجمالي المشاريع", value: stats.total },
+          { label: "النشطة", value: stats.active },
+          { label: "المكتملة", value: stats.completed },
+          { label: "قيد الإنشاء", value: stats.underConstruction },
+        ].map((s) => (
+          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+            <p className="text-gray-500 dark:text-gray-400 text-xs">{s.label}</p>
+            <p className="text-2xl font-bold text-[#2d5d89] mt-1">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
       {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
         <div className="relative flex-1 min-w-[160px]">
           <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
           <input
@@ -168,23 +222,91 @@ export default function AdminProjects() {
         >
           {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
+        <button
+          onClick={() => setShowFavorites((v) => !v)}
+          className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors flex items-center gap-2 ${
+            showFavorites
+              ? "bg-pink-50 dark:bg-pink-900/30 border-pink-200 dark:border-pink-700 text-pink-600"
+              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
+          }`}
+        >
+          <Heart className={`w-4 h-4 ${showFavorites ? "fill-pink-500 text-pink-500" : ""}`} />
+          المفضلة
+        </button>
+        <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <button
+            onClick={() => setView("table")}
+            className={`px-3 py-2.5 text-sm ${view === "table" ? "bg-[#2d5d89] text-white" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"}`}
+            title="عرض جدول"
+          >
+            <List className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setView("grid")}
+            className={`px-3 py-2.5 text-sm ${view === "grid" ? "bg-[#2d5d89] text-white" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"}`}
+            title="عرض بطاقات"
+          >
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      {/* Table or Grid */}
+      <div className={view === "grid" ? "" : "bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"}>
         {loading ? (
           <LoadingSpinner className="h-64" size="lg" />
-        ) : projects.length === 0 ? (
-          <EmptyState icon={Building2} title="لا توجد مشاريع" description="ابدأ بإضافة مشروع جديد" action={
-            <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium">
+        ) : visibleProjects.length === 0 ? (
+          <EmptyState icon={Building2} title={showFavorites ? "لا توجد مفضلات" : "لا توجد مشاريع"} description={showFavorites ? "أضف مشاريع للمفضلة بالضغط على القلب" : "ابدأ بإضافة مشروع جديد"} action={
+            !showFavorites && <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium">
               إضافة مشروع
             </button>
           } />
+        ) : view === "grid" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visibleProjects.map((p) => {
+              const { label, variant } = statusBadge(p.status);
+              const fav = favorites.includes(p._id);
+              return (
+                <div key={p._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
+                  <div className="relative h-40 bg-gray-100 dark:bg-gray-900">
+                    {p.coverImage ? (
+                      <img src={p.coverImage} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Building2 className="w-10 h-10 text-gray-400" />
+                      </div>
+                    )}
+                    <button
+                      onClick={() => toggleFavorite(p._id)}
+                      className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 flex items-center justify-center"
+                      title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+                    >
+                      <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-500"}`} />
+                    </button>
+                    <div className="absolute top-2 right-2"><Badge variant={variant}>{label}</Badge></div>
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <p className="font-semibold text-gray-900 dark:text-white truncate">{p.name?.ar}</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{p.location?.city?.ar || "—"}</p>
+                    <div className="mt-2 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                      <span>الوحدات: {p.totalUnits || "—"}</span>
+                      <span>{p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : ""}</span>
+                    </div>
+                    <div className="mt-3 flex items-center gap-1">
+                      <button onClick={() => openEdit(p)} className="flex-1 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-xs font-medium hover:bg-blue-100">تعديل</button>
+                      <button onClick={() => setDeleteId(p._id)} className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 text-xs font-medium hover:bg-red-100">حذف</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
                 <tr>
+                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 py-3 w-10"></th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
                   <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر من</th>
@@ -194,11 +316,17 @@ export default function AdminProjects() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                {projects.map((p) => {
+                {visibleProjects.map((p) => {
                   const { label, variant } = statusBadge(p.status);
+                  const fav = favorites.includes(p._id);
                   return (
                     <motion.tr key={p._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-2 py-4">
+                        <button onClick={() => toggleFavorite(p._id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-pink-50" title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
+                          <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
+                        </button>
+                      </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-2 sm:gap-3">
                           {p.coverImage ? (
@@ -296,6 +424,62 @@ export default function AdminProjects() {
             value={form.coverImage}
             onChange={(url) => f("coverImage", url)}
           />
+
+          {/* Gallery */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">معرض الصور</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                value={galleryUrl}
+                onChange={(e) => setGalleryUrl(e.target.value)}
+                placeholder="رابط صورة"
+                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" />
+              <button
+                type="button"
+                onClick={() => {
+                  const url = galleryUrl.trim();
+                  if (!url) return;
+                  f("gallery", [...(form.gallery || []), url]);
+                  setGalleryUrl("");
+                }}
+                className="px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium"
+              >إضافة</button>
+            </div>
+            {Array.isArray(form.gallery) && form.gallery.length > 0 && (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {form.gallery.map((url, i) => (
+                  <div key={`${url}-${i}`} className="relative group">
+                    <img src={url} alt="" className="w-full h-20 object-cover rounded-lg" />
+                    <button
+                      type="button"
+                      onClick={() => f("gallery", form.gallery.filter((_, idx) => idx !== i))}
+                      className="absolute top-1 left-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-90"
+                    ><X className="w-3 h-3" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Map coordinates */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط العرض (Latitude)</label>
+            <input type="number" step="any" value={form.latitude} onChange={(e) => f("latitude", e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط الطول (Longitude)</label>
+            <input type="number" step="any" value={form.longitude} onChange={(e) => f("longitude", e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+
+          {/* Delivery date */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ التسليم المتوقع</label>
+            <input type="date" value={form.deliveryDate} onChange={(e) => f("deliveryDate", e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.featured} onChange={(e) => f("featured", e.target.checked)}

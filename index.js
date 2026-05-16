@@ -5,6 +5,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import hpp from "hpp";
+import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
@@ -41,11 +44,20 @@ app.use(
         "connect-src": ["'self'", "https:", "wss:"],
         "frame-src": ["'self'", "https:"],
         "media-src": ["'self'", "https:", "blob:"],
+        "object-src": ["'none'"],
       },
     },
     crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
   })
 );
+
+// Sanitize against NoSQL injection
+app.use(mongoSanitize());
+// Prevent HTTP Parameter Pollution
+app.use(hpp());
+// Gzip compression
+app.use(compression());
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -54,6 +66,16 @@ const authLimiter = rateLimit({
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
+
+// General API rate limiter
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: { success: false, message: "طلبات كثيرة، حاول بعد قليل" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api", generalLimiter);
 
 // DB
 mongoose

@@ -40,6 +40,7 @@ import AdminActivity from "./pages/admin/AdminActivity";
 import AdminAccounting from "./pages/admin/AdminAccounting";
 import AdminAccountingRecords from "./pages/admin/AdminAccountingRecords";
 import AdminChangelog from "./pages/admin/AdminChangelog";
+import AdminNotifications from "./pages/admin/AdminNotifications";
 
 // Tasks
 import TasksPage from "./pages/tasks/TasksPage";
@@ -147,6 +148,7 @@ export default function App() {
                 <Route path="accounting-records" element={<AdminAccountingRecords />} />
                 <Route path="profile" element={<StaffProfile />} />
                 <Route path="changelog" element={<AdminChangelog />} />
+                <Route path="notifications" element={<AdminNotifications />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
