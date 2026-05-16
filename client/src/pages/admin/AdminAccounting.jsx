@@ -6,7 +6,7 @@ import {
   FileSpreadsheet, RefreshCw, Menu, Upload, ClipboardList,
   BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown,
   PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
-  Archive, Building2, BarChart3,
+  Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
@@ -510,6 +510,74 @@ function RatesPanel({ rows, cols }) {
   );
 }
 
+// ─── Ledger Summary ──────────────────────────────────────────────────────────
+
+function LedgerSummary({ ledger }) {
+  if (!ledger) return null;
+  const sheets = ledger.sheets || [];
+  const totalSheets = sheets.length;
+  const totalRows = sheets.reduce((acc, s) => acc + (s.rows?.length || 0), 0);
+
+  // Per-sheet currency totals (sum across all currency columns)
+  const sheetTotals = sheets.map((s) => {
+    const cols = s.columns || [];
+    const rows = s.rows || [];
+    const total = cols
+      .filter((c) => c.type === "currency")
+      .reduce((sum, c) => sum + (sumColumn(rows, c.key, c.type, c) || 0), 0);
+    return { id: s._id, name: s.name, color: s.color, total, rowCount: rows.length };
+  });
+
+  const grandTotal = sheetTotals.reduce((a, b) => a + b.total, 0);
+  const maxTotal = Math.max(1, ...sheetTotals.map((s) => s.total));
+
+  return (
+    <div className="space-y-5 overflow-auto h-full pb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-gradient-to-br from-[#2d5d89] to-[#1f4566] text-white rounded-2xl p-4 shadow-sm">
+          <p className="text-xs opacity-80">عدد الجداول</p>
+          <p className="text-3xl font-bold mt-1">{totalSheets.toLocaleString("ar-EG")}</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <p className="text-xs text-gray-400">إجمالي الصفوف</p>
+          <p className="text-3xl font-bold mt-1 text-gray-800">{totalRows.toLocaleString("ar-EG")}</p>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <p className="text-xs text-gray-400">إجمالي قيمة العملات</p>
+          <p className="text-2xl font-bold mt-1 text-[#2d5d89]">{formatCell(grandTotal, "currency")}</p>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+        <p className="text-sm font-bold text-gray-700 mb-3">مقارنة الجداول (إجمالي القيم بالعملة)</p>
+        {sheetTotals.length === 0 ? (
+          <p className="text-xs text-gray-400 text-center py-6">لا توجد جداول بعد</p>
+        ) : (
+          <div className="space-y-2">
+            {sheetTotals.map((s) => {
+              const pct = maxTotal > 0 ? (s.total / maxTotal) * 100 : 0;
+              return (
+                <div key={s.id}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="font-medium text-gray-700">{s.name}</span>
+                    <span className="text-gray-500">{s.rowCount} صف — <span className="text-[#2d5d89] font-bold">{formatCell(s.total, "currency")}</span></span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full rounded-full transition-all"
+                      style={{ width: `${pct}%`, background: s.color || "#2d5d89" }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs text-gray-400 text-center">يعرض المخطط مجموع كل أعمدة العملة في كل جدول</p>
+    </div>
+  );
+}
+
 // ─── Sheet Table ─────────────────────────────────────────────────────────────
 
 function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
@@ -529,9 +597,17 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [statsOpen, setStatsOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
+  const [hiddenCols, setHiddenCols] = useState(new Set());
+  const [colsMenuOpen, setColsMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
 
-  const cols = sheet.columns || [];
+  const allCols = sheet.columns || [];
+  const cols = allCols.filter((c) => !hiddenCols.has(c.key));
+  const toggleCol = (key) => setHiddenCols((prev) => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
   const isAdmin = user?.role === "admin";
 
   // ── inline editing (keyed by rowId) ──
@@ -866,6 +942,40 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium">
                 <Download className="w-3.5 h-3.5" /> {selected.size > 0 ? "تحميل المحدد" : "CSV"}
               </button>
+              <button onClick={() => handlePrint(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-700 rounded-xl border border-red-200 transition-colors font-medium">
+                <FileDown className="w-3.5 h-3.5" />
+                تصدير PDF
+              </button>
+              <div className="relative">
+                <button onClick={() => setColsMenuOpen((p) => !p)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">
+                  <EyeIcon className="w-3.5 h-3.5" /> عرض الأعمدة
+                </button>
+                {colsMenuOpen && (
+                  <div className="absolute left-0 top-9 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 w-56 max-h-72 overflow-auto" dir="rtl">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase px-2 pb-1">إظهار/إخفاء الأعمدة</p>
+                    {allCols.map((c) => (
+                      <label key={c.key} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={!hiddenCols.has(c.key)}
+                          onChange={() => toggleCol(c.key)}
+                          className="accent-[#2d5d89]"
+                        />
+                        <span className="flex-1 text-gray-700">{c.label}</span>
+                        {hiddenCols.has(c.key) ? <EyeOff className="w-3 h-3 text-gray-300" /> : <EyeIcon className="w-3 h-3 text-[#2d5d89]" />}
+                      </label>
+                    ))}
+                    <div className="flex justify-between gap-2 mt-2 pt-2 border-t border-gray-100">
+                      <button onClick={() => setHiddenCols(new Set())}
+                        className="flex-1 text-[10px] px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">إظهار الكل</button>
+                      <button onClick={() => setColsMenuOpen(false)}
+                        className="flex-1 text-[10px] px-2 py-1 rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">تم</button>
+                    </div>
+                  </div>
+                )}
+              </div>
               {selected.size > 0 && (
                 <button onClick={() => handlePrint(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
@@ -900,8 +1010,11 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         onChange={toggleAll}
                         className="rounded border-white/40 text-white accent-white cursor-pointer" />
                     </th>
-                    {cols.map((col) => (
-                      <th key={col.key} className="px-3 py-3 text-right font-semibold whitespace-nowrap text-sm"
+                    {cols.map((col, ci) => (
+                      <th key={col.key}
+                        className={`px-3 py-3 text-right font-semibold whitespace-nowrap text-sm ${
+                          ci === 0 ? "sticky right-0 bg-[#2d5d89] z-20 border-l border-[#1f4566]" : ""
+                        }`}
                         style={{ minWidth: col.width || 120, maxWidth: col.width || 200 }}>
                         {col.label}
                       </th>
@@ -929,15 +1042,21 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         <input type="checkbox" checked={selected.has(row._id)} onChange={() => toggleRow(row._id)}
                           className="rounded cursor-pointer accent-[#2d5d89]" />
                       </td>
-                      {cols.map((col) => {
+                      {cols.map((col, ci) => {
                         const isEditing = editCell?.rowId === row._id && editCell?.colKey === col.key;
                         const val = col.type === "formula"
                           ? evaluateFormula(col.formula || "", row.cells || {})
                           : (row.cells?.[col.key] ?? "");
                         const isFormula = col.type === "formula";
+                        const isFrozen = ci === 0;
+                        const rowBg = selected.has(row._id)
+                          ? "bg-blue-50"
+                          : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50";
                         return (
                           <td key={col.key} style={{ minWidth: col.width || 120 }}
-                            className={`px-1 py-1 ${isFormula ? "cursor-default" : "cursor-pointer"}`}
+                            className={`px-1 py-1 ${isFormula ? "cursor-default" : "cursor-pointer"} ${
+                              isFrozen ? `sticky right-0 z-10 border-l border-gray-200 ${rowBg}` : ""
+                            }`}
                             onDoubleClick={() => startEdit(row._id, col.key)}>
                             {isEditing ? (
                               <CellInput col={col} value={cellVal} onChange={setCellVal}
@@ -1078,6 +1197,7 @@ export default function AdminAccounting() {
   const [fullLedger, setFullLedger] = useState(null);
   const [loadingLedger, setLoadingLedger] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
+  const [showLedgerSummary, setShowLedgerSummary] = useState(false);
 
   const [ledgerModal, setLedgerModal] = useState(false);
   const [editLedger, setEditLedger] = useState(null);
@@ -1144,6 +1264,22 @@ export default function AdminAccounting() {
       toast.success("تم حذف السجل");
     } catch { toast.error("فشل الحذف"); }
     finally { setDeletingLedger(false); }
+  };
+
+  // ── duplicate sheet ──
+  const duplicateSheet = async (s) => {
+    try {
+      const r = await api.post(`/accounting/${activeLedger._id}/sheets`, {
+        name: `${s.name} (نسخة)`,
+        columns: s.columns || [],
+        icon: s.icon,
+        color: s.color,
+      });
+      const newSheet = r.data.sheet;
+      setFullLedger((prev) => ({ ...prev, sheets: [...(prev.sheets || []), newSheet] }));
+      setActiveSheet(newSheet);
+      toast.success("تم نسخ الجدول");
+    } catch { toast.error("فشل نسخ الجدول"); }
   };
 
   // ── Sheet CRUD ──
@@ -1351,17 +1487,32 @@ export default function AdminAccounting() {
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Sheet tabs */}
               <div className="bg-white border-b border-gray-100 px-4 flex items-center gap-1 overflow-x-auto">
+                <button
+                  onClick={() => setShowLedgerSummary(true)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                    showLedgerSummary
+                      ? "border-[#2d5d89] text-[#2d5d89]"
+                      : "border-transparent text-gray-500 hover:text-gray-700"
+                  }`}>
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  ملخص
+                </button>
                 {(fullLedger?.sheets || []).map((s) => (
                   <button key={s._id}
-                    onClick={() => setActiveSheet(s)}
+                    onClick={() => { setShowLedgerSummary(false); setActiveSheet(s); }}
                     className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors group ${
-                      activeSheet?._id === s._id
+                      !showLedgerSummary && activeSheet?._id === s._id
                         ? "border-[#2d5d89] text-[#2d5d89]"
                         : "border-transparent text-gray-500 hover:text-gray-700"
                     }`}>
                     <Table2 className="w-3.5 h-3.5" />
                     {s.name}
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span onClick={(e) => { e.stopPropagation(); duplicateSheet(s); }}
+                        title="نسخ الجدول"
+                        className="p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-[#2d5d89]">
+                        <CopyIcon className="w-3 h-3" />
+                      </span>
                       <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
                         className="p-0.5 rounded hover:bg-gray-200 text-gray-400">
                         <Edit2 className="w-3 h-3" />
@@ -1381,7 +1532,9 @@ export default function AdminAccounting() {
 
               {/* Sheet content */}
               <div className="flex-1 overflow-hidden p-4">
-                {!activeSheet ? (
+                {showLedgerSummary ? (
+                  <LedgerSummary ledger={fullLedger} />
+                ) : !activeSheet ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
                       <Table2 className="w-14 h-14 text-gray-200 mx-auto mb-3" />

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Save, Eye, Image as ImageIcon, AlignLeft, Type } from "lucide-react";
+import { Save, Eye, Image as ImageIcon, AlignLeft, Type, Megaphone, Bell, Copy } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
+import HelpCard from "../../Components/UI/HelpCard";
 import { useToast } from "../../context/ToastContext";
 
 // Sections organized into logical groups
@@ -50,6 +51,19 @@ const GROUPS = [
           { key: "service4_title",    label: "خدمة 4 — العنوان",        type: "text" },
           { key: "service4_desc",     label: "خدمة 4 — الوصف",         type: "textarea" },
           { key: "service4_icon",     label: "خدمة 4 — الأيقونة (رمز)", type: "text" },
+        ],
+      },
+      {
+        key: "home_cta",
+        label: "قسم الدعوة للتواصل",
+        icon: Megaphone,
+        fields: [
+          { key: "cta_title",       label: "عنوان القسم",          type: "text" },
+          { key: "cta_subtitle",    label: "وصف القسم",            type: "textarea" },
+          { key: "cta_button_text", label: "نص الزر الرئيسي",      type: "text" },
+          { key: "cta_button_link", label: "رابط الزر الرئيسي",    type: "text" },
+          { key: "cta_phone",       label: "رقم هاتف (للعرض)",     type: "text" },
+          { key: "cta_image",       label: "صورة القسم",           type: "image" },
         ],
       },
     ],
@@ -123,26 +137,35 @@ const GROUPS = [
         key: "contact",
         label: "معلومات التواصل",
         fields: [
-          { key: "phone",         label: "رقم الهاتف",              type: "text" },
-          { key: "whatsapp",      label: "واتساب",                   type: "text" },
-          { key: "email",         label: "البريد الإلكتروني",        type: "text" },
-          { key: "address_ar",    label: "العنوان (عربي)",           type: "text" },
-          { key: "working_hours", label: "أوقات العمل",              type: "text" },
-          { key: "facebook",      label: "فيسبوك",                   type: "text" },
-          { key: "instagram",     label: "إنستجرام",                 type: "text" },
-          { key: "youtube",       label: "يوتيوب",                   type: "text" },
-          { key: "map_embed",     label: "رابط Google Maps embed",  type: "text" },
+          { key: "phone",             label: "رقم الهاتف",                type: "text", hint: "رقم الواتساب بصيغة دولية مثال: 201234567890" },
+          { key: "phone2",            label: "رقم هاتف إضافي",            type: "text" },
+          { key: "whatsapp",          label: "واتساب",                    type: "text", hint: "رقم الواتساب بصيغة دولية مثال: 201234567890" },
+          { key: "whatsapp2",         label: "واتساب إضافي",              type: "text" },
+          { key: "email",             label: "البريد الإلكتروني",         type: "text" },
+          { key: "address_ar",        label: "العنوان (عربي)",            type: "text" },
+          { key: "working_hours",     label: "أوقات العمل",               type: "text" },
+          { key: "facebook",          label: "فيسبوك",                    type: "text" },
+          { key: "instagram",         label: "إنستجرام",                  type: "text" },
+          { key: "youtube",           label: "يوتيوب",                    type: "text" },
+          { key: "tiktok",            label: "TikTok",                    type: "text" },
+          { key: "linkedin",          label: "LinkedIn",                  type: "text" },
+          { key: "twitter",           label: "Twitter / X",               type: "text" },
+          { key: "google_maps_link",  label: "رابط Google Maps",          type: "text" },
+          { key: "map_embed",         label: "رابط Google Maps embed",    type: "text" },
         ],
       },
       {
         key: "footer",
         label: "الفوتر",
         fields: [
-          { key: "companyName", label: "اسم الشركة",         type: "text" },
-          { key: "companyDesc", label: "وصف الشركة",         type: "textarea" },
-          { key: "phone",       label: "رقم الهاتف",          type: "text" },
-          { key: "email",       label: "البريد الإلكتروني",  type: "text" },
-          { key: "address",     label: "العنوان",             type: "text" },
+          { key: "companyName",        label: "اسم الشركة",          type: "text" },
+          { key: "companyDesc",        label: "وصف الشركة",          type: "textarea" },
+          { key: "footer_description", label: "وصف التذييل",         type: "textarea" },
+          { key: "copyright_text",     label: "نص حقوق الملكية",     type: "text" },
+          { key: "footer_links_title", label: "عنوان روابط التذييل", type: "text" },
+          { key: "phone",              label: "رقم الهاتف",           type: "text" },
+          { key: "email",              label: "البريد الإلكتروني",   type: "text" },
+          { key: "address",            label: "العنوان",              type: "text" },
         ],
       },
     ],
@@ -158,19 +181,34 @@ const GROUPS = [
           { key: "heroSubtitle", label: "العنوان الفرعي",     type: "text" },
           { key: "heroTagline",  label: "الشعار / الوصف",    type: "text" },
           { key: "heroImage",    label: "صورة الخلفية",       type: "image" },
-          { key: "logo_url",     label: "شعار الشركة (Logo)", type: "image" },
+          { key: "logo_url",     label: "شعار الشركة (Logo)", type: "image", hint: "رابط صورة شعار الشركة يظهر في صفحة تسجيل الدخول" },
         ],
       },
       {
         key: "theme",
         label: "الألوان والأزرار",
         fields: [
-          { key: "primary_color",   label: "اللون الرئيسي (hex مثال: #2d5d89)",       type: "text" },
-          { key: "secondary_color", label: "اللون الثانوي (hex مثال: #f59e0b)",       type: "text" },
-          { key: "cta_text",        label: "نص زر الدعوة للإجراء (الرئيسية)",         type: "text" },
-          { key: "cta_secondary",   label: "نص الزر الثانوي (تواصل معنا)",            type: "text" },
-          { key: "nav_logo_text",   label: "اسم الشركة في القائمة العلوية",            type: "text" },
-          { key: "whatsapp_number", label: "رقم واتساب (للزر العائم)",               type: "text" },
+          { key: "primary_color",     label: "اللون الرئيسي (hex مثال: #2d5d89)", type: "text", hint: "اللون الرئيسي للموقع بصيغة HEX مثال: #2d5d89" },
+          { key: "secondary_color",   label: "اللون الثانوي (hex مثال: #f59e0b)", type: "text" },
+          { key: "accent_color",      label: "لون التمييز",                       type: "text" },
+          { key: "font_family",       label: "نوع الخط",                          type: "text" },
+          { key: "show_whatsapp_btn", label: "إظهار زر واتساب العائم",            type: "text" },
+          { key: "cta_text",          label: "نص زر الدعوة للإجراء (الرئيسية)",   type: "text" },
+          { key: "cta_secondary",     label: "نص الزر الثانوي (تواصل معنا)",      type: "text" },
+          { key: "nav_logo_text",     label: "اسم الشركة في القائمة العلوية",     type: "text" },
+          { key: "whatsapp_number",   label: "رقم واتساب (للزر العائم)",          type: "text", hint: "رقم الواتساب بصيغة دولية مثال: 201234567890" },
+        ],
+      },
+      {
+        key: "popup_announcement",
+        label: "إعلان منبثق",
+        icon: Bell,
+        fields: [
+          { key: "popup_enabled",     label: "تفعيل الإعلان",  type: "text" },
+          { key: "popup_title",       label: "عنوان الإعلان",  type: "text" },
+          { key: "popup_message",     label: "نص الإعلان",     type: "textarea" },
+          { key: "popup_button_text", label: "نص الزر",        type: "text" },
+          { key: "popup_button_link", label: "رابط الزر",      type: "text" },
         ],
       },
     ],
@@ -185,6 +223,14 @@ const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon };
 export default function AdminContent() {
   const toast = useToast();
   const [activeSection, setActiveSection] = useState(sections[0].key);
+
+  const copyToClipboard = (val) => {
+    if (!val) return;
+    navigator.clipboard.writeText(String(val))
+      .then(() => toast.success("تم النسخ"))
+      .catch(() => toast.error("فشل النسخ"));
+  };
+
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -220,6 +266,16 @@ export default function AdminContent() {
 
   return (
     <div className="space-y-5">
+      <HelpCard
+        title="دليل إدارة محتوى الموقع"
+        tips={[
+          "اختر القسم من القائمة اليسرى لتعديل نصوصه وصوره",
+          "التغييرات تظهر فوراً على الموقع بعد الحفظ",
+          "صور التذييل والهيدر يجب أن تكون بجودة عالية (1920×1080 على الأقل)",
+          "رقم واتساب بصيغة دولية: ابدأ بـ 20 بدلاً من 0 (مثال: 201234567890)",
+          "لون التمييز يؤثر على الأزرار والروابط في الموقع",
+        ]}
+      />
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة المحتوى</h1>
@@ -293,14 +349,28 @@ export default function AdminContent() {
                         onChange={(url) => setData({ ...data, [field.key]: url })}
                       />
                     ) : field.type === "textarea" ? (
-                      <textarea rows={3} value={data[field.key] || ""}
-                        onChange={(e) => setData({ ...data, [field.key]: e.target.value })}
-                        className={inputClass + " resize-none"} />
+                      <>
+                        <textarea rows={3} value={data[field.key] || ""}
+                          onChange={(e) => setData({ ...data, [field.key]: e.target.value })}
+                          className={inputClass + " resize-none"} />
+                        <p className="text-xs text-gray-400 mt-1 text-left">{(data[field.key] || "").length} حرف</p>
+                      </>
                     ) : (
-                      <input type="text" value={data[field.key] || ""}
-                        onChange={(e) => setData({ ...data, [field.key]: e.target.value })}
-                        className={inputClass} />
+                      <div className="flex items-center gap-1.5">
+                        <input type="text" value={data[field.key] || ""}
+                          onChange={(e) => setData({ ...data, [field.key]: e.target.value })}
+                          className={inputClass} />
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(data[field.key] || "")}
+                          title="نسخ"
+                          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-[#2d5d89] hover:border-[#2d5d89] transition-colors"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     )}
+                    {field.hint && <p className="text-xs text-gray-400 mt-1">{field.hint}</p>}
                   </div>
                 );
               })}
