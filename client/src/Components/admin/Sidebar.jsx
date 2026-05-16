@@ -4,29 +4,28 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare, Calculator, History
+  CheckSquare, Calculator, History, UserCircle, Edit3
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 
 const navItems = [
-  { to: "/admin",          label: "لوحة التحكم",  icon: LayoutDashboard, exact: true, roles: ["admin"] },
-  { to: "/admin/projects", label: "المشاريع",      icon: Building2 },
-  { to: "/admin/units",    label: "الوحدات",       icon: Home },
-  { to: "/admin/leads",    label: "العملاء",       icon: TrendingUp },
-  { to: "/admin/blogs",    label: "المقالات",      icon: FileText },
-  { to: "/admin/content",  label: "المحتوى",       icon: FileText,  roles: ["admin"] },
-  { to: "/admin/media",    label: "المكتبة",       icon: Image,     roles: ["admin"] },
-  { to: "/admin/careers",  label: "الوظائف",       icon: Briefcase, roles: ["admin"] },
-  { to: "/admin/users",    label: "المستخدمين",    icon: Users,     roles: ["admin"] },
-  { to: "/admin/activity", label: "سجل النشاط",   icon: Activity,  roles: ["admin"] },
-  { to: "/admin/settings", label: "الإعدادات",     icon: Settings,  roles: ["admin"] },
-  // Tasks inside admin panel (admin/supervisor/manager)
-  { to: "/admin/tasks",      label: "المهام",        icon: CheckSquare,  roles: ["admin", "supervisor", "manager"] },
-  { to: "/admin/accounting", label: "الحسابات",     icon: Calculator,   roles: ["admin"] },
-  { to: "/admin/changelog",  label: "سجل التحديثات", icon: History,      roles: ["admin"] },
-  // Tasks standalone for employees/sales
-  { to: "/staff/tasks",    label: "مهامي",         icon: CheckSquare, roles: ["employee", "sales"], external: true },
+  { to: "/admin",           label: "لوحة التحكم",   icon: LayoutDashboard, exact: true, roles: ["admin", "supervisor"] },
+  { to: "/admin/projects",  label: "المشاريع",       icon: Building2,       roles: ["admin", "supervisor", "manager", "sales"] },
+  { to: "/admin/units",     label: "الوحدات",        icon: Home,            roles: ["admin", "supervisor", "manager", "sales"] },
+  { to: "/admin/leads",     label: "العملاء",        icon: TrendingUp,      roles: ["admin", "supervisor", "manager", "sales"] },
+  { to: "/admin/blogs",     label: "المقالات",       icon: FileText,        roles: ["admin", "supervisor", "manager", "sales"] },
+  { to: "/admin/tasks",     label: "إدارة المهام",   icon: CheckSquare,     roles: ["admin", "supervisor", "manager"] },
+  { to: "/admin/tasks",     label: "مهامي",          icon: CheckSquare,     roles: ["employee", "sales"] },
+  { to: "/admin/accounting",label: "الحسابات",      icon: Calculator,      show: (u) => u?.role === "admin" || u?.department === "accounts" },
+  { to: "/admin/content",   label: "المحتوى",        icon: Edit3,           roles: ["admin"] },
+  { to: "/admin/media",     label: "المكتبة",        icon: Image,           roles: ["admin"] },
+  { to: "/admin/careers",   label: "الوظائف",        icon: Briefcase,       roles: ["admin"] },
+  { to: "/admin/users",     label: "المستخدمين",     icon: Users,           roles: ["admin", "supervisor"] },
+  { to: "/admin/activity",  label: "سجل النشاط",    icon: Activity,        roles: ["admin", "supervisor"] },
+  { to: "/admin/settings",  label: "الإعدادات",      icon: Settings,        roles: ["admin"] },
+  { to: "/admin/profile",   label: "الملف الشخصي",  icon: UserCircle },
+  { to: "/admin/changelog", label: "التحديثات",     icon: History },
 ];
 
 const roleLabels = {
@@ -57,7 +56,11 @@ export default function Sidebar({ collapsed, onToggle }) {
     }
   };
 
-  const filtered = navItems.filter((item) => !item.roles || item.roles.includes(user?.role));
+  const filtered = navItems.filter((item) => {
+    if (item.show) return item.show(user);
+    if (item.roles && !item.roles.includes(user?.role)) return false;
+    return true;
+  });
 
   return (
     <>

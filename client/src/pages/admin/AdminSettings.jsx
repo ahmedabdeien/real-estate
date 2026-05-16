@@ -101,7 +101,7 @@ export default function AdminSettings() {
         }));
         await api.post("/settings/bulk", { settings });
       }
-      toast.success("✅ تم حفظ الإعدادات بنجاح");
+      toast.success("تم حفظ الإعدادات بنجاح");
     } catch {
       toast.error("فشل الحفظ");
     } finally {

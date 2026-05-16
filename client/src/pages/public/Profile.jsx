@@ -47,7 +47,7 @@ export default function ProfilePage() {
       if (emailStatus.ok && form.email !== user.email) payload.email = form.email;
       const res = await api.put("/auth/profile", payload);
       updateUser(res.data.user);
-      setSuccess("تم حفظ التغييرات ✅");
+      setSuccess("تم حفظ التغييرات بنجاح");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       setError(err.response?.data?.message || "فشل الحفظ");

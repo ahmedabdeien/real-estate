@@ -19,8 +19,6 @@ export default function AdminLayout() {
   if (!user) return <Navigate to="/admin/login" replace />;
   // viewer → home
   if (!["admin", "supervisor", "manager", "employee", "sales"].includes(user.role)) return <Navigate to="/" replace />;
-  // non-admin roles → staff dashboard
-  if (user.role !== "admin") return <Navigate to="/staff" replace />;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950" dir="rtl">

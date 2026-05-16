@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, LogOut, CheckCircle2, Clock, AlertCircle, Trash2, Edit2,
   User, Flag, X, ChevronDown, AlignLeft, Layers, Building2,
-  ChevronUp, MoreVertical, ArrowRight, Check,
+  ChevronUp, MoreVertical, ArrowRight, Check, FileText,
 } from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -234,7 +234,8 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange }) {
         {/* Notes */}
         {task.notes && (
           <div className="text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded-xl px-3 py-2">
-            📝 {task.notes}
+            <FileText className="w-3 h-3 inline ml-1 text-gray-400" />
+            {task.notes}
           </div>
         )}
       </div>

@@ -1,9 +1,9 @@
 import { History, Sparkles, Wrench, Zap } from "lucide-react";
 
 const TYPE_META = {
-  feature:     { icon: Sparkles, color: "text-emerald-600", bg: "bg-emerald-50", label: "✅" },
-  fix:         { icon: Wrench,   color: "text-amber-600",   bg: "bg-amber-50",   label: "🔧" },
-  improvement: { icon: Zap,      color: "text-blue-600",    bg: "bg-blue-50",    label: "⚡" },
+  feature:     { icon: Sparkles, color: "text-emerald-600", bg: "bg-emerald-50" },
+  fix:         { icon: Wrench,   color: "text-amber-600",   bg: "bg-amber-50" },
+  improvement: { icon: Zap,      color: "text-blue-600",    bg: "bg-blue-50" },
 };
 
 const VERSIONS = [
@@ -91,10 +91,11 @@ export default function AdminChangelog() {
                 <ul className="space-y-2">
                   {v.items.map((item, idx) => {
                     const meta = TYPE_META[item.type] || TYPE_META.improvement;
+                    const MetaIcon = meta.icon;
                     return (
                       <li key={idx} className="flex items-start gap-3 group">
                         <span className={`mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0 ${meta.bg} ${meta.color}`}>
-                          {meta.label}
+                          <MetaIcon className="w-4 h-4" />
                         </span>
                         <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pt-1">{item.text}</span>
                       </li>

@@ -207,7 +207,7 @@ export default function AdminContent() {
     setSaving(true);
     try {
       await api.put(`/content/${activeSection}`, data);
-      toast.success("✅ تم حفظ المحتوى — سيظهر التغيير فوراً على الموقع");
+      toast.success("تم حفظ المحتوى — سيظهر التغيير فوراً على الموقع");
     } catch {
       toast.error("فشل الحفظ — تحقق من اتصال الشبكة");
     } finally {

@@ -47,12 +47,23 @@ import AdminTasks from "./pages/admin/AdminTasks";
 // Staff
 import StaffProfile from "./pages/staff/StaffProfile";
 
-// Guard: admin-only routes redirect non-admins to /staff
+// Guard: admin-only routes — non-admins are redirected to a sensible default page
 function AdminOnlyRoute({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/admin/login" replace />;
-  if (user.role !== "admin") return <Navigate to="/staff" replace />;
+  if (user.role !== "admin") return <Navigate to="/admin/tasks" replace />;
   return children;
+}
+
+// Dashboard route — admin + supervisor see overview; others redirected to tasks
+function DashboardRoute() {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/admin/login" replace />;
+  if (user.role === "admin" || user.role === "supervisor") return <AdminDashboard />;
+  if (user.role === "manager" || user.role === "employee" || user.role === "sales") {
+    return <Navigate to="/admin/tasks" replace />;
+  }
+  return <Navigate to="/" replace />;
 }
 
 // Guard: tasks route — only non-viewer authenticated users
@@ -105,7 +116,7 @@ export default function App() {
 
               {/* Staff dashboard — for supervisor/manager/employee/sales */}
               <Route path="/staff" element={<StaffLayout />}>
-                <Route index element={<Navigate to="/staff/tasks" replace />} />
+                <Route index element={<Navigate to="/admin" replace />} />
                 <Route path="tasks" element={<TasksPage />} />
                 <Route path="profile" element={<StaffProfile />} />
                 <Route path="accounting" element={<AdminAccounting />} />
@@ -117,7 +128,7 @@ export default function App() {
 
               {/* Admin Dashboard */}
               <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminOnlyRoute><AdminDashboard /></AdminOnlyRoute>} />
+                <Route index element={<DashboardRoute />} />
                 <Route path="projects" element={<AdminProjects />} />
                 <Route path="units" element={<AdminUnits />} />
                 <Route path="leads" element={<AdminLeads />} />
@@ -132,7 +143,8 @@ export default function App() {
                 <Route path="tasks" element={<AdminTasks />} />
                 {/* Accounting — admin + accounts dept */}
                 <Route path="accounting" element={<AdminAccounting />} />
-                <Route path="changelog" element={<AdminOnlyRoute><AdminChangelog /></AdminOnlyRoute>} />
+                <Route path="profile" element={<StaffProfile />} />
+                <Route path="changelog" element={<AdminChangelog />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
