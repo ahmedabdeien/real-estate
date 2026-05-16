@@ -42,6 +42,7 @@ const emptyProject = {
   developer: { ar: "", en: "" },
   videoUrl: "",
   brochureUrl: "",
+  mapEmbedUrl: "",
 };
 
 export default function AdminProjects() {
@@ -63,6 +64,7 @@ export default function AdminProjects() {
   const [favorites, setFavorites] = useState(loadFavorites());
   const [showFavorites, setShowFavorites] = useState(false);
   const [galleryUrl, setGalleryUrl] = useState("");
+  const [customAmenity, setCustomAmenity] = useState("");
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -123,6 +125,7 @@ export default function AdminProjects() {
       developer: p.developer || { ar: "", en: "" },
       videoUrl: p.videoUrl || "",
       brochureUrl: p.brochureUrl || "",
+      mapEmbedUrl: p.mapEmbedUrl || "",
     });
     setModal(true);
   };
@@ -151,6 +154,7 @@ export default function AdminProjects() {
         developer: form.developer || { ar: "", en: "" },
         videoUrl: form.videoUrl || "",
         brochureUrl: form.brochureUrl || "",
+        mapEmbedUrl: form.mapEmbedUrl || "",
       };
 
       if (editItem) {
@@ -220,8 +224,8 @@ export default function AdminProjects() {
         tips={[
           "أضف مشروعاً جديداً مع الاسم بالعربية والإنجليزية للظهور في نسختي الموقع",
           "أضف صوراً متعددة لمعرض الصور (Gallery) للمشروع",
-          "إحداثيات الخريطة (خط العرض والطول) تُستخدم لعرض الموقع على خريطة Google",
-          "حدد تاريخ التسليم المتوقع ليظهر للمشترين المحتملين",
+          "لإضافة خريطة: اذهب إلى Google Maps → مشاركة → تضمين الخريطة → انسخ الرابط src من iframe",
+          "يمكنك إضافة مميزات مخصصة للمشروع من حقل 'إضافة ميزة مخصصة'",
           "علّم المشروع كـ'مميز' لظهوره في أعلى قائمة المشاريع",
           "يمكنك التبديل بين عرض البطاقات وعرض الجدول من الزر أعلى اليمين",
         ]}
@@ -500,20 +504,13 @@ export default function AdminProjects() {
             )}
           </div>
 
-          {/* Map coordinates */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط العرض (Latitude)</label>
-            <input type="number" step="any" value={form.location?.lat || ""}
-              onChange={(e) => f("location.lat", e.target.value)}
-              placeholder="خط العرض مثال: 30.0626"
+          {/* Google Maps Embed URL */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط تضمين خريطة Google Maps</label>
+            <input value={form.mapEmbedUrl || ""} onChange={(e) => f("mapEmbedUrl", e.target.value)}
+              placeholder="https://maps.google.com/maps?q=...&output=embed"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط الطول (Longitude)</label>
-            <input type="number" step="any" value={form.location?.lng || ""}
-              onChange={(e) => f("location.lng", e.target.value)}
-              placeholder="خط الطول مثال: 31.2497"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+            <p className="text-xs text-gray-400 mt-1">اذهب إلى Google Maps &larr; مشاركة &larr; تضمين الخريطة &larr; انسخ الرابط src من iframe</p>
           </div>
 
           {/* Developer */}
@@ -541,6 +538,22 @@ export default function AdminProjects() {
                   }`}
                 >{a}</button>
               ))}
+              {/* Custom amenities not in predefined list */}
+              {(form.amenities || []).filter(a => !["حمام سباحة", "نادي رياضي", "أمن 24 ساعة", "مواقف سيارات", "حديقة", "مدرسة", "مسجد", "مركز تجاري", "منطقة ألعاب", "كهرباء احتياطي"].includes(a)).map((a) => (
+                <button key={a} type="button"
+                  onClick={() => f("amenities", (form.amenities || []).filter((x) => x !== a))}
+                  className="text-xs px-3 py-1.5 rounded-full border bg-[#2d5d89] text-white border-[#2d5d89] flex items-center gap-1">
+                  {a} <X className="w-3 h-3" />
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <input value={customAmenity} onChange={e => setCustomAmenity(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (customAmenity.trim() && !(form.amenities||[]).includes(customAmenity.trim())) { f("amenities", [...(form.amenities||[]), customAmenity.trim()]); setCustomAmenity(""); } } }}
+                placeholder="إضافة ميزة مخصصة..."
+                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]" />
+              <button type="button" onClick={() => { if (customAmenity.trim() && !(form.amenities||[]).includes(customAmenity.trim())) { f("amenities", [...(form.amenities||[]), customAmenity.trim()]); setCustomAmenity(""); } }}
+                className="px-3 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">+</button>
             </div>
           </div>
 

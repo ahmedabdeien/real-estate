@@ -13,7 +13,7 @@ const sheetSchema = new mongoose.Schema({
     {
       key:   { type: String, required: true },
       label: { type: String, required: true },
-      type:  { type: String, enum: ["text", "number", "date", "currency", "select"], default: "text" },
+      type:  { type: String, enum: ["text", "number", "date", "currency", "select", "formula", "percentage"], default: "text" },
       options: [{ type: String }], // for select type
       width: { type: Number, default: 150 },
     },

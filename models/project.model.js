@@ -41,6 +41,7 @@ const projectSchema = new mongoose.Schema(
     brochureUrl: { type: String, default: "" },
     startingPrice: { type: Number, default: 0 },
     totalUnits: { type: Number, default: 0 },
+    mapEmbedUrl: { type: String, default: "" },
     order: { type: Number, default: 0 },
   },
   { timestamps: true }

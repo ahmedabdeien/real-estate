@@ -101,7 +101,7 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/projects" element={<ProjectsPage />} />
                 <Route path="/projects/:slug" element={<ProjectDetailPage />} />
-                <Route path="/units" element={<UnitsPage />} />
+                <Route path="/units" element={<Navigate to="/projects" replace />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogDetailPage />} />

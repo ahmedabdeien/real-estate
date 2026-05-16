@@ -328,6 +328,17 @@ function SheetForm({ initial, onSave, onClose }) {
                   />
                 </div>
               )}
+              {col.type === "select" && (
+                <div className="pr-6 flex items-center gap-2">
+                  <span className="text-[10px] text-gray-500 font-bold">الخيارات:</span>
+                  <input
+                    value={(col.options || []).join(",")}
+                    onChange={(e) => updateCol(i, "options", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
+                    placeholder="خيار1,خيار2,خيار3"
+                    className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-purple-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>

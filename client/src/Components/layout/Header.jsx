@@ -8,7 +8,6 @@ import { useSiteSettings } from "../../context/SiteSettingsContext";
 const links = [
   { to: "/", label: "الرئيسية", exact: true },
   { to: "/projects", label: "المشاريع" },
-  { to: "/units", label: "الوحدات" },
   { to: "/blog", label: "الأخبار" },
   { to: "/about", label: "عن الشركة" },
   { to: "/careers", label: "وظائف" },

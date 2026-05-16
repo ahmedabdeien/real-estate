@@ -88,6 +88,7 @@ export default function AdminUnits() {
   const [compareMode, setCompareMode] = useState(false);
   const [compareIds, setCompareIds] = useState([]);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [customUnitAmenity, setCustomUnitAmenity] = useState("");
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -503,6 +504,22 @@ export default function AdminUnits() {
                   </button>
                 );
               })}
+              {/* Custom amenities not in predefined list */}
+              {(form.amenities || []).filter(a => !AMENITIES.includes(a)).map((a) => (
+                <button key={a} type="button"
+                  onClick={() => f("amenities", (form.amenities || []).filter((x) => x !== a))}
+                  className="px-3 py-1.5 rounded-full text-xs border bg-[#2d5d89] text-white border-[#2d5d89] flex items-center gap-1">
+                  {a} <span className="text-white/70">×</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <input value={customUnitAmenity} onChange={e => setCustomUnitAmenity(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (customUnitAmenity.trim() && !(form.amenities||[]).includes(customUnitAmenity.trim())) { f("amenities", [...(form.amenities||[]), customUnitAmenity.trim()]); setCustomUnitAmenity(""); } } }}
+                placeholder="إضافة ميزة مخصصة..."
+                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]" />
+              <button type="button" onClick={() => { if (customUnitAmenity.trim() && !(form.amenities||[]).includes(customUnitAmenity.trim())) { f("amenities", [...(form.amenities||[]), customUnitAmenity.trim()]); setCustomUnitAmenity(""); } }}
+                className="px-3 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">+</button>
             </div>
           </div>
 
