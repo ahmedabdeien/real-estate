@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import HelpCard from "../../Components/UI/HelpCard";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -284,6 +285,17 @@ export default function AdminAccountingRecords() {
 
   return (
     <div className="p-4 sm:p-6 space-y-5" dir="rtl">
+      <HelpCard
+        title="دليل السجلات المحاسبية"
+        tips={[
+          "السجلات المحاسبية تعتمد نظام القيد المزدوج (مدين = دائن في كل قيد)",
+          "اختر الحساب المدين والحساب الدائن لكل معاملة مالية",
+          "الرصيد = إجمالي المدين - إجمالي الدائن",
+          "يمكنك تصفية القيود حسب الحساب أو نطاق التاريخ",
+          "صدّر البيانات بصيغة CSV للمراجعة في Excel",
+        ]}
+      />
+
       {/* ── Header ── */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-3">

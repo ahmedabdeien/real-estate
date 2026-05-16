@@ -11,6 +11,7 @@ import Badge, { statusBadge } from "../../Components/UI/Badge";
 import ImageUpload from "../../Components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
 import { Building2 } from "lucide-react";
+import HelpCard from "../../Components/UI/HelpCard";
 
 const FAVORITES_KEY = "favorites_projects";
 const loadFavorites = () => {
@@ -187,6 +188,18 @@ export default function AdminProjects() {
           <span className="sm:hidden">إضافة</span>
         </button>
       </div>
+
+      <HelpCard
+        title="دليل إدارة المشاريع"
+        tips={[
+          "أضف مشروعاً جديداً مع الاسم بالعربية والإنجليزية للظهور في نسختي الموقع",
+          "أضف صوراً متعددة لمعرض الصور (Gallery) للمشروع",
+          "إحداثيات الخريطة (خط العرض والطول) تُستخدم لعرض الموقع على خريطة Google",
+          "حدد تاريخ التسليم المتوقع ليظهر للمشترين المحتملين",
+          "علّم المشروع كـ'مميز' لظهوره في أعلى قائمة المشاريع",
+          "يمكنك التبديل بين عرض البطاقات وعرض الجدول من الزر أعلى اليمين",
+        ]}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

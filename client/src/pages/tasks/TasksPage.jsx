@@ -5,7 +5,8 @@ import {
   Plus, LogOut, CheckCircle2, Clock, AlertCircle, Trash2, Edit2,
   User, Flag, X, ChevronDown, AlignLeft, Layers, Building2,
   ChevronUp, MoreVertical, ArrowRight, Check, FileText,
-  LayoutList, Columns, RefreshCw,
+  LayoutList, Columns, RefreshCw, List, LayoutGrid, Search,
+  CalendarDays, AlertTriangle, TrendingUp,
 } from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -436,7 +437,10 @@ export default function TasksPage() {
   const [statusTab,  setStatusTab]  = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const [viewMode, setViewMode] = useState("list"); // "list" | "kanban"
+  const [viewMode, setViewMode] = useState("cards"); // "list" | "cards" | "kanban"
+  const [search, setSearch] = useState("");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all"); // all | today | week | overdue
 
   const canManage  = ["admin", "supervisor", "manager"].includes(user?.role);
   const canSeeAll  = ["admin", "supervisor"].includes(user?.role);
@@ -460,12 +464,40 @@ export default function TasksPage() {
 
   useEffect(() => { loadTasks(); loadUsers(); }, [loadTasks, loadUsers]);
 
+  const now = Date.now();
+  const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay   = new Date(); endOfDay.setHours(23, 59, 59, 999);
+  const weekAhead  = new Date(); weekAhead.setDate(weekAhead.getDate() + 7);
+
   const filtered = tasks.filter((t) => {
     const statusOk   = statusTab === "all" || t.status === statusTab;
     const deptOk     = deptFilter === "all" || t.department === deptFilter;
     const priorityOk = priorityFilter === "all" || t.priority === priorityFilter;
-    return statusOk && deptOk && priorityOk;
+    const assigneeOk = assigneeFilter === "all"
+      || (t.assignedTo || []).some((u) => (u._id || u) === assigneeFilter);
+    const q = search.trim().toLowerCase();
+    const searchOk = !q
+      || (t.title || "").toLowerCase().includes(q)
+      || (t.description || "").toLowerCase().includes(q)
+      || (t.notes || "").toLowerCase().includes(q);
+    let dateOk = true;
+    if (dateFilter !== "all") {
+      const due = new Date(t.dueDate);
+      if (dateFilter === "today") dateOk = due >= startOfDay && due <= endOfDay;
+      else if (dateFilter === "week") dateOk = due >= startOfDay && due <= weekAhead;
+      else if (dateFilter === "overdue") dateOk = due.getTime() < now && t.status !== "done";
+    }
+    return statusOk && deptOk && priorityOk && assigneeOk && searchOk && dateOk;
   });
+
+  // Stats summary
+  const overdueCount = tasks.filter((t) => new Date(t.dueDate).getTime() < now && t.status !== "done").length;
+  const todayCount   = tasks.filter((t) => {
+    const d = new Date(t.dueDate);
+    return d >= startOfDay && d <= endOfDay;
+  }).length;
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const doneThisWeek = tasks.filter((t) => t.status === "done" && t.updatedAt && new Date(t.updatedAt) >= weekAgo).length;
 
   const doneCount  = tasks.filter((t) => t.status === "done").length;
   const totalCount = tasks.length;
@@ -574,8 +606,8 @@ export default function TasksPage() {
           </div>
         )}
 
-        {/* ── Status tabs ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        {/* ── Status tabs (scrollable on mobile) ── */}
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 overflow-x-auto -mx-3 sm:-mx-0 px-3 sm:px-0">
           {statusTabs.map(({ key, label, count, icon: Icon, cls }) => (
             <button key={key} onClick={() => setStatusTab(key)}
               className={`bg-white rounded-2xl border p-3 text-center transition-all active:scale-95 ${
@@ -626,32 +658,115 @@ export default function TasksPage() {
           </div>
         )}
 
+        {/* ── Quick date filters ── */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-xs text-gray-400 font-medium">التاريخ:</span>
+          {[
+            ["all", "الكل"],
+            ["today", "اليوم"],
+            ["week", "هذا الأسبوع"],
+            ["overdue", "متأخرة"],
+          ].map(([k, v]) => (
+            <button key={k} onClick={() => setDateFilter(k)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
+                dateFilter === k
+                  ? "bg-[#2d5d89] text-white border-[#2d5d89]"
+                  : k === "overdue"
+                    ? "bg-red-50 text-red-700 border-red-200"
+                    : "bg-white text-gray-600 border-gray-200"
+              }`}>
+              {v}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Stats summary ── */}
+        {totalCount > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="bg-white rounded-xl border border-gray-100 px-3 py-2 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-[10px] text-gray-400 leading-none">الإجمالي</p>
+                <p className="text-sm font-bold text-gray-900 leading-tight">{totalCount}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-red-100 px-3 py-2 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <div>
+                <p className="text-[10px] text-gray-400 leading-none">متأخرة</p>
+                <p className="text-sm font-bold text-red-600 leading-tight">{overdueCount}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-yellow-100 px-3 py-2 flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-yellow-500" />
+              <div>
+                <p className="text-[10px] text-gray-400 leading-none">اليوم</p>
+                <p className="text-sm font-bold text-yellow-600 leading-tight">{todayCount}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-emerald-100 px-3 py-2 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-500" />
+              <div>
+                <p className="text-[10px] text-gray-400 leading-none">منجزة الأسبوع</p>
+                <p className="text-sm font-bold text-emerald-600 leading-tight">{doneThisWeek}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Search + assignee filter ── */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="relative flex-1 min-w-[160px]">
+            <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="بحث في المهام..."
+              className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+            />
+          </div>
+          {canManage && users.length > 0 && (
+            <select
+              value={assigneeFilter}
+              onChange={(e) => setAssigneeFilter(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+            >
+              <option value="all">كل المعيّن لهم</option>
+              {users.map((u) => <option key={u._id} value={u._id}>{u.name}</option>)}
+            </select>
+          )}
+        </div>
+
         {/* ── View toggle + refresh ── */}
-        <div className="flex items-center gap-2">
-          <div className="flex bg-white border border-gray-200 rounded-xl p-0.5 shadow-sm">
-            <button
-              onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                viewMode === "list" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <LayoutList className="w-3.5 h-3.5" /> قائمة
-            </button>
-            <button
-              onClick={() => setViewMode("kanban")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                viewMode === "kanban" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <Columns className="w-3.5 h-3.5" /> كانبان
-            </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            {[
+              { mode: "list",   icon: List,       label: "صفوف" },
+              { mode: "cards",  icon: LayoutGrid, label: "بطاقات" },
+              { mode: "kanban", icon: Columns,    label: "كانبان" },
+            ].map(({ mode, icon: Icon, label }) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  viewMode === mode
+                    ? "bg-white dark:bg-gray-700 text-[#2d5d89] shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
           </div>
           <button
             onClick={loadTasks}
             disabled={loading}
+            title="تحديث"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> تحديث
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">تحديث</span>
           </button>
           <span className="text-xs text-gray-400 mr-auto">{filtered.length} مهمة</span>
         </div>
@@ -678,6 +793,83 @@ export default function TasksPage() {
                 <Plus className="w-4 h-4" />إضافة مهمة
               </button>
             )}
+          </div>
+        ) : viewMode === "list" ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="w-1"></th>
+                    <th className="text-right text-xs font-semibold text-gray-500 px-3 py-2">العنوان</th>
+                    <th className="text-right text-xs font-semibold text-gray-500 px-3 py-2 whitespace-nowrap">الحالة</th>
+                    <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 px-3 py-2 whitespace-nowrap">المعيّن لهم</th>
+                    <th className="text-right text-xs font-semibold text-gray-500 px-3 py-2 whitespace-nowrap">الموعد</th>
+                    <th className="w-12"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filtered.map((task) => {
+                    const priorityBar = task.priority === "high" ? "bg-red-400"
+                      : task.priority === "medium" ? "bg-orange-300"
+                      : "bg-gray-200";
+                    return (
+                      <tr key={task._id}
+                        onClick={() => canManage && openEdit(task)}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors">
+                        <td className={`w-1 ${priorityBar}`}>&nbsp;</td>
+                        <td className="px-3 py-2.5">
+                          <p className="font-semibold text-gray-900 text-xs sm:text-sm leading-tight">{task.title}</p>
+                          {task.description && (
+                            <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{task.description}</p>
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_COLORS[task.status]}`}>
+                            {STATUS_LABELS[task.status]}
+                          </span>
+                        </td>
+                        <td className="hidden md:table-cell px-3 py-2.5">
+                          <div className="flex flex-wrap gap-1">
+                            {(task.assignedTo || []).slice(0, 2).map((u) => (
+                              <span key={u._id} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                                {u.name}
+                              </span>
+                            ))}
+                            {(task.assignedTo || []).length > 2 && (
+                              <span className="text-[10px] text-gray-400">+{task.assignedTo.length - 2}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5"><Countdown dueDate={task.dueDate} compact /></td>
+                        <td className="px-2 py-2.5" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-0.5">
+                            {task.status !== "done" && (
+                              <button
+                                onClick={() => handleStatusChange(task._id, "done")}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-emerald-50 text-emerald-600"
+                                title="إنجاز"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {canManage && (
+                              <button
+                                onClick={() => handleDelete(task._id)}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-500"
+                                title="حذف"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : viewMode === "kanban" ? (
           <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
