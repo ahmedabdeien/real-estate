@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MapPin, Home, Building2, Phone, ArrowRight } from "lucide-react";
+import { MapPin, Home, Building2, Phone, ArrowRight, MessageCircle, CheckCircle } from "lucide-react";
 import api from "../../api/axios";
 import { PageLoader } from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
@@ -84,6 +84,11 @@ export default function ProjectDetailPage() {
                       <span>{project.location.address?.ar}, {project.location.city.ar}</span>
                     </div>
                   )}
+                  {project.developer?.ar && (
+                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                      <Building2 className="w-3.5 h-3.5" /> {project.developer.ar}
+                    </p>
+                  )}
                 </div>
                 {project.startingPrice > 0 && (
                   <div className="text-left">
@@ -109,7 +114,51 @@ export default function ProjectDetailPage() {
                   <p className="text-gray-600 leading-relaxed text-sm">{project.description.ar}</p>
                 </div>
               )}
+
+              {project.amenities?.length > 0 && (
+                <div className="mt-4">
+                  <h2 className="font-bold text-gray-900 mb-3">المميزات والمرافق</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {project.amenities.map((a) => (
+                      <span key={a} className="bg-[#2d5d89]/10 text-[#2d5d89] text-xs px-3 py-1.5 rounded-full font-medium">{a}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Google Maps */}
+            {project.location?.lat && project.location?.lng && (
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-4 border-b border-gray-100">
+                  <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#2d5d89]" /> موقع المشروع
+                  </h2>
+                </div>
+                <iframe
+                  src={`https://maps.google.com/maps?q=${project.location.lat},${project.location.lng}&z=15&output=embed`}
+                  width="100%" height="300"
+                  style={{ border: 0 }} loading="lazy"
+                  title="موقع المشروع"
+                />
+              </div>
+            )}
+
+            {/* Video */}
+            {project.videoUrl && (
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-4 border-b border-gray-100">
+                  <h2 className="font-bold text-gray-900">فيديو المشروع</h2>
+                </div>
+                <div className="aspect-video">
+                  <iframe
+                    src={project.videoUrl.replace("watch?v=", "embed/")}
+                    className="w-full h-full"
+                    allowFullScreen title="فيديو المشروع"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Units */}
             {units.length > 0 && (
@@ -170,9 +219,7 @@ function ContactForm({ projectName, projectId }) {
 
   if (sent) return (
     <div className="text-center py-6">
-      <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-        <span className="text-green-600 text-xl">✓</span>
-      </div>
+      <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-3" />
       <p className="font-semibold text-gray-900">شكراً لك!</p>
       <p className="text-gray-500 text-sm mt-1">سيتواصل معك فريقنا قريباً</p>
     </div>
@@ -197,6 +244,12 @@ function ContactForm({ projectName, projectId }) {
         className="flex items-center justify-center gap-2 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
         <Phone className="w-4 h-4" />
         اتصل مباشرة
+      </a>
+      <a href={`https://wa.me/201000000000?text=${encodeURIComponent(`مرحباً، أريد الاستفسار عن مشروع ${projectName}`)}`}
+        target="_blank" rel="noopener noreferrer"
+        className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-xl text-sm font-medium transition-colors">
+        <MessageCircle className="w-4 h-4" />
+        واتساب
       </a>
     </form>
   );

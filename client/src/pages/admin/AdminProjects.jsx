@@ -30,17 +30,18 @@ const statusOptions = [
 const emptyProject = {
   name: { ar: "", en: "" },
   description: { ar: "", en: "" },
-  location: { address: { ar: "", en: "" }, city: { ar: "", en: "" } },
+  location: { address: { ar: "", en: "" }, city: { ar: "", en: "" }, lat: "", lng: "" },
   status: "under_construction",
   coverImage: "",
   images: [],
-  gallery: [],
   featured: false,
   published: false,
   startingPrice: "",
   totalUnits: "",
-  latitude: "",
-  longitude: "",
+  amenities: [],
+  developer: { ar: "", en: "" },
+  videoUrl: "",
+  brochureUrl: "",
 };
 
 export default function AdminProjects() {
@@ -111,31 +112,58 @@ export default function AdminProjects() {
       location: {
         address: { ar: p.location?.address?.ar ?? "", en: p.location?.address?.en ?? "" },
         city: { ar: p.location?.city?.ar ?? "", en: p.location?.city?.en ?? "" },
+        lat: p.location?.lat ?? "",
+        lng: p.location?.lng ?? "",
       },
       startingPrice: p.startingPrice ?? "",
       totalUnits: p.totalUnits ?? "",
       coverImage: p.coverImage ?? "",
-      gallery: Array.isArray(p.gallery) ? p.gallery : (Array.isArray(p.images) ? p.images : []),
-      latitude: p.latitude ?? "",
-      longitude: p.longitude ?? "",
+      images: Array.isArray(p.images) ? p.images : [],
+      amenities: Array.isArray(p.amenities) ? p.amenities : [],
+      developer: p.developer || { ar: "", en: "" },
+      videoUrl: p.videoUrl || "",
+      brochureUrl: p.brochureUrl || "",
     });
     setModal(true);
   };
 
   const handleSave = async () => {
+    if (!form.name?.ar?.trim()) return toast.error("اسم المشروع بالعربية مطلوب");
     setSaving(true);
     try {
+      const payload = {
+        name: form.name,
+        description: form.description,
+        location: {
+          address: form.location?.address || { ar: "", en: "" },
+          city: form.location?.city || { ar: "", en: "" },
+          lat: form.location?.lat ? parseFloat(form.location.lat) : undefined,
+          lng: form.location?.lng ? parseFloat(form.location.lng) : undefined,
+        },
+        status: form.status,
+        coverImage: form.coverImage,
+        images: Array.isArray(form.images) ? form.images : [],
+        featured: form.featured,
+        published: form.published,
+        startingPrice: Number(form.startingPrice) || 0,
+        totalUnits: Number(form.totalUnits) || 0,
+        amenities: form.amenities || [],
+        developer: form.developer || { ar: "", en: "" },
+        videoUrl: form.videoUrl || "",
+        brochureUrl: form.brochureUrl || "",
+      };
+
       if (editItem) {
-        await api.put(`/projects/${editItem._id}`, form);
+        await api.put(`/projects/${editItem._id}`, payload);
         toast.success("تم تحديث المشروع");
       } else {
-        await api.post("/projects", form);
-        toast.success("تم إضافة المشروع");
+        await api.post("/projects", payload);
+        toast.success("تم إنشاء المشروع");
       }
       setModal(false);
       load();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "حدث خطأ");
+    } catch {
+      toast.error("حدث خطأ، حاول مجدداً");
     } finally {
       setSaving(false);
     }
@@ -450,20 +478,20 @@ export default function AdminProjects() {
                 onClick={() => {
                   const url = galleryUrl.trim();
                   if (!url) return;
-                  f("gallery", [...(form.gallery || []), url]);
+                  f("images", [...(form.images || []), url]);
                   setGalleryUrl("");
                 }}
                 className="px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium"
               >إضافة</button>
             </div>
-            {Array.isArray(form.gallery) && form.gallery.length > 0 && (
+            {Array.isArray(form.images) && form.images.length > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {form.gallery.map((url, i) => (
+                {form.images.map((url, i) => (
                   <div key={`${url}-${i}`} className="relative group">
                     <img src={url} alt="" className="w-full h-20 object-cover rounded-lg" />
                     <button
                       type="button"
-                      onClick={() => f("gallery", form.gallery.filter((_, idx) => idx !== i))}
+                      onClick={() => f("images", form.images.filter((_, idx) => idx !== i))}
                       className="absolute top-1 left-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-90"
                     ><X className="w-3 h-3" /></button>
                   </div>
@@ -475,12 +503,52 @@ export default function AdminProjects() {
           {/* Map coordinates */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط العرض (Latitude)</label>
-            <input type="number" step="any" value={form.latitude} onChange={(e) => f("latitude", e.target.value)}
+            <input type="number" step="any" value={form.location?.lat || ""}
+              onChange={(e) => f("location.lat", e.target.value)}
+              placeholder="خط العرض مثال: 30.0626"
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط الطول (Longitude)</label>
-            <input type="number" step="any" value={form.longitude} onChange={(e) => f("longitude", e.target.value)}
+            <input type="number" step="any" value={form.location?.lng || ""}
+              onChange={(e) => f("location.lng", e.target.value)}
+              placeholder="خط الطول مثال: 31.2497"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+
+          {/* Developer */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المطوّر العقاري</label>
+            <input value={form.developer?.ar || ""} onChange={(e) => f("developer.ar", e.target.value)}
+              placeholder="اسم الشركة المطورة"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+
+          {/* Amenities */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">المميزات والمرافق</label>
+            <div className="flex flex-wrap gap-2">
+              {["حمام سباحة", "نادي رياضي", "أمن 24 ساعة", "مواقف سيارات", "حديقة", "مدرسة", "مسجد", "مركز تجاري", "منطقة ألعاب", "كهرباء احتياطي"].map((a) => (
+                <button key={a} type="button"
+                  onClick={() => {
+                    const cur = form.amenities || [];
+                    f("amenities", cur.includes(a) ? cur.filter((x) => x !== a) : [...cur, a]);
+                  }}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                    (form.amenities || []).includes(a)
+                      ? "bg-[#2d5d89] text-white border-[#2d5d89]"
+                      : "border-gray-200 text-gray-600 hover:border-[#2d5d89]"
+                  }`}
+                >{a}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Video URL */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الفيديو (YouTube)</label>
+            <input value={form.videoUrl || ""} onChange={(e) => f("videoUrl", e.target.value)}
+              placeholder="https://youtube.com/watch?v=..."
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
           </div>
 
