@@ -425,7 +425,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
 
 // ─── Main TasksPage ───────────────────────────────────────────────────────────
 
-export default function TasksPage() {
+export default function TasksPage({ embedded = false }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -553,41 +553,59 @@ export default function TasksPage() {
   ];
 
   return (
-    <div className="min-h-dvh bg-[#f0f4f8]" dir="rtl">
+    <div className={embedded ? "" : "min-h-dvh bg-[#f0f4f8]"} dir="rtl">
       {/* ── Header ── */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          {/* Back to admin (admin/supervisor only) */}
-          <div className="flex items-center gap-2 min-w-0">
-            {canManage && (
-              <Link to="/admin" className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 flex-shrink-0 transition-colors">
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            )}
-            <div className="min-w-0">
-              <p className="font-bold text-gray-900 text-sm leading-tight">إدارة المهام</p>
-              <p className="text-xs text-gray-400 truncate">
-                {ROLE_LABELS[user?.role]} — {user?.name}
-                {user?.department && ` · ${DEPARTMENTS[user.department] || ""}`}
-              </p>
+      {!embedded && (
+        <header className="bg-white border-b border-gray-100 sticky top-0 z-20">
+          <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            {/* Back to admin (admin/supervisor only) */}
+            <div className="flex items-center gap-2 min-w-0">
+              {canManage && (
+                <Link to="/admin" className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 flex-shrink-0 transition-colors">
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900 text-sm leading-tight">إدارة المهام</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {ROLE_LABELS[user?.role]} — {user?.name}
+                  {user?.department && ` · ${DEPARTMENTS[user.department] || ""}`}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {canManage && (
+                <button onClick={openCreate}
+                  className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#245079] active:scale-95 text-white px-3 py-2 sm:px-4 rounded-xl text-sm font-semibold transition-all">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">مهمة جديدة</span>
+                </button>
+              )}
+              <button onClick={handleLogout} title="تسجيل الخروج"
+                className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-400 transition-colors">
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {canManage && (
-              <button onClick={openCreate}
-                className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#245079] active:scale-95 text-white px-3 py-2 sm:px-4 rounded-xl text-sm font-semibold transition-all">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">مهمة جديدة</span>
-              </button>
-            )}
-            <button onClick={handleLogout} title="تسجيل الخروج"
-              className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-400 transition-colors">
-              <LogOut className="w-4 h-4" />
-            </button>
+        </header>
+      )}
+      {embedded && canManage && (
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">إدارة المهام</h1>
+            <p className="text-gray-500 text-sm">
+              {ROLE_LABELS[user?.role]} — {user?.name}
+              {user?.department && ` · ${DEPARTMENTS[user.department] || ""}`}
+            </p>
           </div>
+          <button onClick={openCreate}
+            className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#245079] active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">مهمة جديدة</span>
+          </button>
         </div>
-      </header>
+      )}
 
       <main className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4">
         {/* ── Progress bar ── */}

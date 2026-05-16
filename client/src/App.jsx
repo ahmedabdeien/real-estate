@@ -142,7 +142,7 @@ export default function App() {
                 <Route path="settings" element={<AdminOnlyRoute><AdminSettings /></AdminOnlyRoute>} />
                 <Route path="activity" element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
                 {/* Tasks inside admin panel — admin/supervisor/manager */}
-                <Route path="tasks" element={<AdminTasks />} />
+                <Route path="tasks" element={<TasksPage embedded={true} />} />
                 {/* Accounting — admin + accounts dept */}
                 <Route path="accounting" element={<AdminAccounting />} />
                 <Route path="accounting-records" element={<AdminAccountingRecords />} />

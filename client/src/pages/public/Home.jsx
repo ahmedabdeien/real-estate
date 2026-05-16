@@ -188,27 +188,38 @@ function ProjectCard({ project }) {
 export default function HomePage() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
-  const [hero, setHero] = useState({});
-  const [stats, setStats] = useState({});
+  const { data: heroCms } = useCms("hero", {
+    title_ar: "الصرح للتطوير العقاري",
+    subtitle_ar: "نقدم لكم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة",
+    background_image: "",
+    cta_text_ar: "اكتشف مشاريعنا",
+    cta_secondary_ar: "تواصل معنا",
+  });
+  const { data: statsCms } = useCms("stats", {
+    projects_count: "50+",
+    units_count: "2000+",
+    clients_count: "5000+",
+    years_experience: "15+",
+    projects_label: "مشروع متميز",
+    units_label: "وحدة سكنية",
+    clients_label: "عميل سعيد",
+    years_label: "سنة خبرة",
+  });
   const { data: servicesCms } = useCms("home_services");
 
   useEffect(() => {
     api.get("/projects", { params: { featured: true, published: true, limit: 6 } })
       .then((r) => setProjects(r.data.projects || []))
       .finally(() => setLoadingProjects(false));
-    api.get("/content/hero").then((r) => setHero(r.data.data || {})).catch(() => {});
-    api.get("/content/stats").then((r) => setStats(r.data.data || {})).catch(() => {});
   }, []);
-
-  const content = hero;
 
   return (
     <div>
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[#2d5d89]">
-        {content.background_image && (
+        {heroCms.background_image && (
           <div className="absolute inset-0">
-            <img src={content.background_image} alt="" className="w-full h-full object-cover opacity-20" />
+            <img src={heroCms.background_image} alt="" className="w-full h-full object-cover opacity-20" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0f2336]/90 to-[#0f2336]/40" />
           </div>
         )}
@@ -222,10 +233,10 @@ export default function HomePage() {
               الصرح للتطوير العقاري — مستقبلك يبدأ هنا
             </span>
             <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
-              {content.title_ar || "اكتشف بيت أحلامك"}
+              {heroCms.title_ar}
             </h1>
             <p className="text-white/70 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-              {content.subtitle_ar || "نقدم أفضل الوحدات السكنية والتجارية بمواقع متميزة وأسعار تنافسية وخدمة ما بعد البيع الاستثنائية"}
+              {heroCms.subtitle_ar}
             </p>
 
             {/* Search Bar */}
@@ -236,7 +247,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/projects"
                 className="bg-[#f59e0b] hover:bg-[#d97706] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:shadow-xl hover:shadow-[#f59e0b]/20 hover:-translate-y-0.5">
-                {content.cta_text_ar || "استكشف مشاريعنا"}
+                {heroCms.cta_text_ar}
               </Link>
               <Link to="/contact"
                 className="bg-white/10 backdrop-blur hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-2xl font-bold text-lg transition-colors">
@@ -251,10 +262,10 @@ export default function HomePage() {
       <section className="bg-[#2d5d89] py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8" dir="rtl">
-            <StatItem icon={Building2} value={stats.projects_count   || "50+"}  label="مشروع ناجح" />
-            <StatItem icon={HomeIcon}  value={stats.units_count      || "2000+"} label="وحدة سكنية" />
-            <StatItem icon={Users}     value={stats.clients_count    || "5000+"} label="عملاء" />
-            <StatItem icon={Award}     value={stats.years_experience || "15+"}   label="سنة خبرة" />
+            <StatItem icon={Building2} value={statsCms.projects_count}   label={statsCms.projects_label} />
+            <StatItem icon={HomeIcon}  value={statsCms.units_count}      label={statsCms.units_label} />
+            <StatItem icon={Users}     value={statsCms.clients_count}    label={statsCms.clients_label} />
+            <StatItem icon={Award}     value={statsCms.years_experience} label={statsCms.years_label} />
           </div>
         </div>
       </section>

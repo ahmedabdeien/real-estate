@@ -41,7 +41,6 @@ const emptyProject = {
   totalUnits: "",
   latitude: "",
   longitude: "",
-  deliveryDate: "",
 };
 
 export default function AdminProjects() {
@@ -119,7 +118,6 @@ export default function AdminProjects() {
       gallery: Array.isArray(p.gallery) ? p.gallery : (Array.isArray(p.images) ? p.images : []),
       latitude: p.latitude ?? "",
       longitude: p.longitude ?? "",
-      deliveryDate: p.deliveryDate ? new Date(p.deliveryDate).toISOString().slice(0, 10) : "",
     });
     setModal(true);
   };
@@ -483,13 +481,6 @@ export default function AdminProjects() {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">خط الطول (Longitude)</label>
             <input type="number" step="any" value={form.longitude} onChange={(e) => f("longitude", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-
-          {/* Delivery date */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">تاريخ التسليم المتوقع</label>
-            <input type="date" value={form.deliveryDate} onChange={(e) => f("deliveryDate", e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
           </div>
 
