@@ -31,7 +31,7 @@ const STATUS_LABELS = {
 
 const emptyForm = {
   name: "", phone: "", email: "", message: "", notes: "",
-  source: "walk_in", status: "new",
+  registrationSource: "walk_in", status: "new",
   interestedProject: "", followUpDate: "",
 };
 
@@ -82,7 +82,7 @@ export default function AdminClientReg() {
     setForm({
       name: l.name || "", phone: l.phone || "", email: l.email || "",
       message: l.message || "", notes: l.notes || "",
-      source: l.source || "walk_in", status: l.status || "new",
+      registrationSource: l.registrationSource || l.source || "walk_in", status: l.status || "new",
       interestedProject: l.interestedProject?._id || "",
       followUpDate: l.followUpDate ? l.followUpDate.substring(0, 10) : "",
     });
@@ -94,7 +94,7 @@ export default function AdminClientReg() {
     if (!form.phone.trim()) return toast.error("الهاتف مطلوب");
     setSaving(true);
     try {
-      const payload = { ...form, registrationSource: "admin_registration" };
+      const payload = { ...form };
       if (!payload.interestedProject) delete payload.interestedProject;
       if (!payload.followUpDate) delete payload.followUpDate;
       if (editItem) {
@@ -259,7 +259,7 @@ export default function AdminClientReg() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المصدر</label>
-              <select value={form.source} onChange={e => setForm(f => ({ ...f, source: e.target.value }))}
+              <select value={form.registrationSource} onChange={e => setForm(f => ({ ...f, registrationSource: e.target.value }))}
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
                 {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>

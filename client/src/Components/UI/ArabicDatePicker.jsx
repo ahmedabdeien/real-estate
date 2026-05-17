@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, ChevronRight, ChevronLeft, X } from "lucide-react";
 
 const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
@@ -13,7 +14,7 @@ function formatAr(dateStr) {
 
 export default function ArabicDatePicker({ value, onChange, placeholder = "اختر تاريخاً", className = "", label, disabled }) {
   const [open, setOpen] = useState(false);
-  const [openUp, setOpenUp] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState({});
   const ref = useRef(null);
   const buttonRef = useRef(null);
 
@@ -23,6 +24,14 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
   const [viewYear, setViewYear] = useState(parsed?.getFullYear() || today.getFullYear());
   const [viewMonth, setViewMonth] = useState(parsed?.getMonth() ?? today.getMonth());
 
+  // Sync viewYear/viewMonth when value changes from outside
+  useEffect(() => {
+    if (value) {
+      const d = new Date(value);
+      if (!isNaN(d)) { setViewYear(d.getFullYear()); setViewMonth(d.getMonth()); }
+    }
+  }, [value]);
+
   useEffect(() => {
     const fn = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", fn);
@@ -30,10 +39,23 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
   }, []);
 
   const handleOpen = () => {
-    if (buttonRef.current) {
+    if (disabled) return;
+    if (!open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const dropH = 320; // approx calendar height
       const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUp(spaceBelow < 320);
+      const openUp = spaceBelow < dropH;
+
+      setDropdownStyle({
+        position: "fixed",
+        zIndex: 9999,
+        minWidth: "260px",
+        right: undefined,
+        left: rect.left,
+        ...(openUp
+          ? { bottom: window.innerHeight - rect.top + 4 }
+          : { top: rect.bottom + 4 }),
+      });
     }
     setOpen(o => !o);
   };
@@ -66,6 +88,66 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
     return today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === d;
   };
 
+  const dropdown = open && (
+    <div style={dropdownStyle}
+      className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-3"
+      onMouseDown={e => e.stopPropagation()}
+    >
+      {/* Month/Year header */}
+      <div className="flex items-center justify-between mb-3" dir="rtl">
+        <button type="button" onClick={nextMonth}
+          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <ChevronRight className="w-4 h-4 text-gray-500" />
+        </button>
+        <div className="text-center">
+          <span className="font-bold text-gray-900 dark:text-white text-sm">
+            {MONTHS_AR[viewMonth]} {viewYear.toLocaleString("ar-EG", { useGrouping: false })}
+          </span>
+        </div>
+        <button type="button" onClick={prevMonth}
+          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <ChevronLeft className="w-4 h-4 text-gray-500" />
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-1" dir="rtl">
+        {DAYS_AR.map(d => (
+          <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
+        ))}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-0.5" dir="rtl">
+        {cells.map((d, i) => (
+          <div key={i} className="aspect-square flex items-center justify-center">
+            {d ? (
+              <button type="button" onClick={() => selectDay(d)}
+                className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
+                  isSelected(d)
+                    ? "bg-[#2d5d89] text-white"
+                    : isToday(d)
+                    ? "bg-[#2d5d89]/10 text-[#2d5d89] font-bold"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}>
+                {d.toLocaleString("ar-EG")}
+              </button>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      {/* Today button */}
+      <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700" dir="rtl">
+        <button type="button"
+          onClick={() => { const t = today; onChange(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`); setOpen(false); }}
+          className="w-full text-xs text-[#2d5d89] hover:underline font-medium py-1">
+          اليوم
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className={`relative ${className}`} ref={ref} dir="rtl">
       {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>}
@@ -84,62 +166,7 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
         )}
       </button>
 
-      {open && (
-        <div className={`absolute z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-3 min-w-[260px] right-0 ${openUp ? "bottom-full mb-1" : "top-full mt-1"}`}>
-          {/* Month/Year header */}
-          <div className="flex items-center justify-between mb-3">
-            <button type="button" onClick={nextMonth}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <ChevronRight className="w-4 h-4 text-gray-500" />
-            </button>
-            <div className="text-center">
-              <span className="font-bold text-gray-900 dark:text-white text-sm">
-                {MONTHS_AR[viewMonth]} {viewYear.toLocaleString("ar-EG", { useGrouping: false })}
-              </span>
-            </div>
-            <button type="button" onClick={prevMonth}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <ChevronLeft className="w-4 h-4 text-gray-500" />
-            </button>
-          </div>
-
-          {/* Day headers */}
-          <div className="grid grid-cols-7 mb-1">
-            {DAYS_AR.map(d => (
-              <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
-            ))}
-          </div>
-
-          {/* Days grid */}
-          <div className="grid grid-cols-7 gap-0.5">
-            {cells.map((d, i) => (
-              <div key={i} className="aspect-square flex items-center justify-center">
-                {d ? (
-                  <button type="button" onClick={() => selectDay(d)}
-                    className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
-                      isSelected(d)
-                        ? "bg-[#2d5d89] text-white"
-                        : isToday(d)
-                        ? "bg-[#2d5d89]/10 text-[#2d5d89] font-bold"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}>
-                    {d.toLocaleString("ar-EG")}
-                  </button>
-                ) : null}
-              </div>
-            ))}
-          </div>
-
-          {/* Today button */}
-          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-            <button type="button"
-              onClick={() => { const t = today; onChange(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`); setOpen(false); }}
-              className="w-full text-xs text-[#2d5d89] hover:underline font-medium py-1">
-              اليوم
-            </button>
-          </div>
-        </div>
-      )}
+      {typeof document !== "undefined" && createPortal(dropdown, document.body)}
     </div>
   );
 }
