@@ -8,9 +8,10 @@ import rateLimit from "express-rate-limit";
 import mongoSanitize from "express-mongo-sanitize";
 import hpp from "hpp";
 import compression from "compression";
+import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
-import { existsSync } from "fs";
+import { existsSync, appendFileSync, mkdirSync } from "fs";
 
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.route.js";
@@ -32,6 +33,46 @@ import accountingRouter from "./routes/accounting.route.js";
 dotenv.config();
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// ─── Logging ─────────────────────────────────────────────────────────────────
+const isProduction = process.env.NODE_ENV === "production";
+
+// Simple structured logger
+const logger = {
+  info:  (...args) => console.log( `[${new Date().toISOString()}] INFO `, ...args),
+  warn:  (...args) => console.warn(`[${new Date().toISOString()}] WARN `, ...args),
+  error: (...args) => console.error(`[${new Date().toISOString()}] ERROR`, ...args),
+};
+
+// HTTP request logging via morgan
+const morganFormat = isProduction
+  ? ':remote-addr :method :url :status :res[content-length] - :response-time ms'
+  : 'dev';
+
+app.use(morgan(morganFormat, {
+  skip: (req) => req.url === "/health" || req.url === "/api/health",
+  stream: {
+    write: (msg) => {
+      const trimmed = msg.trim();
+      // Warn on slow (>2s) or error responses
+      const status = parseInt(trimmed.match(/\s(\d{3})\s/)?.[1] || "0");
+      if (status >= 500)      logger.error("HTTP", trimmed);
+      else if (status >= 400) logger.warn ("HTTP", trimmed);
+      else                    logger.info ("HTTP", trimmed);
+    },
+  },
+}));
+
+// Log failed auth attempts and suspicious activity
+app.use((req, _res, next) => {
+  const suspicious = ["/etc/passwd", "../", "wp-admin", ".env", "phpinfo", "cmd.exe"];
+  if (suspicious.some(s => req.url.includes(s))) {
+    logger.warn("SUSPICIOUS REQUEST", req.method, req.url, "from", req.ip);
+  }
+  next();
+});
+
+export { logger };
 
 // Security
 app.use(
@@ -145,12 +186,16 @@ if (existsSync(distPath)) {
   app.get("*", (req, res) => res.sendFile(path.join(distPath, "index.html")));
 }
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.statusCode || 500).json({
+// Health check endpoint
+app.get("/api/health", (_req, res) => res.json({ status: "ok", timestamp: new Date().toISOString() }));
+
+// Global error handler — hides stack traces in production
+app.use((err, req, res, _next) => {
+  logger.error(`${req.method} ${req.url} →`, err.message, err.stack?.split("\n")[1]?.trim() || "");
+  const status = err.statusCode || err.status || 500;
+  res.status(status).json({
     success: false,
-    message: err.message || "Internal Server Error",
+    message: isProduction && status === 500 ? "حدث خطأ في الخادم" : (err.message || "Internal Server Error"),
   });
 });
 
