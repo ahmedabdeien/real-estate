@@ -98,10 +98,21 @@ const allowedOrigins = [
       })
     : []),
 ];
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // server-to-server or same-origin
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow any Vercel deployment URL for this project
+  if (/^https:\/\/real-estate[\w-]*\.vercel\.app$/.test(origin)) return true;
+  // Allow any subdomain of elsarh.co
+  if (/^https?:\/\/([\w-]+\.)?elsarh\.co$/.test(origin)) return true;
+  return false;
+};
+
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      if (isAllowedOrigin(origin)) return cb(null, true);
       cb(new Error(`CORS blocked: ${origin}`));
     },
     credentials: true,

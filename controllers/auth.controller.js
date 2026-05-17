@@ -43,7 +43,9 @@ function decodeFirebaseToken(idToken) {
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, password, role } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
+    if (!email) return res.status(400).json({ success: false, message: "البريد الإلكتروني مطلوب" });
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ success: false, message: "البريد مستخدم بالفعل" });
 
@@ -60,7 +62,9 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
+    if (!email || !password) return res.status(400).json({ success: false, message: "البريد وكلمة المرور مطلوبان" });
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
     if (!user.isActive) return res.status(403).json({ success: false, message: "الحساب معطل" });
