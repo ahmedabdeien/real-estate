@@ -28,9 +28,13 @@ const GROUPS = [
         label: "الإحصائيات",
         fields: [
           { key: "projects_count",   label: "عدد المشاريع (مثال: +50)",   type: "text" },
+          { key: "projects_label",   label: "تسمية المشاريع (مثال: مشروع)", type: "text" },
           { key: "units_count",      label: "عدد الوحدات (مثال: +2000)",  type: "text" },
+          { key: "units_label",      label: "تسمية الوحدات (مثال: وحدة)",  type: "text" },
           { key: "clients_count",    label: "عدد العملاء (مثال: +5000)",  type: "text" },
+          { key: "clients_label",    label: "تسمية العملاء (مثال: عميل)", type: "text" },
           { key: "years_experience", label: "سنوات الخبرة (مثال: +15)",   type: "text" },
+          { key: "years_label",      label: "تسمية الخبرة (مثال: سنة خبرة)", type: "text" },
         ],
       },
       {

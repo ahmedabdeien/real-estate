@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw, Download, Printer } from "lucide-react";
+import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw, Download, Printer, X } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import EmptyState from "../../Components/UI/EmptyState";
 import Pagination from "../../Components/UI/Pagination";
+import ConfirmModal from "../../Components/UI/ConfirmModal";
 import { useToast } from "../../context/ToastContext";
 
 const actionMeta = {
@@ -18,6 +19,8 @@ const actionMeta = {
 const entityAr = {
   project: "مشروع", unit: "وحدة", lead: "عميل", blog: "مقال",
   career: "وظيفة", media: "صورة", user: "مستخدم", auth: "نظام",
+  accounting: "حسابات", task: "مهمة", content: "محتوى", setting: "إعداد",
+  notification: "إشعار", accounting_record: "سجل محاسبي",
 };
 
 function timeAgo(date) {
@@ -35,6 +38,8 @@ export default function AdminActivity() {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+  const [clearingAll, setClearingAll] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -73,9 +78,34 @@ export default function AdminActivity() {
 
   const handlePrint = () => window.print();
 
+  const handleDeleteActivity = async (id) => {
+    try {
+      await api.delete(`/activity/${id}`);
+      setActivities((prev) => prev.filter((a) => a._id !== id));
+      setTotal((prev) => prev - 1);
+    } catch {
+      toast.error("فشل حذف السجل");
+    }
+  };
+
+  const handleClearAll = async () => {
+    setClearingAll(true);
+    try {
+      await api.delete("/activity/all");
+      toast.success("تم مسح سجل النشاط");
+      setActivities([]);
+      setTotal(0);
+      setConfirmClearAll(false);
+    } catch {
+      toast.error("فشل مسح السجل");
+    } finally {
+      setClearingAll(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">سجل النشاط</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} حدث مسجّل</p>
@@ -96,7 +126,16 @@ export default function AdminActivity() {
             <RefreshCw className="w-4 h-4" />
             تحديث
           </button>
+          <button onClick={() => setConfirmClearAll(true)}
+            className="flex items-center gap-2 border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 px-4 py-2 rounded-xl text-sm hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+            <Trash2 className="w-4 h-4" />
+            مسح الكل
+          </button>
         </div>
+      </div>
+
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-2.5 text-sm text-amber-700 dark:text-amber-400">
+        ملاحظة: السجل يُحذف تلقائياً بعد ٧ أيام
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -137,12 +176,17 @@ export default function AdminActivity() {
                     )}
                   </div>
 
-                  {/* User avatar + time */}
+                  {/* User avatar + time + delete */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="w-7 h-7 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] text-xs font-bold">
                       {act.user?.name?.[0]?.toUpperCase() || "?"}
                     </div>
                     <span className="text-xs text-gray-400 min-w-[32px] text-left">{timeAgo(act.createdAt)}</span>
+                    <button onClick={() => handleDeleteActivity(act._id)}
+                      title="حذف"
+                      className="w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </motion.div>
               );
@@ -152,6 +196,15 @@ export default function AdminActivity() {
       </div>
 
       <Pagination page={page} pages={pages} onPage={setPage} />
+
+      <ConfirmModal
+        open={confirmClearAll}
+        onConfirm={handleClearAll}
+        onCancel={() => setConfirmClearAll(false)}
+        loading={clearingAll}
+        title="مسح سجل النشاط"
+        message="هل تريد مسح جميع سجلات النشاط؟ لا يمكن التراجع."
+      />
     </div>
   );
 }

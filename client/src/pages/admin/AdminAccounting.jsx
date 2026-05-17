@@ -269,7 +269,8 @@ function SheetForm({ initial, onSave, onClose }) {
   const toast = useToast();
 
   const addCol = () => {
-    setColumns([...columns, { key: `col${Date.now()}`, label: "عمود جديد", type: "text", width: 150 }]);
+    const nextNum = columns.length + 1;
+    setColumns([...columns, { key: `col${nextNum}`, label: "عمود جديد", type: "text", width: 150 }]);
   };
   const removeCol = (i) => setColumns(columns.filter((_, idx) => idx !== i));
   const updateCol = (i, field, val) => setColumns(columns.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
@@ -1232,6 +1233,8 @@ export default function AdminAccounting() {
   const [confirmDeleteSheet, setConfirmDeleteSheet] = useState(null);
   const [deletingLedger, setDeletingLedger] = useState(false);
   const [deletingSheet, setDeletingSheet] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
+  const [trashedLedgers, setTrashedLedgers] = useState([]);
 
   const printRef = useRef(null);
 
@@ -1264,6 +1267,19 @@ export default function AdminAccounting() {
     if (activeLedger) loadFullLedger(activeLedger._id);
     else { setFullLedger(null); setActiveSheet(null); }
   }, [activeLedger]);
+
+  const loadTrash = async () => {
+    try { const res = await api.get("/accounting/trash"); setTrashedLedgers(res.data.ledgers || []); }
+    catch { toast.error("فشل تحميل سلة المحذوفات"); }
+  };
+  const handleRestore = async (id) => {
+    try { await api.put(`/accounting/${id}/restore`); toast.success("تم استعادة السجل"); loadTrash(); loadLedgers(); }
+    catch { toast.error("فشل الاستعادة"); }
+  };
+  const handlePermanentDelete = async (id) => {
+    try { await api.delete(`/accounting/${id}/permanent`); toast.success("تم الحذف النهائي"); loadTrash(); }
+    catch { toast.error("فشل الحذف"); }
+  };
 
   // ── Ledger CRUD ──
   const createLedger = async (form) => {
@@ -1360,10 +1376,19 @@ export default function AdminAccounting() {
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold text-gray-900 text-sm">السجلات المحاسبية</h2>
-          <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-            className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">
-            <Plus className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            {user?.role === "admin" && (
+              <button onClick={() => { setShowTrash(true); loadTrash(); }}
+                title="سلة المحذوفات"
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition-colors">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
+              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -1615,13 +1640,43 @@ export default function AdminAccounting() {
         )}
       </AnimatePresence>
 
+      <Modal open={showTrash} onClose={() => setShowTrash(false)} title="سلة المحذوفات" size="md">
+        {trashedLedgers.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">سلة المحذوفات فارغة</div>
+        ) : (
+          <div className="space-y-3">
+            {trashedLedgers.map(l => (
+              <div key={l._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{l.name}</p>
+                  <p className="text-xs text-gray-400">
+                    حُذف {l.deletedAt ? new Date(l.deletedAt).toLocaleDateString("ar-EG") : ""}
+                    {l.deletedBy?.name && ` بواسطة ${l.deletedBy.name}`}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => handleRestore(l._id)}
+                    className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600">
+                    استعادة
+                  </button>
+                  <button onClick={() => handlePermanentDelete(l._id)}
+                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
+                    حذف نهائي
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
       <ConfirmModal
         open={!!confirmDeleteLedger}
         onClose={() => setConfirmDeleteLedger(null)}
         onConfirm={deleteLedger}
         loading={deletingLedger}
         title="حذف السجل"
-        message={`هل تريد حذف السجل "${confirmDeleteLedger?.name}"؟ سيتم فقدان جميع الجداول والبيانات.`}
+        message={`هل تريد نقل السجل "${confirmDeleteLedger?.name}" إلى سلة المحذوفات؟`}
       />
       <ConfirmModal
         open={!!confirmDeleteSheet}

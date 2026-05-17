@@ -22,3 +22,21 @@ export const getActivities = async (req, res) => {
 export const logActivity = ({ userId, action, entity = "", entityId = "", entityName = "", details = "", ip = "" }) => {
   Activity.create({ user: userId, action, entity, entityId, entityName, details, ip }).catch(() => {});
 };
+
+export const deleteActivity = async (req, res) => {
+  try {
+    await Activity.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+};
+
+export const deleteAllActivities = async (req, res) => {
+  try {
+    await Activity.deleteMany({});
+    res.json({ success: true, message: "تم مسح سجل النشاط" });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+};

@@ -529,9 +529,9 @@ export default function ProjectDetailPage() {
       {user && ["admin", "supervisor"].includes(user.role) && (
         <a href="/admin/projects"
           className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-full shadow-lg hover:bg-[#245079] transition-all text-sm font-medium"
-          title="تعديل من لوحة التحكم">
+          title={project?.name?.ar ? `تعديل مشروع: ${project.name.ar}` : "تعديل المشروع"}>
           <Pencil className="w-4 h-4" />
-          تعديل
+          تعديل المشروع
         </a>
       )}
     </div>

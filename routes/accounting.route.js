@@ -7,6 +7,7 @@ import {
   addSheet, updateSheet, deleteSheet,
   addRow, updateRow, deleteRow, bulkDeleteRows,
   getAuditLog,
+  getDeletedLedgers, restoreLedger, permanentDeleteLedger,
 } from "../controllers/accounting.controller.js";
 
 const router = express.Router();
@@ -60,11 +61,14 @@ const sheetValidation = [
 ];
 
 // ── Ledgers ───────────────────────────────────────────────────────────────────
-router.get("/",        getLedgers);
-router.get("/:id",     getLedger);
-router.post("/",       ledgerValidation, createLedger);
-router.put("/:id",     ledgerValidation, updateLedger);
-router.delete("/:id",  deleteLedger);
+router.get("/trash",         getDeletedLedgers);
+router.get("/",              getLedgers);
+router.get("/:id",           getLedger);
+router.post("/",               ledgerValidation, createLedger);
+router.put("/:id",             ledgerValidation, updateLedger);
+router.put("/:id/restore",     restoreLedger);
+router.delete("/:id/permanent", permanentDeleteLedger);
+router.delete("/:id",          deleteLedger);
 
 // ── Sheets ────────────────────────────────────────────────────────────────────
 router.post("/:id/sheets",             sheetValidation, addSheet);

@@ -24,7 +24,7 @@ async function logActivity({ user, action, entityId, entityName, details, ip }) 
 export const getLedgers = async (req, res) => {
   try {
     if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
-    const ledgers = await Ledger.find({ isArchived: false })
+    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false })
       .select("name description branch color icon createdAt createdBy")
       .populate("createdBy", "name")
       .sort("-createdAt");
@@ -100,20 +100,55 @@ export const updateLedger = async (req, res) => {
 export const deleteLedger = async (req, res) => {
   try {
     if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
-    const ledger = await Ledger.findByIdAndUpdate(req.params.id, { isArchived: true }, { new: true });
+    const ledger = await Ledger.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, deletedAt: new Date(), deletedBy: req.user._id },
+      { new: true }
+    );
     if (ledger) {
-      await logActivity({
-        user: req.user._id,
-        action: "delete",
-        entityId: req.params.id,
-        entityName: `سجل: ${ledger.name}`,
-        details: `تم أرشفة السجل "${ledger.name}"`,
-        ip: getIp(req),
-      });
+      await logActivity({ user: req.user._id, action: "delete", entityId: req.params.id, entityName: `سجل: ${ledger.name}`, details: `تم نقل السجل "${ledger.name}" إلى سلة المحذوفات`, ip: getIp(req) });
     }
-    res.json({ success: true, message: "تم أرشفة السجل" });
+    res.json({ success: true, message: "تم نقل السجل إلى سلة المحذوفات" });
   } catch (err) {
     res.status(500).json({ success: false, message: "فشل حذف السجل" });
+  }
+};
+
+export const getDeletedLedgers = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false, message: "للمسؤول فقط" });
+    const ledgers = await Ledger.find({ isDeleted: true })
+      .select("name description color icon deletedAt deletedBy createdAt")
+      .populate("deletedBy", "name")
+      .sort("-deletedAt");
+    res.json({ success: true, ledgers });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "فشل تحميل سلة المحذوفات" });
+  }
+};
+
+export const restoreLedger = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false, message: "للمسؤول فقط" });
+    const ledger = await Ledger.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: false, deletedAt: null, deletedBy: null },
+      { new: true }
+    );
+    if (!ledger) return res.status(404).json({ success: false, message: "السجل غير موجود" });
+    res.json({ success: true, message: "تم استعادة السجل", ledger });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "فشل استعادة السجل" });
+  }
+};
+
+export const permanentDeleteLedger = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false, message: "للمسؤول فقط" });
+    await Ledger.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "تم الحذف النهائي" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "فشل الحذف النهائي" });
   }
 };
 
