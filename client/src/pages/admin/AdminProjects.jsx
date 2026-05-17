@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
@@ -47,6 +48,7 @@ const emptyProject = {
 
 export default function AdminProjects() {
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [projects, setProjects] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -129,6 +131,24 @@ export default function AdminProjects() {
     });
     setModal(true);
   };
+
+  // Auto-open edit modal when ?edit=PROJECT_ID is in URL
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId) return;
+    if (projects.length > 0) {
+      const found = projects.find(p => p._id === editId);
+      if (found) {
+        openEdit(found);
+        setSearchParams({}, { replace: true });
+      } else {
+        // project not in current page — fetch it directly
+        api.get(`/projects/${editId}`).then(res => {
+          if (res.data) { openEdit(res.data); setSearchParams({}, { replace: true }); }
+        }).catch(() => {});
+      }
+    }
+  }, [projects, searchParams]);
 
   const handleSave = async () => {
     if (!form.name?.ar?.trim()) return toast.error("اسم المشروع بالعربية مطلوب");

@@ -379,12 +379,12 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Admin quick edit button */}
-      {user && ["admin", "supervisor"].includes(user.role) && (
-        <a href={`/admin/projects`}
+      {user && ["admin", "supervisor"].includes(user.role) && project && (
+        <Link to={`/admin/projects?edit=${project._id}`}
           className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-full shadow-xl hover:bg-[#245079] transition-all text-sm font-bold">
           <Pencil className="w-4 h-4" />
           تعديل المشروع
-        </a>
+        </Link>
       )}
 
       {/* Compare Modal */}
