@@ -123,7 +123,12 @@ export const googleLogin = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("token");
+  // Must pass same options as setCookie so the browser actually removes it
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure:   isProduction,
+  });
   res.json({ success: true, message: "تم تسجيل الخروج" });
 };
 

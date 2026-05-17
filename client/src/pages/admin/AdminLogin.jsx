@@ -54,13 +54,23 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.email.trim() || !form.password.trim()) {
+      toast.error("يرجى إدخال البريد الإلكتروني وكلمة المرور");
+      return;
+    }
     setLoading(true);
     try {
       await login(form.email, form.password);
       toast.success("مرحباً بك في لوحة الإدارة");
       navigate("/admin");
     } catch (err) {
-      toast.error(err.response?.data?.message || "بيانات غير صحيحة");
+      const msg = err.response?.data?.message;
+      // If Google account — highlight the Google button
+      if (msg?.includes("Google")) {
+        toast.error("هذا الحساب مسجّل بـ Google، استخدم زر تسجيل الدخول بـ Google أعلاه");
+      } else {
+        toast.error(msg || "البريد الإلكتروني أو كلمة المرور غير صحيحة");
+      }
     } finally {
       setLoading(false);
     }

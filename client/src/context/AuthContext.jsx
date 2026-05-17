@@ -50,8 +50,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    // Always clear local state — even if backend/firebase calls fail
     try { await firebaseSignOut(auth); } catch {}
-    await api.post("/auth/logout");
+    try { await api.post("/auth/logout"); } catch {}
     setUser(null);
     localStorage.removeItem("elsarh_user");
     localStorage.removeItem("elsarh_token");
