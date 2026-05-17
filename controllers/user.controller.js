@@ -29,11 +29,14 @@ export const getUser = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, department, phone, isActive } = req.body;
+    if (!name?.trim())     return res.status(400).json({ success: false, message: "الاسم مطلوب" });
+    if (!email?.trim())    return res.status(400).json({ success: false, message: "البريد الإلكتروني مطلوب" });
+    if (!password?.trim()) return res.status(400).json({ success: false, message: "كلمة المرور مطلوبة" });
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ success: false, message: "البريد مستخدم بالفعل" });
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed, role });
+    const user = await User.create({ name, email, password: hashed, role, department: department || null, phone, isActive });
     const { password: _, ...rest } = user.toObject();
     res.status(201).json({ success: true, user: rest });
   } catch (err) {
@@ -43,8 +46,11 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const updates = { ...req.body };
-    if (updates.password) updates.password = await bcrypt.hash(updates.password, 10);
+    // Strip immutable/system fields to prevent MongoDB errors
+    const { _id, __v, createdAt, updatedAt, googleId, password, ...rest } = req.body;
+    const updates = { ...rest };
+    // Only update password if explicitly provided and non-empty
+    if (password && password.trim()) updates.password = await bcrypt.hash(password, 10);
     const user = await User.findByIdAndUpdate(req.params.id, updates, { new: true }).select("-password");
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
     res.json({ success: true, user });

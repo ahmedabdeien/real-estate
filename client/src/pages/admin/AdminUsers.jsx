@@ -99,10 +99,20 @@ export default function AdminUsers() {
   const openEdit = (u) => { setEditItem(u); setForm({ ...u, password: "" }); setModal(true); };
 
   const handleSave = async () => {
+    if (!form.name?.trim())  return toast.error("الاسم مطلوب");
+    if (!form.email?.trim()) return toast.error("البريد الإلكتروني مطلوب");
+    if (!editItem && !form.password?.trim()) return toast.error("كلمة المرور مطلوبة للمستخدم الجديد");
     setSaving(true);
     try {
       if (editItem) {
-        await api.put(`/users/${editItem._id}`, form);
+        // Send only editable fields — never send _id or system fields
+        const payload = {
+          name: form.name, email: form.email, role: form.role,
+          department: form.department || null, phone: form.phone,
+          isActive: form.isActive,
+          ...(form.password?.trim() ? { password: form.password } : {}),
+        };
+        await api.put(`/users/${editItem._id}`, payload);
         toast.success("تم تحديث المستخدم");
       } else {
         await api.post("/users", form);
