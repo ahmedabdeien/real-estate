@@ -30,6 +30,16 @@ const leadSchema = new mongoose.Schema(
       ref: "User",
     },
     followUpDate: { type: Date },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    registrationSource: {
+      type: String,
+      enum: ["website", "admin_registration", "walk_in", "call", "social_media", "exhibition"],
+      default: "website",
+    },
   },
   { timestamps: true }
 );

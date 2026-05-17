@@ -48,6 +48,7 @@ const AdminAccountingRecords = lazy(() => import("./pages/admin/AdminAccountingR
 const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
+const AdminClientReg = lazy(() => import("./pages/admin/AdminClientReg"));
 
 // Tasks
 const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
@@ -133,6 +134,7 @@ export default function App() {
                 <Route path="units" element={<AdminUnits />} />
                 <Route path="leads" element={<AdminLeads />} />
                 <Route path="blogs" element={<AdminBlogs />} />
+                <Route path="client-reg" element={<AdminClientReg />} />
               </Route>
 
               {/* Admin Dashboard */}
@@ -142,6 +144,7 @@ export default function App() {
                 <Route path="units" element={<AdminUnits />} />
                 <Route path="leads" element={<AdminLeads />} />
                 <Route path="blogs" element={<AdminBlogs />} />
+                <Route path="client-reg" element={<AdminClientReg />} />
                 <Route path="content" element={<AdminOnlyRoute><AdminContent /></AdminOnlyRoute>} />
                 <Route path="media" element={<AdminOnlyRoute><AdminMedia /></AdminOnlyRoute>} />
                 <Route path="careers" element={<AdminOnlyRoute><AdminCareers /></AdminOnlyRoute>} />

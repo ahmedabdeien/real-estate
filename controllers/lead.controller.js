@@ -12,11 +12,17 @@ export const getLeads = async (req, res) => {
       { email: { $regex: search, $options: "i" } },
     ];
 
+    // Non-admin/non-supervisor users see only their own leads
+    if (req.user && !["admin", "supervisor"].includes(req.user.role)) {
+      query.createdBy = req.user._id;
+    }
+
     const skip = (page - 1) * limit;
     const [leads, total] = await Promise.all([
       Lead.find(query)
         .populate("interestedProject", "name")
         .populate("assignedTo", "name")
+        .populate("createdBy", "name role")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit)),
@@ -42,7 +48,9 @@ export const getLead = async (req, res) => {
 
 export const createLead = async (req, res) => {
   try {
-    const lead = await Lead.create(req.body);
+    const leadData = { ...req.body };
+    if (req.user) leadData.createdBy = req.user._id;
+    const lead = await Lead.create(leadData);
     if (req.user) logActivity({ userId: req.user._id, action: "create", entity: "lead", entityId: lead._id, entityName: lead.name });
 
     // Notify all admin & supervisor users of new lead

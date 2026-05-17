@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell
+  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -21,6 +21,7 @@ const navItems = [
   { to: "/admin/projects",      label: "المشاريع",          icon: Building2,       show: (u) => ["admin","sales"].includes(u?.role) },
   { to: "/admin/units",         label: "الوحدات",           icon: Home,            show: (u) => ["admin","sales"].includes(u?.role) },
   { to: "/admin/leads",         label: "العملاء",           icon: TrendingUp,      show: (u) => ["admin","sales"].includes(u?.role) },
+  { to: "/admin/client-reg",   label: "تسجيل العملاء",     icon: UserPlus,        show: (u) => ["admin", "sales"].includes(u?.role) || u?.department === "marketing" },
   { to: "/admin/blogs",         label: "المقالات",          icon: FileText,        show: (u) => ["admin","supervisor","sales"].includes(u?.role) },
 
   // Tasks - label differs by role
