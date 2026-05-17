@@ -12,8 +12,8 @@ export const getLeads = async (req, res) => {
       { email: { $regex: search, $options: "i" } },
     ];
 
-    // Non-admin/non-supervisor users see only their own leads
-    if (req.user && !["admin", "supervisor"].includes(req.user.role)) {
+    // Only admin/supervisor see all leads; everyone else sees only their own
+    if (!["admin", "supervisor"].includes(req.user.role)) {
       query.createdBy = req.user._id;
     }
 
@@ -49,7 +49,7 @@ export const getLead = async (req, res) => {
 export const createLead = async (req, res) => {
   try {
     const leadData = { ...req.body };
-    if (req.user) leadData.createdBy = req.user._id;
+    leadData.createdBy = req.user._id;
     const lead = await Lead.create(leadData);
     if (req.user) logActivity({ userId: req.user._id, action: "create", entity: "lead", entityId: lead._id, entityName: lead.name });
 
