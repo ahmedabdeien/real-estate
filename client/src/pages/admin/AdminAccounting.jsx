@@ -742,7 +742,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       const headerRow = rawData[0];
       // Build columns from header row — all text type
       const newColumns = headerRow.map((h, i) => ({
-        key: `col_${i}_${Date.now()}`,
+        key: `col${i + 1}`,
         label: String(h || `عمود ${i + 1}`),
         type: "text",
         width: 150,
