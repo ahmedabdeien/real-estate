@@ -34,3 +34,15 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+// Like authenticate but doesn't block unauthenticated requests — just sets req.user if token is valid
+export const optionalAuthenticate = async (req, res, next) => {
+  const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
+  if (!token) return next();
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (user && user.isActive) req.user = user;
+  } catch { /* ignore invalid token */ }
+  next();
+};

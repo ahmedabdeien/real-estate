@@ -49,7 +49,7 @@ export const getLead = async (req, res) => {
 export const createLead = async (req, res) => {
   try {
     const leadData = { ...req.body };
-    leadData.createdBy = req.user._id;
+    if (req.user) leadData.createdBy = req.user._id;
     const lead = await Lead.create(leadData);
     if (req.user) logActivity({ userId: req.user._id, action: "create", entity: "lead", entityId: lead._id, entityName: lead.name });
 
