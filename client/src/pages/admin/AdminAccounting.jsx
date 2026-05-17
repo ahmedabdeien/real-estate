@@ -601,7 +601,7 @@ function LedgerSummary({ ledger }) {
 function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const toast = useToast();
   const { user } = useAuth();
-  const [rows, setRows] = useState(sheet.rows || []);
+  const [rows, setRows] = useState((sheet.rows || []));
   const [editCell, setEditCell] = useState(null);
   const [cellVal, setCellVal] = useState("");
   const [selected, setSelected] = useState(new Set());
@@ -617,6 +617,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
   const [hiddenCols, setHiddenCols] = useState(new Set());
   const [colsMenuOpen, setColsMenuOpen] = useState(false);
+  const [fontSize, setFontSize] = useState(14); // px
+  const [showDeletedRows, setShowDeletedRows] = useState(false);
   const fileInputRef = useRef(null);
 
   const allCols = sheet.columns || [];
@@ -689,9 +691,23 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const deleteRow = async (rowId) => {
     try {
       await api.delete(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}`);
-      setRows((prev) => prev.filter((r) => r._id !== rowId));
+      if (isAdmin) {
+        // Admin: soft delete — mark as deleted in local state
+        setRows((prev) => prev.map((r) => r._id === rowId ? { ...r, isDeleted: true, deletedAt: new Date() } : r));
+      } else {
+        setRows((prev) => prev.filter((r) => r._id !== rowId));
+      }
       setSelected((prev) => { const s = new Set(prev); s.delete(rowId); return s; });
     } catch { toast.error("فشل حذف السطر"); }
+  };
+
+  // ── restore single row (admin only) ──
+  const restoreRow = async (rowId) => {
+    try {
+      await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}/restore`);
+      setRows((prev) => prev.map((r) => r._id === rowId ? { ...r, isDeleted: false, deletedAt: null } : r));
+      toast.success("تم استعادة السطر");
+    } catch { toast.error("فشل استعادة السطر"); }
   };
 
   // ── bulk delete ──
@@ -699,7 +715,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     setDeleting(true);
     try {
       await api.post(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/bulk-delete`, { rowIds: [...selected] });
-      setRows((prev) => prev.filter((r) => !selected.has(r._id)));
+      if (isAdmin) {
+        // Admin: soft delete
+        const selectedArr = [...selected];
+        setRows((prev) => prev.map((r) => selectedArr.includes(r._id) ? { ...r, isDeleted: true, deletedAt: new Date() } : r));
+      } else {
+        setRows((prev) => prev.filter((r) => !selected.has(r._id)));
+      }
       setSelected(new Set());
       setConfirmBulk(false);
       toast.success("تم حذف الصفوف");
@@ -717,11 +739,11 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
   const toggleAll = () => {
     const visibleIds = (quickFilter.trim()
-      ? rows.filter((r) => {
+      ? activeRows.filter((r) => {
           const q = quickFilter.toLowerCase();
           return Object.values(r.cells || {}).some((v) => String(v ?? "").toLowerCase().includes(q));
         })
-      : rows).map((r) => r._id);
+      : activeRows).map((r) => r._id);
     const allSelected = visibleIds.every((id) => selected.has(id));
     if (allSelected) setSelected(new Set());
     else setSelected(new Set(visibleIds));
@@ -847,14 +869,18 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   };
 
   // ── quick filter ──
+  const activeRows = showDeletedRows
+    ? rows.filter((r) => r.isDeleted)
+    : rows.filter((r) => !r.isDeleted);
+
   const filteredRows = quickFilter.trim()
-    ? rows.filter((r) => {
+    ? activeRows.filter((r) => {
         const q = quickFilter.toLowerCase();
         return Object.values(r.cells || {}).some((v) =>
           String(v ?? "").toLowerCase().includes(q)
         );
       })
-    : rows;
+    : activeRows;
 
   // ── export CSV ──
   const exportCsv = () => {
@@ -939,7 +965,18 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
           {/* Toolbar */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <span className="text-sm text-gray-500">{filteredRows.length} / {rows.length} سطر</span>
+            <span className="text-sm text-gray-500">{filteredRows.length} / {activeRows.length} سطر</span>
+            {isAdmin && rows.some(r => r.isDeleted) && (
+              <button onClick={() => setShowDeletedRows(p => !p)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+                  showDeletedRows
+                    ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+                    : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                }`}>
+                <Trash2 className="w-3.5 h-3.5" />
+                {showDeletedRows ? "عرض النشطة" : `الصفوف المحذوفة (${rows.filter(r => r.isDeleted).length})`}
+              </button>
+            )}
             {selected.size > 0 && (
               <span className="text-sm font-medium text-[#2d5d89]">({selected.size} محدد)</span>
             )}
@@ -1013,13 +1050,24 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
                 <Plus className="w-3.5 h-3.5" /> سطر جديد
               </button>
+              <div className="flex items-center gap-1 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <button onClick={() => setFontSize(s => Math.max(10, s - 2))}
+                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors" title="تصغير">
+                  −
+                </button>
+                <span className="px-2 text-xs text-gray-400 min-w-[32px] text-center">{fontSize}</span>
+                <button onClick={() => setFontSize(s => Math.min(24, s + 2))}
+                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors" title="تكبير">
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Table */}
           <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
             <div ref={printRef}>
-              <table className="w-full min-w-max text-sm">
+              <table className="w-full min-w-max text-sm" style={{ fontSize: `${fontSize}px` }}>
                 <thead className="sticky top-0 z-10 bg-[#2d5d89]">
                   <tr className="bg-[#2d5d89] text-white sticky top-0 z-10">
                     <th className="w-10 px-3 py-3 sticky top-0 bg-[#2d5d89] z-10">
@@ -1052,7 +1100,9 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   {filteredRows.map((row, rowIdx) => (
                     <tr key={row._id}
                       className={`border-b border-gray-100 transition-colors group ${
-                        selected.has(row._id)
+                        row.isDeleted
+                          ? "bg-red-50/40 opacity-70"
+                          : selected.has(row._id)
                           ? "bg-blue-50"
                           : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
                       } hover:bg-blue-50/50`}>
@@ -1101,10 +1151,20 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                             }`}>
                             <FileText className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => deleteRow(row._id)}
-                            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {row.isDeleted ? (
+                            isAdmin && (
+                              <button onClick={() => restoreRow(row._id)}
+                                className="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-500 hover:bg-emerald-50 transition-colors"
+                                title="استعادة السطر">
+                                <RefreshCw className="w-3.5 h-3.5" />
+                              </button>
+                            )
+                          ) : (
+                            <button onClick={() => deleteRow(row._id)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                         {notePopover?.rowId === row._id && (
                           <div className="absolute left-0 top-9 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 w-64" dir="rtl">
@@ -1676,7 +1736,10 @@ export default function AdminAccounting() {
         onConfirm={deleteLedger}
         loading={deletingLedger}
         title="حذف السجل"
-        message={`هل تريد نقل السجل "${confirmDeleteLedger?.name}" إلى سلة المحذوفات؟`}
+        message={user?.role === "admin"
+          ? `هل تريد نقل السجل "${confirmDeleteLedger?.name}" إلى سلة المحذوفات؟`
+          : `هل أنت متأكد من حذف السجل "${confirmDeleteLedger?.name}"؟`
+        }
       />
       <ConfirmModal
         open={!!confirmDeleteSheet}

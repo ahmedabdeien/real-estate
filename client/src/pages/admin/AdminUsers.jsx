@@ -76,6 +76,7 @@ export default function AdminUsers() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [upgradeUser, setUpgradeUser] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -265,6 +266,7 @@ export default function AdminUsers() {
                     <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الهاتف</th>
                     <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">تاريخ التسجيل</th>
                     <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">آخر نشاط</th>
+                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
@@ -290,6 +292,12 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 sm:px-6 py-4">
                         <LastSeenCell lastSeen={u.lastSeen} lastLogin={u.lastLogin} />
+                      </td>
+                      <td className="px-4 sm:px-6 py-4">
+                        <button onClick={() => setUpgradeUser(u)}
+                          className="px-3 py-1.5 bg-[#2d5d89] text-white text-xs rounded-xl font-medium hover:bg-[#245079] transition-colors">
+                          ترقية
+                        </button>
                       </td>
                     </motion.tr>
                   ))}
@@ -375,6 +383,35 @@ export default function AdminUsers() {
 
       <ConfirmModal open={!!deleteId} onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting}
         title="حذف الموظف" message="هل أنت متأكد من حذف هذا الموظف؟" />
+
+      {upgradeUser && (
+        <Modal open={!!upgradeUser} onClose={() => setUpgradeUser(null)} title={`ترقية: ${upgradeUser.name}`} size="sm">
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">اختر الدور الجديد لـ {upgradeUser.name}</p>
+            <div className="space-y-2">
+              {[
+                { value: "sales", label: "مبيعات" },
+                { value: "employee", label: "موظف" },
+                { value: "manager", label: "مدير قسم" },
+                { value: "supervisor", label: "مشرف عام" },
+              ].map(r => (
+                <button key={r.value}
+                  onClick={async () => {
+                    try {
+                      await api.put(`/users/${upgradeUser._id}`, { role: r.value });
+                      toast.success(`تم ترقية ${upgradeUser.name} إلى ${r.label}`);
+                      setUpgradeUser(null);
+                      load();
+                    } catch { toast.error("فشل تحديث الدور"); }
+                  }}
+                  className="w-full text-right px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-[#2d5d89] hover:bg-[#2d5d89]/5 transition-colors text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

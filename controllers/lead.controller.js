@@ -44,6 +44,22 @@ export const createLead = async (req, res) => {
   try {
     const lead = await Lead.create(req.body);
     if (req.user) logActivity({ userId: req.user._id, action: "create", entity: "lead", entityId: lead._id, entityName: lead.name });
+
+    // Notify all admin & supervisor users of new lead
+    try {
+      const User = (await import("../models/user.model.js")).default;
+      const Notification = (await import("../models/notification.model.js")).default;
+      const admins = await User.find({ role: { $in: ["admin", "supervisor"] } }).select("_id");
+      const notifications = admins.map(a => ({
+        userId: a._id,
+        type: "new_lead",
+        title: "عميل محتمل جديد",
+        body: `${lead.name || "عميل جديد"} — ${lead.phone || ""}`,
+        link: "/admin/leads",
+      }));
+      if (notifications.length > 0) await Notification.insertMany(notifications);
+    } catch (_) {}
+
     res.status(201).json({ success: true, lead });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });

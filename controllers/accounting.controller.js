@@ -300,7 +300,18 @@ export const deleteRow = async (req, res) => {
     if (!ledger) return res.status(404).json({ success: false, message: "السجل غير موجود" });
     const sheet = ledger.sheets.id(req.params.sheetId);
     if (!sheet) return res.status(404).json({ success: false, message: "الجدول غير موجود" });
-    sheet.rows = sheet.rows.filter((r) => r._id.toString() !== req.params.rowId);
+    const row = sheet.rows.id(req.params.rowId);
+    if (!row) return res.status(404).json({ success: false, message: "السطر غير موجود" });
+
+    if (req.user.role === "admin") {
+      // Admin: soft delete
+      row.isDeleted = true;
+      row.deletedAt = new Date();
+    } else {
+      // Non-admin: permanent delete
+      sheet.rows = sheet.rows.filter((r) => r._id.toString() !== req.params.rowId);
+    }
+
     await ledger.save();
     await logActivity({
       user: req.user._id,
@@ -316,6 +327,24 @@ export const deleteRow = async (req, res) => {
   }
 };
 
+export const restoreRow = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false });
+    const ledger = await Ledger.findById(req.params.id);
+    if (!ledger) return res.status(404).json({ success: false });
+    const sheet = ledger.sheets.id(req.params.sheetId);
+    if (!sheet) return res.status(404).json({ success: false });
+    const row = sheet.rows.id(req.params.rowId);
+    if (!row) return res.status(404).json({ success: false });
+    row.isDeleted = false;
+    row.deletedAt = null;
+    await ledger.save();
+    res.json({ success: true, message: "تم استعادة السطر" });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+};
+
 export const bulkDeleteRows = async (req, res) => {
   try {
     if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
@@ -325,7 +354,18 @@ export const bulkDeleteRows = async (req, res) => {
     const sheet = ledger.sheets.id(req.params.sheetId);
     if (!sheet) return res.status(404).json({ success: false, message: "الجدول غير موجود" });
     const count = Array.isArray(rowIds) ? rowIds.length : 0;
-    sheet.rows = sheet.rows.filter((r) => !rowIds.includes(r._id.toString()));
+    if (req.user.role === "admin") {
+      // Admin: soft delete
+      sheet.rows.forEach(r => {
+        if (rowIds.includes(r._id.toString())) {
+          r.isDeleted = true;
+          r.deletedAt = new Date();
+        }
+      });
+    } else {
+      // Non-admin: permanent delete
+      sheet.rows = sheet.rows.filter((r) => !rowIds.includes(r._id.toString()));
+    }
     await ledger.save();
     await logActivity({
       user: req.user._id,

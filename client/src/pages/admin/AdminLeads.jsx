@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search, Phone, Mail, MessageCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Phone, Mail, MessageCircle, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -152,6 +152,36 @@ export default function AdminLeads() {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
   }
 
+  const notifyAdmins = async (lead) => {
+    try {
+      const res = await api.get("/settings/group/notifications");
+      const settings = {};
+      (res.data.settings || []).forEach(s => { settings[s.key] = s.value; });
+
+      const numbers = [settings.lead_notify_whatsapp1, settings.lead_notify_whatsapp2, settings.lead_notify_whatsapp3]
+        .filter(Boolean)
+        .map(n => n.replace(/\D/g, ""));
+
+      const message = (settings.lead_notify_message || "عميل جديد: {name} - {phone} - {message}")
+        .replace("{name}", lead.name || "")
+        .replace("{phone}", lead.phone || "")
+        .replace("{message}", lead.message || "");
+
+      if (numbers.length === 0) {
+        toast.error("أضف أرقام واتساب للإشعارات في الإعدادات");
+        return;
+      }
+
+      numbers.forEach((num, i) => {
+        setTimeout(() => {
+          window.open(`https://wa.me/${num}?text=${encodeURIComponent(message)}`, "_blank");
+        }, i * 500);
+      });
+    } catch {
+      toast.error("فشل جلب إعدادات الإشعارات");
+    }
+  };
+
   return (
     <div className="space-y-5">
       <HelpCard
@@ -261,6 +291,10 @@ export default function AdminLeads() {
                           <button onClick={() => sendWhatsApp(l)} title="إرسال واتساب"
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 transition-colors">
                             <MessageCircle className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => notifyAdmins(l)} title="إشعار المسؤولين"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/30 text-amber-600 transition-colors">
+                            <Bell className="w-4 h-4" />
                           </button>
                           <button onClick={() => openEdit(l)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">

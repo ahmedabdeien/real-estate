@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save, Globe, Share2, Building2, Palette, MapPin, Plus, Trash2, Mail, Shield, Database, Info, Download, Cloud, ExternalLink } from "lucide-react";
+import { Save, Globe, Share2, Building2, Palette, MapPin, Plus, Trash2, Mail, Shield, Database, Info, Download, Cloud, ExternalLink, Bell } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
@@ -97,6 +97,17 @@ const settingsGroups = [
     label: "النسخ الاحتياطي",
     icon: Database,
     settings: [],
+  },
+  {
+    key: "notifications",
+    label: "إشعارات العملاء",
+    icon: Bell,
+    settings: [
+      { key: "lead_notify_whatsapp1", label: "رقم واتساب للإشعارات (1)", type: "text", placeholder: "مثال: 201234567890" },
+      { key: "lead_notify_whatsapp2", label: "رقم واتساب للإشعارات (2)", type: "text", placeholder: "اختياري" },
+      { key: "lead_notify_whatsapp3", label: "رقم واتساب للإشعارات (3)", type: "text", placeholder: "اختياري" },
+      { key: "lead_notify_message", label: "نص رسالة الإشعار", type: "textarea", placeholder: "مرحباً، تم استلام استفسار جديد من {name} - {phone}" },
+    ],
   },
 ];
 

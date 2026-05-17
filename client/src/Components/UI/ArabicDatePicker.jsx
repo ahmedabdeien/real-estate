@@ -13,7 +13,9 @@ function formatAr(dateStr) {
 
 export default function ArabicDatePicker({ value, onChange, placeholder = "اختر تاريخاً", className = "", label, disabled }) {
   const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
   const ref = useRef(null);
+  const buttonRef = useRef(null);
 
   // Parse current value to get initial month/year
   const today = new Date();
@@ -26,6 +28,15 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
     document.addEventListener("mousedown", fn);
     return () => document.removeEventListener("mousedown", fn);
   }, []);
+
+  const handleOpen = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUp(spaceBelow < 320);
+    }
+    setOpen(o => !o);
+  };
 
   const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
   const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
@@ -58,8 +69,8 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
   return (
     <div className={`relative ${className}`} ref={ref} dir="rtl">
       {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>}
-      <button type="button" disabled={disabled}
-        onClick={() => setOpen(o => !o)}
+      <button type="button" disabled={disabled} ref={buttonRef}
+        onClick={handleOpen}
         className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] transition-colors hover:border-[#2d5d89]/50 disabled:opacity-50">
         <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
         <span className={`flex-1 text-right ${value ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>
@@ -74,7 +85,7 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
       </button>
 
       {open && (
-        <div className="absolute top-full mt-1 z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-3 min-w-[260px]">
+        <div className={`absolute z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-3 min-w-[260px] right-0 ${openUp ? "bottom-full mb-1" : "top-full mt-1"}`}>
           {/* Month/Year header */}
           <div className="flex items-center justify-between mb-3">
             <button type="button" onClick={nextMonth}

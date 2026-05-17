@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 const rowSchema = new mongoose.Schema({
   cells: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
   order: { type: Number, default: 0 },
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date, default: null },
 }, { timestamps: true });
 
 // A sheet (table) inside a ledger
