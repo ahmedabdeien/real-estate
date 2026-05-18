@@ -38,6 +38,9 @@ const userSchema = new mongoose.Schema(
     coverImage:      { type: String, default: "" },
     phoneChangedAt:  { type: Date, default: null },
     emailChangedAt:  { type: Date, default: null },
+    // Account lockout after repeated failed logins
+    loginAttempts:   { type: Number, default: 0 },
+    lockUntil:       { type: Date,   default: null },
   },
   { timestamps: true }
 );

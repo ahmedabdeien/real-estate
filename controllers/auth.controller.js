@@ -1,19 +1,44 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import RefreshToken from "../models/refreshToken.model.js";
 import { logActivity } from "./activity.controller.js";
 
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+// ─── Constants ────────────────────────────────────────────────────────────────
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MS   = 10 * 60 * 1000; // 10 minutes
+const PASSWORD_REGEX     = /^(?=.*[A-Za-z؀-ۿ])(?=.*\d).{8,}$/; // 8+ chars + digit
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const signAccessToken  = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "2h" });
 
 const isProduction = process.env.NODE_ENV === "production";
+const COOKIE_OPTS = { httpOnly: true, sameSite: isProduction ? "none" : "lax", secure: isProduction };
+
 const setCookie = (res, token) => {
-  res.cookie("token", token, {
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: isProduction ? "none" : "lax",
-    secure:   isProduction,
+  res.cookie("token", token, { ...COOKIE_OPTS, maxAge: 2 * 60 * 60 * 1000 }); // 2h
+};
+
+const setRefreshCookie = (res, raw) => {
+  res.cookie("refresh_token", raw, { ...COOKIE_OPTS, maxAge: 30 * 24 * 60 * 60 * 1000 }); // 30d
+};
+
+// Issue both access + refresh tokens and set cookies
+const issueTokens = async (res, userId, meta = {}) => {
+  const accessToken = signAccessToken(userId);
+  setCookie(res, accessToken);
+
+  // Create refresh token
+  const raw = RefreshToken.generate();
+  await RefreshToken.create({
+    userId,
+    tokenHash: RefreshToken.hash(raw),
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    userAgent: meta.userAgent || "",
+    ip:        meta.ip        || "",
   });
+  setRefreshCookie(res, raw);
+  return accessToken;
 };
 
 /**
@@ -45,14 +70,17 @@ export const register = async (req, res) => {
   try {
     const { name, password, role } = req.body;
     const email = req.body.email?.toLowerCase().trim();
-    if (!email) return res.status(400).json({ success: false, message: "البريد الإلكتروني مطلوب" });
+    if (!email)    return res.status(400).json({ success: false, message: "البريد الإلكتروني مطلوب" });
+    if (!password) return res.status(400).json({ success: false, message: "كلمة المرور مطلوبة" });
+    if (!PASSWORD_REGEX.test(password))
+      return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على رقم" });
+
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ success: false, message: "البريد مستخدم بالفعل" });
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashed, role: role || "viewer" });
-    const token = signToken(user._id);
-    setCookie(res, token);
+    const token = await issueTokens(res, user._id, { ip: req.ip, userAgent: req.headers["user-agent"] });
     const { password: _, ...rest } = user.toObject();
     res.status(201).json({ success: true, user: rest, token });
   } catch (err) {
@@ -65,21 +93,42 @@ export const login = async (req, res) => {
     const { password } = req.body;
     const email = req.body.email?.toLowerCase().trim();
     if (!email || !password) return res.status(400).json({ success: false, message: "البريد وكلمة المرور مطلوبان" });
+
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ success: false, message: "المستخدم غير موجود" });
     if (!user.isActive) return res.status(403).json({ success: false, message: "الحساب معطل" });
     if (!user.password) return res.status(400).json({ success: false, message: "هذا الحساب مرتبط بـ Google، استخدم تسجيل الدخول بـ Google" });
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ success: false, message: "كلمة المرور غير صحيحة" });
+    // ── Account lockout check ──
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const mins = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return res.status(429).json({ success: false, message: `الحساب مقفل مؤقتاً، حاول بعد ${mins} دقيقة` });
+    }
 
-    user.lastLogin = new Date();
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      // Increment failed attempts
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        user.lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        user.loginAttempts = 0;
+        await user.save();
+        return res.status(429).json({ success: false, message: "تم قفل الحساب 10 دقائق بسبب محاولات متكررة" });
+      }
+      await user.save();
+      const remaining = MAX_LOGIN_ATTEMPTS - user.loginAttempts;
+      return res.status(401).json({ success: false, message: `كلمة المرور غير صحيحة — ${remaining} محاولة متبقية` });
+    }
+
+    // Success — reset lockout counters
+    user.loginAttempts = 0;
+    user.lockUntil     = null;
+    user.lastLogin     = new Date();
     await user.save();
 
-    const token = signToken(user._id);
-    setCookie(res, token);
+    const token = await issueTokens(res, user._id, { ip: req.ip, userAgent: req.headers["user-agent"] });
     logActivity({ userId: user._id, action: "login", entity: "auth", entityName: user.name });
-    const { password: _, ...rest } = user.toObject();
+    const { password: _, loginAttempts: __, lockUntil: ___, ...rest } = user.toObject();
     res.json({ success: true, user: rest, token });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -116,8 +165,7 @@ export const googleLogin = async (req, res) => {
       await user.save();
     }
 
-    const token = signToken(user._id);
-    setCookie(res, token);
+    const token = await issueTokens(res, user._id, { ip: req.ip, userAgent: req.headers["user-agent"] });
     const { password: _, ...rest } = user.toObject();
     res.json({ success: true, user: rest, token });
   } catch (err) {
@@ -126,14 +174,45 @@ export const googleLogin = async (req, res) => {
   }
 };
 
-export const logout = (req, res) => {
-  // Must pass same options as setCookie so the browser actually removes it
-  res.clearCookie("token", {
-    httpOnly: true,
-    sameSite: isProduction ? "none" : "lax",
-    secure:   isProduction,
-  });
+export const logout = async (req, res) => {
+  // Revoke refresh token in DB
+  const raw = req.cookies?.refresh_token;
+  if (raw) {
+    try {
+      await RefreshToken.findOneAndUpdate(
+        { tokenHash: RefreshToken.hash(raw) },
+        { isRevoked: true }
+      );
+    } catch { /* ignore */ }
+  }
+  res.clearCookie("token",         COOKIE_OPTS);
+  res.clearCookie("refresh_token", COOKIE_OPTS);
   res.json({ success: true, message: "تم تسجيل الخروج" });
+};
+
+// POST /api/auth/refresh — issue new access token using refresh token cookie
+export const refresh = async (req, res) => {
+  const raw = req.cookies?.refresh_token;
+  if (!raw) return res.status(401).json({ success: false, message: "لا يوجد refresh token" });
+
+  try {
+    const tokenHash = RefreshToken.hash(raw);
+    const stored = await RefreshToken.findOne({ tokenHash });
+
+    if (!stored || stored.isRevoked || stored.expiresAt < new Date()) {
+      res.clearCookie("refresh_token", COOKIE_OPTS);
+      return res.status(401).json({ success: false, message: "الجلسة منتهية، يرجى تسجيل الدخول مجدداً" });
+    }
+
+    const user = await User.findById(stored.userId).select("-password -loginAttempts -lockUntil");
+    if (!user || !user.isActive) return res.status(401).json({ success: false, message: "الحساب غير نشط" });
+
+    const newAccess = signAccessToken(user._id);
+    setCookie(res, newAccess);
+    res.json({ success: true, token: newAccess, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 export const me = async (req, res) => {

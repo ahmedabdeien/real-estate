@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.model.js";
 
+const PASSWORD_REGEX = /^(?=.*[A-Za-z؀-ۿ])(?=.*\d).{8,}$/;
+
 export const getUsers = async (req, res) => {
   try {
     const { role, page = 1, limit = 20 } = req.query;
@@ -34,6 +36,8 @@ export const createUser = async (req, res) => {
     if (!name?.trim())     return res.status(400).json({ success: false, message: "الاسم مطلوب" });
     if (!email)            return res.status(400).json({ success: false, message: "البريد الإلكتروني مطلوب" });
     if (!password?.trim()) return res.status(400).json({ success: false, message: "كلمة المرور مطلوبة" });
+    if (!PASSWORD_REGEX.test(password))
+      return res.status(400).json({ success: false, message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل وتحتوي على رقم" });
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ success: false, message: "البريد مستخدم بالفعل" });
     const hashed = await bcrypt.hash(password, 10);
