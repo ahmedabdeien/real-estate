@@ -29,6 +29,10 @@ import searchRouter from "./routes/search.route.js";
 import taskRouter from "./routes/task.route.js";
 import notificationRouter from "./routes/notification.route.js";
 import accountingRouter from "./routes/accounting.route.js";
+import warehouseRouter from "./routes/warehouse.route.js";
+import purchasingRouter from "./routes/purchasing.route.js";
+import legalRouter from "./routes/legal.route.js";
+import aiRouter from "./routes/ai.route.js";
 
 dotenv.config();
 const app = express();
@@ -178,6 +182,10 @@ app.use("/api/search", searchRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/accounting", accountingRouter);
+app.use("/api/warehouse", warehouseRouter);
+app.use("/api/purchasing", purchasingRouter);
+app.use("/api/legal", legalRouter);
+app.use("/api/ai", aiRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");

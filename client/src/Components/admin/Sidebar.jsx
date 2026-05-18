@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus
+  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
+  Package, ShoppingCart, Scale,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -31,6 +32,11 @@ const navItems = [
   // Accounting - admin OR accounts dept
   { to: "/admin/accounting",    label: "الحسابات",          icon: Calculator,      show: (u) => u?.role === "admin" || u?.department === "accounts" },
   { to: "/admin/accounting-records", label: "السجلات المحاسبية", icon: BookOpen,    show: (u) => u?.role === "admin" || u?.department === "accounts" },
+
+  // Warehouse, Purchasing, Legal
+  { to: "/admin/warehouse",  label: "المخازن",            icon: Package,      show: (u) => u?.role === "admin" || ["accounts","warehouse","purchasing"].includes(u?.department) },
+  { to: "/admin/purchasing", label: "المشتريات",          icon: ShoppingCart, show: (u) => u?.role === "admin" || ["accounts","purchasing","warehouse"].includes(u?.department) },
+  { to: "/admin/legal",      label: "الشئون القانونية",   icon: Scale,        show: (u) => u?.role === "admin" || ["accounts","legal"].includes(u?.department) },
 
   // Admin only
   { to: "/admin/content",       label: "المحتوى",           icon: Edit3,           show: (u) => u?.role === "admin" },

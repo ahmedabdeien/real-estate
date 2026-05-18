@@ -49,6 +49,9 @@ const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminClientReg = lazy(() => import("./pages/admin/AdminClientReg"));
+const AdminWarehouse = lazy(() => import("./pages/admin/AdminWarehouse"));
+const AdminPurchasing = lazy(() => import("./pages/admin/AdminPurchasing"));
+const AdminLegal = lazy(() => import("./pages/admin/AdminLegal"));
 
 // Tasks
 const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
@@ -159,6 +162,9 @@ export default function App() {
                 <Route path="profile" element={<StaffProfile />} />
                 <Route path="changelog" element={<AdminChangelog />} />
                 <Route path="notifications" element={<AdminNotifications />} />
+                <Route path="warehouse" element={<AdminWarehouse />} />
+                <Route path="purchasing" element={<AdminPurchasing />} />
+                <Route path="legal" element={<AdminLegal />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
