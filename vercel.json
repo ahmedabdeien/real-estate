@@ -1,7 +1,7 @@
 {
   "framework": null,
-  "installCommand": "cd client && npm install --legacy-peer-deps --include=dev",
-  "buildCommand": "cd client && NODE_ENV=development npm run build",
+  "installCommand": "cd client && npm install --legacy-peer-deps",
+  "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
