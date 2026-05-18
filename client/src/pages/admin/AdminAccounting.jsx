@@ -619,7 +619,29 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [colsMenuOpen, setColsMenuOpen] = useState(false);
   const [fontSize, setFontSize] = useState(14); // px
   const [showDeletedRows, setShowDeletedRows] = useState(false);
+  const [colWidths, setColWidths] = useState({}); // { [colKey]: px }
+  const [rowHeight, setRowHeight] = useState("normal"); // "compact" | "normal" | "comfortable"
   const fileInputRef = useRef(null);
+
+  const getColWidth = (col) => colWidths[col.key] ?? col.width ?? 120;
+
+  const handleColResize = (e, colKey, startWidth) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const onMove = (me) => {
+      // RTL: dragging left (decreasing clientX) → increasing width
+      const delta = startX - me.clientX;
+      setColWidths((prev) => ({ ...prev, [colKey]: Math.max(60, startWidth + delta) }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  };
+
+  const ROW_HEIGHTS = { compact: "py-0.5", normal: "py-2", comfortable: "py-4" };
 
   const allCols = sheet.columns || [];
   const cols = allCols.filter((c) => !hiddenCols.has(c.key));
@@ -899,6 +921,44 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     URL.revokeObjectURL(url);
   };
 
+  // ── Excel export via Python microservice ──
+  const exportExcelPython = async () => {
+    const targetRows = selected.size > 0
+      ? filteredRows.filter((r) => selected.has(r._id))
+      : filteredRows;
+    if (targetRows.length === 0) { toast.error("لا توجد بيانات للتصدير"); return; }
+
+    const PYTHON_URL = import.meta.env.VITE_PYTHON_API_URL || "http://localhost:8000";
+    try {
+      toast.info?.("جاري التصدير...");
+      const res = await fetch(`${PYTHON_URL}/export/excel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sheet_name: sheet.name,
+          ledger_name: sheet.ledgerName || null,
+          columns: cols.map((c) => ({ key: c.key, label: c.label, type: c.type, formula: c.formula || null })),
+          rows: targetRows.map((r) => ({ cells: r.cells || {} })),
+          include_totals: true,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "فشل التصدير");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${sheet.name}_${new Date().toLocaleDateString("ar-EG").replace(/\//g, "-")}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("تم تصدير الملف بنجاح");
+    } catch (err) {
+      toast.error(`فشل التصدير: ${err.message}`);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
@@ -997,6 +1057,10 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium">
                 <Download className="w-3.5 h-3.5" /> {selected.size > 0 ? "تحميل المحدد" : "CSV"}
               </button>
+              <button onClick={exportExcelPython}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-xs font-medium border border-green-200">
+                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel (بايثون)
+              </button>
               <button onClick={() => handlePrint(false)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-700 rounded-xl border border-red-200 transition-colors font-medium">
                 <FileDown className="w-3.5 h-3.5" />
@@ -1050,16 +1114,30 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
                 <Plus className="w-3.5 h-3.5" /> سطر جديد
               </button>
-              <div className="flex items-center gap-1 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+              {/* Font size control */}
+              <div className="flex items-center gap-1 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden" title="حجم الخط">
                 <button onClick={() => setFontSize(s => Math.max(10, s - 2))}
-                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors" title="تصغير">
-                  −
-                </button>
+                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors">−</button>
                 <span className="px-2 text-xs text-gray-400 min-w-[32px] text-center">{fontSize}</span>
                 <button onClick={() => setFontSize(s => Math.min(24, s + 2))}
-                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors" title="تكبير">
-                  +
-                </button>
+                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors">+</button>
+              </div>
+              {/* Row height control */}
+              <div className="flex items-center gap-1 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden" title="ارتفاع الصفوف">
+                {[
+                  { id: "compact",      label: "مضغوط" },
+                  { id: "normal",       label: "عادي" },
+                  { id: "comfortable",  label: "مريح" },
+                ].map(({ id, label }) => (
+                  <button key={id} onClick={() => setRowHeight(id)}
+                    className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                      rowHeight === id
+                        ? "bg-[#2d5d89] text-white"
+                        : "bg-white dark:bg-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}>
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -1078,11 +1156,17 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                     </th>
                     {cols.map((col, ci) => (
                       <th key={col.key}
-                        className={`px-3 py-3 text-right font-semibold whitespace-nowrap text-sm ${
+                        className={`px-3 py-3 text-right font-semibold whitespace-nowrap text-sm relative group/th select-none ${
                           ci === 0 ? "sticky right-0 bg-[#2d5d89] z-20 border-l border-[#1f4566]" : ""
                         }`}
-                        style={{ minWidth: col.width || 120, maxWidth: col.width || 200 }}>
+                        style={{ width: getColWidth(col), minWidth: 60 }}>
                         {col.label}
+                        {/* Resize handle — drag left edge to resize (RTL) */}
+                        <div
+                          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-white/50 opacity-0 group-hover/th:opacity-100 transition-opacity"
+                          onMouseDown={(e) => handleColResize(e, col.key, getColWidth(col))}
+                          title="اسحب لتغيير عرض العمود"
+                        />
                       </th>
                     ))}
                     <th className="w-12 px-3 py-3"></th>
@@ -1121,8 +1205,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           ? "bg-blue-50"
                           : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50";
                         return (
-                          <td key={col.key} style={{ minWidth: col.width || 120 }}
-                            className={`px-1 py-1 ${isFormula ? "cursor-default" : "cursor-pointer"} ${
+                          <td key={col.key} style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col) }}
+                            className={`px-1 ${ROW_HEIGHTS[rowHeight]} ${isFormula ? "cursor-default" : "cursor-pointer"} ${
                               isFrozen ? `sticky right-0 z-10 border-l border-gray-200 ${rowBg}` : ""
                             }`}
                             onDoubleClick={() => startEdit(row._id, col.key)}>
@@ -1251,7 +1335,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 mt-2 text-center">انقر مرتين على أي خلية لتعديلها • Tab للانتقال • Enter للتأكيد • Esc للإلغاء</p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-gray-400">انقر مرتين على أي خلية لتعديلها • Tab للانتقال • Enter للتأكيد • Esc للإلغاء</p>
+            {Object.keys(colWidths).length > 0 && (
+              <button onClick={() => setColWidths({})}
+                className="text-xs text-[#2d5d89] hover:underline">إعادة ضبط عرض الأعمدة</button>
+            )}
+          </div>
         </>
       )}
 

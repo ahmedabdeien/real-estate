@@ -1,80 +1,65 @@
 import { FcGoogle } from "react-icons/fc";
-import { GoogleAuthProvider, getAuth, signInWithPopup } from 'firebase/auth';
-import { useDispatch } from 'react-redux';
-import { signInSuccess } from '../redux/user/userSlice';
-import { app } from "../../firebase";
-import { useNavigate } from 'react-router-dom';
+import { FaFacebook, FaApple } from "react-icons/fa";
 import { useState } from "react";
 import { TbLoaderQuarter } from "react-icons/tb";
 import { HiExclamation } from "react-icons/hi";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-export default function OAuth() {
-  const dispatch = useDispatch();
+const FIREBASE_ERROR_MESSAGES = {
+  "auth/unauthorized-domain":    "النطاق غير مصرح به في Firebase — أضف النطاق في Firebase Console.",
+  "auth/popup-blocked":          "تم حجب النافذة المنبثقة. يرجى السماح بها في المتصفح.",
+  "auth/account-exists-with-different-credential":
+    "يوجد حساب بهذا البريد بطريقة تسجيل مختلفة.",
+  "auth/operation-not-allowed":
+    "هذه الطريقة غير مفعّلة — فعّلها من Firebase Console.",
+};
+
+export default function OAuth({ redirectTo = "/" }) {
+  const { loginWithGoogle, loginWithFacebook, loginWithApple } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(null); // "google" | "facebook" | "apple" | null
   const [error, setError] = useState(null);
 
-  const handleGoogleClick = async () => {
+  const handleLogin = async (provider, fn) => {
+    setError(null);
+    setLoading(provider);
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      const auth = getAuth(app);
-
-      const result = await signInWithPopup(auth, provider);
-
-      const res = await fetch("/api/auth/google", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: result.user.displayName,
-          email: result.user.email,
-          photo: result.user.photoURL,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'فشل تسجيل الدخول بجوجل');
-
-      dispatch(signInSuccess(data));
-      navigate('/');
+      await fn();
+      navigate(redirectTo);
     } catch (err) {
-      console.error("Google auth error:", err);
-      if (err.code === 'auth/unauthorized-domain') {
-        setError('النطاق غير مصرح به في Firebase. أضف localhost إلى Authorized Domains في Firebase Console.');
-      } else if (err.code === 'auth/popup-closed-by-user') {
-        setError(null); // user cancelled - no error shown
-      } else if (err.code === 'auth/popup-blocked') {
-        setError('تم حجب النافذة المنبثقة. يرجى السماح لها في المتصفح والمحاولة مجدداً.');
+      if (err.code === "auth/popup-closed-by-user") {
+        // user cancelled — no error
       } else {
-        setError(err.message || 'حدث خطأ أثناء تسجيل الدخول بجوجل.');
+        setError(FIREBASE_ERROR_MESSAGES[err.code] || err.message || "حدث خطأ أثناء تسجيل الدخول");
       }
     } finally {
-      setIsLoading(false);
+      setLoading(null);
     }
   };
 
+  const btnBase =
+    "w-full py-3 flex items-center justify-center gap-3 font-bold text-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5 rounded-none";
+
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-2.5">
+      {/* Google */}
       <button
         type="button"
-        onClick={handleGoogleClick}
-        disabled={isLoading}
-        className="w-full py-3 flex items-center justify-center gap-3 font-bold text-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed hover:-translate-y-0.5"
+        onClick={() => handleLogin("google", loginWithGoogle)}
+        disabled={!!loading}
+        className={btnBase}
         style={{
-          background: 'white',
-          border: '1.5px solid rgba(138,105,36,0.2)',
-          color: '#12283C',
-          boxShadow: '0 2px 8px rgba(18,40,60,0.06)',
+          background: "white",
+          border: "1.5px solid rgba(138,105,36,0.2)",
+          color: "#12283C",
+          boxShadow: "0 2px 8px rgba(18,40,60,0.06)",
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(138,105,36,0.5)'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(138,105,36,0.2)'; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(138,105,36,0.5)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(138,105,36,0.2)"; }}
       >
-        {isLoading ? (
-          <TbLoaderQuarter className="animate-spin text-xl" style={{ color: '#8A6924' }} />
+        {loading === "google" ? (
+          <TbLoaderQuarter className="animate-spin text-xl" style={{ color: "#8A6924" }} />
         ) : (
           <>
             <FcGoogle size={20} />
@@ -83,9 +68,61 @@ export default function OAuth() {
         )}
       </button>
 
+      {/* Facebook */}
+      <button
+        type="button"
+        onClick={() => handleLogin("facebook", loginWithFacebook)}
+        disabled={!!loading}
+        className={btnBase}
+        style={{
+          background: "white",
+          border: "1.5px solid rgba(24,119,242,0.25)",
+          color: "#12283C",
+          boxShadow: "0 2px 8px rgba(18,40,60,0.06)",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(24,119,242,0.6)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(24,119,242,0.25)"; }}
+      >
+        {loading === "facebook" ? (
+          <TbLoaderQuarter className="animate-spin text-xl text-[#1877F2]" />
+        ) : (
+          <>
+            <FaFacebook size={20} className="text-[#1877F2]" />
+            <span>متابعة بواسطة Facebook</span>
+          </>
+        )}
+      </button>
+
+      {/* Apple */}
+      <button
+        type="button"
+        onClick={() => handleLogin("apple", loginWithApple)}
+        disabled={!!loading}
+        className={btnBase}
+        style={{
+          background: "white",
+          border: "1.5px solid rgba(0,0,0,0.15)",
+          color: "#12283C",
+          boxShadow: "0 2px 8px rgba(18,40,60,0.06)",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,0,0,0.4)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(0,0,0,0.15)"; }}
+      >
+        {loading === "apple" ? (
+          <TbLoaderQuarter className="animate-spin text-xl text-black" />
+        ) : (
+          <>
+            <FaApple size={22} className="text-black" />
+            <span>متابعة بواسطة Apple</span>
+          </>
+        )}
+      </button>
+
       {error && (
-        <div className="flex items-start gap-2 p-3 text-xs font-medium rounded-none"
-          style={{ background: '#fff5f5', border: '1px solid #fecaca', color: '#dc2626' }}>
+        <div
+          className="flex items-start gap-2 p-3 text-xs font-medium"
+          style={{ background: "#fff5f5", border: "1px solid #fecaca", color: "#dc2626" }}
+        >
           <HiExclamation className="shrink-0 mt-0.5" size={14} />
           <span>{error}</span>
         </div>

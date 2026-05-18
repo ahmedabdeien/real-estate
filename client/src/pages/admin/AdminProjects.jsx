@@ -1,6 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X, GripVertical, Save, ArrowUpDown } from "lucide-react";
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -46,6 +53,73 @@ const emptyProject = {
   mapEmbedUrl: "",
 };
 
+// ─── Sortable Row ─────────────────────────────────────────────────────────────
+function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, onEdit, onDelete, isDragging }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: p._id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+  const { label, variant } = statusBadge(p.status);
+  const fav = favorites.includes(p._id);
+  return (
+    <tr ref={setNodeRef} style={style}
+      className={`border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+        reorderMode ? "cursor-grab active:cursor-grabbing" : ""
+      }`}>
+      <td className="px-2 py-4 w-10">
+        {reorderMode ? (
+          <div {...attributes} {...listeners} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
+            <GripVertical className="w-4 h-4" />
+          </div>
+        ) : (
+          <button onClick={() => onToggleFav(p._id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-pink-50" title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
+            <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
+          </button>
+        )}
+      </td>
+      <td className="px-4 sm:px-6 py-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {p.coverImage ? (
+            <img src={p.coverImage} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#2d5d89]" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-medium text-gray-900 dark:text-white text-sm truncate max-w-[120px] sm:max-w-none">{p.name?.ar}</p>
+            <p className="text-gray-400 text-xs">{p.location?.city?.ar}</p>
+          </div>
+        </div>
+      </td>
+      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
+      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+        {p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : "—"}
+      </td>
+      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{p.totalUnits || "—"}</td>
+      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
+        <Badge variant={p.published ? "success" : "gray"}>{p.published ? "منشور" : "مسودة"}</Badge>
+      </td>
+      <td className="px-4 sm:px-6 py-4">
+        {!reorderMode && (
+          <div className="flex items-center gap-1">
+            <button onClick={() => onEdit(p)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button onClick={() => onDelete(p._id)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 transition-colors">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </td>
+    </tr>
+  );
+}
+
 export default function AdminProjects() {
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -67,6 +141,13 @@ export default function AdminProjects() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [galleryUrl, setGalleryUrl] = useState("");
   const [customAmenity, setCustomAmenity] = useState("");
+  const [reorderMode, setReorderMode] = useState(false);
+  const [reorderSaving, setReorderSaving] = useState(false);
+  const [activeId, setActiveId] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -221,6 +302,33 @@ export default function AdminProjects() {
     });
   };
 
+  // ── Drag-and-drop order ──
+  const handleDragStart = ({ active }) => setActiveId(active.id);
+
+  const handleDragEnd = useCallback(({ active, over }) => {
+    setActiveId(null);
+    if (!over || active.id === over.id) return;
+    setProjects((prev) => {
+      const oldIdx = prev.findIndex((p) => p._id === active.id);
+      const newIdx = prev.findIndex((p) => p._id === over.id);
+      return arrayMove(prev, oldIdx, newIdx);
+    });
+  }, []);
+
+  const saveOrder = async () => {
+    setReorderSaving(true);
+    try {
+      const order = projects.map((p, i) => ({ _id: p._id, order: i }));
+      await api.put("/projects/reorder", { order });
+      toast.success("تم حفظ الترتيب");
+      setReorderMode(false);
+    } catch {
+      toast.error("فشل حفظ الترتيب");
+    } finally {
+      setReorderSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -229,14 +337,45 @@ export default function AdminProjects() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المشاريع</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{total} مشروع</p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">إضافة مشروع</span>
-          <span className="sm:hidden">إضافة</span>
-        </button>
+        <div className="flex items-center gap-2">
+          {reorderMode ? (
+            <>
+              <button
+                onClick={() => { setReorderMode(false); load(); }}
+                className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-4 h-4" /> إلغاء
+              </button>
+              <button
+                onClick={saveOrder}
+                disabled={reorderSaving}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" />
+                {reorderSaving ? "جاري الحفظ..." : "حفظ الترتيب"}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => { setView("table"); setReorderMode(true); }}
+                className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                title="ترتيب المشاريع بالسحب والإفلات"
+              >
+                <ArrowUpDown className="w-4 h-4" />
+                <span className="hidden sm:inline">ترتيب</span>
+              </button>
+              <button
+                onClick={openCreate}
+                className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">إضافة مشروع</span>
+                <span className="sm:hidden">إضافة</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <HelpCard
@@ -366,70 +505,53 @@ export default function AdminProjects() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                <tr>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 py-3 w-10"></th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
-                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر من</th>
-                  <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الوحدات</th>
-                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النشر</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                {visibleProjects.map((p) => {
-                  const { label, variant } = statusBadge(p.status);
-                  const fav = favorites.includes(p._id);
-                  return (
-                    <motion.tr key={p._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <td className="px-2 py-4">
-                        <button onClick={() => toggleFavorite(p._id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-pink-50" title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
-                          <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
-                        </button>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          {p.coverImage ? (
-                            <img src={p.coverImage} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover flex-shrink-0" />
-                          ) : (
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-                              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#2d5d89]" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="font-medium text-gray-900 dark:text-white text-sm truncate max-w-[120px] sm:max-w-none">{p.name?.ar}</p>
-                            <p className="text-gray-400 text-xs">{p.location?.city?.ar}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
-                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
-                        {p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : "—"}
-                      </td>
-                      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{p.totalUnits || "—"}</td>
-                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
-                        <Badge variant={p.published ? "success" : "gray"}>{p.published ? "منشور" : "مسودة"}</Badge>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4">
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => openEdit(p)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => setDeleteId(p._id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            {reorderMode && (
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-xs font-medium">
+                <GripVertical className="w-3.5 h-3.5" />
+                وضع الترتيب — اسحب المشاريع لتغيير ترتيبها، ثم اضغط "حفظ الترتيب"
+              </div>
+            )}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                  <tr>
+                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 py-3 w-10">
+                      {reorderMode ? <GripVertical className="w-3.5 h-3.5 text-gray-400 mx-auto" /> : ""}
+                    </th>
+                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
+                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
+                    <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر من</th>
+                    <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الوحدات</th>
+                    <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النشر</th>
+                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
+                  </tr>
+                </thead>
+                <SortableContext
+                  items={visibleProjects.map((p) => p._id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
+                    {visibleProjects.map((p) => (
+                      <SortableProjectRow
+                        key={p._id}
+                        project={p}
+                        reorderMode={reorderMode}
+                        favorites={favorites}
+                        onToggleFav={toggleFavorite}
+                        onEdit={openEdit}
+                        onDelete={(id) => setDeleteId(id)}
+                        isDragging={activeId === p._id}
+                      />
+                    ))}
+                  </tbody>
+                </SortableContext>
+              </table>
+            </DndContext>
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider, facebookProvider, appleProvider } from "../firebase";
 import api from "../api/axios";
 
 const AuthContext = createContext(null);
@@ -49,6 +49,24 @@ export function AuthProvider({ children }) {
     return res.data.user;
   };
 
+  // Facebook Sign-In — same flow, Firebase handles OAuth
+  const loginWithFacebook = async () => {
+    const result = await signInWithPopup(auth, facebookProvider);
+    const idToken = await result.user.getIdToken();
+    const res = await api.post("/auth/google", { idToken }); // backend validates Firebase token regardless of provider
+    saveUser(res.data.user, res.data.token);
+    return res.data.user;
+  };
+
+  // Apple Sign-In — same flow
+  const loginWithApple = async () => {
+    const result = await signInWithPopup(auth, appleProvider);
+    const idToken = await result.user.getIdToken();
+    const res = await api.post("/auth/google", { idToken });
+    saveUser(res.data.user, res.data.token);
+    return res.data.user;
+  };
+
   const logout = async () => {
     // Always clear local state — even if backend/firebase calls fail
     try { await firebaseSignOut(auth); } catch {}
@@ -64,7 +82,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, loginWithFacebook, loginWithApple, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

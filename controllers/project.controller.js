@@ -57,6 +57,20 @@ export const updateProject = async (req, res) => {
   }
 };
 
+// PUT /api/projects/reorder  — save manual drag-and-drop order
+export const reorderProjects = async (req, res) => {
+  try {
+    const { order } = req.body; // [{ _id, order }, ...]
+    if (!Array.isArray(order)) return res.status(400).json({ success: false, message: "order مطلوب" });
+    await Promise.all(
+      order.map(({ _id, order: o }) => Project.findByIdAndUpdate(_id, { order: Number(o) }))
+    );
+    res.json({ success: true, message: "تم حفظ الترتيب" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
