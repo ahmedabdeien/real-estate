@@ -10,7 +10,7 @@ import {
     HiMail, HiNewspaper, HiPencilAlt, HiOfficeBuilding, HiLogout,
     HiTrash, HiExclamation, HiChevronDown, HiViewGrid, HiBriefcase
 } from 'react-icons/hi';
-import Logoelsarh from '../../assets/images/logoElsarh.png';
+import Logoelsarh from '../../assets/images/logo.svg';
 
 function DashSideBar() {
     const location = useLocation();
@@ -96,8 +96,8 @@ function DashSideBar() {
 
             {/* هيدر */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-                <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(223,186,107,0.2)', flexShrink: 0 }}>
-                    <img src={Logoelsarh} alt="الصرح" style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+                <div style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: 'white', border: '1px solid rgba(223,186,107,0.2)', flexShrink: 0 }}>
+                    <img src={Logoelsarh} alt="الصرح" style={{ height: 36, width: 36, objectFit: 'contain' }} />
                 </div>
                 <div style={{ minWidth: 0 }}>
                     <p style={{ color: 'white', fontWeight: 900, fontSize: 13, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>الصرح للتطوير العقاري</p>

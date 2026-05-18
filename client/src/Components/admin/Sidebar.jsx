@@ -7,6 +7,7 @@ import {
   CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
   Package, ShoppingCart, Scale,
 } from "lucide-react";
+import LogoSvg from "../../assets/images/logo.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../api/axios";
@@ -118,8 +119,8 @@ export default function Sidebar({ collapsed, onToggle }) {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 p-4 border-b border-white/10 min-h-[64px]">
-          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img src={LogoSvg} alt="الصرح" className="w-8 h-8 object-contain" />
           </div>
           <AnimatePresence>
             {!collapsed && (

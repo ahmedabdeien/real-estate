@@ -6,7 +6,7 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa6';
 import { HiExclamationCircle, HiCheckCircle } from 'react-icons/hi';
 import { TbLoaderQuarter } from 'react-icons/tb';
 import { Helmet } from 'react-helmet';
-import Logoelsarh from '../../../assets/images/logoElsarh.png';
+import Logoelsarh from '../../../assets/images/logo.svg';
 
 export default function Signup() {
   const [visible, setVisible] = useState(false);
@@ -54,7 +54,7 @@ export default function Signup() {
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full"
           style={{ background: 'radial-gradient(circle, rgba(138,105,36,0.2), transparent 70%)' }} />
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-16 text-center">
-          <img src={Logoelsarh} alt="الصرح" className="h-20 w-auto mb-8 opacity-90" />
+          <div className="w-28 h-28 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-xl"><img src={Logoelsarh} alt="الصرح" className="h-24 w-24 object-contain" /></div>
           <h2 className="text-3xl font-black text-white mb-4 leading-tight">
             انضم إلى<br />
             <span style={{ color: '#DFBA6B' }}>مجتمع الصرح</span>

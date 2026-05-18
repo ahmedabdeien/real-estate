@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     config: {
         siteName: 'الصرح للتطوير العقاري',
-        logo: '/assets/images/logoElsarh.png',
+        logo: '/assets/images/logo.svg',
         primaryColor: '#8A6924',
         accentColor: '#DFBA6B',
         contact: {

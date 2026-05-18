@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock } from "lucide-react";
-import Logo from "./assets/images/logoElsarh.png";
+import Logo from "./assets/images/logo.svg";
 
 const Loading = () => {
   const [progress, setProgress] = useState(0);
@@ -15,7 +15,9 @@ const Loading = () => {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900 flex flex-col items-center justify-center gap-6 p-4">
-      <img src={Logo} alt="Logo" className="w-32 mb-8 animate-pulse" />
+      <div className="w-36 h-36 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-2xl animate-pulse">
+        <img src={Logo} alt="Logo" className="w-28 h-28 object-contain" />
+      </div>
       <div className="w-full max-w-xs bg-white/20 rounded-full h-2">
         <div
           className="h-full bg-blue-500 rounded-full transition-all duration-300"

@@ -1,4 +1,5 @@
 import React from 'react';
+import LogoSvg from '../../assets/images/logo.svg';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -48,8 +49,8 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       {/* Logo */}
       <div className="p-5 border-b border-[#DFBA6B]/10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 border-2 border-[#DFBA6B] flex items-center justify-center">
-            <span className="text-[#DFBA6B] font-black text-sm">ع</span>
+          <div className="w-10 h-10 bg-white flex items-center justify-center overflow-hidden shrink-0">
+            <img src={LogoSvg} alt="الصرح" className="w-9 h-9 object-contain" />
           </div>
           <div>
             <div className="text-[#DFBA6B] font-black text-sm">الصرح للتطوير العقاري</div>

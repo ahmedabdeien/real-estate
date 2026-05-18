@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import Logoelsarh from '../../assets/images/logoElsarh.png';
+import Logoelsarh from '../../assets/images/logo.svg';
 import {
   FaColumns, FaCogs,
   FaDoorOpen, FaUser, FaTimes,
@@ -100,7 +100,7 @@ export default function Header() {
         <Link to="/" className="flex items-center gap-3 shrink-0">
           <div
             className="w-12 h-12 flex items-center justify-center overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(223,186,107,0.25)' }}
+            style={{ background: 'white', border: '1px solid rgba(223,186,107,0.25)' }}
           >
             <img
               src={(config.logo && config.logo.startsWith('http')) ? config.logo : Logoelsarh}
@@ -296,7 +296,7 @@ export default function Header() {
               {/* هيدر الدرج */}
               <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid rgba(223,186,107,0.12)' }}>
                 <div className="flex items-center gap-3">
-                  <img src={Logoelsarh} alt="الصرح" className="h-9 w-auto" />
+                  <div className="w-10 h-10 bg-white rounded flex items-center justify-center"><img src={Logoelsarh} alt="الصرح" className="h-9 w-9 object-contain" /></div>
                   <span className="text-white font-black text-sm">{config.siteName || 'الصرح للتطوير العقاري'}</span>
                 </div>
                 <button onClick={() => setIsMenuOpen(false)} className="text-white/50 hover:text-[#DFBA6B] transition-colors">

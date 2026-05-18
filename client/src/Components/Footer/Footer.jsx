@@ -5,7 +5,7 @@ import { BsArrowLeft } from 'react-icons/bs';
 import { SocialMediaSecondary } from '../SocialMedia/SocialMediaLink';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import Logoelsarh from '../../assets/images/logoElsarh.png';
+import Logoelsarh from '../../assets/images/logo.svg';
 
 export default function Footer() {
   const { config }  = useSelector(s => s.config);
@@ -52,13 +52,13 @@ export default function Footer() {
           <div className="space-y-6 lg:col-span-1">
             <Link to="/" className="flex items-center gap-3">
               <div
-                className="w-12 h-12 flex items-center justify-center overflow-hidden shrink-0"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(223,186,107,0.2)' }}
+                className="w-12 h-12 flex items-center justify-center overflow-hidden shrink-0 bg-white"
+                style={{ border: '1px solid rgba(223,186,107,0.2)' }}
               >
                 <img
                   src={(config.logo?.startsWith?.('http') ? config.logo : Logoelsarh) || Logoelsarh}
                   alt={config.siteName}
-                  className="h-10 w-auto object-contain"
+                  className="h-10 w-10 object-contain"
                 />
               </div>
               <div>
