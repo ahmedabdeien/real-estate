@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit2, Check, X, Printer, Download, ChevronRight,
@@ -7,7 +7,13 @@ import {
   BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown,
   PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
   Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
+  Sparkles, Grid3x3,
 } from "lucide-react";
+
+// Lazy-load FortuneSheet (heavy bundle — only loaded when Excel mode is active)
+const FortuneSheet = lazy(() =>
+  import("@fortune-sheet/react").then((m) => ({ default: m.Workbook }))
+);
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
@@ -621,6 +627,10 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [showDeletedRows, setShowDeletedRows] = useState(false);
   const [colWidths, setColWidths] = useState({}); // { [colKey]: px }
   const [rowHeight, setRowHeight] = useState("normal"); // "compact" | "normal" | "comfortable"
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
   const fileInputRef = useRef(null);
 
   const getColWidth = (col) => colWidths[col.key] ?? col.width ?? 120;
@@ -959,6 +969,48 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     }
   };
 
+  // ── FortuneSheet data converter ──
+  const toFortuneSheetData = () => {
+    const headerRow = cols.map((c) => ({ v: c.label, ct: { fa: "@", t: "s" }, bl: 1 }));
+    const dataRows = filteredRows.map((row) =>
+      cols.map((col) => {
+        const val = col.type === "formula"
+          ? evaluateFormula(col.formula || "", row.cells || {})
+          : (row.cells?.[col.key] ?? "");
+        return { v: val === "" ? null : val, ct: { fa: "@", t: "s" } };
+      })
+    );
+    return [{
+      name: sheet.name,
+      config: {},
+      celldata: [
+        ...headerRow.map((c, ci) => ({ r: 0, c: ci, v: c })),
+        ...dataRows.flatMap((row, ri) =>
+          row.map((c, ci) => ({ r: ri + 1, c: ci, v: c }))
+        ),
+      ],
+    }];
+  };
+
+  // ── AI data analysis ──
+  const runAiAnalysis = async () => {
+    if (!aiQuery.trim()) return;
+    setAiLoading(true);
+    setAiResult(null);
+    try {
+      const res = await api.post("/ai/analyze-data", {
+        data: filteredRows.slice(0, 100),
+        sheetName: sheet.name,
+        question: aiQuery,
+      });
+      setAiResult(res.data.reply);
+    } catch (err) {
+      setAiResult(`فشل التحليل: ${err.response?.data?.message || err.message}`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
@@ -975,6 +1027,18 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           }`}>
           <BarChart3 className="w-3.5 h-3.5" /> معدلات
         </button>
+        <button onClick={() => setActiveTab("excel")}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === "excel" ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}>
+          <Grid3x3 className="w-3.5 h-3.5" /> وضع Excel
+        </button>
+        <button onClick={() => setActiveTab("ai")}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === "ai" ? "border-purple-600 text-purple-700" : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}>
+          <Sparkles className="w-3.5 h-3.5" /> تحليل AI
+        </button>
         {isAdmin && (
           <button onClick={() => setActiveTab("audit")}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
@@ -989,6 +1053,72 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         <AuditLogPanel />
       ) : activeTab === "rates" ? (
         <RatesPanel rows={filteredRows} cols={cols} />
+      ) : activeTab === "excel" ? (
+        <div className="flex-1 overflow-hidden" style={{ height: "70vh" }}>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-xs text-amber-700 flex items-center gap-2">
+            <Grid3x3 className="w-3.5 h-3.5 flex-shrink-0" />
+            وضع Excel الكامل — يمكنك التعديل مباشرة. التغييرات لا تُحفظ تلقائياً في هذا الوضع.
+          </div>
+          <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">جاري تحميل محرر Excel...</div>}>
+            <FortuneSheet
+              data={toFortuneSheetData()}
+              showToolbar={true}
+              showFormulaBar={true}
+              showSheetTabs={false}
+              lang="zh"
+              style={{ height: "calc(70vh - 40px)" }}
+            />
+          </Suspense>
+        </div>
+      ) : activeTab === "ai" ? (
+        <div className="flex-1 space-y-4 py-2">
+          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span className="font-semibold text-purple-800 text-sm">تحليل البيانات بالذكاء الاصطناعي</span>
+              <span className="text-xs text-purple-500 mr-auto">({filteredRows.length} سطر)</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={aiQuery}
+                onChange={(e) => setAiQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && runAiAnalysis()}
+                placeholder='مثال: "ما هو إجمالي المبالغ؟" أو "من أعلى قيمة؟" أو "حلل هذه البيانات"'
+                className="flex-1 px-3 py-2 rounded-xl border border-purple-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+              <button
+                onClick={runAiAnalysis}
+                disabled={aiLoading || !aiQuery.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium disabled:opacity-50"
+              >
+                {aiLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                {aiLoading ? "جاري..." : "تحليل"}
+              </button>
+            </div>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {["ما هو إجمالي المبالغ؟", "من أعلى قيمة؟", "حلل هذه البيانات وأعطني ملاحظات", "ما الاتجاه العام؟"].map((q) => (
+                <button key={q} onClick={() => setAiQuery(q)}
+                  className="text-xs px-2.5 py-1 rounded-full border border-purple-200 bg-white text-purple-700 hover:bg-purple-50">
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+          {aiResult && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+              <div className="flex items-center gap-2 mb-2 text-purple-600 font-medium text-xs">
+                <Sparkles className="w-3.5 h-3.5" /> نتيجة التحليل
+              </div>
+              {aiResult}
+            </div>
+          )}
+          {!aiResult && !aiLoading && (
+            <div className="text-center py-10 text-gray-400 text-sm">
+              <Sparkles className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+              اكتب سؤالك عن البيانات واضغط تحليل
+            </div>
+          )}
+        </div>
       ) : (
         <>
           {/* Collapsible stats panel */}
