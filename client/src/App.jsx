@@ -44,6 +44,7 @@ const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminAccounting = lazy(() => import("./pages/admin/AdminAccounting"));
+const AdminAccountingBeniSuef = lazy(() => import("./pages/admin/AdminAccountingBeniSuef"));
 const AdminAccountingRecords = lazy(() => import("./pages/admin/AdminAccountingRecords"));
 const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
@@ -160,6 +161,7 @@ export default function App() {
                 {/* Accounting — admin + accounts dept */}
                 <Route path="accounting" element={<AdminAccounting />} />
                 <Route path="accounting-records" element={<AdminAccountingRecords />} />
+                <Route path="accounting-beni-suef" element={<AdminAccountingBeniSuef />} />
                 <Route path="profile" element={<StaffProfile />} />
                 <Route path="changelog" element={<AdminChangelog />} />
                 <Route path="notifications" element={<AdminNotifications />} />

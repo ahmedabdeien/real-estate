@@ -108,7 +108,7 @@ function CasesTab() {
     setLoading(true);
     try {
       const r = await api.get("/legal/cases");
-      setCases(r.data || []);
+      setCases(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل القضايا");
     } finally {
@@ -310,7 +310,7 @@ function ContractsTab() {
     setLoading(true);
     try {
       const r = await api.get("/legal/contracts");
-      setContracts(r.data || []);
+      setContracts(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل العقود");
     } finally {
@@ -500,7 +500,7 @@ function ConsultationsTab() {
     setLoading(true);
     try {
       const r = await api.get("/legal/consultations");
-      setConsultations(r.data || []);
+      setConsultations(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل الاستشارات");
     } finally {
@@ -656,7 +656,7 @@ function StatsTab() {
 
   useEffect(() => {
     api.get("/legal/stats")
-      .then((r) => setStats(r.data))
+      .then((r) => setStats(r.data?.data || r.data))
       .catch(() => toast.error("فشل تحميل الإحصائيات"))
       .finally(() => setLoading(false));
   }, [toast]);

@@ -94,7 +94,7 @@ function BalanceTab() {
     setLoading(true);
     try {
       const r = await api.get("/warehouse/inventory/balance");
-      setData(r.data || []);
+      setData(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل بيانات المخزون");
     } finally {
@@ -191,7 +191,7 @@ function ItemsTab({ categories, warehouses }) {
     setLoading(true);
     try {
       const r = await api.get("/warehouse/items");
-      setItems(r.data || []);
+      setItems(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل الأصناف");
     } finally {
@@ -333,8 +333,8 @@ function WarehousesTab({ onRefresh }) {
     setLoading(true);
     try {
       const r = await api.get("/warehouse/warehouses");
-      setWarehouses(r.data || []);
-      onRefresh?.(r.data || []);
+      setWarehouses(r.data?.data || []);
+      onRefresh?.(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل المخازن");
     } finally {
@@ -432,7 +432,7 @@ function TransactionsTab({ items, warehouses }) {
     setLoading(true);
     try {
       const r = await api.get("/warehouse/transactions");
-      setTransactions(r.data || []);
+      setTransactions(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل الحركات");
     } finally {
@@ -545,8 +545,8 @@ function CategoriesTab({ onRefresh }) {
     setLoading(true);
     try {
       const r = await api.get("/warehouse/categories");
-      setCats(r.data || []);
-      onRefresh?.(r.data || []);
+      setCats(r.data?.data || []);
+      onRefresh?.(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل الفئات");
     } finally {
@@ -665,9 +665,9 @@ export default function AdminWarehouse() {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
-    api.get("/warehouse/items").then((r) => setItems(r.data || [])).catch(() => {});
-    api.get("/warehouse/categories").then((r) => setCategories(r.data || [])).catch(() => {});
-    api.get("/warehouse/warehouses").then((r) => setWarehouses(r.data || [])).catch(() => {});
+    api.get("/warehouse/items").then((r) => setItems(r.data?.data || [])).catch(() => {});
+    api.get("/warehouse/categories").then((r) => setCategories(r.data?.data || [])).catch(() => {});
+    api.get("/warehouse/warehouses").then((r) => setWarehouses(r.data?.data || [])).catch(() => {});
   }, []);
 
   return (

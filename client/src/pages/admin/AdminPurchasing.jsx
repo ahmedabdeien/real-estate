@@ -88,7 +88,7 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
     setLoading(true);
     try {
       const r = await api.get("/purchasing/orders");
-      setOrders(r.data || []);
+      setOrders(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل أوامر الشراء");
     } finally {
@@ -376,8 +376,8 @@ function SuppliersTab({ onRefresh }) {
     setLoading(true);
     try {
       const r = await api.get("/purchasing/suppliers");
-      setSuppliers(r.data || []);
-      onRefresh?.(r.data || []);
+      setSuppliers(r.data?.data || []);
+      onRefresh?.(r.data?.data || []);
     } catch {
       toast.error("فشل تحميل الموردين");
     } finally {
@@ -499,7 +499,7 @@ function InvoicesTab() {
 
   useEffect(() => {
     api.get("/purchasing/invoices")
-      .then((r) => setInvoices(r.data || []))
+      .then((r) => setInvoices(r.data?.data || []))
       .catch(() => toast.error("فشل تحميل الفواتير"))
       .finally(() => setLoading(false));
   }, [toast]);
@@ -561,9 +561,9 @@ export default function AdminPurchasing() {
   const [warehouses, setWarehouses] = useState([]);
 
   useEffect(() => {
-    api.get("/purchasing/suppliers").then((r) => setSuppliers(r.data || [])).catch(() => {});
-    api.get("/warehouse/items").then((r) => setWarehouseItems(r.data || [])).catch(() => {});
-    api.get("/warehouse/warehouses").then((r) => setWarehouses(r.data || [])).catch(() => {});
+    api.get("/purchasing/suppliers").then((r) => setSuppliers(r.data?.data || [])).catch(() => {});
+    api.get("/warehouse/items").then((r) => setWarehouseItems(r.data?.data || [])).catch(() => {});
+    api.get("/warehouse/warehouses").then((r) => setWarehouses(r.data?.data || [])).catch(() => {});
   }, []);
 
   return (

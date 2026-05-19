@@ -12,7 +12,7 @@ const DEFAULT_ROLES = [
     label: "محاسب فرع بني سويف",
     branch: "بني سويف",
     isSystem: false,
-    allowedPages: ["notifications","tasks","accounting","accounting-records","profile","changelog"],
+    allowedPages: ["notifications","tasks","accounting","accounting-beni-suef","accounting-records","profile","changelog"],
   },
 ];
 

@@ -1490,11 +1490,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function AdminAccounting() {
+export default function AdminAccounting({ branch = null, branchLabel = null }) {
   const { user } = useAuth();
   const toast = useToast();
 
-  const hasAccess = user?.role === "admin" || user?.department === "accounts";
+  const hasAccess = user?.role === "admin" || user?.department === "accounts" ||
+    user?.allowedPages?.includes("accounting");
 
   const [ledgers, setLedgers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1723,6 +1724,15 @@ export default function AdminAccounting() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden" dir="rtl">
+    {branchLabel && (
+      <div className="px-4 pt-3 flex-shrink-0">
+        <div className="flex items-center gap-2 bg-[#2d5d89]/10 border border-[#2d5d89]/20 rounded-xl px-4 py-2 mb-1">
+          <span className="text-lg">🏢</span>
+          <span className="font-bold text-[#2d5d89] text-sm">{branchLabel}</span>
+          <span className="text-gray-400 text-xs mr-auto">نظام الحسابات الخاص بالفرع</span>
+        </div>
+      </div>
+    )}
     <div className="px-4 pt-3 flex-shrink-0">
       <HelpCard
         title="دليل استخدام الحسابات"
