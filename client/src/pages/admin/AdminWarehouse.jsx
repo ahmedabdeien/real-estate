@@ -322,12 +322,17 @@ function ItemsTab({ categories, warehouses }) {
 // ─── Warehouses Tab ───────────────────────────────────────────────────────────
 function WarehousesTab({ onRefresh }) {
   const [warehouses, setWarehouses] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState({ name: "", location: "", manager: "" });
   const [saving, setSaving] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    api.get("/users").then((r) => setUsers(r.data?.users || r.data?.data || [])).catch(() => {});
+  }, []);
 
   const fetchWarehouses = useCallback(async () => {
     setLoading(true);
@@ -345,7 +350,7 @@ function WarehousesTab({ onRefresh }) {
   useEffect(() => { fetchWarehouses(); }, [fetchWarehouses]);
 
   const openAdd = () => { setEditItem(null); setForm({ name: "", location: "", manager: "" }); setModal(true); };
-  const openEdit = (w) => { setEditItem(w); setForm({ name: w.name || "", location: w.location || "", manager: w.manager || "" }); setModal(true); };
+  const openEdit = (w) => { setEditItem(w); setForm({ name: w.name || "", location: w.location || "", manager: w.manager?._id || w.manager || "" }); setModal(true); };
 
   const save = async () => {
     if (!form.name) { toast.error("اسم المخزن مطلوب"); return; }
@@ -393,7 +398,7 @@ function WarehousesTab({ onRefresh }) {
               <tr key={w._id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="px-4 py-3 font-medium text-gray-900">{w.name}</td>
                 <td className="px-4 py-3 text-gray-600">{w.location || "—"}</td>
-                <td className="px-4 py-3 text-gray-600">{w.manager || "—"}</td>
+                <td className="px-4 py-3 text-gray-600">{w.manager?.name || (users.find(u => u._id === w.manager)?.name) || "—"}</td>
                 <td className="px-4 py-3">
                   <button onClick={() => openEdit(w)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
                 </td>
@@ -406,7 +411,19 @@ function WarehousesTab({ onRefresh }) {
         <div className="space-y-4">
           <Input label="الاسم *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="اسم المخزن" />
           <Input label="الموقع" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="عنوان المخزن" />
-          <Input label="المسؤول" value={form.manager} onChange={(e) => setForm({ ...form, manager: e.target.value })} placeholder="اسم المسؤول" />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">المسؤول</label>
+            <select
+              value={form.manager}
+              onChange={(e) => setForm({ ...form, manager: e.target.value })}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 focus:border-[#2d5d89] bg-white"
+            >
+              <option value="">— اختر المسؤول —</option>
+              {users.map((u) => (
+                <option key={u._id} value={u._id}>{u.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex gap-3 pt-2">
             <button onClick={save} disabled={saving} className="flex-1 bg-[#2d5d89] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] transition-colors disabled:opacity-60">
               {saving ? "جاري الحفظ..." : "حفظ"}

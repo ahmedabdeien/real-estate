@@ -18,8 +18,10 @@ export default function AdminLayout() {
 
   if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/admin/login" replace />;
-  // viewer → home
-  if (!["admin", "supervisor", "manager", "employee", "sales"].includes(user.role)) return <Navigate to="/" replace />;
+  // viewer → home; custom roles (customRoleKey) are allowed if they have any allowedPages
+  const isStandardRole = ["admin", "supervisor", "manager", "employee", "sales"].includes(user.role);
+  const isCustomRole = !!user.customRoleKey;
+  if (!isStandardRole && !isCustomRole) return <Navigate to="/" replace />;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950" dir="rtl">

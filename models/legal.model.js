@@ -71,13 +71,13 @@ const legalContractSchema = new mongoose.Schema(
       default: "draft",
     },
     partyA: {
-      name: { type: String, required: true },
+      name: { type: String, default: "" },
       role: { type: String, default: "" },
       phone: { type: String, default: "" },
       nationalId: { type: String, default: "" },
     },
     partyB: {
-      name: { type: String, required: true },
+      name: { type: String, default: "" },
       role: { type: String, default: "" },
       phone: { type: String, default: "" },
       nationalId: { type: String, default: "" },

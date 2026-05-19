@@ -31,7 +31,7 @@ const purchaseOrderSchema = new mongoose.Schema(
   {
     orderNumber: { type: String, unique: true },
     supplier: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier", required: true },
-    warehouse: { type: mongoose.Schema.Types.ObjectId, ref: "Warehouse", required: true },
+    warehouse: { type: mongoose.Schema.Types.ObjectId, ref: "Warehouse", default: null },
     status: {
       type: String,
       enum: ["draft", "sent", "partial", "received", "cancelled"],

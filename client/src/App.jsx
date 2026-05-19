@@ -46,6 +46,7 @@ const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminAccounting = lazy(() => import("./pages/admin/AdminAccounting"));
 const AdminAccountingBeniSuef = lazy(() => import("./pages/admin/AdminAccountingBeniSuef"));
 const AdminAccountingRecords = lazy(() => import("./pages/admin/AdminAccountingRecords"));
+const AdminAccountingRecordsBeniSuef = lazy(() => import("./pages/admin/AdminAccountingRecordsBeniSuef"));
 const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
@@ -77,6 +78,14 @@ function DashboardRoute() {
   if (user.role === "manager" || user.role === "employee" || user.role === "sales") {
     return <Navigate to="/admin/tasks" replace />;
   }
+  // Custom role users → redirect to first allowed page or tasks
+  if (user.customRoleKey) {
+    const pages = user.allowedPages || [];
+    if (pages.includes("tasks")) return <Navigate to="/admin/tasks" replace />;
+    if (pages.includes("accounting")) return <Navigate to="/admin/accounting" replace />;
+    if (pages.includes("accounting-beni-suef")) return <Navigate to="/admin/accounting-beni-suef" replace />;
+    if (pages.length > 0) return <Navigate to={`/admin/${pages[0]}`} replace />;
+  }
   return <Navigate to="/" replace />;
 }
 
@@ -85,8 +94,23 @@ function TasksRoute() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/admin/login" replace />;
-  if (!["admin", "supervisor", "manager", "employee", "sales"].includes(user.role)) return <Navigate to="/" replace />;
+  const isStandard = ["admin", "supervisor", "manager", "employee", "sales"].includes(user.role);
+  const isCustom = !!user.customRoleKey;
+  if (!isStandard && !isCustom) return <Navigate to="/" replace />;
   return <TasksPage />;
+}
+
+// Guard: only users whose allowedPages includes the given pageKey (or admin)
+function PageGuard({ pageKey, children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/admin/login" replace />;
+  if (user.role === "admin") return children;
+  if (user.allowedPages?.includes("*")) return children;
+  if (pageKey && user.allowedPages?.includes(pageKey)) return children;
+  // Redirect to their first allowed page
+  const pages = user.allowedPages || [];
+  if (pages.includes("tasks")) return <Navigate to="/admin/tasks" replace />;
+  return <Navigate to="/admin" replace />;
 }
 
 function NotFound() {
@@ -145,30 +169,29 @@ export default function App() {
               {/* Admin Dashboard */}
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashboardRoute />} />
-                <Route path="projects" element={<AdminProjects />} />
-                <Route path="units" element={<AdminUnits />} />
-                <Route path="leads" element={<AdminLeads />} />
-                <Route path="blogs" element={<AdminBlogs />} />
-                <Route path="client-reg" element={<AdminClientReg />} />
-                <Route path="content" element={<AdminOnlyRoute><AdminContent /></AdminOnlyRoute>} />
-                <Route path="media" element={<AdminOnlyRoute><AdminMedia /></AdminOnlyRoute>} />
-                <Route path="careers" element={<AdminOnlyRoute><AdminCareers /></AdminOnlyRoute>} />
-                <Route path="users" element={<AdminOnlyRoute><AdminUsers /></AdminOnlyRoute>} />
-                <Route path="settings" element={<AdminOnlyRoute><AdminSettings /></AdminOnlyRoute>} />
-                <Route path="activity" element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
-                {/* Tasks inside admin panel — admin/supervisor/manager */}
-                <Route path="tasks" element={<TasksPage embedded={true} />} />
-                {/* Accounting — admin + accounts dept */}
-                <Route path="accounting" element={<AdminAccounting />} />
-                <Route path="accounting-records" element={<AdminAccountingRecords />} />
-                <Route path="accounting-beni-suef" element={<AdminAccountingBeniSuef />} />
-                <Route path="profile" element={<StaffProfile />} />
-                <Route path="changelog" element={<AdminChangelog />} />
-                <Route path="notifications" element={<AdminNotifications />} />
-                <Route path="warehouse" element={<AdminWarehouse />} />
-                <Route path="purchasing" element={<AdminPurchasing />} />
-                <Route path="legal" element={<AdminLegal />} />
-                <Route path="roles" element={<AdminOnlyRoute><AdminRoles /></AdminOnlyRoute>} />
+                <Route path="projects"      element={<PageGuard pageKey="projects"><AdminProjects /></PageGuard>} />
+                <Route path="units"         element={<PageGuard pageKey="units"><AdminUnits /></PageGuard>} />
+                <Route path="leads"         element={<PageGuard pageKey="leads"><AdminLeads /></PageGuard>} />
+                <Route path="blogs"         element={<PageGuard pageKey="blogs"><AdminBlogs /></PageGuard>} />
+                <Route path="client-reg"    element={<PageGuard pageKey="client-reg"><AdminClientReg /></PageGuard>} />
+                <Route path="content"       element={<AdminOnlyRoute><AdminContent /></AdminOnlyRoute>} />
+                <Route path="media"         element={<AdminOnlyRoute><AdminMedia /></AdminOnlyRoute>} />
+                <Route path="careers"       element={<AdminOnlyRoute><AdminCareers /></AdminOnlyRoute>} />
+                <Route path="users"         element={<AdminOnlyRoute><AdminUsers /></AdminOnlyRoute>} />
+                <Route path="settings"      element={<AdminOnlyRoute><AdminSettings /></AdminOnlyRoute>} />
+                <Route path="activity"      element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
+                <Route path="tasks"         element={<PageGuard pageKey="tasks"><TasksPage embedded={true} /></PageGuard>} />
+                <Route path="accounting"         element={<PageGuard pageKey="accounting"><AdminAccounting /></PageGuard>} />
+                <Route path="accounting-records" element={<PageGuard pageKey="accounting-records"><AdminAccountingRecords /></PageGuard>} />
+                <Route path="accounting-beni-suef" element={<PageGuard pageKey="accounting-beni-suef"><AdminAccountingBeniSuef /></PageGuard>} />
+                <Route path="accounting-records-beni-suef" element={<PageGuard pageKey="accounting-records-beni-suef"><AdminAccountingRecordsBeniSuef /></PageGuard>} />
+                <Route path="profile"       element={<PageGuard pageKey="profile"><StaffProfile /></PageGuard>} />
+                <Route path="changelog"     element={<PageGuard pageKey="changelog"><AdminChangelog /></PageGuard>} />
+                <Route path="notifications" element={<PageGuard pageKey="notifications"><AdminNotifications /></PageGuard>} />
+                <Route path="warehouse"     element={<PageGuard pageKey="warehouse"><AdminWarehouse /></PageGuard>} />
+                <Route path="purchasing"    element={<PageGuard pageKey="purchasing"><AdminPurchasing /></PageGuard>} />
+                <Route path="legal"         element={<PageGuard pageKey="legal"><AdminLegal /></PageGuard>} />
+                <Route path="roles"         element={<AdminOnlyRoute><AdminRoles /></AdminOnlyRoute>} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

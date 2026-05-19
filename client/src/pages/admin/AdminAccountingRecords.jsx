@@ -10,7 +10,7 @@ import HelpCard from "../../Components/UI/HelpCard";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = "accounting_records";
+const STORAGE_KEY_BASE = "accounting_records";
 
 const ACCOUNTS = [
   "نقدية",
@@ -171,10 +171,12 @@ function EntryModal({ open, onClose, onSave, initial }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function AdminAccountingRecords() {
+export default function AdminAccountingRecords({ branch = null, branchLabel = null }) {
   const { user } = useAuth();
   const toast = useToast();
-  const hasAccess = user?.role === "admin" || user?.department === "accounts";
+  const STORAGE_KEY = branch ? `${STORAGE_KEY_BASE}_${branch}` : STORAGE_KEY_BASE;
+  const hasAccess = user?.role === "admin" || user?.department === "accounts"
+    || user?.allowedPages?.includes("accounting-records");
 
   const [records, setRecords] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -191,7 +193,7 @@ export default function AdminAccountingRecords() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setRecords(JSON.parse(raw));
     } catch {}
-  }, [hasAccess]);
+  }, [hasAccess, STORAGE_KEY]);
 
   // Persist
   useEffect(() => {
@@ -199,7 +201,7 @@ export default function AdminAccountingRecords() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
     } catch {}
-  }, [records, hasAccess]);
+  }, [records, hasAccess, STORAGE_KEY]);
 
   const saveRecord = (data) => {
     if (editItem) {
@@ -303,7 +305,7 @@ export default function AdminAccountingRecords() {
             <BookOpen className="w-5 h-5 text-[#2d5d89]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">السجلات المحاسبية</h1>
+            <h1 className="text-xl font-bold text-gray-900">السجلات المحاسبية{branchLabel ? ` — ${branchLabel}` : ""}</h1>
             <p className="text-xs text-gray-400">دفتر اليومية - قيود محاسبية مزدوجة</p>
           </div>
         </div>
