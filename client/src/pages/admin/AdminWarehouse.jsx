@@ -8,6 +8,7 @@ import {
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import InlineAiChat from "../../Components/UI/InlineAiChat";
 
 const TABS = [
   { key: "balance",      label: "المخزون" },
@@ -730,6 +731,8 @@ export default function AdminWarehouse() {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        <InlineAiChat context="inventory" />
       </div>
     </div>
   );

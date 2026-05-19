@@ -4,8 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import Sidebar from "../Components/admin/Sidebar";
 import Topbar from "../Components/admin/Topbar";
 import { PageLoader } from "../Components/UI/LoadingSpinner";
-import AiAssistant from "../Components/UI/AiAssistant";
-
 export default function AdminLayout() {
   const { user, loading } = useAuth();
   // Start collapsed on mobile, expanded on desktop
@@ -37,8 +35,6 @@ export default function AdminLayout() {
           <Outlet />
         </div>
       </main>
-      {/* AI Assistant — floating widget, available across all admin pages */}
-      <AiAssistant />
     </div>
   );
 }

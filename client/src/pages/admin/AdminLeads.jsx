@@ -9,6 +9,7 @@ import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import HelpCard from "../../Components/UI/HelpCard";
+import InlineAiChat from "../../Components/UI/InlineAiChat";
 import { useToast } from "../../context/ToastContext";
 import { TrendingUp } from "lucide-react";
 
@@ -376,6 +377,8 @@ export default function AdminLeads() {
       </Modal>
 
       <ConfirmModal open={!!deleteId} onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
+
+      <InlineAiChat context="sales" pageData={{ totalLeads: leads.length }} />
     </div>
   );
 }

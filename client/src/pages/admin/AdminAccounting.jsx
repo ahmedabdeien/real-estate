@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import SpreadsheetEditor from "../../Components/admin/SpreadsheetEditor";
+import InlineAiChat from "../../Components/UI/InlineAiChat";
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
@@ -1007,12 +1008,6 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           }`}>
           <Grid3x3 className="w-3.5 h-3.5" /> وضع Excel
         </button>
-        <button onClick={() => setActiveTab("ai")}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "ai" ? "border-purple-600 text-purple-700" : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}>
-          <Sparkles className="w-3.5 h-3.5" /> تحليل AI
-        </button>
         {isAdmin && (
           <button onClick={() => setActiveTab("audit")}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
@@ -1034,55 +1029,6 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             rows={filteredRows}
             sheetId={sheet?._id || "accounting"}
           />
-        </div>
-      ) : activeTab === "ai" ? (
-        <div className="flex-1 space-y-4 py-2">
-          <div className="bg-purple-50 rounded-xl p-4 border border-purple-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-              <span className="font-semibold text-purple-800 text-sm">تحليل البيانات بالذكاء الاصطناعي</span>
-              <span className="text-xs text-purple-500 mr-auto">({filteredRows.length} سطر)</span>
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={aiQuery}
-                onChange={(e) => setAiQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && runAiAnalysis()}
-                placeholder='مثال: "ما هو إجمالي المبالغ؟" أو "من أعلى قيمة؟" أو "حلل هذه البيانات"'
-                className="flex-1 px-3 py-2 rounded-xl border border-purple-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-              <button
-                onClick={runAiAnalysis}
-                disabled={aiLoading || !aiQuery.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium disabled:opacity-50"
-              >
-                {aiLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                {aiLoading ? "جاري..." : "تحليل"}
-              </button>
-            </div>
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {["ما هو إجمالي المبالغ؟", "من أعلى قيمة؟", "حلل هذه البيانات وأعطني ملاحظات", "ما الاتجاه العام؟"].map((q) => (
-                <button key={q} onClick={() => setAiQuery(q)}
-                  className="text-xs px-2.5 py-1 rounded-full border border-purple-200 bg-white text-purple-700 hover:bg-purple-50">
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
-          {aiResult && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-              <div className="flex items-center gap-2 mb-2 text-purple-600 font-medium text-xs">
-                <Sparkles className="w-3.5 h-3.5" /> نتيجة التحليل
-              </div>
-              {aiResult}
-            </div>
-          )}
-          {!aiResult && !aiLoading && (
-            <div className="text-center py-10 text-gray-400 text-sm">
-              <Sparkles className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-              اكتب سؤالك عن البيانات واضغط تحليل
-            </div>
-          )}
         </div>
       ) : (
         <>
@@ -1448,6 +1394,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         loading={deleting}
         title="حذف الصفوف المحددة"
         message={`هل تريد حذف ${selected.size} سطر؟ لا يمكن التراجع.`}
+      />
+
+      {/* Inline AI Chat — embedded at the bottom of every sheet */}
+      <InlineAiChat
+        context="accounting"
+        pageData={{ sheetName: sheet?.name, rowCount: filteredRows.length, cols: cols.map(c => c.label) }}
       />
     </div>
   );

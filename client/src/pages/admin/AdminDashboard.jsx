@@ -6,6 +6,7 @@ import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useAuth } from "../../context/AuthContext";
+import InlineAiChat from "../../Components/UI/InlineAiChat";
 
 const actionMeta = {
   create: { label: "أضاف",  icon: Plus,   color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30" },
@@ -269,6 +270,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      <InlineAiChat context="general" />
     </div>
   );
 }
