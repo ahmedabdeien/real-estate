@@ -56,3 +56,23 @@ export const markAllRead = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// DELETE /api/notifications/:id
+export const deleteNotification = async (req, res) => {
+  try {
+    await Notification.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// DELETE /api/notifications/clear-all
+export const clearAllNotifications = async (req, res) => {
+  try {
+    await Notification.deleteMany({ userId: req.user._id });
+    res.json({ success: true, message: "تم مسح جميع الإشعارات" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

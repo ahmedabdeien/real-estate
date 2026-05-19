@@ -4,7 +4,10 @@ import Activity from "../models/activity.model.js";
 const ALLOWED_ROLES = ["admin", "accounts"];
 
 function canAccess(user) {
-  return user.role === "admin" || user.department === "accounts";
+  return user.role === "admin" ||
+    user.department === "accounts" ||
+    user.allowedPages?.includes("accounting") ||
+    user.allowedPages?.includes("accounting-beni-suef");
 }
 
 function getIp(req) {
@@ -24,7 +27,10 @@ async function logActivity({ user, action, entityId, entityName, details, ip }) 
 export const getLedgers = async (req, res) => {
   try {
     if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
-    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false })
+    const { branch } = req.query; // "main" or "beni_suef"
+    const query = { isArchived: false, isDeleted: false };
+    if (branch) query.branch = branch;
+    const ledgers = await Ledger.find(query)
       .select("name description branch color icon createdAt createdBy")
       .populate("createdBy", "name")
       .sort("-createdAt");

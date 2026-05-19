@@ -618,6 +618,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [importing, setImporting] = useState(false);
   const [activeTab, setActiveTab] = useState("table"); // "table" | "audit" | "rates"
+  const [fortuneData, setFortuneData] = useState(null); // FortuneSheet local state
   const [statsOpen, setStatsOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
@@ -1062,10 +1063,24 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">جاري تحميل محرر Excel...</div>}>
             <FortuneSheet
               data={toFortuneSheetData()}
+              onChange={setFortuneData}
+              lang="en"
               showToolbar={true}
+              toolbarItems={[
+                "undo", "redo", "|",
+                "bold", "italic", "underline", "strike", "|",
+                "font-size", "|",
+                "foreColor", "backColor", "|",
+                "border", "|",
+                "mergeCell", "|",
+                "horizontalAlign", "verticalAlign", "|",
+                "textWrap", "|",
+                "freeze", "|",
+                "formula",
+              ]}
               showFormulaBar={true}
-              showSheetTabs={false}
-              lang="zh"
+              showSheetTabs={true}
+              showStatisticBar={false}
               style={{ height: "calc(70vh - 40px)" }}
             />
           </Suspense>
@@ -1522,7 +1537,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
   const loadLedgers = async () => {
     setLoading(true);
     try {
-      const r = await api.get("/accounting");
+      const r = await api.get(`/accounting${branch ? `?branch=${branch}` : ""}`);
       setLedgers(r.data.ledgers || []);
     } catch { toast.error("فشل تحميل السجلات"); }
     finally { setLoading(false); }
@@ -1564,7 +1579,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
 
   // ── Ledger CRUD ──
   const createLedger = async (form) => {
-    const r = await api.post("/accounting", form);
+    const r = await api.post("/accounting", { ...form, branch: form.branch || branch || "main" });
     setLedgers((prev) => [r.data.ledger, ...prev]);
     toast.success("تم إنشاء السجل");
   };

@@ -2,34 +2,38 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit2, X, ShieldCheck, Lock, Check,
+  LayoutDashboard, Bell, Building2, Home, TrendingUp, UserPlus,
+  FileText, CheckSquare, Calculator, BookOpen, Package, ShoppingCart,
+  Scale, Edit3, Image, Briefcase, Users, Activity,
+  Settings, UserCircle, History, Store,
 } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 
 const ALL_PAGES = [
-  { key: "dashboard",           label: "لوحة التحكم",        icon: "📊" },
-  { key: "notifications",       label: "الإشعارات",           icon: "🔔" },
-  { key: "projects",            label: "المشاريع",            icon: "🏗" },
-  { key: "units",               label: "الوحدات",             icon: "🏠" },
-  { key: "leads",               label: "العملاء",             icon: "👥" },
-  { key: "client-reg",          label: "تسجيل العملاء",       icon: "✍" },
-  { key: "blogs",               label: "المقالات",            icon: "📝" },
-  { key: "tasks",               label: "المهام",              icon: "✅" },
-  { key: "accounting",          label: "الحسابات",              icon: "💰" },
-  { key: "accounting-beni-suef", label: "حسابات فرع بني سويف", icon: "🏢" },
-  { key: "accounting-records",  label: "السجلات المحاسبية",   icon: "📒" },
-  { key: "warehouse",           label: "المخازن",             icon: "📦" },
-  { key: "purchasing",          label: "المشتريات",           icon: "🛒" },
-  { key: "legal",               label: "الشئون القانونية",    icon: "⚖" },
-  { key: "content",             label: "المحتوى",             icon: "✏" },
-  { key: "media",               label: "المكتبة",             icon: "🖼" },
-  { key: "careers",             label: "الوظائف",             icon: "💼" },
-  { key: "users",               label: "المستخدمين",          icon: "👤" },
-  { key: "roles",               label: "إدارة الأدوار",       icon: "🔑" },
-  { key: "activity",            label: "سجل النشاط",          icon: "📈" },
-  { key: "settings",            label: "الإعدادات",           icon: "⚙" },
-  { key: "profile",             label: "الملف الشخصي",        icon: "👤" },
-  { key: "changelog",           label: "التحديثات",           icon: "📋" },
+  { key: "dashboard",              label: "لوحة التحكم",           Icon: LayoutDashboard },
+  { key: "notifications",          label: "الإشعارات",              Icon: Bell },
+  { key: "projects",               label: "المشاريع",               Icon: Building2 },
+  { key: "units",                  label: "الوحدات",                Icon: Home },
+  { key: "leads",                  label: "العملاء",                Icon: TrendingUp },
+  { key: "client-reg",             label: "تسجيل العملاء",          Icon: UserPlus },
+  { key: "blogs",                  label: "المقالات",               Icon: FileText },
+  { key: "tasks",                  label: "المهام",                 Icon: CheckSquare },
+  { key: "accounting",             label: "الحسابات",               Icon: Calculator },
+  { key: "accounting-beni-suef",   label: "حسابات فرع بني سويف",   Icon: Store },
+  { key: "accounting-records",     label: "السجلات المحاسبية",      Icon: BookOpen },
+  { key: "warehouse",              label: "المخازن",                Icon: Package },
+  { key: "purchasing",             label: "المشتريات",              Icon: ShoppingCart },
+  { key: "legal",                  label: "الشئون القانونية",       Icon: Scale },
+  { key: "content",                label: "المحتوى",                Icon: Edit3 },
+  { key: "media",                  label: "المكتبة",                Icon: Image },
+  { key: "careers",                label: "الوظائف",                Icon: Briefcase },
+  { key: "users",                  label: "المستخدمين",             Icon: Users },
+  { key: "roles",                  label: "إدارة الأدوار",          Icon: ShieldCheck },
+  { key: "activity",               label: "سجل النشاط",             Icon: Activity },
+  { key: "settings",               label: "الإعدادات",              Icon: Settings },
+  { key: "profile",                label: "الملف الشخصي",           Icon: UserCircle },
+  { key: "changelog",              label: "التحديثات",              Icon: History },
 ];
 
 const emptyForm = { roleKey: "", label: "", branch: "", allowedPages: [] };
@@ -342,7 +346,7 @@ export default function AdminRoles() {
                     }`}>
                       {checked && <Check className="w-2.5 h-2.5 text-white" />}
                     </span>
-                    <span className="text-base leading-none">{pg.icon}</span>
+                    {pg.Icon && <pg.Icon className="w-4 h-4 flex-shrink-0" />}
                     <span className="truncate text-xs">{pg.label}</span>
                   </label>
                 );

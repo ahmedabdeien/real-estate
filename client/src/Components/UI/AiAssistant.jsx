@@ -1,13 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Sparkles, Bot, User, Loader2 } from "lucide-react";
 import api from "../../api/axios";
-
-const CONTEXTS = [
-  { value: "general",    label: "عام" },
-  { value: "accounting", label: "حسابات" },
-  { value: "legal",      label: "قانوني" },
-];
+import { useAuth } from "../../context/AuthContext";
 
 const WELCOME_MSG = {
   role: "assistant",
@@ -15,6 +11,8 @@ const WELCOME_MSG = {
 };
 
 export default function AiAssistant() {
+  const location = useLocation();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([WELCOME_MSG]);
   const [input, setInput] = useState("");
@@ -22,6 +20,37 @@ export default function AiAssistant() {
   const [context, setContext] = useState("general");
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const getAvailableContexts = () => {
+    const pages = user?.allowedPages || [];
+    const isAdmin = user?.role === "admin" || pages.includes("*");
+    const contexts = [{ key: "general", label: "عام" }];
+    if (isAdmin || pages.includes("accounting") || pages.includes("accounting-beni-suef")) {
+      contexts.push({ key: "accounting", label: "حسابات" });
+    }
+    if (isAdmin || pages.includes("legal")) {
+      contexts.push({ key: "legal", label: "قانوني" });
+    }
+    if (isAdmin || pages.includes("warehouse") || pages.includes("purchasing")) {
+      contexts.push({ key: "inventory", label: "مخازن" });
+    }
+    if (isAdmin || pages.includes("projects") || pages.includes("units") || pages.includes("leads")) {
+      contexts.push({ key: "sales", label: "مبيعات" });
+    }
+    return contexts;
+  };
+
+  // Auto-select context based on current page
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes("accounting")) setContext("accounting");
+    else if (path.includes("legal")) setContext("legal");
+    else if (path.includes("warehouse") || path.includes("purchasing")) setContext("inventory");
+    else if (path.includes("projects") || path.includes("units") || path.includes("leads")) setContext("sales");
+    else setContext("general");
+  }, [location.pathname]);
+
+  const availableContexts = getAvailableContexts();
 
   useEffect(() => {
     if (open) {
@@ -105,13 +134,13 @@ export default function AiAssistant() {
             </div>
 
             {/* Context Selector */}
-            <div className="flex gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0">
-              {CONTEXTS.map((c) => (
+            <div className="flex gap-1.5 px-3 py-2 bg-gray-50 border-b border-gray-100 flex-shrink-0 flex-wrap">
+              {availableContexts.map((c) => (
                 <button
-                  key={c.value}
-                  onClick={() => setContext(c.value)}
-                  className={`flex-1 text-xs font-medium py-1.5 rounded-lg transition-all ${
-                    context === c.value
+                  key={c.key}
+                  onClick={() => setContext(c.key)}
+                  className={`flex-1 text-xs font-medium py-1.5 rounded-lg transition-all min-w-[48px] ${
+                    context === c.key
                       ? "bg-[#2d5d89] text-white"
                       : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
                   }`}

@@ -74,3 +74,18 @@ export const toggleVisibility = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+export const hideAllByProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { isVisible } = req.body; // true = show all, false = hide all
+    await Unit.updateMany({ project: projectId }, { isVisible: isVisible !== false });
+    const count = await Unit.countDocuments({ project: projectId });
+    res.json({
+      success: true,
+      message: isVisible !== false ? `تم إظهار جميع الوحدات (${count})` : `تم إخفاء جميع الوحدات (${count})`,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

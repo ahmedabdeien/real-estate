@@ -1,5 +1,5 @@
 import express from "express";
-import { getUnits, getUnit, createUnit, updateUnit, deleteUnit, toggleVisibility } from "../controllers/unit.controller.js";
+import { getUnits, getUnit, createUnit, updateUnit, deleteUnit, toggleVisibility, hideAllByProject } from "../controllers/unit.controller.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -10,5 +10,6 @@ router.post("/", authenticate, authorize("admin", "sales"), createUnit);
 router.put("/:id", authenticate, authorize("admin", "sales"), updateUnit);
 router.delete("/:id", authenticate, authorize("admin"), deleteUnit);
 router.patch("/:id/toggle-visibility", authenticate, authorize("admin", "sales"), toggleVisibility);
+router.patch("/project/:projectId/visibility", authenticate, authorize("admin", "sales"), hideAllByProject);
 
 export default router;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Check, CheckCheck } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import EmptyState from "../../Components/UI/EmptyState";
@@ -76,6 +76,25 @@ export default function AdminNotifications() {
     }
   };
 
+  const deleteOne = async (id) => {
+    try {
+      await api.delete(`/notifications/${id}`);
+      setItems((prev) => prev.filter((n) => n._id !== id));
+    } catch {
+      toast.error("فشل حذف الإشعار");
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      await api.delete("/notifications/clear-all");
+      setItems([]);
+      toast.success("تم مسح جميع الإشعارات");
+    } catch {
+      toast.error("فشل مسح الإشعارات");
+    }
+  };
+
   const unreadCount = items.filter((n) => !n.read).length;
 
   return (
@@ -87,14 +106,24 @@ export default function AdminNotifications() {
             {items.length} إشعار · {unreadCount} غير مقروء
           </p>
         </div>
-        <button
-          onClick={markAllRead}
-          disabled={unreadCount === 0}
-          className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
-        >
-          <CheckCheck className="w-4 h-4" />
-          تحديد الكل كمقروء
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={markAllRead}
+            disabled={unreadCount === 0}
+            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          >
+            <CheckCheck className="w-4 h-4" />
+            تحديد الكل كمقروء
+          </button>
+          <button
+            onClick={clearAll}
+            disabled={items.length === 0}
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            مسح الكل
+          </button>
+        </div>
       </div>
 
       {/* Filter tabs */}
@@ -145,15 +174,24 @@ export default function AdminNotifications() {
                     </a>
                   )}
                 </div>
-                {!n.read && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {!n.read && (
+                    <button
+                      onClick={() => markRead(n._id)}
+                      title="تحديد كمقروء"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                  )}
                   <button
-                    onClick={() => markRead(n._id)}
-                    title="تحديد كمقروء"
-                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+                    onClick={() => deleteOne(n._id)}
+                    title="حذف الإشعار"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-600 transition-colors"
                   >
-                    <Check className="w-4 h-4" />
+                    <X className="w-4 h-4" />
                   </button>
-                )}
+                </div>
               </motion.li>
             ))}
           </ul>

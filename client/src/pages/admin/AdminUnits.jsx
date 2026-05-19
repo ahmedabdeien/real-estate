@@ -214,6 +214,17 @@ export default function AdminUnits() {
     }
   };
 
+  const handleProjectVisibility = async (isVisible) => {
+    if (!projectFilter) return;
+    try {
+      const res = await api.patch(`/units/project/${projectFilter}/visibility`, { isVisible });
+      toast.success(res.data.message || (isVisible ? "تم إظهار جميع الوحدات" : "تم إخفاء جميع الوحدات"));
+      load();
+    } catch {
+      toast.error("فشل تحديث رؤية الوحدات");
+    }
+  };
+
   const handleBulkStatus = async () => {
     if (!bulkStatus || selected.length === 0) return;
     try {
@@ -313,6 +324,24 @@ export default function AdminUnits() {
           <button onClick={() => setCompareOpen(true)} className="px-3 py-2.5 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">
             عرض المقارنة
           </button>
+        )}
+        {projectFilter && (
+          <>
+            <button
+              onClick={() => handleProjectVisibility(false)}
+              className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <EyeOff className="w-4 h-4" />
+              إخفاء الكل
+            </button>
+            <button
+              onClick={() => handleProjectVisibility(true)}
+              className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              إظهار الكل
+            </button>
+          </>
         )}
       </div>
 
