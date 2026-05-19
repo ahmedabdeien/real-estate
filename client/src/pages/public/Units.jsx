@@ -44,7 +44,7 @@ export default function UnitsPage() {
     setLoading(true);
     try {
       const res = await api.get("/units", {
-        params: { page, status, project, published: true, search },
+        params: { page, status, project, published: true, public: true, search },
       });
       setUnits(res.data.units || []);
       setTotal(res.data.total);

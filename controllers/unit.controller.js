@@ -7,8 +7,9 @@ export const getUnits = async (req, res) => {
     if (project) query.project = project;
     if (status) query.status = status;
     if (type) query.type = type;
-    // Public website only sees visible units
-    if (isPublic === "true") query.isVisible = true;
+    // Public website only sees visible units; also enforce if not an authenticated admin request
+    const isAdmin = req.user?.role === "admin";
+    if (isPublic === "true" || (!isAdmin && !req.user)) query.isVisible = true;
 
     const skip = (page - 1) * limit;
     const [units, total] = await Promise.all([

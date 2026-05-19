@@ -158,8 +158,8 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
     }
   };
 
-  const filtered = orders.filter((o) => {
-    const matchSearch = !search || o.orderNumber?.toLowerCase().includes(search.toLowerCase()) || o.supplierName?.toLowerCase().includes(search.toLowerCase());
+  const filtered = (Array.isArray(orders) ? orders : []).filter((o) => {
+    const matchSearch = !search || o.orderNumber?.toLowerCase().includes(search.toLowerCase()) || o.supplier?.name?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || o.status === statusFilter;
     return matchSearch && matchStatus;
   });

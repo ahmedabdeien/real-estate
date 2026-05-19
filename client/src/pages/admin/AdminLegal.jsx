@@ -152,7 +152,7 @@ function CasesTab() {
     }
   };
 
-  const filtered = cases.filter((c) => {
+  const filtered = (Array.isArray(cases) ? cases : []).filter((c) => {
     const matchSearch = !search || c.title?.toLowerCase().includes(search.toLowerCase()) || c.caseNumber?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || c.status === statusFilter;
     return matchSearch && matchStatus;

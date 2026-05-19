@@ -71,7 +71,14 @@ export default function ProjectDetailPage() {
   const toggleCompare = (id) => setCompareList(p => p.includes(id) ? p.filter(x => x !== id) : p.length < 3 ? [...p, id] : p);
   const compareUnits = units.filter(u => compareList.includes(u._id));
 
-  const mapEmbed = project.mapEmbedUrl || (project.location?.lat && project.location?.lng ? `https://maps.google.com/maps?q=${project.location.lat},${project.location.lng}&z=15&output=embed` : null);
+  const buildMapUrl = () => {
+    if (project.mapEmbedUrl) return project.mapEmbedUrl;
+    if (project.location?.lat && project.location?.lng) {
+      return `https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || ""}&q=${project.location.lat},${project.location.lng}&zoom=15`;
+    }
+    return null;
+  };
+  const mapEmbed = buildMapUrl();
 
   const variantColors = {
     success: "bg-green-100 text-green-700",
@@ -251,7 +258,16 @@ export default function ProjectDetailPage() {
                   <MapPin className="w-4 h-4 text-[#2d5d89]" />
                   <h2 className="font-bold text-gray-900">موقع المشروع</h2>
                 </div>
-                <iframe src={mapEmbed} width="100%" height="280" style={{ border: 0 }} loading="lazy" title="موقع المشروع" sandbox="allow-scripts allow-same-origin" />
+                <iframe
+                  src={mapEmbed}
+                  width="100%"
+                  height="300"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  title="موقع المشروع"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             )}
 
