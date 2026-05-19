@@ -10,10 +10,7 @@ import {
   Sparkles, Grid3x3,
 } from "lucide-react";
 
-// Lazy-load FortuneSheet (heavy bundle — only loaded when Excel mode is active)
-const FortuneSheet = lazy(() =>
-  import("@fortune-sheet/react").then((m) => ({ default: m.Workbook }))
-);
+import SpreadsheetEditor from "../../Components/admin/SpreadsheetEditor";
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
@@ -617,8 +614,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [addingRow, setAddingRow] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [activeTab, setActiveTab] = useState("table"); // "table" | "audit" | "rates"
-  const [fortuneData, setFortuneData] = useState(null); // FortuneSheet local state
+  const [activeTab, setActiveTab] = useState("table"); // "table" | "excel" | "audit" | "rates" | "ai"
   const [statsOpen, setStatsOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
@@ -970,29 +966,6 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     }
   };
 
-  // ── FortuneSheet data converter ──
-  const toFortuneSheetData = () => {
-    const headerRow = cols.map((c) => ({ v: c.label, ct: { fa: "@", t: "s" }, bl: 1 }));
-    const dataRows = filteredRows.map((row) =>
-      cols.map((col) => {
-        const val = col.type === "formula"
-          ? evaluateFormula(col.formula || "", row.cells || {})
-          : (row.cells?.[col.key] ?? "");
-        return { v: val === "" ? null : val, ct: { fa: "@", t: "s" } };
-      })
-    );
-    return [{
-      name: sheet.name,
-      config: {},
-      celldata: [
-        ...headerRow.map((c, ci) => ({ r: 0, c: ci, v: c })),
-        ...dataRows.flatMap((row, ri) =>
-          row.map((c, ci) => ({ r: ri + 1, c: ci, v: c }))
-        ),
-      ],
-    }];
-  };
-
   // ── AI data analysis ──
   const runAiAnalysis = async () => {
     if (!aiQuery.trim()) return;
@@ -1055,35 +1028,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       ) : activeTab === "rates" ? (
         <RatesPanel rows={filteredRows} cols={cols} />
       ) : activeTab === "excel" ? (
-        <div className="flex-1 overflow-hidden" style={{ height: "70vh" }}>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-xs text-amber-700 flex items-center gap-2">
-            <Grid3x3 className="w-3.5 h-3.5 flex-shrink-0" />
-            وضع Excel الكامل — يمكنك التعديل مباشرة. التغييرات لا تُحفظ تلقائياً في هذا الوضع.
-          </div>
-          <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">جاري تحميل محرر Excel...</div>}>
-            <FortuneSheet
-              data={toFortuneSheetData()}
-              onChange={setFortuneData}
-              lang="en"
-              showToolbar={true}
-              toolbarItems={[
-                "undo", "redo", "|",
-                "bold", "italic", "underline", "strike", "|",
-                "font-size", "|",
-                "foreColor", "backColor", "|",
-                "border", "|",
-                "mergeCell", "|",
-                "horizontalAlign", "verticalAlign", "|",
-                "textWrap", "|",
-                "freeze", "|",
-                "formula",
-              ]}
-              showFormulaBar={true}
-              showSheetTabs={true}
-              showStatisticBar={false}
-              style={{ height: "calc(70vh - 40px)" }}
-            />
-          </Suspense>
+        <div className="flex-1 overflow-hidden pb-2">
+          <SpreadsheetEditor
+            cols={cols}
+            rows={filteredRows}
+            sheetId={sheet?._id || "accounting"}
+          />
         </div>
       ) : activeTab === "ai" ? (
         <div className="flex-1 space-y-4 py-2">
