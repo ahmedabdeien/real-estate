@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import RoleConfig from "../models/roleConfig.model.js";
 import RefreshToken from "../models/refreshToken.model.js";
 import { logActivity } from "./activity.controller.js";
 
@@ -216,7 +217,20 @@ export const refresh = async (req, res) => {
 };
 
 export const me = async (req, res) => {
-  res.json({ success: true, user: req.user });
+  try {
+    const user = req.user;
+    const roleKey = user.customRoleKey || user.role;
+    const config = await RoleConfig.findOne({ roleKey }).lean();
+    let allowedPages = [];
+    if (config) {
+      allowedPages = config.allowedPages;
+    } else if (user.role === "admin") {
+      allowedPages = ["*"];
+    }
+    res.json({ success: true, user: { ...user.toObject(), allowedPages } });
+  } catch {
+    res.json({ success: true, user: req.user });
+  }
 };
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;

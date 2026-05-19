@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
+import RoleConfig from "../models/roleConfig.model.js";
 
 const LASTSEEN_TTL = 2 * 60 * 1000; // update lastSeen at most every 2 min
 
@@ -12,6 +13,18 @@ export const authenticate = async (req, res, next) => {
     const user = await User.findById(decoded.id).select("-password");
     if (!user || !user.isActive)
       return res.status(401).json({ success: false, message: "المستخدم غير موجود أو غير نشط" });
+
+    // Attach allowedPages from RoleConfig
+    const roleKey = user.customRoleKey || user.role;
+    const config = await RoleConfig.findOne({ roleKey }).lean();
+    if (config) {
+      user.allowedPages = config.allowedPages;
+    } else if (user.role === "admin") {
+      user.allowedPages = ["*"];
+    } else {
+      user.allowedPages = [];
+    }
+
     req.user = user;
 
     // Update lastSeen (debounced — avoid hammering DB on every request)

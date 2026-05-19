@@ -52,6 +52,7 @@ const AdminClientReg = lazy(() => import("./pages/admin/AdminClientReg"));
 const AdminWarehouse = lazy(() => import("./pages/admin/AdminWarehouse"));
 const AdminPurchasing = lazy(() => import("./pages/admin/AdminPurchasing"));
 const AdminLegal = lazy(() => import("./pages/admin/AdminLegal"));
+const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 
 // Tasks
 const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
@@ -165,6 +166,7 @@ export default function App() {
                 <Route path="warehouse" element={<AdminWarehouse />} />
                 <Route path="purchasing" element={<AdminPurchasing />} />
                 <Route path="legal" element={<AdminLegal />} />
+                <Route path="roles" element={<AdminOnlyRoute><AdminRoles /></AdminOnlyRoute>} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

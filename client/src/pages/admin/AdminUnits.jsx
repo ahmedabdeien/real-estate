@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Heart, GitCompare } from "lucide-react";
+import { Plus, Pencil, Trash2, Heart, GitCompare, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -203,6 +203,17 @@ export default function AdminUnits() {
 
   const f = (key, val) => setForm((p) => ({ ...p, [key]: val }));
 
+  const handleToggleVisibility = async (id) => {
+    try {
+      const res = await api.patch(`/units/${id}/toggle-visibility`);
+      toast.success(res.data.message || "تم تحديث الرؤية");
+      // Update local state without full reload
+      setUnits((prev) => prev.map((u) => u._id === id ? { ...u, isVisible: res.data.unit.isVisible } : u));
+    } catch {
+      toast.error("فشل تحديث رؤية الوحدة");
+    }
+  };
+
   const handleBulkStatus = async () => {
     if (!bulkStatus || selected.length === 0) return;
     try {
@@ -352,6 +363,7 @@ export default function AdminUnits() {
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر</th>
                   <th className="hidden lg:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الدور</th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
+                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الرؤية</th>
                   <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
                 </tr>
               </thead>
@@ -362,7 +374,7 @@ export default function AdminUnits() {
                   const inCompare = compareIds.includes(u._id);
                   return (
                     <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${inCompare ? "bg-amber-50/50 dark:bg-amber-900/10" : ""}`}>
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${inCompare ? "bg-amber-50/50 dark:bg-amber-900/10" : ""} ${u.isVisible === false ? "opacity-50" : ""}`}>
                       <td className="px-2 py-4">
                         <input type="checkbox" checked={selected.includes(u._id)} onChange={() => toggleSelected(u._id)}
                           className="w-4 h-4 rounded accent-[#2d5d89]" />
@@ -386,8 +398,30 @@ export default function AdminUnits() {
                       <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{formatPrice(u.price)}</td>
                       <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.floor}</td>
                       <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
+                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
+                        {u.isVisible === false ? (
+                          <span className="inline-flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full">
+                            <EyeOff className="w-3 h-3" /> مخفي
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-2 py-1 rounded-full">
+                            <Eye className="w-3 h-3" /> ظاهر
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 sm:px-6 py-4">
                         <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleToggleVisibility(u._id)}
+                            title={u.isVisible === false ? "إظهار الوحدة" : "إخفاء الوحدة"}
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+                              u.isVisible === false
+                                ? "hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600"
+                                : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"
+                            }`}
+                          >
+                            {u.isVisible === false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </button>
                           <button onClick={() => openEdit(u)}
                             className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
                             <Pencil className="w-4 h-4" />

@@ -5,52 +5,45 @@ import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
   CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
-  Package, ShoppingCart, Scale,
+  Package, ShoppingCart, Scale, ShieldCheck,
 } from "lucide-react";
 import LogoSvg from "../../assets/images/logo.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../api/axios";
 
+// Each nav item has a pageKey that maps to allowedPages in RoleConfig
 const navItems = [
-  // Admin only - full dashboard
-  { to: "/admin",               label: "لوحة التحكم",      icon: LayoutDashboard, exact: true, show: (u) => u?.role === "admin" },
-
-  // Notifications - near top for visibility (all authenticated roles except viewer)
-  { to: "/admin/notifications", label: "الإشعارات",         icon: Bell,            show: (u) => u?.role !== "viewer" },
-
-  // Admin sees everything below too
-  { to: "/admin/projects",      label: "المشاريع",          icon: Building2,       show: (u) => ["admin","sales"].includes(u?.role) },
-  { to: "/admin/units",         label: "الوحدات",           icon: Home,            show: (u) => ["admin","sales"].includes(u?.role) },
-  { to: "/admin/leads",         label: "العملاء",           icon: TrendingUp,      show: (u) => ["admin","sales"].includes(u?.role) },
-  { to: "/admin/client-reg",   label: "تسجيل العملاء",     icon: UserPlus,        show: (u) => ["admin", "sales"].includes(u?.role) || u?.department === "marketing" },
-  { to: "/admin/blogs",         label: "المقالات",          icon: FileText,        show: (u) => ["admin","supervisor","sales"].includes(u?.role) },
-
-  // Tasks - label differs by role
-  { to: "/admin/tasks",         label: "إدارة المهام",      icon: CheckSquare,     show: (u) => ["admin","supervisor"].includes(u?.role) },
-  { to: "/admin/tasks",         label: "مهامي",             icon: CheckSquare,     show: (u) => !["admin","supervisor"].includes(u?.role) && u?.role !== "viewer" },
-
-  // Accounting - admin OR accounts dept
-  { to: "/admin/accounting",    label: "الحسابات",          icon: Calculator,      show: (u) => u?.role === "admin" || u?.department === "accounts" },
-  { to: "/admin/accounting-records", label: "السجلات المحاسبية", icon: BookOpen,    show: (u) => u?.role === "admin" || u?.department === "accounts" },
-
-  // Warehouse, Purchasing, Legal
-  { to: "/admin/warehouse",  label: "المخازن",            icon: Package,      show: (u) => u?.role === "admin" || ["accounts","warehouse","purchasing"].includes(u?.department) },
-  { to: "/admin/purchasing", label: "المشتريات",          icon: ShoppingCart, show: (u) => u?.role === "admin" || ["accounts","purchasing","warehouse"].includes(u?.department) },
-  { to: "/admin/legal",      label: "الشئون القانونية",   icon: Scale,        show: (u) => u?.role === "admin" || ["accounts","legal"].includes(u?.department) },
-
-  // Admin only
-  { to: "/admin/content",       label: "المحتوى",           icon: Edit3,           show: (u) => u?.role === "admin" },
-  { to: "/admin/media",         label: "المكتبة",           icon: Image,           show: (u) => u?.role === "admin" },
-  { to: "/admin/careers",       label: "الوظائف",           icon: Briefcase,       show: (u) => u?.role === "admin" },
-  { to: "/admin/users",         label: "المستخدمين",        icon: Users,           show: (u) => u?.role === "admin" },
-  { to: "/admin/activity",      label: "سجل النشاط",        icon: Activity,        show: (u) => u?.role === "admin" },
-  { to: "/admin/settings",      label: "الإعدادات",         icon: Settings,        show: (u) => u?.role === "admin" },
-
-  // All authenticated roles
-  { to: "/admin/profile",       label: "الملف الشخصي",     icon: UserCircle,      show: (u) => u?.role !== "viewer" },
-  { to: "/admin/changelog",     label: "التحديثات",         icon: History,         show: (u) => u?.role !== "viewer" },
+  { to: "/admin",                    label: "لوحة التحكم",      icon: LayoutDashboard, exact: true, pageKey: "dashboard" },
+  { to: "/admin/notifications",      label: "الإشعارات",         icon: Bell,            pageKey: "notifications" },
+  { to: "/admin/projects",           label: "المشاريع",          icon: Building2,       pageKey: "projects" },
+  { to: "/admin/units",              label: "الوحدات",           icon: Home,            pageKey: "units" },
+  { to: "/admin/leads",              label: "العملاء",           icon: TrendingUp,      pageKey: "leads" },
+  { to: "/admin/client-reg",         label: "تسجيل العملاء",     icon: UserPlus,        pageKey: "client-reg" },
+  { to: "/admin/blogs",              label: "المقالات",          icon: FileText,        pageKey: "blogs" },
+  { to: "/admin/tasks",              label: "المهام",            icon: CheckSquare,     pageKey: "tasks" },
+  { to: "/admin/accounting",         label: "الحسابات",          icon: Calculator,      pageKey: "accounting" },
+  { to: "/admin/accounting-records", label: "السجلات المحاسبية", icon: BookOpen,        pageKey: "accounting-records" },
+  { to: "/admin/warehouse",          label: "المخازن",           icon: Package,         pageKey: "warehouse" },
+  { to: "/admin/purchasing",         label: "المشتريات",         icon: ShoppingCart,    pageKey: "purchasing" },
+  { to: "/admin/legal",              label: "الشئون القانونية",  icon: Scale,           pageKey: "legal" },
+  { to: "/admin/content",            label: "المحتوى",           icon: Edit3,           pageKey: "content" },
+  { to: "/admin/media",              label: "المكتبة",           icon: Image,           pageKey: "media" },
+  { to: "/admin/careers",            label: "الوظائف",           icon: Briefcase,       pageKey: "careers" },
+  { to: "/admin/users",              label: "المستخدمين",        icon: Users,           pageKey: "users" },
+  { to: "/admin/roles",              label: "إدارة الأدوار",     icon: ShieldCheck,     pageKey: "roles" },
+  { to: "/admin/activity",           label: "سجل النشاط",        icon: Activity,        pageKey: "activity" },
+  { to: "/admin/settings",           label: "الإعدادات",         icon: Settings,        pageKey: "settings" },
+  { to: "/admin/profile",            label: "الملف الشخصي",     icon: UserCircle,      pageKey: "profile" },
+  { to: "/admin/changelog",          label: "التحديثات",         icon: History,         pageKey: "changelog" },
 ];
+
+const canSee = (user, pageKey) => {
+  if (!user) return false;
+  if (user.role === "admin") return true;
+  if (user.allowedPages?.includes("*")) return true;
+  return user.allowedPages?.includes(pageKey) ?? false;
+};
 
 const roleLabels = {
   admin:      "مدير عام",
@@ -93,7 +86,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     }
   };
 
-  const filtered = navItems.filter((item) => item.show ? item.show(user) : true);
+  const filtered = navItems.filter((item) => canSee(user, item.pageKey));
 
   return (
     <>
@@ -203,7 +196,7 @@ export default function Sidebar({ collapsed, onToggle }) {
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                <p className="text-xs text-white/50 truncate">{roleLabels[user?.role] || user?.role}</p>
+                <p className="text-xs text-white/50 truncate">{roleLabels[user?.role] || user?.customRoleKey || user?.role}</p>
               </div>
             </div>
           )}

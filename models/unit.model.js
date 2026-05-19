@@ -31,6 +31,7 @@ const unitSchema = new mongoose.Schema(
     features: [{ type: String }],
     published: { type: Boolean, default: true },
     featured: { type: Boolean, default: false },
+    isVisible: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema(
       default: null,
       set: (v) => v || null, // coerce empty string → null
     },
+    // Custom role key — overrides standard role for page access (links to RoleConfig)
+    customRoleKey: { type: String, default: null },
     isActive:        { type: Boolean, default: true },
     lastLogin:       { type: Date },
     lastSeen:        { type: Date },

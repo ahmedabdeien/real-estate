@@ -8,6 +8,7 @@ import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useToast } from "../../context/ToastContext";
+import { ShieldCheck } from "lucide-react";
 
 const DEPARTMENTS = {
   accounts:       "الحسابات",
@@ -23,7 +24,7 @@ const ROLES_NEED_DEPT = ["manager", "employee", "sales"];
 const STAFF_ROLES = ["admin", "supervisor", "manager", "employee", "sales"];
 const VIEWER_ROLES = ["viewer"];
 
-const emptyUser = { name: "", email: "", password: "", role: "employee", department: "", phone: "" };
+const emptyUser = { name: "", email: "", password: "", role: "employee", department: "", phone: "", customRoleKey: "" };
 
 // User is "online" if lastSeen within the last 5 minutes
 function isOnline(lastSeen) {
@@ -77,6 +78,7 @@ export default function AdminUsers() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [upgradeUser, setUpgradeUser] = useState(null);
+  const [allRoles, setAllRoles] = useState([]);
 
   const load = async () => {
     setLoading(true);
@@ -92,11 +94,16 @@ export default function AdminUsers() {
 
   useEffect(() => { load(); }, []);
 
+  // Load roles for customRoleKey dropdown
+  useEffect(() => {
+    api.get("/roles").then((r) => setAllRoles(r.data.roles || [])).catch(() => {});
+  }, []);
+
   const staff = users.filter((u) => STAFF_ROLES.includes(u.role));
   const viewers = users.filter((u) => VIEWER_ROLES.includes(u.role));
 
   const openCreate = () => { setEditItem(null); setForm(emptyUser); setModal(true); };
-  const openEdit = (u) => { setEditItem(u); setForm({ ...u, password: "" }); setModal(true); };
+  const openEdit = (u) => { setEditItem(u); setForm({ ...u, password: "", customRoleKey: u.customRoleKey || "" }); setModal(true); };
 
   const handleSave = async () => {
     if (!form.name?.trim())  return toast.error("الاسم مطلوب");
@@ -110,12 +117,13 @@ export default function AdminUsers() {
           name: form.name, email: form.email, role: form.role,
           department: form.department || null, phone: form.phone,
           isActive: form.isActive,
+          customRoleKey: form.customRoleKey || null,
           ...(form.password?.trim() ? { password: form.password } : {}),
         };
         await api.put(`/users/${editItem._id}`, payload);
         toast.success("تم تحديث المستخدم");
       } else {
-        await api.post("/users", form);
+        await api.post("/users", { ...form, customRoleKey: form.customRoleKey || null });
         toast.success("تم إضافة المستخدم");
       }
       setModal(false);
@@ -373,6 +381,20 @@ export default function AdminUsers() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الهاتف</label>
             <input value={form.phone} onChange={(e) => f("phone", e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+          </div>
+          <div>
+            <label className="flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#2d5d89]" />
+              الدور المخصص (اختياري)
+            </label>
+            <select value={form.customRoleKey || ""} onChange={(e) => f("customRoleKey", e.target.value || null)}
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
+              <option value="">— لا يوجد (استخدم الدور الأساسي) —</option>
+              {allRoles.map((r) => (
+                <option key={r._id} value={r.roleKey}>{r.label} — {r.roleKey}</option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-gray-400">يتجاوز الدور الأساسي في صلاحيات الصفحات</p>
           </div>
           <div className="flex items-center">
             <label className="flex items-center gap-2 cursor-pointer">

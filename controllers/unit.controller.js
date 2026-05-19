@@ -2,11 +2,13 @@ import Unit from "../models/unit.model.js";
 
 export const getUnits = async (req, res) => {
   try {
-    const { project, status, type, page = 1, limit = 12 } = req.query;
+    const { project, status, type, page = 1, limit = 12, public: isPublic } = req.query;
     const query = {};
     if (project) query.project = project;
     if (status) query.status = status;
     if (type) query.type = type;
+    // Public website only sees visible units
+    if (isPublic === "true") query.isVisible = true;
 
     const skip = (page - 1) * limit;
     const [units, total] = await Promise.all([
@@ -52,6 +54,22 @@ export const deleteUnit = async (req, res) => {
   try {
     await Unit.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "تم حذف الوحدة" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export const toggleVisibility = async (req, res) => {
+  try {
+    const unit = await Unit.findById(req.params.id);
+    if (!unit) return res.status(404).json({ success: false, message: "الوحدة غير موجودة" });
+    unit.isVisible = !unit.isVisible;
+    await unit.save();
+    res.json({
+      success: true,
+      unit,
+      message: unit.isVisible ? "تم إظهار الوحدة" : "تم إخفاء الوحدة",
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

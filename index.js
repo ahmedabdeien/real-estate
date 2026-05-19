@@ -33,6 +33,8 @@ import warehouseRouter from "./routes/warehouse.route.js";
 import purchasingRouter from "./routes/purchasing.route.js";
 import legalRouter from "./routes/legal.route.js";
 import aiRouter from "./routes/ai.route.js";
+import roleConfigRouter from "./routes/roleConfig.route.js";
+import { seedDefaultRoles } from "./controllers/roleConfig.controller.js";
 
 dotenv.config();
 const app = express();
@@ -125,7 +127,10 @@ app.use("/api", generalLimiter);
 // DB
 mongoose
   .connect(process.env.MONGO)
-  .then(() => console.log("MongoDB is connected!!"))
+  .then(() => {
+    console.log("MongoDB is connected!!");
+    seedDefaultRoles();
+  })
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Middleware
@@ -186,6 +191,7 @@ app.use("/api/warehouse", warehouseRouter);
 app.use("/api/purchasing", purchasingRouter);
 app.use("/api/legal", legalRouter);
 app.use("/api/ai", aiRouter);
+app.use("/api/roles", roleConfigRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");
