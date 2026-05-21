@@ -34,7 +34,9 @@ import purchasingRouter from "./routes/purchasing.route.js";
 import legalRouter from "./routes/legal.route.js";
 import aiRouter from "./routes/ai.route.js";
 import roleConfigRouter from "./routes/roleConfig.route.js";
+import whatsappRouter from "./routes/whatsapp.route.js";
 import { seedDefaultRoles } from "./controllers/roleConfig.controller.js";
+import { connectWhatsApp } from "./services/whatsapp.service.js";
 
 dotenv.config();
 const app = express();
@@ -130,6 +132,8 @@ mongoose
   .then(() => {
     console.log("MongoDB is connected!!");
     seedDefaultRoles();
+    // Auto-connect WhatsApp if previous session exists
+    connectWhatsApp().catch((err) => console.warn("[WhatsApp] Auto-connect skipped:", err.message));
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
@@ -192,6 +196,7 @@ app.use("/api/purchasing", purchasingRouter);
 app.use("/api/legal", legalRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/roles", roleConfigRouter);
+app.use("/api/whatsapp", whatsappRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");

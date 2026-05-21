@@ -55,6 +55,7 @@ const AdminWarehouse = lazy(() => import("./pages/admin/AdminWarehouse"));
 const AdminPurchasing = lazy(() => import("./pages/admin/AdminPurchasing"));
 const AdminLegal = lazy(() => import("./pages/admin/AdminLegal"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
+const AdminWhatsApp = lazy(() => import("./pages/admin/AdminWhatsApp"));
 
 // Tasks
 const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
@@ -192,6 +193,7 @@ export default function App() {
                 <Route path="purchasing"    element={<PageGuard pageKey="purchasing"><AdminPurchasing /></PageGuard>} />
                 <Route path="legal"         element={<PageGuard pageKey="legal"><AdminLegal /></PageGuard>} />
                 <Route path="roles"         element={<AdminOnlyRoute><AdminRoles /></AdminOnlyRoute>} />
+                <Route path="whatsapp"     element={<AdminOnlyRoute><AdminWhatsApp /></AdminOnlyRoute>} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

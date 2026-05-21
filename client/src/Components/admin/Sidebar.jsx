@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Building2, Home, Users, FileText, Image,
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
   CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
-  Package, ShoppingCart, Scale, ShieldCheck,
+  Package, ShoppingCart, Scale, ShieldCheck, MessageCircle,
 } from "lucide-react";
 import LogoSvg from "../../assets/images/logo.svg";
 import { useAuth } from "../../context/AuthContext";
@@ -33,6 +33,7 @@ const navItems = [
   { to: "/admin/media",              label: "المكتبة",           icon: Image,           pageKey: "media" },
   { to: "/admin/careers",            label: "الوظائف",           icon: Briefcase,       pageKey: "careers" },
   { to: "/admin/users",              label: "المستخدمين",        icon: Users,           pageKey: "users" },
+  { to: "/admin/whatsapp",           label: "إعداد الواتساب",    icon: MessageCircle,   pageKey: "roles" },
   { to: "/admin/roles",              label: "إدارة الأدوار",     icon: ShieldCheck,     pageKey: "roles" },
   { to: "/admin/activity",           label: "سجل النشاط",        icon: Activity,        pageKey: "activity" },
   { to: "/admin/settings",           label: "الإعدادات",         icon: Settings,        pageKey: "settings" },

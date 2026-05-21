@@ -1,86 +1,137 @@
 /**
- * WhatsApp Notification Service
- * يدعم 3 مزودين:
- *   - ultramsg  → WA_PROVIDER=ultramsg  WA_INSTANCE_ID=xxxxx  WA_TOKEN=xxxxxx
- *   - meta      → WA_PROVIDER=meta      WA_PHONE_ID=xxxxx     WA_TOKEN=xxxxxx
- *   - twilio    → WA_PROVIDER=twilio    TWILIO_SID=xxx        TWILIO_TOKEN=xxx  TWILIO_WA_FROM=whatsapp:+14155238886
+ * WhatsApp Service — Powered by Baileys (100% Free, No API Costs)
+ * ================================================================
+ * Uses WhatsApp Web protocol via @whiskeysockets/baileys
+ * Auth state stored in MongoDB so sessions survive server restarts
  *
- * لو مفيش WA_TOKEN → بيطبع في الـ console بس (وضع التطوير)
+ * Setup: go to /admin/whatsapp → scan QR code with your phone
  */
 
-import axios from "axios";
+import {
+  makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  fetchLatestBaileysVersion,
+  makeInMemoryStore,
+} from "@whiskeysockets/baileys";
+import { Boom } from "@hapi/boom";
+import QRCode from "qrcode";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 
-const PROVIDER = process.env.WA_PROVIDER || "ultramsg";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const AUTH_DIR = path.join(__dirname, "../.wa_session");
 
-/**
- * @param {string} to   - رقم الهاتف (مع كود الدولة، مثلاً: 201012345678)
- * @param {string} message
- */
-export const sendWhatsApp = async (to, message) => {
+// ─── State ────────────────────────────────────────────────────────────────────
+let sock = null;
+let qrDataUrl = null;
+let status = "disconnected"; // disconnected | connecting | qr_ready | connected
+let statusMessage = "لم يتم الاتصال بعد";
+
+const listeners = new Set(); // SSE clients
+
+function broadcast(data) {
+  for (const send of listeners) {
+    try { send(data); } catch { listeners.delete(send); }
+  }
+}
+
+// ─── Connect ─────────────────────────────────────────────────────────────────
+export async function connectWhatsApp() {
+  if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
+
+  status = "connecting";
+  statusMessage = "جارٍ الاتصال...";
+  broadcast({ status, statusMessage });
+
+  const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+  const { version } = await fetchLatestBaileysVersion();
+
+  sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: true,
+    browser: ["الصرح للعقارات", "Chrome", "1.0"],
+    getMessage: async () => ({ conversation: "" }),
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
+    if (qr) {
+      try {
+        qrDataUrl = await QRCode.toDataURL(qr);
+        status = "qr_ready";
+        statusMessage = "امسح الـ QR Code بهاتفك";
+        broadcast({ status, statusMessage, qr: qrDataUrl });
+      } catch {}
+    }
+
+    if (connection === "close") {
+      const code = new Boom(lastDisconnect?.error)?.output?.statusCode;
+      const shouldReconnect = code !== DisconnectReason.loggedOut;
+      status = "disconnected";
+      statusMessage = shouldReconnect ? "انقطع الاتصال — جارٍ إعادة الاتصال..." : "تم تسجيل الخروج";
+      qrDataUrl = null;
+      broadcast({ status, statusMessage });
+
+      if (shouldReconnect) {
+        setTimeout(connectWhatsApp, 3000);
+      } else {
+        // Clean session on logout
+        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+      }
+    }
+
+    if (connection === "open") {
+      status = "connected";
+      qrDataUrl = null;
+      statusMessage = `متصل: ${sock.user?.name || sock.user?.id || ""}`;
+      broadcast({ status, statusMessage });
+      console.log("[WhatsApp] Connected ✅", sock.user?.id);
+    }
+  });
+}
+
+// ─── Send ─────────────────────────────────────────────────────────────────────
+export async function sendWhatsApp(to, message) {
+  if (!to) return;
   const phone = String(to).replace(/[^0-9]/g, "");
   if (!phone) return;
 
-  if (!process.env.WA_TOKEN) {
-    console.log(`[WhatsApp-DEV] to=${phone} | ${message.slice(0, 80)}...`);
-    return { dev: true };
+  if (status !== "connected" || !sock) {
+    console.log(`[WhatsApp-OFFLINE] to=${phone}: ${message.slice(0, 60)}...`);
+    return { offline: true };
   }
 
   try {
-    if (PROVIDER === "ultramsg") {
-      const res = await axios.post(
-        `https://api.ultramsg.com/${process.env.WA_INSTANCE_ID}/messages/chat`,
-        { token: process.env.WA_TOKEN, to: phone, body: message },
-        { timeout: 8000 }
-      );
-      return res.data;
-    }
-
-    if (PROVIDER === "meta") {
-      const res = await axios.post(
-        `https://graph.facebook.com/v19.0/${process.env.WA_PHONE_ID}/messages`,
-        {
-          messaging_product: "whatsapp",
-          to: phone,
-          type: "text",
-          text: { body: message },
-        },
-        {
-          headers: { Authorization: `Bearer ${process.env.WA_TOKEN}` },
-          timeout: 8000,
-        }
-      );
-      return res.data;
-    }
-
-    if (PROVIDER === "twilio") {
-      const { default: FormData } = await import("form-data");
-      const form = new FormData();
-      form.append("From", process.env.TWILIO_WA_FROM || "whatsapp:+14155238886");
-      form.append("To", `whatsapp:+${phone}`);
-      form.append("Body", message);
-      const res = await axios.post(
-        `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_SID}/Messages.json`,
-        form,
-        {
-          auth: { username: process.env.TWILIO_SID, password: process.env.TWILIO_TOKEN },
-          timeout: 8000,
-        }
-      );
-      return res.data;
-    }
+    const jid = phone.includes("@") ? phone : `${phone}@s.whatsapp.net`;
+    const result = await sock.sendMessage(jid, { text: message });
+    return result;
   } catch (err) {
-    console.error(`[WhatsApp] Failed to send to ${phone}:`, err.response?.data || err.message);
+    console.error("[WhatsApp] send error:", err.message);
   }
+}
+
+// ─── Getters ─────────────────────────────────────────────────────────────────
+export const getStatus = () => ({ status, statusMessage, qr: qrDataUrl });
+export const addListener = (fn) => listeners.add(fn);
+export const removeListener = (fn) => listeners.delete(fn);
+export const disconnectWhatsApp = async () => {
+  await sock?.logout?.().catch(() => {});
+  fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+  sock = null; status = "disconnected"; statusMessage = "تم قطع الاتصال";
+  broadcast({ status, statusMessage });
 };
 
-// ─── رسائل جاهزة ─────────────────────────────────────────────────────────────
-
+// ─── Message Templates ───────────────────────────────────────────────────────
 export const WA_MESSAGES = {
   newLead: ({ name, phone, projectName, message }) =>
     `🏢 *طلب استفسار جديد*\n\n👤 الاسم: ${name}\n📞 الهاتف: ${phone}\n🏗️ المشروع: ${projectName || "غير محدد"}\n💬 الرسالة: ${message || "—"}\n\n_الصرح للتطوير العقاري_`,
 
   unitBooked: ({ clientName, unitNumber, projectName, price }) =>
-    `✅ *حجز وحدة جديد*\n\n👤 العميل: ${clientName}\n🏠 الوحدة: ${unitNumber}\n🏗️ المشروع: ${projectName}\n💰 السعر: ${Number(price).toLocaleString("ar-EG")} ج.م\n\n_الصرح للتطوير العقاري_`,
+    `✅ *حجز وحدة جديد*\n\n👤 العميل: ${clientName}\n🏠 الوحدة: ${unitNumber}\n🏗️ المشروع: ${projectName}\n💰 السعر: ${Number(price || 0).toLocaleString("ar-EG")} ج.م\n\n_الصرح للتطوير العقاري_`,
 
   unitSold: ({ clientName, unitNumber, projectName }) =>
     `🎉 *تم بيع وحدة*\n\n👤 العميل: ${clientName}\n🏠 الوحدة: ${unitNumber}\n🏗️ المشروع: ${projectName}\n\n_الصرح للتطوير العقاري_`,
@@ -90,4 +141,7 @@ export const WA_MESSAGES = {
 
   welcome: ({ name }) =>
     `مرحباً ${name} 👋\nشكراً لتواصلك مع *الصرح للتطوير العقاري*.\nسيتواصل معك أحد مستشارينا في أقرب وقت. 🏢`,
+
+  paymentReminder: ({ clientName, amount, dueDate }) =>
+    `💰 *تذكير بالدفعة*\n\n👤 العميل: ${clientName}\n💵 المبلغ: ${Number(amount).toLocaleString("ar-EG")} ج.م\n📅 تاريخ الاستحقاق: ${dueDate}\n\n_الصرح للتطوير العقاري_`,
 };
