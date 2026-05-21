@@ -2,12 +2,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "elsarh-real-estate.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "elsarh-real-estate",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "elsarh-real-estate.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "408314874064",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:408314874084:web:ee5a64719bf201e56084f1",
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            || "AIzaSyDIlQNwbZMbNth6FGno0z82vODGFweyUKg",
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        || "elsarh-real-estate.firebaseapp.com",
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID         || "elsarh-real-estate",
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET     || "elsarh-real-estate.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "408314874084",
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID             || "1:408314874084:web:ee5a64719bf201e56084f1",
 };
 
 // Prevent duplicate-app error on Vite HMR reloads
