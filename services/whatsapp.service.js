@@ -9,19 +9,12 @@
 
 import {
   makeWASocket,
-  useMultiFileAuthState,
   DisconnectReason,
   fetchLatestBaileysVersion,
-  makeInMemoryStore,
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import QRCode from "qrcode";
-import path from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const AUTH_DIR = path.join(__dirname, "../.wa_session");
+import { useMongoAuthState } from "./waMongoAuth.js";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let sock = null;
@@ -39,13 +32,11 @@ function broadcast(data) {
 
 // ─── Connect ─────────────────────────────────────────────────────────────────
 export async function connectWhatsApp() {
-  if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
-
   status = "connecting";
   statusMessage = "جارٍ الاتصال...";
   broadcast({ status, statusMessage });
 
-  const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+  const { state, saveCreds, clearSession } = await useMongoAuthState();
   const { version } = await fetchLatestBaileysVersion();
 
   sock = makeWASocket({
@@ -80,7 +71,7 @@ export async function connectWhatsApp() {
         setTimeout(connectWhatsApp, 3000);
       } else {
         // Clean session on logout
-        fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+        await clearSession().catch(() => {});
       }
     }
 
@@ -119,8 +110,11 @@ export const getStatus = () => ({ status, statusMessage, qr: qrDataUrl });
 export const addListener = (fn) => listeners.add(fn);
 export const removeListener = (fn) => listeners.delete(fn);
 export const disconnectWhatsApp = async () => {
-  await sock?.logout?.().catch(() => {});
-  fs.rmSync(AUTH_DIR, { recursive: true, force: true });
+  try { await sock?.logout?.(); } catch {}
+  try {
+    const { clearSession } = await useMongoAuthState();
+    await clearSession();
+  } catch {}
   sock = null; status = "disconnected"; statusMessage = "تم قطع الاتصال";
   broadcast({ status, statusMessage });
 };
