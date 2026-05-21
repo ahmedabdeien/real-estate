@@ -1,13 +1,15 @@
 import express from "express";
 import { authenticate, authorize } from "../middleware/auth.js";
-import { waStatus, waConnect, waDisconnect, waTest, waEvents } from "../controllers/whatsapp.controller.js";
 
 const router = express.Router();
 
-router.get("/status",     authenticate, authorize("admin"), waStatus);
-router.get("/events",     authenticate, authorize("admin"), waEvents);
-router.post("/connect",   authenticate, authorize("admin"), waConnect);
-router.post("/disconnect",authenticate, authorize("admin"), waDisconnect);
-router.post("/test",      authenticate, authorize("admin"), waTest);
+// Lazy-load controller so Baileys doesn't crash the server on startup
+const ctrl = () => import("../controllers/whatsapp.controller.js");
+
+router.get("/status",      authenticate, authorize("admin"), async (req, res) => (await ctrl()).waStatus(req, res));
+router.get("/events",      authenticate, authorize("admin"), async (req, res) => (await ctrl()).waEvents(req, res));
+router.post("/connect",    authenticate, authorize("admin"), async (req, res) => (await ctrl()).waConnect(req, res));
+router.post("/disconnect", authenticate, authorize("admin"), async (req, res) => (await ctrl()).waDisconnect(req, res));
+router.post("/test",       authenticate, authorize("admin"), async (req, res) => (await ctrl()).waTest(req, res));
 
 export default router;

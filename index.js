@@ -36,7 +36,6 @@ import aiRouter from "./routes/ai.route.js";
 import roleConfigRouter from "./routes/roleConfig.route.js";
 import whatsappRouter from "./routes/whatsapp.route.js";
 import { seedDefaultRoles } from "./controllers/roleConfig.controller.js";
-import { connectWhatsApp } from "./services/whatsapp.service.js";
 
 dotenv.config();
 const app = express();
@@ -132,8 +131,12 @@ mongoose
   .then(() => {
     console.log("MongoDB is connected!!");
     seedDefaultRoles();
-    // Auto-connect WhatsApp if previous session exists
-    connectWhatsApp().catch((err) => console.warn("[WhatsApp] Auto-connect skipped:", err.message));
+    // Auto-connect WhatsApp — lazy import so server still starts if Baileys fails
+    setTimeout(() => {
+      import("./services/whatsapp.service.js")
+        .then(({ connectWhatsApp }) => connectWhatsApp())
+        .catch((err) => console.warn("[WhatsApp] Auto-connect skipped:", err.message));
+    }, 5000);
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
