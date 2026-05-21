@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { sendWhatsApp, WA_MESSAGES } from "../services/whatsapp.service.js";
 import User from '../models/user.model.js';
 import { createNotification } from './notification.controller.js';
 
@@ -60,6 +61,18 @@ export const createContact = async (req, res, next) => {
             }
         } catch (notifErr) {
             console.error("Notification error:", notifErr.message);
+        }
+
+        // WhatsApp notification to admin
+        try {
+            const adminWa = process.env.ADMIN_WHATSAPP;
+            if (adminWa) {
+                await sendWhatsApp(adminWa, WA_MESSAGES.newLead({ name, phone, projectName: "استفسار عام", message }));
+            }
+            // Welcome to client
+            if (phone) await sendWhatsApp(phone, WA_MESSAGES.welcome({ name }));
+        } catch (waErr) {
+            console.error("[WhatsApp-Contact]", waErr.message);
         }
 
         res.status(201).json({

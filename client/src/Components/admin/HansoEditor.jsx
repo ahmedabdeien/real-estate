@@ -9,7 +9,7 @@ import { HyperFormula } from "hyperformula";
 import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
 import * as XLSX from "xlsx";
-import { Upload, Download, RefreshCw } from "lucide-react";
+import { Upload, Download, RefreshCw, FilePlus } from "lucide-react";
 import { useToast } from "../../context/ToastContext";
 
 registerAllModules();
@@ -18,6 +18,7 @@ export default function HansoEditor({ cols, rows, storageKey }) {
   const hotRef = useRef(null);
   const toast = useToast();
   const fileRef = useRef(null);
+  const appendFileRef = useRef(null);
 
   // Build table data from ledger cols/rows
   const buildTableData = useCallback(() => {
@@ -85,6 +86,38 @@ export default function HansoEditor({ cols, rows, storageKey }) {
     e.target.value = "";
   };
 
+  // Append rows from Excel file WITHOUT replacing existing data
+  const appendExcel = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array", cellFormula: true });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const incoming = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
+        if (!incoming.length) return;
+
+        // Skip header row of incoming file if it matches current header
+        const hot = hotRef.current?.hotInstance;
+        const current = hot ? hot.getData() : tableData;
+        const currentHeader = JSON.stringify(current[0] || []);
+        const incomingHeader = JSON.stringify(incoming[0] || []);
+        const rowsToAdd = currentHeader === incomingHeader ? incoming.slice(1) : incoming;
+
+        const merged = [...current, ...rowsToAdd.filter((r) => r.some((c) => c !== ""))];
+        setTableData(merged);
+        localStorage.setItem(`${storageKey}_hanso`, JSON.stringify(merged));
+        toast.success(`تم إضافة ${rowsToAdd.length} صف من الملف القديم`);
+      } catch (err) {
+        console.error("Excel append error:", err);
+        toast.error("فشل قراءة الملف");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = "";
+  };
+
   const resetData = () => {
     localStorage.removeItem(`${storageKey}_hanso`);
     setTableData(buildTableData());
@@ -110,9 +143,18 @@ export default function HansoEditor({ cols, rows, storageKey }) {
         <button
           onClick={() => fileRef.current?.click()}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors"
+          title="استبدال كل البيانات بالملف الجديد"
         >
           <Upload className="w-3.5 h-3.5" />
-          استيراد Excel
+          استيراد (استبدال)
+        </button>
+        <button
+          onClick={() => appendFileRef.current?.click()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium transition-colors"
+          title="إضافة بيانات الملف القديم بدون حذف الموجود"
+        >
+          <FilePlus className="w-3.5 h-3.5" />
+          إضافة من Excel قديم
         </button>
         <button
           onClick={resetData}
@@ -123,6 +165,7 @@ export default function HansoEditor({ cols, rows, storageKey }) {
         </button>
         <span className="text-xs text-gray-400 mr-auto">يتم الحفظ تلقائياً · يدعم المعادلات مثل =SUM(A1:A10)</span>
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={importExcel} />
+        <input ref={appendFileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={appendExcel} />
       </div>
 
       {/* Table */}

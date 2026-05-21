@@ -147,7 +147,7 @@ function StatItem({ icon: Icon, value, label }) {
       <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-3">
         <Icon className="w-7 h-7 text-[#f59e0b]" />
       </div>
-      <p className="text-4xl font-black text-white mb-1">{value}</p>
+      <p className="text-3xl sm:text-4xl font-black text-white mb-1">{value}</p>
       <p className="text-white/70 text-sm">{label}</p>
     </motion.div>
   );
@@ -251,10 +251,10 @@ export default function HomePage() {
             <span className="inline-block bg-[#f59e0b]/20 text-[#f59e0b] text-sm font-semibold px-4 py-1.5 rounded-full mb-6 backdrop-blur">
               الصرح للتطوير العقاري — مستقبلك يبدأ هنا
             </span>
-            <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white mb-4 sm:mb-6 leading-tight">
               {heroCms.title_ar}
             </h1>
-            <p className="text-white/70 text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-white/70 text-base sm:text-lg md:text-xl mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
               {heroCms.subtitle_ar}
             </p>
 
@@ -280,7 +280,7 @@ export default function HomePage() {
       {/* Stats */}
       <section className="bg-[#2d5d89] py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8" dir="rtl">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8" dir="rtl">
             <StatItem icon={Building2} value={statsCms.projects_count}   label={statsCms.projects_label} />
             <StatItem icon={HomeIcon}  value={statsCms.units_count}      label={statsCms.units_label} />
             <StatItem icon={Users}     value={statsCms.clients_count}    label={statsCms.clients_label} />
@@ -307,7 +307,7 @@ export default function HomePage() {
                 <p className="text-gray-500 max-w-xl mx-auto">{servicesCms.services_subtitle}</p>
               )}
             </motion.div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {[1, 2, 3, 4].map((n) => {
                 const title = servicesCms?.[`service${n}_title`];
                 const desc  = servicesCms?.[`service${n}_desc`];

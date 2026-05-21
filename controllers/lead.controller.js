@@ -1,5 +1,6 @@
 import Lead from "../models/lead.model.js";
 import { logActivity } from "./activity.controller.js";
+import { sendWhatsApp, WA_MESSAGES } from "../services/whatsapp.service.js";
 
 export const getLeads = async (req, res) => {
   try {
@@ -67,6 +68,31 @@ export const createLead = async (req, res) => {
       }));
       if (notifications.length > 0) await Notification.insertMany(notifications);
     } catch (_) {}
+
+    // WhatsApp notification to admin
+    try {
+      const adminWa = process.env.ADMIN_WHATSAPP;
+      if (adminWa) {
+        const Project = (await import("../models/project.model.js")).default;
+        let projectName = "غير محدد";
+        if (lead.interestedProject) {
+          const proj = await Project.findById(lead.interestedProject).lean();
+          projectName = proj?.name?.ar || proj?.name?.en || "غير محدد";
+        }
+        await sendWhatsApp(adminWa, WA_MESSAGES.newLead({
+          name: lead.name || "غير محدد",
+          phone: lead.phone || "—",
+          projectName,
+          message: lead.notes || "",
+        }));
+        // Welcome message to client
+        if (lead.phone) {
+          await sendWhatsApp(lead.phone, WA_MESSAGES.welcome({ name: lead.name || "عزيزي العميل" }));
+        }
+      }
+    } catch (waErr) {
+      console.error("[WhatsApp-Lead]", waErr.message);
+    }
 
     res.status(201).json({ success: true, lead });
   } catch (err) {
