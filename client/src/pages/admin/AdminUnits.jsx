@@ -403,7 +403,7 @@ export default function AdminUnits() {
                   const inCompare = compareIds.includes(u._id);
                   return (
                     <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${inCompare ? "bg-amber-50/50 dark:bg-amber-900/10" : ""} ${u.isVisible === false ? "opacity-50" : ""}`}>
+                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${inCompare ? "bg-amber-50/50 dark:bg-amber-900/10" : ""}`}>
                       <td className="px-2 py-4">
                         <input type="checkbox" checked={selected.includes(u._id)} onChange={() => toggleSelected(u._id)}
                           className="w-4 h-4 rounded accent-[#2d5d89]" />
