@@ -15,7 +15,7 @@ const unitSchema = new mongoose.Schema(
     },
     area: { type: Number, required: true },
     price: { type: Number, required: true },
-    floor: { type: Number, default: 0 },
+    floor: { type: String, default: "" },
     rooms: { type: Number, default: 1 },
     bathrooms: { type: Number, default: 1 },
     status: {

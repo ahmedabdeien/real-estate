@@ -70,17 +70,18 @@ export default function HansoEditor({ cols, rows, storageKey }) {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const wb = XLSX.read(ev.target.result, { type: "binary" });
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array", cellFormula: true, cellStyles: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
-        setTableData(data);
-        localStorage.setItem(`${storageKey}_hanso`, JSON.stringify(data));
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
+        setTableData(data.length ? data : buildTableData());
+        localStorage.setItem(`${storageKey}_hanso`, JSON.stringify(data.length ? data : buildTableData()));
         toast.success("تم استيراد الملف بنجاح مع كل البيانات والمعادلات");
-      } catch {
-        toast.error("فشل قراءة الملف");
+      } catch (err) {
+        console.error("Excel import error:", err);
+        toast.error("فشل قراءة الملف — تأكد أن الملف بصيغة .xlsx أو .xls");
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
     e.target.value = "";
   };
 
