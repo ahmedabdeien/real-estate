@@ -27,7 +27,10 @@ export const getProject = async (req, res) => {
   try {
     const project = await Project.findOne({ slug: req.params.slug });
     if (!project) return res.status(404).json({ success: false, message: "المشروع غير موجود" });
-    const units = await Unit.find({ project: project._id, published: true, isVisible: true });
+    const unitQuery = { project: project._id, published: true };
+    // Public visitors only see visible units; admins/authenticated users see all
+    if (!req.user) unitQuery.isVisible = true;
+    const units = await Unit.find(unitQuery);
     res.json({ success: true, project, units });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
