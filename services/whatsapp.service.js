@@ -5,16 +5,11 @@
  * Auth state stored in MongoDB so sessions survive server restarts
  *
  * Setup: go to /admin/whatsapp → scan QR code with your phone
+ *
+ * IMPORTANT: Baileys is dynamically imported ONLY when connectWhatsApp()
+ * is called — never at module load time — so this file is safe to import
+ * from lead/contact controllers without crashing the server on startup.
  */
-
-import {
-  makeWASocket,
-  DisconnectReason,
-  fetchLatestBaileysVersion,
-} from "@whiskeysockets/baileys";
-import { Boom } from "@hapi/boom";
-import QRCode from "qrcode";
-import { useMongoAuthState } from "./waMongoAuth.js";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let sock = null;
@@ -35,6 +30,13 @@ export async function connectWhatsApp() {
   status = "connecting";
   statusMessage = "جارٍ الاتصال...";
   broadcast({ status, statusMessage });
+
+  // Lazy-load Baileys only when actually connecting
+  const { makeWASocket, DisconnectReason, fetchLatestBaileysVersion } =
+    await import("@whiskeysockets/baileys");
+  const { Boom } = await import("@hapi/boom");
+  const QRCode = (await import("qrcode")).default;
+  const { useMongoAuthState } = await import("./waMongoAuth.js");
 
   const { state, saveCreds, clearSession } = await useMongoAuthState();
   const { version } = await fetchLatestBaileysVersion();
@@ -71,7 +73,9 @@ export async function connectWhatsApp() {
         setTimeout(connectWhatsApp, 3000);
       } else {
         // Clean session on logout
-        await clearSession().catch(() => {});
+        const { useMongoAuthState: getAuth } = await import("./waMongoAuth.js");
+        const { clearSession: clear } = await getAuth();
+        await clear().catch(() => {});
       }
     }
 
@@ -112,6 +116,7 @@ export const removeListener = (fn) => listeners.delete(fn);
 export const disconnectWhatsApp = async () => {
   try { await sock?.logout?.(); } catch {}
   try {
+    const { useMongoAuthState } = await import("./waMongoAuth.js");
     const { clearSession } = await useMongoAuthState();
     await clearSession();
   } catch {}

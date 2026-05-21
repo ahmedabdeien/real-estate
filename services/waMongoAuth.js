@@ -1,11 +1,14 @@
 /**
  * MongoDB-backed auth state for Baileys
  * Replaces useMultiFileAuthState so sessions persist on Railway/Heroku/etc.
+ * Baileys is dynamically imported so this module is safe to load on startup.
  */
-import { initAuthCreds, BufferJSON, proto } from "@whiskeysockets/baileys";
 import WaSession from "../models/waSession.model.js";
 
 export async function useMongoAuthState() {
+  // Lazy-load Baileys only when this function is actually called
+  const { initAuthCreds, BufferJSON, proto } = await import("@whiskeysockets/baileys");
+
   const writeData = async (key, data) => {
     await WaSession.findByIdAndUpdate(
       key,
