@@ -325,24 +325,24 @@ export default function AdminUnits() {
             عرض المقارنة
           </button>
         )}
-        {projectFilter && (
-          <>
-            <button
-              onClick={() => handleProjectVisibility(false)}
-              className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <EyeOff className="w-4 h-4" />
-              إخفاء الكل
-            </button>
-            <button
-              onClick={() => handleProjectVisibility(true)}
-              className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <Eye className="w-4 h-4" />
-              إظهار الكل
-            </button>
-          </>
-        )}
+        <button
+          onClick={() => handleProjectVisibility(false)}
+          disabled={!projectFilter}
+          title={!projectFilter ? "اختر مشروعاً أولاً" : "إخفاء جميع وحدات المشروع"}
+          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <EyeOff className="w-4 h-4" />
+          إخفاء الكل
+        </button>
+        <button
+          onClick={() => handleProjectVisibility(true)}
+          disabled={!projectFilter}
+          title={!projectFilter ? "اختر مشروعاً أولاً" : "إظهار جميع وحدات المشروع"}
+          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Eye className="w-4 h-4" />
+          إظهار الكل
+        </button>
       </div>
 
       {/* Bulk actions bar */}

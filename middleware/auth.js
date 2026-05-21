@@ -41,6 +41,13 @@ export const authenticate = async (req, res, next) => {
 
 export const authorize = (...roles) => {
   return (req, res, next) => {
+    // Admin always passes
+    if (req.user.role === "admin") return next();
+    // Custom role users: allow if their underlying role is in the list
+    if (req.user.customRoleKey && roles.includes(req.user.role)) return next();
+    // Custom role users with wildcard allowedPages
+    if (req.user.customRoleKey && req.user.allowedPages?.includes("*")) return next();
+    // Standard role check
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ success: false, message: "ليس لديك صلاحية" });
     }

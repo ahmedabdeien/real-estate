@@ -9,7 +9,7 @@ router.get("/:id", getUnit);
 router.post("/", authenticate, authorize("admin", "sales"), createUnit);
 router.put("/:id", authenticate, authorize("admin", "sales"), updateUnit);
 router.delete("/:id", authenticate, authorize("admin"), deleteUnit);
-router.patch("/:id/toggle-visibility", authenticate, authorize("admin", "sales"), toggleVisibility);
-router.patch("/project/:projectId/visibility", authenticate, authorize("admin", "sales"), hideAllByProject);
+router.patch("/:id/toggle-visibility", authenticate, authorize("admin", "sales", "supervisor", "manager"), toggleVisibility);
+router.patch("/project/:projectId/visibility", authenticate, authorize("admin", "sales", "supervisor", "manager"), hideAllByProject);
 
 export default router;

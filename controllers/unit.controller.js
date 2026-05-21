@@ -80,7 +80,7 @@ export const hideAllByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
     const { isVisible } = req.body; // true = show all, false = hide all
-    await Unit.updateMany({ project: projectId }, { isVisible: isVisible !== false });
+    await Unit.updateMany({ project: projectId }, { $set: { isVisible: isVisible !== false } });
     const count = await Unit.countDocuments({ project: projectId });
     res.json({
       success: true,
