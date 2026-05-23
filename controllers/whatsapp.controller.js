@@ -6,6 +6,12 @@ import {
   addListener,
   removeListener,
 } from "../services/whatsapp.service.js";
+import {
+  getAutomationSettings,
+  saveAutomationSettings,
+  bulkSend,
+  isCronRunning,
+} from "../services/waAutomation.service.js";
 
 // GET /api/whatsapp/status
 export const waStatus = (req, res) => {
@@ -38,7 +44,7 @@ export const waTest = async (req, res) => {
   try {
     const { phone, message } = req.body;
     if (!phone) return res.status(400).json({ success: false, message: "phone مطلوب" });
-    await sendWhatsApp(phone, message || "🏢 اختبار إشعار من الصرح للتطوير العقاري ✅");
+    await sendWhatsApp(phone, message || "اختبار إشعار من الصرح للتطوير العقاري");
     res.json({ success: true, message: "تم إرسال الرسالة" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -61,8 +67,42 @@ export const waEvents = (req, res) => {
   };
 
   addListener(send);
+  req.on("close", () => removeListener(send));
+};
 
-  req.on("close", () => {
-    removeListener(send);
-  });
+// GET /api/whatsapp/automation
+export const waGetAutomation = async (req, res) => {
+  try {
+    const settings = await getAutomationSettings();
+    res.json({ success: true, settings, cronRunning: isCronRunning() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PUT /api/whatsapp/automation
+export const waUpdateAutomation = async (req, res) => {
+  try {
+    const { settings } = req.body;
+    if (!settings) return res.status(400).json({ success: false, message: "settings مطلوب" });
+    await saveAutomationSettings(settings);
+    res.json({ success: true, message: "تم حفظ إعدادات الأتومايشن" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// POST /api/whatsapp/bulk
+export const waBulk = async (req, res) => {
+  try {
+    const { phones, message } = req.body;
+    if (!phones?.length) return res.status(400).json({ success: false, message: "phones مطلوب" });
+    if (!message?.trim()) return res.status(400).json({ success: false, message: "message مطلوب" });
+
+    // Start bulk send in background (don't await — respond immediately)
+    const results = await bulkSend({ phones, message, delayMs: 2500 });
+    res.json({ success: true, message: "تم الإرسال", results });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };

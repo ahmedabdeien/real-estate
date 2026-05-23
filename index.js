@@ -137,6 +137,13 @@ mongoose
         .then(({ connectWhatsApp }) => connectWhatsApp())
         .catch((err) => console.warn("[WhatsApp] Auto-connect skipped:", err.message));
     }, 5000);
+
+    // Start WhatsApp reminder cron (respects settings from DB)
+    setTimeout(() => {
+      import("./services/waAutomation.service.js")
+        .then(({ startReminderCron }) => startReminderCron())
+        .catch((err) => console.warn("[WA-Cron] Start skipped:", err.message));
+    }, 8000);
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
