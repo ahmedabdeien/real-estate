@@ -8,7 +8,7 @@ import {
   PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
   Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
   Sparkles, Grid3x3, Zap, Target, PieChart, Activity, ArrowUpRight, ArrowDownRight,
-  ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma,
+  ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma, Users,
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell,
