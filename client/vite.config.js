@@ -29,6 +29,18 @@ export default defineConfig({
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
         warn(warning);
       },
+      output: {
+        // Stable vendor chunks — prevents stale-chunk MIME errors after re-deploy
+        manualChunks(id) {
+          if (id.includes("node_modules/react-dom") || id.includes("node_modules/react/")) return "react-vendor";
+          if (id.includes("node_modules/framer-motion")) return "framer";
+          if (id.includes("node_modules/recharts")) return "recharts";
+          if (id.includes("node_modules/lucide-react")) return "lucide";
+          if (id.includes("node_modules/@handsontable") || id.includes("node_modules/handsontable")) return "handsontable";
+          if (id.includes("node_modules/xlsx")) return "xlsx";
+          if (id.includes("node_modules/react-router")) return "router";
+        },
+      },
     },
   },
   server: {
