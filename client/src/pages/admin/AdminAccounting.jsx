@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit2, Check, X, Printer, Download, ChevronRight,
@@ -7,8 +7,14 @@ import {
   BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown,
   PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
   Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
-  Sparkles, Grid3x3,
+  Sparkles, Grid3x3, Zap, Target, PieChart, Activity, ArrowUpRight, ArrowDownRight,
+  ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma,
 } from "lucide-react";
+import {
+  BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  AreaChart, Area, RadialBarChart, RadialBar,
+} from "recharts";
 
 import SpreadsheetEditor from "../../Components/admin/SpreadsheetEditor";
 import InlineAiChat from "../../Components/UI/InlineAiChat";
@@ -269,8 +275,15 @@ function SheetForm({ initial, onSave, onClose }) {
     { key: "col3", label: "التاريخ", type: "date",     width: 140 },
     { key: "col4", label: "ملاحظات", type: "text",     width: 200 },
   ]);
-  const [saving, setSaving] = useState(false);
+  const [saving,       setSaving]       = useState(false);
+  const [showTemplates,setShowTemplates]= useState(!initial);
   const toast = useToast();
+
+  const applyTemplate = (tpl) => {
+    setName(tpl.name);
+    setColumns(tpl.columns);
+    setShowTemplates(false);
+  };
 
   const addCol = () => {
     const nextNum = columns.length + 1;
@@ -290,6 +303,36 @@ function SheetForm({ initial, onSave, onClose }) {
 
   return (
     <div className="space-y-4">
+      {/* Template gallery */}
+      {showTemplates && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-bold text-gray-700">اختر نموذج جاهز</span>
+            <button onClick={() => setShowTemplates(false)} className="text-xs text-[#2d5d89] hover:underline">
+              جدول فارغ
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-1">
+            {FINANCIAL_TEMPLATES.map((tpl) => (
+              <button key={tpl.id} onClick={() => applyTemplate(tpl)}
+                className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-gray-100 hover:border-[#2d5d89] hover:bg-[#2d5d89]/5 transition-all text-right">
+                <span className="text-xl">{tpl.icon}</span>
+                <span className="text-xs font-bold text-gray-800">{tpl.name}</span>
+                <span className="text-[10px] text-gray-400">{tpl.columns.length} أعمدة</span>
+              </button>
+            ))}
+          </div>
+          <div className="border-t border-gray-100 pt-3 mt-1">
+            <p className="text-xs text-gray-400 text-center">أو أنشئ جدولاً مخصصاً من الصفر</p>
+          </div>
+        </div>
+      )}
+      {!showTemplates && !initial && (
+        <button onClick={() => setShowTemplates(true)}
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-gray-300 text-xs text-gray-500 hover:border-[#2d5d89] hover:text-[#2d5d89] transition-colors">
+          <Target className="w-3.5 h-3.5" /> استخدام نموذج جاهز
+        </button>
+      )}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">اسم الجدول *</label>
         <input value={name} onChange={(e) => setName(e.target.value)}
@@ -536,69 +579,522 @@ function RatesPanel({ rows, cols }) {
 
 function LedgerSummary({ ledger }) {
   if (!ledger) return null;
-  const sheets = ledger.sheets || [];
-  const totalSheets = sheets.length;
+  const sheets    = ledger.sheets || [];
   const totalRows = sheets.reduce((acc, s) => acc + (s.rows?.length || 0), 0);
 
-  // Per-sheet currency totals (sum across all currency columns)
-  const sheetTotals = sheets.map((s) => {
-    const cols = s.columns || [];
-    const rows = s.rows || [];
+  // Per-sheet currency totals
+  const sheetTotals = sheets.map((s, idx) => {
+    const cols  = s.columns || [];
+    const rows  = s.rows    || [];
     const total = cols
       .filter((c) => c.type === "currency")
       .reduce((sum, c) => sum + (sumColumn(rows, c.key, c.type, c) || 0), 0);
-    return { id: s._id, name: s.name, color: s.color, total, rowCount: rows.length };
+    return { id: s._id, name: s.name.substring(0,16), color: CHART_COLORS[idx % CHART_COLORS.length], total, rowCount: rows.length };
   });
 
   const grandTotal = sheetTotals.reduce((a, b) => a + b.total, 0);
-  const maxTotal = Math.max(1, ...sheetTotals.map((s) => s.total));
+
+  const barData  = sheetTotals.map((s) => ({ name: s.name, القيمة: s.total }));
+  const pieData  = sheetTotals.filter((s) => s.total > 0);
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 px-3 py-2 text-xs" dir="rtl">
+        <p className="font-bold text-gray-800">{label}</p>
+        <p className="text-[#2d5d89]">{formatCell(payload[0]?.value, "currency")}</p>
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-5 overflow-auto h-full pb-4">
+    <div className="space-y-4 overflow-auto h-full pb-6">
+      {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-gradient-to-br from-[#2d5d89] to-[#1f4566] text-white rounded-2xl p-4 shadow-sm">
-          <p className="text-xs opacity-80">عدد الجداول</p>
-          <p className="text-3xl font-bold mt-1">{totalSheets.toLocaleString("ar-EG")}</p>
+          <p className="text-xs opacity-70 mb-1">إجمالي قيمة العملات</p>
+          <p className="text-2xl font-bold">{formatCell(grandTotal, "currency")}</p>
+          <p className="text-xs opacity-60 mt-1">{sheets.length} جدول · {totalRows} سطر</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-          <p className="text-xs text-gray-400">إجمالي الصفوف</p>
-          <p className="text-3xl font-bold mt-1 text-gray-800">{totalRows.toLocaleString("ar-EG")}</p>
+          <p className="text-xs text-gray-400 mb-1">متوسط قيمة الجدول</p>
+          <p className="text-2xl font-bold text-gray-800">{sheets.length > 0 ? formatCell(grandTotal / sheets.length, "currency") : "—"}</p>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-          <p className="text-xs text-gray-400">إجمالي قيمة العملات</p>
-          <p className="text-2xl font-bold mt-1 text-[#2d5d89]">{formatCell(grandTotal, "currency")}</p>
+          <p className="text-xs text-gray-400 mb-1">أعلى جدول قيمةً</p>
+          {sheetTotals.length > 0 ? (
+            <>
+              <p className="text-base font-bold text-[#2d5d89] truncate">{sheetTotals.sort((a,b)=>b.total-a.total)[0]?.name}</p>
+              <p className="text-sm text-gray-600">{formatCell(Math.max(...sheetTotals.map(s=>s.total)), "currency")}</p>
+            </>
+          ) : <p className="text-gray-400 text-sm">—</p>}
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-        <p className="text-sm font-bold text-gray-700 mb-3">مقارنة الجداول (إجمالي القيم بالعملة)</p>
-        {sheetTotals.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-6">لا توجد جداول بعد</p>
-        ) : (
-          <div className="space-y-2">
-            {sheetTotals.map((s) => {
-              const pct = maxTotal > 0 ? (s.total / maxTotal) * 100 : 0;
-              return (
-                <div key={s.id}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-medium text-gray-700">{s.name}</span>
-                    <span className="text-gray-500">{s.rowCount} صف — <span className="text-[#2d5d89] font-bold">{formatCell(s.total, "currency")}</span></span>
-                  </div>
-                  <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-full rounded-full transition-all"
-                      style={{ width: `${pct}%`, background: s.color || "#2d5d89" }} />
-                  </div>
+      {/* Bar chart */}
+      {barData.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-[#2d5d89]" />
+            مقارنة إجماليات الجداول
+          </p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={barData} margin={{ top:5, right:5, left:5, bottom:30 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-20} textAnchor="end" />
+              <YAxis tick={{ fontSize:10 }} width={65} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="القيمة" radius={[6,6,0,0]}>
+                {barData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Pie chart + list side by side */}
+      {pieData.length > 1 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <PieChart className="w-4 h-4 text-purple-600" />
+            التوزيع النسبي
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <ResponsiveContainer width="100%" height={180}>
+              <RePieChart>
+                <Pie data={pieData} dataKey="total" nameKey="name" cx="50%" cy="50%" outerRadius={75} label={({ name, percent }) => `${(percent*100).toFixed(0)}%`}>
+                  {pieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Pie>
+                <Tooltip formatter={(v) => formatCell(v, "currency")} />
+              </RePieChart>
+            </ResponsiveContainer>
+            <div className="flex-1 min-w-0 space-y-1.5 w-full">
+              {pieData.map((s, i) => (
+                <div key={s.id} className="flex items-center gap-2 text-xs">
+                  <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                  <span className="flex-1 text-gray-700 truncate">{s.name}</span>
+                  <span className="font-bold text-gray-800 whitespace-nowrap">{formatCell(s.total, "currency")}</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <p className="text-xs text-gray-400 text-center">يعرض المخطط مجموع كل أعمدة العملة في كل جدول</p>
+      {sheets.length === 0 && (
+        <div className="text-center py-12">
+          <FileSpreadsheet className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <p className="text-gray-400 text-sm">لا توجد جداول في هذا السجل بعد</p>
+        </div>
+      )}
     </div>
   );
 }
+
+// ─── Chart colors ─────────────────────────────────────────────────────────────
+const CHART_COLORS = ["#2d5d89","#0F9D58","#F4B400","#DB4437","#9B59B6","#1ABC9C","#E67E22","#3498DB"];
+
+// ─── Financial Charts Panel ───────────────────────────────────────────────────
+function FinancialCharts({ rows, cols }) {
+  const [chartType,    setChartType]    = useState("bar");
+  const [groupBy,      setGroupBy]      = useState(""); // column key to group by
+  const [valueCol,     setValueCol]     = useState(""); // numeric column key
+
+  const numericCols = cols.filter((c) => ["currency","number","formula"].includes(c.type));
+  const textCols    = cols.filter((c) => c.type === "text" || c.type === "select" || c.type === "date");
+
+  // Auto-select first numeric & text cols
+  useEffect(() => {
+    if (!valueCol && numericCols.length > 0) setValueCol(numericCols[0].key);
+    if (!groupBy  && textCols.length  > 0)  setGroupBy(textCols[0].key);
+  }, [cols]);
+
+  const activeValueCol = cols.find((c) => c.key === valueCol);
+  const activeGroupCol = cols.find((c) => c.key === groupBy);
+
+  // Build chart data grouped by the selected text column
+  const chartData = useMemo(() => {
+    if (!valueCol || !groupBy) return [];
+    const groups = {};
+    rows.forEach((r) => {
+      const grp = r.cells?.[groupBy] || "غير محدد";
+      const raw = r.cells?.[valueCol];
+      let val = 0;
+      if (activeValueCol?.type === "formula") {
+        const ev = evaluateFormula(activeValueCol.formula || "", r.cells || {});
+        val = typeof ev === "number" ? ev : 0;
+      } else {
+        val = parseFloat(raw) || 0;
+      }
+      if (!groups[grp]) groups[grp] = 0;
+      groups[grp] += val;
+    });
+    return Object.entries(groups)
+      .map(([name, value]) => ({ name: name.substring(0, 20), value: Math.round(value * 100) / 100 }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 12);
+  }, [rows, valueCol, groupBy, activeValueCol]);
+
+  // Monthly trend data (if a date column exists)
+  const dateCol = cols.find((c) => c.type === "date");
+  const trendData = useMemo(() => {
+    if (!dateCol || !valueCol) return [];
+    const months = {};
+    rows.forEach((r) => {
+      const raw = r.cells?.[dateCol.key];
+      if (!raw) return;
+      try {
+        const d = new Date(raw);
+        if (isNaN(d)) return;
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+        const rawV = r.cells?.[valueCol];
+        let val = 0;
+        if (activeValueCol?.type === "formula") {
+          const ev = evaluateFormula(activeValueCol.formula || "", r.cells || {});
+          val = typeof ev === "number" ? ev : 0;
+        } else { val = parseFloat(rawV) || 0; }
+        if (!months[key]) months[key] = 0;
+        months[key] += val;
+      } catch {}
+    });
+    return Object.entries(months)
+      .sort(([a],[b]) => a.localeCompare(b))
+      .slice(-12)
+      .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100 }));
+  }, [rows, dateCol, valueCol, activeValueCol]);
+
+  // KPI cards
+  const stats = useMemo(() => {
+    if (!activeValueCol) return null;
+    return colStats(rows, activeValueCol);
+  }, [rows, activeValueCol]);
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 px-3 py-2 text-xs" dir="rtl">
+        <p className="font-bold text-gray-800 mb-1">{label}</p>
+        {payload.map((p, i) => (
+          <p key={i} style={{ color: p.color }}>
+            {activeValueCol ? formatCell(p.value, activeValueCol.type) : p.value}
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  if (numericCols.length === 0) return (
+    <div className="flex items-center justify-center h-60">
+      <div className="text-center">
+        <BarChart3 className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+        <p className="text-gray-400 text-sm">أضف أعمدة رقمية أو عملة لعرض المخططات</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 overflow-auto pb-4 h-full">
+      {/* KPI Cards */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label:"المجموع",   value: formatCell(stats.sum,  activeValueCol?.type), icon: Sigma,         color:"#2d5d89" },
+            { label:"المتوسط",   value: formatCell(stats.avg,  activeValueCol?.type), icon: Activity,      color:"#0F9D58" },
+            { label:"أعلى قيمة",value: formatCell(stats.max,  activeValueCol?.type), icon: ArrowUpRight,  color:"#E67E22" },
+            { label:"أدنى قيمة",value: formatCell(stats.min,  activeValueCol?.type), icon: ArrowDownRight, color:"#DB4437" },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: color + "18" }}>
+                  <Icon className="w-3.5 h-3.5" style={{ color }} />
+                </div>
+                <span className="text-xs text-gray-400">{label}</span>
+              </div>
+              <p className="text-base font-bold text-gray-800 truncate">{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Controls */}
+      <div className="flex flex-wrap items-center gap-2 bg-gray-50 rounded-2xl p-3">
+        {/* Chart type */}
+        <div className="flex gap-1 bg-white rounded-xl p-1 border border-gray-200">
+          {[
+            { id:"bar",  label:"أعمدة",     icon:"▊" },
+            { id:"line", label:"خطي",       icon:"📈" },
+            { id:"area", label:"مساحي",     icon:"▲" },
+            { id:"pie",  label:"دائري",     icon:"◉" },
+          ].map((t) => (
+            <button key={t.id} onClick={() => setChartType(t.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                chartType === t.id ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Group by */}
+        <div className="flex items-center gap-1.5">
+          <Tag className="w-3.5 h-3.5 text-gray-400" />
+          <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)}
+            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+            <option value="">-- تجميع حسب --</option>
+            {textCols.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </select>
+        </div>
+
+        {/* Value column */}
+        <div className="flex items-center gap-1.5">
+          <Sigma className="w-3.5 h-3.5 text-gray-400" />
+          <select value={valueCol} onChange={(e) => setValueCol(e.target.value)}
+            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+            <option value="">-- قيمة المحور --</option>
+            {numericCols.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Main chart */}
+      {chartData.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <p className="text-xs font-bold text-gray-600 mb-3">
+            {activeValueCol?.label} حسب {activeGroupCol?.label}
+          </p>
+          <ResponsiveContainer width="100%" height={240}>
+            {chartType === "pie" ? (
+              <RePieChart>
+                <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
+                  {chartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </RePieChart>
+            ) : chartType === "line" ? (
+              <LineChart data={chartData} margin={{ top:5, right:5, left:5, bottom:30 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
+                <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
+                <Tooltip content={<CustomTooltip />} />
+                <Line type="monotone" dataKey="value" stroke="#2d5d89" strokeWidth={2} dot={{ fill:"#2d5d89", r:4 }} />
+              </LineChart>
+            ) : chartType === "area" ? (
+              <AreaChart data={chartData} margin={{ top:5, right:5, left:5, bottom:30 }}>
+                <defs>
+                  <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#2d5d89" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#2d5d89" stopOpacity={0}   />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
+                <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="value" stroke="#2d5d89" fill="url(#areaGrad)" strokeWidth={2} />
+              </AreaChart>
+            ) : (
+              <BarChart data={chartData} margin={{ top:5, right:5, left:5, bottom:30 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
+                <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" radius={[6,6,0,0]}>
+                  {chartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Bar>
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Monthly trend chart (if date column exists) */}
+      {trendData.length > 1 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
+          <p className="text-xs font-bold text-gray-600 mb-3">
+            <Activity className="w-3.5 h-3.5 inline ml-1 text-[#2d5d89]" />
+            التطور الشهري — {activeValueCol?.label}
+          </p>
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={trendData} margin={{ top:5, right:5, left:5, bottom:5 }}>
+              <defs>
+                <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#0F9D58" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#0F9D58" stopOpacity={0}   />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" tick={{ fontSize:9 }} />
+              <YAxis tick={{ fontSize:9 }} width={55} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="value" stroke="#0F9D58" fill="url(#trendGrad)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {chartData.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+          <BarChart3 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+          <p className="text-sm text-gray-400">اختر عمود التجميع وعمود القيمة لعرض المخطط</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Quick Entry Panel ────────────────────────────────────────────────────────
+function QuickEntryPanel({ cols, onAdd, saving }) {
+  const [data,   setData]   = useState({});
+  const [count,  setCount]  = useState(0);
+  const toast = useToast();
+
+  const editableCols = cols.filter((c) => c.type !== "formula");
+
+  const submit = async () => {
+    const hasData = editableCols.some((c) => data[c.key]);
+    if (!hasData) { toast.error("أدخل بيانات في حقل واحد على الأقل"); return; }
+    await onAdd(data);
+    setData({});
+    setCount((n) => n + 1);
+    toast.success("تم الإضافة");
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-[#2d5d89]/5 to-white rounded-2xl border border-[#2d5d89]/20 p-4 space-y-3">
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg bg-[#2d5d89] flex items-center justify-center">
+          <Zap className="w-3.5 h-3.5 text-white" />
+        </div>
+        <span className="font-bold text-gray-900 text-sm">الإدخال السريع</span>
+        {count > 0 && (
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+            ✓ أُضيف {count}
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {editableCols.map((col) => (
+          <div key={col.key}>
+            <label className="block text-[10px] font-medium text-gray-500 mb-0.5">{col.label}</label>
+            {col.type === "select" ? (
+              <select
+                value={data[col.key] || ""}
+                onChange={(e) => setData({ ...data, [col.key]: e.target.value })}
+                className="w-full px-2.5 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+                <option value="">-- اختر --</option>
+                {(col.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ) : (
+              <input
+                type={["number","currency","percentage"].includes(col.type) ? "number" : col.type === "date" ? "date" : "text"}
+                value={data[col.key] || ""}
+                onChange={(e) => setData({ ...data, [col.key]: e.target.value })}
+                onKeyDown={(e) => e.key === "Enter" && submit()}
+                placeholder={col.label}
+                className="w-full px-2.5 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-end">
+        <button onClick={submit} disabled={saving}
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#2d5d89] hover:bg-[#245079] text-white rounded-xl text-sm font-medium disabled:opacity-50">
+          <Plus className="w-3.5 h-3.5" />
+          {saving ? "جاري الإضافة..." : "إضافة سطر (Enter ↵)"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Financial Templates ──────────────────────────────────────────────────────
+const FINANCIAL_TEMPLATES = [
+  {
+    id: "income_statement",
+    name: "قائمة الدخل",
+    icon: "📊",
+    columns: [
+      { key:"col1", label:"البيان",     type:"text",     width:200 },
+      { key:"col2", label:"الفئة",      type:"select",   width:140, options:["إيرادات","مصروفات","مصروفات إدارية","تكاليف"] },
+      { key:"col3", label:"المبلغ",     type:"currency", width:150 },
+      { key:"col4", label:"الشهر",      type:"select",   width:120, options:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"] },
+      { key:"col5", label:"السنة",      type:"number",   width:100 },
+      { key:"col6", label:"ملاحظات",    type:"text",     width:200 },
+    ],
+  },
+  {
+    id: "cashflow",
+    name: "التدفق النقدي",
+    icon: "💰",
+    columns: [
+      { key:"col1", label:"التاريخ",     type:"date",     width:140 },
+      { key:"col2", label:"البيان",      type:"text",     width:200 },
+      { key:"col3", label:"نوع الحركة", type:"select",   width:140, options:["وارد","صادر","تحويل"] },
+      { key:"col4", label:"المبلغ",      type:"currency", width:150 },
+      { key:"col5", label:"الرصيد",     type:"formula",  width:150, formula:"col4" },
+      { key:"col6", label:"طريقة الدفع",type:"select",   width:140, options:["نقدي","بنك","شيك","تحويل"] },
+      { key:"col7", label:"المرجع",      type:"text",     width:150 },
+    ],
+  },
+  {
+    id: "payroll",
+    name: "مسير الرواتب",
+    icon: "👥",
+    columns: [
+      { key:"col1", label:"الموظف",      type:"text",     width:180 },
+      { key:"col2", label:"الوظيفة",     type:"text",     width:150 },
+      { key:"col3", label:"الراتب الأساسي",type:"currency",width:150 },
+      { key:"col4", label:"البدلات",     type:"currency", width:130 },
+      { key:"col5", label:"الخصومات",    type:"currency", width:130 },
+      { key:"col6", label:"صافي الراتب",type:"formula",  width:150, formula:"col3 + col4 - col5" },
+      { key:"col7", label:"تاريخ الصرف",type:"date",     width:140 },
+    ],
+  },
+  {
+    id: "expenses",
+    name: "المصروفات اليومية",
+    icon: "🧾",
+    columns: [
+      { key:"col1", label:"التاريخ",     type:"date",     width:140 },
+      { key:"col2", label:"البند",       type:"text",     width:200 },
+      { key:"col3", label:"الفئة",       type:"select",   width:150, options:["مواصلات","طعام","كهرباء","ماء","هاتف","إنترنت","صيانة","متفرقات"] },
+      { key:"col4", label:"المبلغ",      type:"currency", width:150 },
+      { key:"col5", label:"المسؤول",     type:"text",     width:150 },
+      { key:"col6", label:"الفاتورة",    type:"text",     width:130 },
+    ],
+  },
+  {
+    id: "contracts",
+    name: "العقود والمبيعات",
+    icon: "📄",
+    columns: [
+      { key:"col1", label:"رقم العقد",   type:"text",     width:140 },
+      { key:"col2", label:"العميل",      type:"text",     width:180 },
+      { key:"col3", label:"المشروع",     type:"text",     width:180 },
+      { key:"col4", label:"قيمة العقد",  type:"currency", width:150 },
+      { key:"col5", label:"المدفوع",     type:"currency", width:150 },
+      { key:"col6", label:"المتبقي",     type:"formula",  width:150, formula:"col4 - col5" },
+      { key:"col7", label:"تاريخ التعاقد",type:"date",   width:140 },
+      { key:"col8", label:"الحالة",      type:"select",   width:130, options:["قيد التنفيذ","مكتمل","ملغي","متأخر"] },
+    ],
+  },
+  {
+    id: "inventory",
+    name: "المخزون والمشتريات",
+    icon: "📦",
+    columns: [
+      { key:"col1", label:"الصنف",       type:"text",     width:200 },
+      { key:"col2", label:"الكمية",      type:"number",   width:120 },
+      { key:"col3", label:"سعر الوحدة", type:"currency", width:150 },
+      { key:"col4", label:"الإجمالي",    type:"formula",  width:150, formula:"col2 * col3" },
+      { key:"col5", label:"المورد",      type:"text",     width:180 },
+      { key:"col6", label:"تاريخ الشراء",type:"date",    width:140 },
+      { key:"col7", label:"الحالة",      type:"select",   width:130, options:["متوفر","نفد","طلبية معلقة"] },
+    ],
+  },
+];
 
 // ─── Sheet Table ─────────────────────────────────────────────────────────────
 
@@ -615,7 +1111,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [addingRow, setAddingRow] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [activeTab, setActiveTab] = useState("table"); // "table" | "excel" | "audit" | "rates" | "ai"
+  const [activeTab, setActiveTab] = useState("table"); // "table" | "charts" | "quick" | "excel" | "rates" | "audit"
   const [statsOpen, setStatsOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
@@ -989,37 +1485,68 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
-      <div className="flex items-center gap-1 mb-3 border-b border-gray-200 pb-0 overflow-x-auto">
-        <button onClick={() => setActiveTab("table")}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "table" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}>
-          <Table2 className="w-3.5 h-3.5" /> البيانات
-        </button>
-        <button onClick={() => setActiveTab("rates")}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "rates" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}>
-          <BarChart3 className="w-3.5 h-3.5" /> معدلات
-        </button>
-        <button onClick={() => setActiveTab("excel")}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "excel" ? "border-emerald-600 text-emerald-700" : "border-transparent text-gray-500 hover:text-gray-700"
-          }`}>
-          <Grid3x3 className="w-3.5 h-3.5" /> وضع Excel
-        </button>
-        {isAdmin && (
-          <button onClick={() => setActiveTab("audit")}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === "audit" ? "border-[#2d5d89] text-[#2d5d89]" : "border-transparent text-gray-500 hover:text-gray-700"
+      <div className="flex items-center gap-0.5 mb-3 border-b border-gray-200 pb-0 overflow-x-auto">
+        {[
+          { id:"table",  label:"البيانات",       icon:Table2,      color:"text-[#2d5d89]",   border:"border-[#2d5d89]"  },
+          { id:"charts", label:"مخططات",         icon:BarChart3,   color:"text-purple-600",  border:"border-purple-600" },
+          { id:"quick",  label:"إدخال سريع",     icon:Zap,         color:"text-amber-600",   border:"border-amber-600"  },
+          { id:"rates",  label:"معدلات",          icon:Activity,    color:"text-[#2d5d89]",   border:"border-[#2d5d89]"  },
+          { id:"excel",  label:"سحابة / Excel",   icon:Grid3x3,     color:"text-emerald-700", border:"border-emerald-600"},
+          ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList, color:"text-gray-600", border:"border-gray-500" }] : []),
+        ].map(({ id, label, icon: Icon, color, border }) => (
+          <button key={id} onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === id ? `${border} ${color}` : "border-transparent text-gray-500 hover:text-gray-700"
             }`}>
-            <ClipboardList className="w-3.5 h-3.5" /> سجل العمليات
+            <Icon className="w-3.5 h-3.5" /> {label}
           </button>
-        )}
+        ))}
       </div>
 
       {activeTab === "audit" && isAdmin ? (
         <AuditLogPanel />
+      ) : activeTab === "charts" ? (
+        <div className="flex-1 overflow-auto">
+          <FinancialCharts rows={filteredRows} cols={allCols} />
+        </div>
+      ) : activeTab === "quick" ? (
+        <div className="space-y-4 overflow-auto">
+          <QuickEntryPanel
+            cols={allCols}
+            saving={saving}
+            onAdd={async (data) => {
+              setSaving(true);
+              try {
+                const res = await api.post(`/accounting/${ledgerId}/sheets/${sheet._id}/rows`, { cells: data });
+                setRows((prev) => [...prev, res.data.row]);
+              } catch { throw new Error("فشل الإضافة"); }
+              finally { setSaving(false); }
+            }}
+          />
+          {/* Also show table below quick entry */}
+          <div className="rounded-2xl border border-gray-200 overflow-auto max-h-[40vh]">
+            <table className="w-full min-w-max text-sm">
+              <thead className="sticky top-0 bg-[#2d5d89] text-white">
+                <tr>
+                  {cols.map((c) => (
+                    <th key={c.key} className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">{c.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRows.slice(-20).reverse().map((row, i) => (
+                  <tr key={row._id} className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
+                    {cols.map((c) => (
+                      <td key={c.key} className="px-3 py-1.5 text-xs text-gray-700 whitespace-nowrap">
+                        {formatCell(getDisplayCellValue(row, c), c.type) || "—"}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : activeTab === "rates" ? (
         <RatesPanel rows={filteredRows} cols={cols} />
       ) : activeTab === "excel" ? (

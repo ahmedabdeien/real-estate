@@ -1,55 +1,81 @@
 /**
- * SpreadsheetEditor — wrapper
- * Tab 1: جداول محلية  → HansoEditor (Handsontable, works offline, all file formats)
- * Tab 2: Google Sheets → iframe embed
+ * SpreadsheetEditor — Advanced Cloud Spreadsheet Hub
+ * ════════════════════════════════════════════════════
+ * Tab 1: جداول محلية   → HansoEditor (Handsontable, offline-first, all formats)
+ * Tab 2: Google Sheets  → iframe embed + open controls
+ * Tab 3: OneDrive       → Microsoft 365 Excel Online embed
+ * Tab 4: Dropbox        → Dropbox file preview
  */
 import { useState, lazy, Suspense } from "react";
-import { ExternalLink, Link2, X, Grid3x3, Globe } from "lucide-react";
+import {
+  ExternalLink, Link2, X, Grid3x3, Globe,
+  Cloud, RefreshCw, Check, Copy,
+  FolderOpen, Info,
+} from "lucide-react";
 import { useToast } from "../../context/ToastContext";
 
 const HansoEditor = lazy(() => import("./HansoEditor"));
 
-// ─── Google Sheets Pane ───────────────────────────────────────────────────────
-function GoogleSheetsPane({ storageKey }) {
-  const [url, setUrl]     = useState(() => localStorage.getItem(`${storageKey}_gsurl`) || "");
-  const [input, setInput] = useState("");
-  const [editing, setEditing] = useState(!url);
+// ─── Reusable cloud link pane ─────────────────────────────────────────────────
+function CloudPane({ provider, storageKey, buildEmbed, placeholder, icon: Icon, color, hint, steps }) {
   const toast = useToast();
-
-  const buildEmbedUrl = (raw) => {
-    if (!raw) return "";
-    try {
-      const u   = new URL(raw.trim());
-      const m   = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
-      if (!m) return raw;
-      const gid = u.hash.match(/gid=(\d+)/)?.[1] || "0";
-      return `https://docs.google.com/spreadsheets/d/${m[1]}/htmlview?usp=sharing&gid=${gid}&embedded=true`;
-    } catch { return raw; }
-  };
+  const [url,     setUrl]     = useState(() => localStorage.getItem(`${storageKey}_${provider}url`) || "");
+  const [input,   setInput]   = useState("");
+  const [editing, setEditing] = useState(!url);
+  const [copied,  setCopied]  = useState(false);
 
   const save = () => {
-    if (!input.trim()) { toast.error("أدخل رابط Google Sheets أولاً"); return; }
-    localStorage.setItem(`${storageKey}_gsurl`, input.trim());
-    setUrl(input.trim()); setEditing(false);
+    if (!input.trim()) { toast.error("أدخل الرابط أولاً"); return; }
+    localStorage.setItem(`${storageKey}_${provider}url`, input.trim());
+    setUrl(input.trim());
+    setEditing(false);
   };
 
+  const copyLink = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const embedUrl = buildEmbed ? buildEmbed(url) : url;
+
   if (editing) return (
-    <div className="flex flex-col items-center justify-center h-[62vh] gap-6 p-4">
+    <div className="flex flex-col items-center justify-center h-[62vh] gap-5 p-4">
       <div className="text-center">
-        <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <Globe className="w-8 h-8 text-green-600" />
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+          style={{ backgroundColor: color + "18" }}>
+          <Icon className="w-8 h-8" style={{ color }} />
         </div>
-        <h3 className="text-lg font-bold text-gray-900 mb-1">ربط Google Sheets</h3>
-        <p className="text-sm text-gray-500 max-w-sm">انسخ رابط ملف Google Sheets والصقه أدناه</p>
+        <h3 className="text-lg font-bold text-gray-900 mb-1">ربط {provider === "google" ? "Google Sheets" : provider === "onedrive" ? "OneDrive / Excel" : "Dropbox"}</h3>
+        <p className="text-sm text-gray-500 max-w-sm">{hint}</p>
       </div>
+
+      {steps && (
+        <div className="w-full max-w-md rounded-xl p-3 text-xs border"
+          style={{ backgroundColor: color + "0d", borderColor: color + "30", color }}>
+          <p className="font-bold mb-1.5 flex items-center gap-1">
+            <Info className="w-3.5 h-3.5" /> خطوات الربط:
+          </p>
+          <ol className="list-decimal list-inside space-y-0.5 opacity-80">
+            {steps.map((s, i) => <li key={i}>{s}</li>)}
+          </ol>
+        </div>
+      )}
+
       <div className="w-full max-w-md space-y-3">
-        <input value={input} onChange={(e) => setInput(e.target.value)}
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && save()}
-          placeholder="https://docs.google.com/spreadsheets/d/..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          placeholder={placeholder}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
           dir="ltr"
         />
-        <button onClick={save} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium text-sm">
+        <button
+          onClick={save}
+          className="w-full py-3 text-white rounded-xl font-medium text-sm transition-opacity hover:opacity-90"
+          style={{ backgroundColor: color }}>
           ربط الملف
         </button>
       </div>
@@ -58,51 +84,231 @@ function GoogleSheetsPane({ storageKey }) {
 
   return (
     <div className="flex flex-col h-[62vh]">
-      <div className="flex items-center gap-2 mb-2 px-1">
-        <div className="flex-1 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 overflow-hidden flex items-center gap-2">
-          <Globe className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-          <span className="text-xs text-green-700 truncate">{url}</span>
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 mb-2 px-1 flex-wrap">
+        <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium"
+          style={{ backgroundColor: color + "12", color }}>
+          <Check className="w-3 h-3" /> مرتبط
+        </span>
+        <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 overflow-hidden flex items-center gap-2">
+          <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
+          <span className="text-xs text-gray-500 truncate" dir="ltr">{url}</span>
         </div>
-        <button onClick={() => { setInput(url); setEditing(true); }} className="p-1.5 rounded-lg border hover:bg-gray-50"><Link2 className="w-3.5 h-3.5" /></button>
-        <a href={url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg border hover:bg-gray-50"><ExternalLink className="w-3.5 h-3.5" /></a>
-        <button onClick={() => { localStorage.removeItem(`${storageKey}_gsurl`); setUrl(""); setEditing(true); }} className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-400"><X className="w-3.5 h-3.5" /></button>
+        <button onClick={copyLink} title="نسخ الرابط" className="p-1.5 rounded-lg border hover:bg-gray-50">
+          {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-gray-500" />}
+        </button>
+        <button onClick={() => { setInput(url); setEditing(true); }} title="تغيير الرابط"
+          className="p-1.5 rounded-lg border hover:bg-gray-50"><Link2 className="w-3.5 h-3.5 text-gray-500" /></button>
+        <a href={url} target="_blank" rel="noopener noreferrer" title="فتح في تبويب جديد"
+          className="p-1.5 rounded-lg border hover:bg-gray-50"><ExternalLink className="w-3.5 h-3.5 text-gray-500" /></a>
+        <button
+          onClick={() => { localStorage.removeItem(`${storageKey}_${provider}url`); setUrl(""); setEditing(true); }}
+          title="إلغاء الربط"
+          className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-400">
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
-      <iframe src={buildEmbedUrl(url)} className="flex-1 w-full rounded-xl border border-gray-200"
-        title="Google Sheets" allowFullScreen
-        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox"
+
+      {/* Embedded frame */}
+      <iframe
+        src={embedUrl}
+        className="flex-1 w-full rounded-xl border border-gray-200 bg-white"
+        title={provider}
+        allowFullScreen
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox allow-modals"
       />
     </div>
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-export default function SpreadsheetEditor({ cols, rows, sheetId }) {
-  const [mode, setMode] = useState(
-    () => localStorage.getItem(`${sheetId}_spreadsheet_mode`) || "hanso"
+// ─── URL builders ─────────────────────────────────────────────────────────────
+function buildGoogleEmbed(raw) {
+  if (!raw) return "";
+  try {
+    const u = new URL(raw.trim());
+    const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+    if (!m) return raw;
+    const gid = u.hash.match(/gid=(\d+)/)?.[1] || "0";
+    return `https://docs.google.com/spreadsheets/d/${m[1]}/htmlview?usp=sharing&gid=${gid}&embedded=true`;
+  } catch { return raw; }
+}
+
+function buildOneDriveEmbed(raw) {
+  if (!raw) return raw;
+  // Already an embed iframe src
+  if (raw.includes("onedrive.live.com/embed") || raw.includes("sharepoint.com") && raw.includes("embed")) return raw;
+  // 1drv.ms share link → encode to embed
+  try {
+    const encoded = btoa(raw.trim()).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+    return `https://onedrive.live.com/embed?resid=${encoded}&authkey=&em=2&wdAllowInteractivity=True&wddownloadbutton=True`;
+  } catch { return raw; }
+}
+
+function buildDropboxEmbed(raw) {
+  if (!raw) return raw;
+  // Replace dl=0 with dl=0 (preview mode) — Dropbox doesn't allow embedding directly,
+  // so we show an info message and open button instead of iframe.
+  return raw.replace("?dl=1", "?dl=0").replace("&dl=1", "&dl=0");
+}
+
+// ─── Provider definitions ─────────────────────────────────────────────────────
+const PROVIDERS = [
+  {
+    id:    "local",
+    label: "جداول محلية",
+    icon:  Grid3x3,
+    color: "#2d5d89",
+    desc:  "تعمل بدون إنترنت — استيراد/تصدير جميع صيغ Excel وApple Numbers",
+  },
+  {
+    id:         "google",
+    label:      "Google Sheets",
+    icon:       Globe,
+    color:      "#0F9D58",
+    placeholder:"https://docs.google.com/spreadsheets/d/...",
+    buildEmbed: buildGoogleEmbed,
+    hint:       "انسخ رابط مشاركة ملف Google Sheets والصقه هنا",
+    steps: [
+      "افتح ملف Google Sheets",
+      "اضغط مشاركة (Share) في الأعلى",
+      "اختر 'أي شخص لديه الرابط يمكنه العرض'",
+      "انسخ الرابط والصقه هنا",
+    ],
+  },
+  {
+    id:         "onedrive",
+    label:      "OneDrive / Excel",
+    icon:       Cloud,
+    color:      "#0078D4",
+    placeholder:"https://1drv.ms/x/... أو رابط SharePoint",
+    buildEmbed: buildOneDriveEmbed,
+    hint:       "Microsoft Excel Online من OneDrive أو SharePoint",
+    steps: [
+      "افتح الملف في OneDrive أو SharePoint",
+      "اضغط 'مشاركة' ثم 'نسخ الرابط'",
+      "تأكد أن المشاركة مفتوحة للجمهور أو للمؤسسة",
+      "أو من Excel Online: ملف ← مشاركة ← تضمين",
+    ],
+  },
+  {
+    id:         "dropbox",
+    label:      "Dropbox",
+    icon:       FolderOpen,
+    color:      "#0061FF",
+    placeholder:"https://www.dropbox.com/s/...",
+    buildEmbed: buildDropboxEmbed,
+    hint:       "شارك ملف من Dropbox واعرضه هنا",
+    steps: [
+      "افتح Dropbox وانقر بالزر الأيمن على الملف",
+      "اختر 'نسخ الرابط' (Copy link)",
+      "تأكد أن الملف مشاركة 'يمكن لأي شخص بالرابط'",
+      "الصق الرابط أدناه",
+    ],
+  },
+];
+
+// ─── Dropbox special pane (can't embed, show preview + open button) ───────────
+function DropboxPane({ storageKey }) {
+  const toast = useToast();
+  const [url,     setUrl]     = useState(() => localStorage.getItem(`${storageKey}_dropboxurl`) || "");
+  const [input,   setInput]   = useState("");
+  const [editing, setEditing] = useState(!url);
+
+  const save = () => {
+    if (!input.trim()) { toast.error("أدخل رابط Dropbox"); return; }
+    localStorage.setItem(`${storageKey}_dropboxurl`, input.trim());
+    setUrl(input.trim());
+    setEditing(false);
+  };
+
+  const cfg = PROVIDERS.find((p) => p.id === "dropbox");
+
+  if (editing) return (
+    <CloudPane
+      key="dropbox-edit"
+      provider="dropbox"
+      storageKey={storageKey}
+      buildEmbed={buildDropboxEmbed}
+      placeholder={cfg.placeholder}
+      icon={cfg.icon}
+      color={cfg.color}
+      hint={cfg.hint}
+      steps={cfg.steps}
+    />
   );
-  const switchMode = (m) => { setMode(m); localStorage.setItem(`${sheetId}_spreadsheet_mode`, m); };
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Mode toggle */}
-      <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit" dir="rtl">
-        <button onClick={() => switchMode("hanso")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            mode === "hanso" ? "bg-white dark:bg-gray-700 text-[#2d5d89] shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-          <Grid3x3 className="w-3.5 h-3.5" />
-          جداول محلية
-        </button>
-        <button onClick={() => switchMode("google")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            mode === "google" ? "bg-white dark:bg-gray-700 text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
-          <Globe className="w-3.5 h-3.5" />
-          Google Sheets
+    <div className="flex flex-col h-[62vh] items-center justify-center gap-5">
+      <div className="w-20 h-20 rounded-3xl bg-blue-50 flex items-center justify-center">
+        <FolderOpen className="w-10 h-10 text-[#0061FF]" />
+      </div>
+      <div className="text-center">
+        <h3 className="font-bold text-gray-900 mb-1">ملف Dropbox مرتبط</h3>
+        <p className="text-sm text-gray-500 max-w-xs dir-ltr truncate">{url}</p>
+        <p className="text-xs text-gray-400 mt-2">Dropbox لا يدعم التضمين المباشر — استخدم الزر للفتح في تبويب</p>
+      </div>
+      <div className="flex gap-3">
+        <a href={url} target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#0061FF] text-white rounded-xl text-sm font-medium hover:bg-blue-700">
+          <ExternalLink className="w-4 h-4" /> فتح في Dropbox
+        </a>
+        <button onClick={() => { localStorage.removeItem(`${storageKey}_dropboxurl`); setUrl(""); setEditing(true); }}
+          className="px-4 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm hover:bg-red-50">
+          <X className="w-4 h-4" />
         </button>
       </div>
+    </div>
+  );
+}
 
-      {mode === "google" ? (
-        <GoogleSheetsPane storageKey={sheetId} />
-      ) : (
+// ─── Main Export ──────────────────────────────────────────────────────────────
+export default function SpreadsheetEditor({ cols, rows, sheetId }) {
+  const [mode, setMode] = useState(
+    () => localStorage.getItem(`${sheetId}_spreadsheet_mode`) || "local"
+  );
+  const switchMode = (m) => {
+    setMode(m);
+    localStorage.setItem(`${sheetId}_spreadsheet_mode`, m);
+  };
+
+  const active = PROVIDERS.find((p) => p.id === mode) || PROVIDERS[0];
+  const ActiveIcon = active.icon;
+
+  return (
+    <div className="flex flex-col gap-3" dir="rtl">
+      {/* ── Provider tabs ── */}
+      <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-2xl p-1.5 overflow-x-auto">
+        {PROVIDERS.map((p) => {
+          const Icon = p.icon;
+          const isActive = mode === p.id;
+          return (
+            <button
+              key={p.id}
+              onClick={() => switchMode(p.id)}
+              title={p.desc || p.label}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap flex-1 justify-center min-w-0 ${
+                isActive
+                  ? "bg-white dark:bg-gray-700 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              }`}
+              style={isActive ? { color: p.color } : {}}>
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">{p.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ── Description bar ── */}
+      {active.desc && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-gray-500 bg-gray-50 border border-gray-100">
+          <ActiveIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: active.color }} />
+          {active.desc}
+        </div>
+      )}
+
+      {/* ── Content ── */}
+      {mode === "local" ? (
         <Suspense fallback={
           <div className="flex items-center justify-center h-[60vh] rounded-2xl border border-gray-200 bg-gray-50">
             <div className="text-center">
@@ -113,6 +319,20 @@ export default function SpreadsheetEditor({ cols, rows, sheetId }) {
         }>
           <HansoEditor cols={cols} rows={rows} storageKey={sheetId} />
         </Suspense>
+      ) : mode === "dropbox" ? (
+        <DropboxPane storageKey={sheetId} />
+      ) : (
+        <CloudPane
+          key={mode}
+          provider={mode}
+          storageKey={sheetId}
+          buildEmbed={active.buildEmbed}
+          placeholder={active.placeholder}
+          icon={active.icon}
+          color={active.color}
+          hint={active.hint}
+          steps={active.steps}
+        />
       )}
     </div>
   );
