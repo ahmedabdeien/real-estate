@@ -6,39 +6,55 @@ import {
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
   CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
   Package, ShoppingCart, Scale, ShieldCheck, MessageCircle,
+  BarChart2, Layers, Search, Globe,
 } from "lucide-react";
 import LogoSvg from "../../assets/images/logo.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../api/axios";
 
-// Each nav item has a pageKey that maps to allowedPages in RoleConfig
+// ─── Nav items — grouped by section ──────────────────────────────────────────
 const navItems = [
-  { to: "/admin",                    label: "لوحة التحكم",      icon: LayoutDashboard, exact: true, pageKey: "dashboard" },
-  { to: "/admin/notifications",      label: "الإشعارات",         icon: Bell,            pageKey: "notifications" },
-  { to: "/admin/projects",           label: "المشاريع",          icon: Building2,       pageKey: "projects" },
-  { to: "/admin/units",              label: "الوحدات",           icon: Home,            pageKey: "units" },
-  { to: "/admin/leads",              label: "العملاء",           icon: TrendingUp,      pageKey: "leads" },
-  { to: "/admin/client-reg",         label: "تسجيل العملاء",     icon: UserPlus,        pageKey: "client-reg" },
-  { to: "/admin/blogs",              label: "المقالات",          icon: FileText,        pageKey: "blogs" },
-  { to: "/admin/tasks",              label: "المهام",            icon: CheckSquare,     pageKey: "tasks" },
-  { to: "/admin/accounting",            label: "الحسابات",              icon: Calculator,  pageKey: "accounting" },
-  { to: "/admin/accounting-beni-suef",         label: "حسابات فرع بني سويف",          icon: Calculator,  pageKey: "accounting-beni-suef" },
-  { to: "/admin/accounting-records",           label: "السجلات المحاسبية",             icon: BookOpen,    pageKey: "accounting-records" },
-  { to: "/admin/accounting-records-beni-suef", label: "سجلات فرع بني سويف",            icon: BookOpen,    pageKey: "accounting-records-beni-suef" },
-  { to: "/admin/warehouse",          label: "المخازن",           icon: Package,         pageKey: "warehouse" },
-  { to: "/admin/purchasing",         label: "المشتريات",         icon: ShoppingCart,    pageKey: "purchasing" },
-  { to: "/admin/legal",              label: "الشئون القانونية",  icon: Scale,           pageKey: "legal" },
-  { to: "/admin/content",            label: "المحتوى",           icon: Edit3,           pageKey: "content" },
-  { to: "/admin/media",              label: "المكتبة",           icon: Image,           pageKey: "media" },
-  { to: "/admin/careers",            label: "الوظائف",           icon: Briefcase,       pageKey: "careers" },
-  { to: "/admin/users",              label: "المستخدمين",        icon: Users,           pageKey: "users" },
-  { to: "/admin/whatsapp",           label: "إعداد الواتساب",    icon: MessageCircle,   pageKey: "roles" },
-  { to: "/admin/roles",              label: "إدارة الأدوار",     icon: ShieldCheck,     pageKey: "roles" },
-  { to: "/admin/activity",           label: "سجل النشاط",        icon: Activity,        pageKey: "activity" },
-  { to: "/admin/settings",           label: "الإعدادات",         icon: Settings,        pageKey: "settings" },
-  { to: "/admin/profile",            label: "الملف الشخصي",     icon: UserCircle,      pageKey: "profile" },
-  { to: "/admin/changelog",          label: "التحديثات",         icon: History,         pageKey: "changelog" },
+  // الرئيسية
+  { to: "/admin",               label: "لوحة التحكم",        icon: LayoutDashboard, exact: true, pageKey: "dashboard" },
+  { to: "/admin/notifications", label: "الإشعارات",           icon: Bell,            pageKey: "notifications" },
+  { to: "/admin/tasks",         label: "المهام",              icon: CheckSquare,     pageKey: "tasks" },
+
+  // المشاريع والوحدات
+  { to: "/admin/projects",      label: "المشاريع",            icon: Building2,       pageKey: "projects" },
+  { to: "/admin/units",         label: "الوحدات",             icon: Home,            pageKey: "units" },
+
+  // العملاء والمبيعات
+  { to: "/admin/leads",         label: "العملاء",             icon: TrendingUp,      pageKey: "leads" },
+  { to: "/admin/client-reg",    label: "تسجيل العملاء",       icon: UserPlus,        pageKey: "client-reg" },
+
+  // الحسابات
+  { to: "/admin/accounting",                  label: "الحسابات الرئيسية",    icon: Calculator,  pageKey: "accounting" },
+  { to: "/admin/accounting-beni-suef",        label: "حسابات بني سويف",      icon: Calculator,  pageKey: "accounting-beni-suef" },
+  { to: "/admin/accounting-records",          label: "السجلات المحاسبية",    icon: BookOpen,    pageKey: "accounting-records" },
+  { to: "/admin/accounting-records-beni-suef",label: "سجلات بني سويف",       icon: BookOpen,    pageKey: "accounting-records-beni-suef" },
+
+  // المخازن والمشتريات
+  { to: "/admin/warehouse",     label: "المخازن",             icon: Package,         pageKey: "warehouse" },
+  { to: "/admin/purchasing",    label: "المشتريات",           icon: ShoppingCart,    pageKey: "purchasing" },
+
+  // الشئون القانونية
+  { to: "/admin/legal",         label: "الشئون القانونية",    icon: Scale,           pageKey: "legal" },
+
+  // المحتوى والتسويق
+  { to: "/admin/blogs",         label: "المقالات",            icon: FileText,        pageKey: "blogs" },
+  { to: "/admin/content",       label: "المحتوى",             icon: Edit3,           pageKey: "content" },
+  { to: "/admin/media",         label: "مكتبة الصور",         icon: Image,           pageKey: "media" },
+  { to: "/admin/careers",       label: "الوظائف",             icon: Briefcase,       pageKey: "careers" },
+
+  // الإعدادات والنظام
+  { to: "/admin/whatsapp",      label: "الواتساب",            icon: MessageCircle,   pageKey: "whatsapp" },
+  { to: "/admin/users",         label: "المستخدمون",          icon: Users,           pageKey: "users" },
+  { to: "/admin/roles",         label: "إدارة الأدوار",       icon: ShieldCheck,     pageKey: "roles" },
+  { to: "/admin/activity",      label: "سجل النشاط",          icon: Activity,        pageKey: "activity" },
+  { to: "/admin/settings",      label: "الإعدادات",           icon: Settings,        pageKey: "settings" },
+  { to: "/admin/profile",       label: "الملف الشخصي",        icon: UserCircle,      pageKey: "profile" },
+  { to: "/admin/changelog",     label: "التحديثات",           icon: History,         pageKey: "changelog" },
 ];
 
 const canSee = (user, pageKey) => {

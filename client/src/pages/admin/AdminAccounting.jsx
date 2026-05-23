@@ -313,14 +313,19 @@ function SheetForm({ initial, onSave, onClose }) {
             </button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-1">
-            {FINANCIAL_TEMPLATES.map((tpl) => (
-              <button key={tpl.id} onClick={() => applyTemplate(tpl)}
-                className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-gray-100 hover:border-[#2d5d89] hover:bg-[#2d5d89]/5 transition-all text-right">
-                <span className="text-xl">{tpl.icon}</span>
-                <span className="text-xs font-bold text-gray-800">{tpl.name}</span>
-                <span className="text-[10px] text-gray-400">{tpl.columns.length} أعمدة</span>
-              </button>
-            ))}
+            {FINANCIAL_TEMPLATES.map((tpl) => {
+              const TplIcon = TEMPLATE_ICONS[tpl.id] || FileText;
+              return (
+                <button key={tpl.id} onClick={() => applyTemplate(tpl)}
+                  className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-gray-100 hover:border-[#2d5d89] hover:bg-[#2d5d89]/5 transition-all text-right">
+                  <div className="w-7 h-7 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center">
+                    <TplIcon className="w-3.5 h-3.5 text-[#2d5d89]" />
+                  </div>
+                  <span className="text-xs font-bold text-gray-800">{tpl.name}</span>
+                  <span className="text-[10px] text-gray-400">{tpl.columns.length} أعمدة</span>
+                </button>
+              );
+            })}
           </div>
           <div className="border-t border-gray-100 pt-3 mt-1">
             <p className="text-xs text-gray-400 text-center">أو أنشئ جدولاً مخصصاً من الصفر</p>
@@ -597,16 +602,6 @@ function LedgerSummary({ ledger }) {
   const barData  = sheetTotals.map((s) => ({ name: s.name, القيمة: s.total }));
   const pieData  = sheetTotals.filter((s) => s.total > 0);
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 px-3 py-2 text-xs" dir="rtl">
-        <p className="font-bold text-gray-800">{label}</p>
-        <p className="text-[#2d5d89]">{formatCell(payload[0]?.value, "currency")}</p>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-4 overflow-auto h-full pb-6">
       {/* KPI row */}
@@ -643,7 +638,7 @@ function LedgerSummary({ ledger }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-20} textAnchor="end" />
               <YAxis tick={{ fontSize:10 }} width={65} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip formatter={(v) => formatCell(v, "currency")} />
               <Bar dataKey="القيمة" radius={[6,6,0,0]}>
                 {barData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
               </Bar>
@@ -695,19 +690,36 @@ function LedgerSummary({ ledger }) {
 const CHART_COLORS = ["#2d5d89","#0F9D58","#F4B400","#DB4437","#9B59B6","#1ABC9C","#E67E22","#3498DB"];
 
 // ─── Financial Charts Panel ───────────────────────────────────────────────────
+const ChartTooltip = ({ active, payload, label, valueCol, cols }) => {
+  if (!active || !payload?.length) return null;
+  const col = cols?.find((c) => c.key === valueCol);
+  return (
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 px-3 py-2 text-xs" dir="rtl">
+      <p className="font-bold text-gray-800 mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }}>{col ? formatCell(p.value, col.type) : p.value}</p>
+      ))}
+    </div>
+  );
+};
+
 function FinancialCharts({ rows, cols }) {
-  const [chartType,    setChartType]    = useState("bar");
-  const [groupBy,      setGroupBy]      = useState(""); // column key to group by
-  const [valueCol,     setValueCol]     = useState(""); // numeric column key
+  const [chartType, setChartType] = useState("bar");
 
-  const numericCols = cols.filter((c) => ["currency","number","formula"].includes(c.type));
-  const textCols    = cols.filter((c) => c.type === "text" || c.type === "select" || c.type === "date");
+  // Initialize lazily from cols — no useEffect needed (avoids #185 infinite loop)
+  const numericCols = useMemo(() => cols.filter((c) => ["currency","number","formula"].includes(c.type)), [cols]);
+  const textCols    = useMemo(() => cols.filter((c) => ["text","select","date"].includes(c.type)),        [cols]);
 
-  // Auto-select first numeric & text cols
+  const [valueCol, setValueCol] = useState(() => cols.find((c) => ["currency","number","formula"].includes(c.type))?.key || "");
+  const [groupBy,  setGroupBy]  = useState(() => cols.find((c) => ["text","select","date"].includes(c.type))?.key  || "");
+
+  // Reset when cols structure changes (sheet switch)
+  const colKeys = cols.map((c) => c.key).join(",");
   useEffect(() => {
-    if (!valueCol && numericCols.length > 0) setValueCol(numericCols[0].key);
-    if (!groupBy  && textCols.length  > 0)  setGroupBy(textCols[0].key);
-  }, [cols]);
+    setValueCol((v) => cols.find((c) => c.key === v) ? v : (cols.find((c) => ["currency","number","formula"].includes(c.type))?.key || ""));
+    setGroupBy ((g) => cols.find((c) => c.key === g) ? g : (cols.find((c) => ["text","select","date"].includes(c.type))?.key    || ""));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colKeys]);
 
   const activeValueCol = cols.find((c) => c.key === valueCol);
   const activeGroupCol = cols.find((c) => c.key === groupBy);
@@ -769,19 +781,8 @@ function FinancialCharts({ rows, cols }) {
     return colStats(rows, activeValueCol);
   }, [rows, activeValueCol]);
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 px-3 py-2 text-xs" dir="rtl">
-        <p className="font-bold text-gray-800 mb-1">{label}</p>
-        {payload.map((p, i) => (
-          <p key={i} style={{ color: p.color }}>
-            {activeValueCol ? formatCell(p.value, activeValueCol.type) : p.value}
-          </p>
-        ))}
-      </div>
-    );
-  };
+  // tooltipProps passed to ChartTooltip via closure
+  const fmtVal = useCallback((v) => activeValueCol ? formatCell(v, activeValueCol.type) : v, [activeValueCol]);
 
   if (numericCols.length === 0) return (
     <div className="flex items-center justify-center h-60">
@@ -822,15 +823,16 @@ function FinancialCharts({ rows, cols }) {
         {/* Chart type */}
         <div className="flex gap-1 bg-white rounded-xl p-1 border border-gray-200">
           {[
-            { id:"bar",  label:"أعمدة",     icon:"▊" },
-            { id:"line", label:"خطي",       icon:"📈" },
-            { id:"area", label:"مساحي",     icon:"▲" },
-            { id:"pie",  label:"دائري",     icon:"◉" },
+            { id:"bar",  label:"أعمدة",  Icon: BarChart3  },
+            { id:"line", label:"خطي",    Icon: Activity   },
+            { id:"area", label:"مساحي",  Icon: TrendingUp },
+            { id:"pie",  label:"دائري",  Icon: PieChart   },
           ].map((t) => (
             <button key={t.id} onClick={() => setChartType(t.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 chartType === t.id ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}>
+              <t.Icon className="w-3 h-3" />
               {t.label}
             </button>
           ))}
@@ -869,14 +871,14 @@ function FinancialCharts({ rows, cols }) {
                 <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
                   {chartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip formatter={(v) => formatCell(v, "currency")} />
               </RePieChart>
             ) : chartType === "line" ? (
               <LineChart data={chartData} margin={{ top:5, right:5, left:5, bottom:30 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
                 <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip formatter={(v) => formatCell(v, "currency")} />
                 <Line type="monotone" dataKey="value" stroke="#2d5d89" strokeWidth={2} dot={{ fill:"#2d5d89", r:4 }} />
               </LineChart>
             ) : chartType === "area" ? (
@@ -890,7 +892,7 @@ function FinancialCharts({ rows, cols }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
                 <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip formatter={(v) => formatCell(v, "currency")} />
                 <Area type="monotone" dataKey="value" stroke="#2d5d89" fill="url(#areaGrad)" strokeWidth={2} />
               </AreaChart>
             ) : (
@@ -898,7 +900,7 @@ function FinancialCharts({ rows, cols }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
                 <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip formatter={(v) => formatCell(v, "currency")} />
                 <Bar dataKey="value" radius={[6,6,0,0]}>
                   {chartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                 </Bar>
@@ -926,7 +928,7 @@ function FinancialCharts({ rows, cols }) {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" tick={{ fontSize:9 }} />
               <YAxis tick={{ fontSize:9 }} width={55} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip formatter={(v) => formatCell(v, "currency")} />
               <Area type="monotone" dataKey="value" stroke="#0F9D58" fill="url(#trendGrad)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
@@ -969,7 +971,7 @@ function QuickEntryPanel({ cols, onAdd, saving }) {
         <span className="font-bold text-gray-900 text-sm">الإدخال السريع</span>
         {count > 0 && (
           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-            ✓ أُضيف {count}
+            تم إضافة {count}
           </span>
         )}
       </div>
@@ -1010,11 +1012,19 @@ function QuickEntryPanel({ cols, onAdd, saving }) {
 }
 
 // ─── Financial Templates ──────────────────────────────────────────────────────
+const TEMPLATE_ICONS = {
+  income_statement: BarChart3,
+  cashflow:         Wallet,
+  payroll:          Users,
+  expenses:         Receipt,
+  contracts:        FileText,
+  inventory:        Archive,
+};
+
 const FINANCIAL_TEMPLATES = [
   {
     id: "income_statement",
     name: "قائمة الدخل",
-    icon: "📊",
     columns: [
       { key:"col1", label:"البيان",     type:"text",     width:200 },
       { key:"col2", label:"الفئة",      type:"select",   width:140, options:["إيرادات","مصروفات","مصروفات إدارية","تكاليف"] },
@@ -1027,7 +1037,7 @@ const FINANCIAL_TEMPLATES = [
   {
     id: "cashflow",
     name: "التدفق النقدي",
-    icon: "💰",
+    
     columns: [
       { key:"col1", label:"التاريخ",     type:"date",     width:140 },
       { key:"col2", label:"البيان",      type:"text",     width:200 },
@@ -1041,7 +1051,7 @@ const FINANCIAL_TEMPLATES = [
   {
     id: "payroll",
     name: "مسير الرواتب",
-    icon: "👥",
+    
     columns: [
       { key:"col1", label:"الموظف",      type:"text",     width:180 },
       { key:"col2", label:"الوظيفة",     type:"text",     width:150 },
@@ -1055,7 +1065,7 @@ const FINANCIAL_TEMPLATES = [
   {
     id: "expenses",
     name: "المصروفات اليومية",
-    icon: "🧾",
+    
     columns: [
       { key:"col1", label:"التاريخ",     type:"date",     width:140 },
       { key:"col2", label:"البند",       type:"text",     width:200 },
@@ -1068,7 +1078,7 @@ const FINANCIAL_TEMPLATES = [
   {
     id: "contracts",
     name: "العقود والمبيعات",
-    icon: "📄",
+    
     columns: [
       { key:"col1", label:"رقم العقد",   type:"text",     width:140 },
       { key:"col2", label:"العميل",      type:"text",     width:180 },
@@ -1083,7 +1093,7 @@ const FINANCIAL_TEMPLATES = [
   {
     id: "inventory",
     name: "المخزون والمشتريات",
-    icon: "📦",
+    
     columns: [
       { key:"col1", label:"الصنف",       type:"text",     width:200 },
       { key:"col2", label:"الكمية",      type:"number",   width:120 },
@@ -2171,7 +2181,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
     {branchLabel && (
       <div className="px-4 pt-3 flex-shrink-0">
         <div className="flex items-center gap-2 bg-[#2d5d89]/10 border border-[#2d5d89]/20 rounded-xl px-4 py-2 mb-1">
-          <span className="text-lg">🏢</span>
+          <Building2 className="w-4 h-4 text-[#2d5d89]" />
           <span className="font-bold text-[#2d5d89] text-sm">{branchLabel}</span>
           <span className="text-gray-400 text-xs mr-auto">نظام الحسابات الخاص بالفرع</span>
         </div>

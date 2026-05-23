@@ -4,7 +4,7 @@ import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 
 const STATUS_INFO = {
-  connected:    { color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20",  border: "border-green-200 dark:border-green-800",  icon: <CheckCircle className="w-5 h-5 text-green-500" />, label: "متصل ✅" },
+  connected:    { color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20",  border: "border-green-200 dark:border-green-800",  icon: <CheckCircle className="w-5 h-5 text-green-500" />, label: "متصل" },
   qr_ready:     { color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20",    border: "border-blue-200 dark:border-blue-800",     icon: <Loader className="w-5 h-5 text-blue-500 animate-spin" />, label: "في انتظار مسح QR" },
   connecting:   { color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-900/20",  border: "border-amber-200 dark:border-amber-800",   icon: <Loader className="w-5 h-5 text-amber-500 animate-spin" />, label: "جارٍ الاتصال..." },
   disconnected: { color: "text-red-600",    bg: "bg-red-50 dark:bg-red-900/20",      border: "border-red-200 dark:border-red-800",       icon: <WifiOff className="w-5 h-5 text-red-500" />, label: "غير متصل" },
@@ -17,7 +17,7 @@ export default function AdminWhatsApp() {
   const [qr, setQr]                     = useState(null);
   const [loading, setLoading]           = useState(false);
   const [testPhone, setTestPhone]       = useState("");
-  const [testMsg, setTestMsg]           = useState("🏢 اختبار إشعار من الصرح للتطوير العقاري ✅");
+  const [testMsg, setTestMsg]           = useState("اختبار إشعار من الصرح للتطوير العقاري");
   const [sending, setSending]           = useState(false);
   const esRef = useRef(null);
 
@@ -28,7 +28,9 @@ export default function AdminWhatsApp() {
 
     const connectSSE = () => {
       if (esRef.current) esRef.current.close();
-      const url = `${import.meta.env.VITE_API_URL || ""}/api/whatsapp/events`;
+      // VITE_API_URL = "https://api.elsarh.co/api" — strip trailing /api to get base
+      const apiBase = (import.meta.env.VITE_API_URL || "/api").replace(/\/api\/?$/, "");
+      const url = `${apiBase}/api/whatsapp/events`;
       // SSE with cookie auth (credentials included)
       esRef.current = new EventSource(url, { withCredentials: true });
 
@@ -83,7 +85,7 @@ export default function AdminWhatsApp() {
     setSending(true);
     try {
       await api.post("/whatsapp/test", { phone: testPhone, message: testMsg });
-      toast.success("تم إرسال الرسالة بنجاح ✅");
+      toast.success("تم إرسال الرسالة بنجاح");
     } catch (err) {
       toast.error(err.response?.data?.message || "فشل الإرسال");
     } finally { setSending(false); }
@@ -185,7 +187,7 @@ export default function AdminWhatsApp() {
 
       {/* Info box */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 text-sm text-blue-800 dark:text-blue-300 space-y-1">
-        <p className="font-semibold">📱 كيف تعمل؟</p>
+        <p className="font-semibold">كيف تعمل؟</p>
         <p>• مجاني 100% — يستخدم واتساب الخاص بك</p>
         <p>• الإشعارات تُرسل تلقائياً عند: استفسار جديد، حجز وحدة، عقد جديد</p>
         <p>• الاتصال يُحفظ تلقائياً ويُعاد عند إعادة تشغيل الخادم</p>
