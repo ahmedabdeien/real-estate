@@ -1285,52 +1285,138 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     else setSelected(new Set(visibleIds));
   };
 
-  // ── Excel Import ──
+  // ── Smart column type detection ──────────────────────────────────────────
+  const detectColType = (colIndex, dataRows) => {
+    const samples = dataRows.slice(0, 80)
+      .map((r) => r[colIndex])
+      .filter((v) => v !== "" && v !== null && v !== undefined);
+    if (samples.length === 0) return "text";
+
+    const isDate = (v) => {
+      if (v instanceof Date) return true;
+      const s = String(v).trim();
+      return /^\d{1,4}[-/]\d{1,2}[-/]\d{1,4}$/.test(s) || /^\d{1,2}[./]\d{1,2}[./]\d{2,4}$/.test(s);
+    };
+    const isNum = (v) => {
+      if (typeof v === "number") return true;
+      const cleaned = String(v).replace(/[\s,،]/g, "").replace(/^-/, "");
+      return /^[\d.]+$/.test(cleaned) && !isNaN(parseFloat(cleaned));
+    };
+
+    const datePct = samples.filter(isDate).length / samples.length;
+    const numPct  = samples.filter(isNum).length  / samples.length;
+
+    if (datePct >= 0.7) return "date";
+    if (numPct  >= 0.8) {
+      const nums = samples.filter(isNum).map((v) => parseFloat(String(v).replace(/[\s,،]/g, "")));
+      const avg  = nums.reduce((a, b) => a + b, 0) / nums.length;
+      return avg > 500 ? "currency" : "number";
+    }
+    return "text";
+  };
+
+  // ── Excel / CSV / ODS Import ──────────────────────────────────────────────
   const handleExcelImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setImporting(true);
     try {
-      const buffer = await file.arrayBuffer();
-      const wb = XLSX.read(buffer);
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rawData = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-      if (rawData.length < 2) { toast.error("الملف فارغ أو لا يحتوي على بيانات"); return; }
+      const ext  = file.name.split(".").pop().toLowerCase();
+      const isCSV = ext === "csv" || ext === "tsv";
 
-      const headerRow = rawData[0];
-      // Build columns from header row — all text type
+      let wb;
+      if (isCSV) {
+        const text = await file.text();
+        wb = XLSX.read(text, { type: "string", FS: ext === "tsv" ? "\t" : "," });
+      } else {
+        const buffer = await file.arrayBuffer();
+        // cellDates:true converts numeric Excel dates to JS Date objects
+        // raw:false formats values; WTF:true handles malformed workbooks
+        wb = XLSX.read(new Uint8Array(buffer), {
+          type: "array",
+          cellDates: true,
+          cellNF: false,
+          raw: false,
+          WTF: false,
+          dense: false,
+        });
+      }
+
+      if (!wb || !wb.SheetNames?.length) {
+        toast.error("لا يمكن قراءة الملف — تأكد أنه ملف صالح غير محمي");
+        return;
+      }
+
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rawData = XLSX.utils.sheet_to_json(ws, {
+        header: 1,
+        defval: "",
+        blankrows: false,
+        dateNF: "yyyy-mm-dd",
+      });
+
+      // Skip leading empty rows
+      const firstDataIdx = rawData.findIndex((row) => row.some((c) => c !== ""));
+      if (firstDataIdx === -1 || rawData.length - firstDataIdx < 2) {
+        toast.error("الملف فارغ أو لا يحتوي على بيانات");
+        return;
+      }
+
+      const headerRow = rawData[firstDataIdx];
+      const dataRows  = rawData.slice(firstDataIdx + 1)
+        .filter((row) => row.some((c) => c !== "" && c !== null && c !== undefined));
+
+      if (dataRows.length === 0) { toast.error("لم يتم العثور على صفوف بيانات"); return; }
+
+      // Build columns with smart type detection
       const newColumns = headerRow.map((h, i) => ({
-        key: `col${i + 1}`,
-        label: String(h || `عمود ${i + 1}`),
-        type: "text",
-        width: 150,
+        key:   `col${i + 1}`,
+        label: String(h || "").trim() || `عمود ${i + 1}`,
+        type:  detectColType(i, dataRows),
+        width: Math.min(220, Math.max(100, String(h || "").length * 10 + 60)),
       }));
 
-      // Create new sheet with these columns
+      // Create new sheet
       const sheetRes = await api.post(`/accounting/${ledgerId}/sheets`, {
         name: file.name.replace(/\.[^.]+$/, ""),
         columns: newColumns,
       });
       const newSheet = sheetRes.data.sheet;
 
-      // Import rows
-      const dataRows = rawData.slice(1);
-      const importedRows = [];
+      // Insert rows — sequential with robust value serialization
+      let imported = 0;
       for (const row of dataRows) {
-        if (row.every((c) => c === "" || c === null || c === undefined)) continue;
         const cells = {};
-        newColumns.forEach((col, i) => { cells[col.key] = String(row[i] ?? ""); });
+        newColumns.forEach((col, i) => {
+          let val = row[i] ?? "";
+          if (val instanceof Date) {
+            // Format date as YYYY-MM-DD
+            val = val.toISOString().slice(0, 10);
+          } else if (typeof val === "boolean") {
+            val = val ? "نعم" : "لا";
+          } else {
+            val = String(val).trim();
+          }
+          cells[col.key] = val;
+        });
         try {
-          const rowRes = await api.post(`/accounting/${ledgerId}/sheets/${newSheet._id}/rows`, { cells });
-          importedRows.push(rowRes.data.row);
-        } catch {}
+          await api.post(`/accounting/${ledgerId}/sheets/${newSheet._id}/rows`, { cells });
+          imported++;
+        } catch { /* skip bad rows */ }
       }
 
-      toast.success(`تم استيراد ${importedRows.length} سطر من Excel`);
-      // Notify parent to reload
-      onUpdate && onUpdate({ ...newSheet, rows: importedRows });
+      toast.success(`تم استيراد ${imported} من ${dataRows.length} سطر من "${file.name}"`);
+      onUpdate && onUpdate({ ...newSheet, rows: [] });
     } catch (err) {
-      toast.error("فشل استيراد الملف");
+      console.error("[Excel Import]", err);
+      const msg = err?.message || "";
+      if (msg.includes("password") || msg.includes("encrypt")) {
+        toast.error("الملف محمي بكلمة مرور — قم بإزالتها أولاً");
+      } else if (msg.includes("CFB") || msg.includes("magic")) {
+        toast.error("صيغة الملف غير مدعومة أو تالف — جرب حفظه بصيغة .xlsx");
+      } else {
+        toast.error(`فشل استيراد الملف: ${msg || "تأكد أن الملف صالح وغير محمي"}`);
+      }
     } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -1685,8 +1771,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               </button>
               <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium cursor-pointer ${importing ? "opacity-50 pointer-events-none" : ""}`}>
                 <Upload className="w-3.5 h-3.5" />
-                {importing ? "جاري الاستيراد..." : "استيراد Excel"}
-                <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelImport} />
+                {importing ? "جاري الاستيراد..." : "استيراد ملف"}
+                <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv,.ods,.tsv,.numbers" className="hidden" onChange={handleExcelImport} />
               </label>
               <button onClick={() => setAddingRow(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">

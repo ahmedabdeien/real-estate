@@ -64,14 +64,18 @@ function CloudPane({ provider, storageKey, buildEmbed, placeholder, icon: Icon, 
       )}
 
       <div className="w-full max-w-md space-y-3">
-        <input
+        <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && save()}
+          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), save())}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          rows={3}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 font-mono resize-none"
           dir="ltr"
         />
+        <p className="text-[11px] text-gray-400 -mt-1">
+          يمكنك لصق رابط المشاركة المباشر أو كود iframe بالكامل
+        </p>
         <button
           onClick={save}
           className="w-full py-3 text-white rounded-xl font-medium text-sm transition-opacity hover:opacity-90"
@@ -124,24 +128,52 @@ function CloudPane({ provider, storageKey, buildEmbed, placeholder, icon: Icon, 
 // ─── URL builders ─────────────────────────────────────────────────────────────
 function buildGoogleEmbed(raw) {
   if (!raw) return "";
+  const s = raw.trim();
   try {
-    const u = new URL(raw.trim());
+    // If user pasted an iframe, extract src
+    const iframeSrc = s.match(/src="([^"]+)"/)?.[1];
+    if (iframeSrc) return iframeSrc;
+
+    const u = new URL(s);
     const m = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
-    if (!m) return raw;
-    const gid = u.hash.match(/gid=(\d+)/)?.[1] || "0";
-    return `https://docs.google.com/spreadsheets/d/${m[1]}/htmlview?usp=sharing&gid=${gid}&embedded=true`;
-  } catch { return raw; }
+    if (!m) return s;
+    const id  = m[1];
+    // Get gid from hash or search params
+    const gid = u.hash.match(/gid=(\d+)/)?.[1]
+              || u.searchParams.get("gid")
+              || "0";
+    // Use /preview for better iframe compatibility across accounts
+    return `https://docs.google.com/spreadsheets/d/${id}/preview?gid=${gid}&rm=minimal`;
+  } catch { return s; }
 }
 
 function buildOneDriveEmbed(raw) {
   if (!raw) return raw;
-  // Already an embed iframe src
-  if (raw.includes("onedrive.live.com/embed") || raw.includes("sharepoint.com") && raw.includes("embed")) return raw;
-  // 1drv.ms share link → encode to embed
-  try {
-    const encoded = btoa(raw.trim()).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
-    return `https://onedrive.live.com/embed?resid=${encoded}&authkey=&em=2&wdAllowInteractivity=True&wddownloadbutton=True`;
-  } catch { return raw; }
+  const s = raw.trim();
+
+  // If user pasted full iframe HTML — extract src
+  const iframeSrc = s.match(/src="([^"]+)"/)?.[1];
+  if (iframeSrc) return iframeSrc;
+
+  // Already a valid embed URL
+  if (s.includes("onedrive.live.com/embed") || s.includes("sharepoint.com") && s.includes("action=embedview")) return s;
+  if (s.includes("sharepoint.com") && s.includes("embed")) return s;
+
+  // SharePoint document URL → convert to embed view
+  if (s.includes("sharepoint.com") || s.includes("office.com")) {
+    try {
+      const u = new URL(s);
+      // Add embed action params if not already there
+      u.searchParams.set("action", "embedview");
+      u.searchParams.set("wdAllowInteractivity", "True");
+      return u.toString();
+    } catch { return s; }
+  }
+
+  // 1drv.ms short link or personal OneDrive sharing link
+  // These can't be directly embedded — we need the proper embed URL
+  // Return as-is and let the iframe try (may show "open in OneDrive" button)
+  return s;
 }
 
 function buildDropboxEmbed(raw) {
@@ -184,10 +216,10 @@ const PROVIDERS = [
     buildEmbed: buildOneDriveEmbed,
     hint:       "Microsoft Excel Online من OneDrive أو SharePoint",
     steps: [
-      "افتح الملف في OneDrive أو SharePoint",
-      "اضغط 'مشاركة' ثم 'نسخ الرابط'",
-      "تأكد أن المشاركة مفتوحة للجمهور أو للمؤسسة",
-      "أو من Excel Online: ملف ← مشاركة ← تضمين",
+      "افتح الملف في Excel Online (OneDrive أو SharePoint)",
+      "من القائمة: ملف ← مشاركة ← تضمين (Embed)",
+      "انسخ كود iframe كاملاً والصقه هنا",
+      "أو من SharePoint: انسخ رابط URL مباشرة",
     ],
   },
   {

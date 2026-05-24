@@ -435,6 +435,7 @@ export default function AdminTasks() {
                   <th className="text-right px-4 py-3 hidden md:table-cell">الأولوية</th>
                   <th className="text-right px-4 py-3 hidden lg:table-cell">المكلفون</th>
                   <th className="text-right px-4 py-3">الموعد</th>
+                  <th className="text-right px-4 py-3 hidden xl:table-cell">تاريخ الإنشاء</th>
                   <th className="text-right px-4 py-3">إجراءات</th>
                 </tr>
               </thead>
@@ -457,9 +458,14 @@ export default function AdminTasks() {
                       )}
                       {/* Title */}
                       <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900 dark:text-white">{task.title}</p>
+                        <p className="font-medium text-gray-900 dark:text-white leading-tight">{task.title}</p>
                         {task.description && (
-                          <p className="text-xs text-gray-400 truncate max-w-[200px]">{task.description}</p>
+                          <p className="text-xs text-gray-400 truncate max-w-[200px] mt-0.5">{task.description}</p>
+                        )}
+                        {task.createdAt && (
+                          <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-0.5 xl:hidden">
+                            أُنشئت {new Date(task.createdAt).toLocaleDateString("ar-EG", { month: "short", day: "numeric" })}
+                          </p>
                         )}
                       </td>
 
@@ -514,6 +520,22 @@ export default function AdminTasks() {
                             {new Date(task.dueDate).toLocaleDateString("ar-EG", { month: "short", day: "numeric" })}
                           </p>
                           <Countdown dueDate={task.dueDate} compact />
+                        </div>
+                      </td>
+
+                      {/* Created at */}
+                      <td className="px-4 py-3 hidden xl:table-cell">
+                        <div className="space-y-0.5">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                            {task.createdAt
+                              ? new Date(task.createdAt).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" })
+                              : "—"}
+                          </p>
+                          {task.createdAt && (
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                              {new Date(task.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          )}
                         </div>
                       </td>
 
