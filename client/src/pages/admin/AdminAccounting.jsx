@@ -1430,7 +1430,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       const sheetWord = sheetsToImport.length > 1 ? `${sheetsToImport.length} أوراق` : `"${sheetsToImport[0].name}"`;
       toast.success(`تم استيراد ${doneRows} سطر من ${sheetWord} بنجاح`);
       setImportModal(null);
-      onUpdate && onUpdate(null);
+      onUpdate && onUpdate("reload");
     } catch (err) {
       toast.error("فشل الاستيراد — " + (err?.response?.data?.message || err?.message || "حاول مرة أخرى"));
     } finally {
@@ -2601,9 +2601,14 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                     ledgerId={activeLedger._id}
                     sheet={activeSheet}
                     onUpdate={(updated) => {
+                      if (updated === "reload") {
+                        loadFullLedger(activeLedger._id);
+                        return;
+                      }
+                      if (!updated) return;
                       setFullLedger((prev) => ({
                         ...prev,
-                        sheets: [...(prev?.sheets || []), updated],
+                        sheets: [...(prev?.sheets || []).filter(Boolean), updated],
                       }));
                       setActiveSheet(updated);
                     }}
