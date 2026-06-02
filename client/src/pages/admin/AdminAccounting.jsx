@@ -2040,6 +2040,160 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         context="accounting"
         pageData={{ sheetName: sheet?.name, rowCount: filteredRows.length, cols: cols.map(c => c.label) }}
       />
+
+      {/* ── Excel Import Modal ── */}
+      <AnimatePresence>
+        {importModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={(e) => { if (e.target === e.currentTarget && !importing) setImportModal(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
+              dir="rtl"
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-l from-emerald-50 to-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                    <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-800 text-base">استيراد ملف Excel</h2>
+                    <p className="text-xs text-gray-400 truncate max-w-xs">{importModal.fileName}</p>
+                  </div>
+                </div>
+                <button onClick={() => !importing && setImportModal(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                {(() => {
+                  const totalRows = importModal.parsedSheets.reduce((s, p) => s + p.dataRows.length, 0);
+                  return (
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: "إجمالي الصفوف", value: totalRows.toLocaleString("ar-EG"), icon: "📊", color: "bg-blue-50 text-blue-700" },
+                        { label: "عدد الأوراق", value: importModal.parsedSheets.length, icon: "📋", color: "bg-purple-50 text-purple-700" },
+                        { label: "نوع الملف", value: importModal.fileName.split(".").pop().toUpperCase(), icon: "📁", color: "bg-emerald-50 text-emerald-700" },
+                      ].map((s) => (
+                        <div key={s.label} className={`rounded-xl p-3 ${s.color.split(" ")[0]}`}>
+                          <p className="text-lg mb-0.5">{s.icon}</p>
+                          <p className={`text-xl font-bold ${s.color.split(" ")[1]}`}>{s.value}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+                {importModal.parsedSheets.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-semibold text-gray-500">أوراق الملف ({importModal.parsedSheets.length})</p>
+                      <div className="flex gap-2">
+                        <button onClick={() => setImportModal((m) => ({ ...m, checkedSheets: new Set(m.parsedSheets.map((s) => s.name)) }))}
+                          className="text-[11px] text-emerald-600 hover:underline">تحديد الكل</button>
+                        <button onClick={() => setImportModal((m) => ({ ...m, checkedSheets: new Set() }))}
+                          className="text-[11px] text-gray-400 hover:underline">إلغاء الكل</button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      {importModal.parsedSheets.map((ps, idx) => {
+                        const checked = importModal.checkedSheets.has(ps.name);
+                        const isPreviewed = importModal.previewSheetIdx === idx;
+                        return (
+                          <div key={ps.name}
+                            className={`flex items-center gap-3 px-3 py-2 rounded-xl border cursor-pointer transition-all ${isPreviewed ? "border-emerald-400 bg-emerald-50" : "border-gray-200 hover:border-emerald-200 hover:bg-gray-50"}`}
+                            onClick={() => setImportModal((m) => ({ ...m, previewSheetIdx: idx }))}
+                          >
+                            <input type="checkbox" checked={checked}
+                              onChange={(e) => { e.stopPropagation(); setImportModal((m) => { const next = new Set(m.checkedSheets); checked ? next.delete(ps.name) : next.add(ps.name); return { ...m, checkedSheets: next }; }); }}
+                              className="accent-emerald-600 w-4 h-4 flex-shrink-0"
+                            />
+                            <FileSpreadsheet className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <span className="flex-1 text-sm font-medium text-gray-700 truncate">{ps.name}</span>
+                            <span className="text-xs text-gray-400">{ps.dataRows.length} صف</span>
+                            <span className="text-xs text-gray-400">{ps.columns.length} عمود</span>
+                            {isPreviewed && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">معاينة</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {importModal.parsedSheets.length === 1 && cols.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">وجهة الاستيراد</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: "new", label: "إنشاء جدول جديد", desc: "يُنشئ جدولاً جديداً في هذا السجل", icon: Plus },
+                        { id: "current", label: "إضافة للجدول الحالي", desc: `إضافة للجدول: ${sheet?.name}`, icon: Table2 },
+                      ].map(({ id, label, desc, icon: Icon }) => (
+                        <button key={id} onClick={() => setImportModal((m) => ({ ...m, mode: id }))}
+                          className={`flex items-start gap-3 p-3 rounded-xl border-2 text-right transition-all ${importModal.mode === id ? "border-emerald-500 bg-emerald-50" : "border-gray-200 hover:border-emerald-300"}`}>
+                          <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${importModal.mode === id ? "text-emerald-600" : "text-gray-400"}`} />
+                          <div>
+                            <p className={`text-xs font-semibold ${importModal.mode === id ? "text-emerald-700" : "text-gray-700"}`}>{label}</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(() => {
+                  const ps = importModal.parsedSheets[importModal.previewSheetIdx];
+                  if (!ps) return null;
+                  return (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-2">معاينة: <span className="text-emerald-600">{ps.name}</span> — أول {Math.min(6, ps.dataRows.length)} صفوف</p>
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {ps.columns.map((c) => (
+                          <span key={c.key} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-lg text-xs text-gray-700">
+                            {c.label}<span className="text-[10px] text-gray-400 bg-white px-1 rounded">{COLUMN_TYPES.find((t) => t.value === c.type)?.label || c.type}</span>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="overflow-x-auto rounded-xl border border-gray-200">
+                        <table className="text-xs w-max min-w-full">
+                          <thead className="bg-gray-50">
+                            <tr>{ps.headers.map((h, i) => <th key={i} className="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap border-b border-gray-200">{h || `عمود ${i+1}`}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {ps.dataRows.slice(0, 6).map((row, ri) => (
+                              <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                                {ps.headers.map((_, ci) => <td key={ci} className="px-3 py-1.5 text-gray-700 whitespace-nowrap border-b border-gray-100 max-w-[160px] truncate">{serializeCell(row[ci]) || <span className="text-gray-300">—</span>}</td>)}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      {ps.dataRows.length > 6 && <p className="text-[11px] text-gray-400 mt-1.5 text-center">... و {(ps.dataRows.length - 6).toLocaleString("ar-EG")} صف آخر</p>}
+                    </div>
+                  );
+                })()}
+                {importing && importProgress > 0 && (
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-500 mb-1"><span>جاري الاستيراد...</span><span>{importProgress}%</span></div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-emerald-500 h-2 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50">
+                <button onClick={() => !importing && setImportModal(null)} disabled={importing}
+                  className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50">إلغاء</button>
+                <button onClick={confirmImport} disabled={importing || importModal.checkedSheets.size === 0}
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors">
+                  {importing ? <><RefreshCw className="w-4 h-4 animate-spin" /> جاري الاستيراد...</> : <><FileSpreadsheet className="w-4 h-4" /> استيراد {importModal.checkedSheets.size} {importModal.checkedSheets.size === 1 ? "ورقة" : "أوراق"}</>}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -2461,213 +2615,6 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           </>
         )}
       </div>
-
-      {/* ── Excel Import Modal ── */}
-      <AnimatePresence>
-        {importModal && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            onClick={(e) => { if (e.target === e.currentTarget && !importing) setImportModal(null); }}
-          >
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
-              dir="rtl"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-l from-emerald-50 to-white">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-gray-800 text-base">استيراد ملف Excel</h2>
-                    <p className="text-xs text-gray-400 truncate max-w-xs">{importModal.fileName}</p>
-                  </div>
-                </div>
-                <button onClick={() => !importing && setImportModal(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-                {/* Stats */}
-                {(() => {
-                  const totalRows = importModal.parsedSheets.reduce((s, p) => s + p.dataRows.length, 0);
-                  return (
-                    <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { label: "إجمالي الصفوف", value: totalRows.toLocaleString("ar-EG"), icon: "📊", color: "bg-blue-50 text-blue-700" },
-                        { label: "عدد الأوراق", value: importModal.parsedSheets.length, icon: "📋", color: "bg-purple-50 text-purple-700" },
-                        { label: "نوع الملف", value: importModal.fileName.split(".").pop().toUpperCase(), icon: "📁", color: "bg-emerald-50 text-emerald-700" },
-                      ].map((s) => (
-                        <div key={s.label} className={`rounded-xl p-3 ${s.color.split(" ")[0]}`}>
-                          <p className="text-lg mb-0.5">{s.icon}</p>
-                          <p className={`text-xl font-bold ${s.color.split(" ")[1]}`}>{s.value}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {/* Workbook sheets selector */}
-                {importModal.parsedSheets.length > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-semibold text-gray-500">أوراق الملف ({importModal.parsedSheets.length})</p>
-                      <div className="flex gap-2">
-                        <button onClick={() => setImportModal((m) => ({ ...m, checkedSheets: new Set(m.parsedSheets.map((s) => s.name)) }))}
-                          className="text-[11px] text-emerald-600 hover:underline">تحديد الكل</button>
-                        <button onClick={() => setImportModal((m) => ({ ...m, checkedSheets: new Set() }))}
-                          className="text-[11px] text-gray-400 hover:underline">إلغاء الكل</button>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      {importModal.parsedSheets.map((ps, idx) => {
-                        const checked = importModal.checkedSheets.has(ps.name);
-                        const isPreviewed = importModal.previewSheetIdx === idx;
-                        return (
-                          <div key={ps.name}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-xl border cursor-pointer transition-all ${
-                              isPreviewed ? "border-emerald-400 bg-emerald-50" : "border-gray-200 hover:border-emerald-200 hover:bg-gray-50"
-                            }`}
-                            onClick={() => setImportModal((m) => ({ ...m, previewSheetIdx: idx }))}
-                          >
-                            <input type="checkbox" checked={checked}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                setImportModal((m) => {
-                                  const next = new Set(m.checkedSheets);
-                                  checked ? next.delete(ps.name) : next.add(ps.name);
-                                  return { ...m, checkedSheets: next };
-                                });
-                              }}
-                              className="accent-emerald-600 w-4 h-4 flex-shrink-0"
-                            />
-                            <FileSpreadsheet className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                            <span className="flex-1 text-sm font-medium text-gray-700 truncate">{ps.name}</span>
-                            <span className="text-xs text-gray-400">{ps.dataRows.length} صف</span>
-                            <span className="text-xs text-gray-400">{ps.columns.length} عمود</span>
-                            {isPreviewed && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">معاينة</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Import mode — only relevant when importing single sheet into current */}
-                {importModal.parsedSheets.length === 1 && cols.length > 0 && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 mb-2">وجهة الاستيراد</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { id: "new", label: "إنشاء جدول جديد", desc: "يُنشئ جدولاً جديداً في هذا السجل", icon: Plus },
-                        { id: "current", label: "إضافة للجدول الحالي", desc: `إضافة للجدول: ${sheet?.name}`, icon: Table2 },
-                      ].map(({ id, label, desc, icon: Icon }) => (
-                        <button key={id}
-                          onClick={() => setImportModal((m) => ({ ...m, mode: id }))}
-                          className={`flex items-start gap-3 p-3 rounded-xl border-2 text-right transition-all ${
-                            importModal.mode === id ? "border-emerald-500 bg-emerald-50" : "border-gray-200 hover:border-emerald-300"
-                          }`}
-                        >
-                          <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${importModal.mode === id ? "text-emerald-600" : "text-gray-400"}`} />
-                          <div>
-                            <p className={`text-xs font-semibold ${importModal.mode === id ? "text-emerald-700" : "text-gray-700"}`}>{label}</p>
-                            <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Preview of selected sheet */}
-                {(() => {
-                  const ps = importModal.parsedSheets[importModal.previewSheetIdx];
-                  if (!ps) return null;
-                  return (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 mb-2">
-                        معاينة: <span className="text-emerald-600">{ps.name}</span> — أول {Math.min(6, ps.dataRows.length)} صفوف
-                      </p>
-                      {/* Detected columns */}
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {ps.columns.map((c) => (
-                          <span key={c.key} className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-lg text-xs text-gray-700">
-                            {c.label}
-                            <span className="text-[10px] text-gray-400 bg-white px-1 rounded">{COLUMN_TYPES.find((t) => t.value === c.type)?.label || c.type}</span>
-                          </span>
-                        ))}
-                      </div>
-                      <div className="overflow-x-auto rounded-xl border border-gray-200">
-                        <table className="text-xs w-max min-w-full">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              {ps.headers.map((h, i) => (
-                                <th key={i} className="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap border-b border-gray-200">{h || `عمود ${i+1}`}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {ps.dataRows.slice(0, 6).map((row, ri) => (
-                              <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
-                                {ps.headers.map((_, ci) => (
-                                  <td key={ci} className="px-3 py-1.5 text-gray-700 whitespace-nowrap border-b border-gray-100 max-w-[160px] truncate">
-                                    {serializeCell(row[ci]) || <span className="text-gray-300">—</span>}
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {ps.dataRows.length > 6 && (
-                        <p className="text-[11px] text-gray-400 mt-1.5 text-center">... و {(ps.dataRows.length - 6).toLocaleString("ar-EG")} صف آخر</p>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {/* Progress bar */}
-                {importing && importProgress > 0 && (
-                  <div>
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>جاري الاستيراد...</span>
-                      <span>{importProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-emerald-500 h-2 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50">
-                <button onClick={() => !importing && setImportModal(null)} disabled={importing}
-                  className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50">
-                  إلغاء
-                </button>
-                <button onClick={confirmImport}
-                  disabled={importing || importModal.checkedSheets.size === 0}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors">
-                  {importing ? (
-                    <><RefreshCw className="w-4 h-4 animate-spin" /> جاري الاستيراد...</>
-                  ) : (
-                    <><FileSpreadsheet className="w-4 h-4" />
-                      استيراد {importModal.checkedSheets.size} {importModal.checkedSheets.size === 1 ? "ورقة" : "أوراق"}
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Modals ── */}
       <AnimatePresence>
