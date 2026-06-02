@@ -5,7 +5,7 @@ import { authenticate } from "../middleware/auth.js";
 import {
   getLedgers, getLedger, createLedger, updateLedger, deleteLedger,
   addSheet, updateSheet, deleteSheet,
-  addRow, updateRow, deleteRow, bulkDeleteRows, restoreRow,
+  addRow, updateRow, deleteRow, bulkDeleteRows, bulkImportRows, restoreRow,
   getAuditLog,
   getDeletedLedgers, restoreLedger, permanentDeleteLedger,
 } from "../controllers/accounting.controller.js";
@@ -77,6 +77,7 @@ router.delete("/:id/sheets/:sheetId",  deleteSheet);
 
 // ── Rows (bulk-delete MUST come before :rowId to avoid route conflict) ────────
 router.post("/:id/sheets/:sheetId/rows/bulk-delete",        bulkDeleteRows);
+router.post("/:id/sheets/:sheetId/rows/bulk-import",        bulkImportRows);
 router.post("/:id/sheets/:sheetId/rows",                    addRow);
 router.put("/:id/sheets/:sheetId/rows/:rowId/restore",      restoreRow);
 router.put("/:id/sheets/:sheetId/rows/:rowId",              updateRow);

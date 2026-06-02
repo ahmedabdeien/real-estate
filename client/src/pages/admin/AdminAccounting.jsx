@@ -1121,6 +1121,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [addingRow, setAddingRow] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0); // 0-100
+  const [importModal, setImportModal] = useState(null); // { fileName, headers, previewRows, allRows, columns, mode:"new"|"current" }
   const [activeTab, setActiveTab] = useState("table"); // "table" | "charts" | "quick" | "excel" | "rates" | "audit"
   const [statsOpen, setStatsOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
@@ -1315,111 +1317,123 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     return "text";
   };
 
-  // ── Excel / CSV / ODS Import ──────────────────────────────────────────────
+  // ── helper: serialise a raw cell value ──────────────────────────────────
+  const serializeCell = (val) => {
+    if (val == null) return "";
+    if (val instanceof Date) return val.toISOString().slice(0, 10);
+    if (typeof val === "boolean") return val ? "نعم" : "لا";
+    return String(val).trim();
+  };
+
+  // ── Excel / CSV / ODS Import — step 1: parse + show preview modal ────────
   const handleExcelImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setImporting(true);
     try {
-      const ext  = file.name.split(".").pop().toLowerCase();
+      const ext   = file.name.split(".").pop().toLowerCase();
       const isCSV = ext === "csv" || ext === "tsv";
-
       let wb;
       if (isCSV) {
         const text = await file.text();
         wb = XLSX.read(text, { type: "string", FS: ext === "tsv" ? "\t" : "," });
       } else {
-        const buffer = await file.arrayBuffer();
-        // cellDates:true converts numeric Excel dates to JS Date objects
-        // raw:false formats values; WTF:true handles malformed workbooks
-        wb = XLSX.read(new Uint8Array(buffer), {
-          type: "array",
-          cellDates: true,
-          cellNF: false,
-          raw: false,
-          WTF: false,
-          dense: false,
+        const buf = await file.arrayBuffer();
+        wb = XLSX.read(new Uint8Array(buf), {
+          type: "array", cellDates: true, cellNF: false, raw: false, WTF: false, dense: false,
         });
       }
+      if (!wb?.SheetNames?.length) { toast.error("لا يمكن قراءة الملف — تأكد أنه صالح وغير محمي"); return; }
 
-      if (!wb || !wb.SheetNames?.length) {
-        toast.error("لا يمكن قراءة الملف — تأكد أنه ملف صالح غير محمي");
-        return;
+      // Pick sheet with most data among all workbook sheets
+      let bestWs = null, bestCount = 0;
+      for (const sn of wb.SheetNames) {
+        const ws = wb.Sheets[sn];
+        const ref = ws["!ref"];
+        if (!ref) continue;
+        const range = XLSX.utils.decode_range(ref);
+        const count = (range.e.r - range.s.r + 1) * (range.e.c - range.s.c + 1);
+        if (count > bestCount) { bestCount = count; bestWs = ws; }
       }
+      if (!bestWs) { toast.error("الملف فارغ أو لا يحتوي على بيانات"); return; }
 
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rawData = XLSX.utils.sheet_to_json(ws, {
-        header: 1,
-        defval: "",
-        blankrows: false,
-        dateNF: "yyyy-mm-dd",
-      });
-
-      // Skip leading empty rows
+      const rawData = XLSX.utils.sheet_to_json(bestWs, { header: 1, defval: "", blankrows: false, dateNF: "yyyy-mm-dd" });
       const firstDataIdx = rawData.findIndex((row) => row.some((c) => c !== ""));
-      if (firstDataIdx === -1 || rawData.length - firstDataIdx < 2) {
-        toast.error("الملف فارغ أو لا يحتوي على بيانات");
-        return;
-      }
+      if (firstDataIdx === -1 || rawData.length - firstDataIdx < 2) { toast.error("الملف فارغ أو لا يحتوي على بيانات"); return; }
 
       const headerRow = rawData[firstDataIdx];
-      const dataRows  = rawData.slice(firstDataIdx + 1)
-        .filter((row) => row.some((c) => c !== "" && c !== null && c !== undefined));
-
+      const dataRows  = rawData.slice(firstDataIdx + 1).filter((row) => row.some((c) => c !== "" && c !== null && c !== undefined));
       if (dataRows.length === 0) { toast.error("لم يتم العثور على صفوف بيانات"); return; }
 
-      // Build columns with smart type detection
-      const newColumns = headerRow.map((h, i) => ({
+      const detectedColumns = headerRow.map((h, i) => ({
         key:   `col${i + 1}`,
         label: String(h || "").trim() || `عمود ${i + 1}`,
         type:  detectColType(i, dataRows),
         width: Math.min(220, Math.max(100, String(h || "").length * 10 + 60)),
       }));
 
-      // Create new sheet
-      const sheetRes = await api.post(`/accounting/${ledgerId}/sheets`, {
-        name: file.name.replace(/\.[^.]+$/, ""),
-        columns: newColumns,
+      setImportModal({
+        fileName:    file.name,
+        headers:     headerRow.map((h) => String(h || "").trim()),
+        previewRows: dataRows.slice(0, 6),
+        allRows:     dataRows,
+        columns:     detectedColumns,
+        mode:        "new",      // "new" | "current"
+        sheetName:   file.name.replace(/\.[^.]+$/, ""),
+        workbookSheets: wb.SheetNames,
+        selectedSheetIdx: 0,
+        wb,
       });
-      const newSheet = sheetRes.data.sheet;
-
-      // Insert rows — sequential with robust value serialization
-      let imported = 0;
-      for (const row of dataRows) {
-        const cells = {};
-        newColumns.forEach((col, i) => {
-          let val = row[i] ?? "";
-          if (val instanceof Date) {
-            // Format date as YYYY-MM-DD
-            val = val.toISOString().slice(0, 10);
-          } else if (typeof val === "boolean") {
-            val = val ? "نعم" : "لا";
-          } else {
-            val = String(val).trim();
-          }
-          cells[col.key] = val;
-        });
-        try {
-          await api.post(`/accounting/${ledgerId}/sheets/${newSheet._id}/rows`, { cells });
-          imported++;
-        } catch { /* skip bad rows */ }
-      }
-
-      toast.success(`تم استيراد ${imported} من ${dataRows.length} سطر من "${file.name}"`);
-      onUpdate && onUpdate({ ...newSheet, rows: [] });
     } catch (err) {
-      console.error("[Excel Import]", err);
       const msg = err?.message || "";
-      if (msg.includes("password") || msg.includes("encrypt")) {
-        toast.error("الملف محمي بكلمة مرور — قم بإزالتها أولاً");
-      } else if (msg.includes("CFB") || msg.includes("magic")) {
-        toast.error("صيغة الملف غير مدعومة أو تالف — جرب حفظه بصيغة .xlsx");
-      } else {
-        toast.error(`فشل استيراد الملف: ${msg || "تأكد أن الملف صالح وغير محمي"}`);
-      }
+      if (msg.includes("password") || msg.includes("encrypt")) toast.error("الملف محمي بكلمة مرور — قم بإزالتها أولاً");
+      else if (msg.includes("CFB") || msg.includes("magic")) toast.error("صيغة الملف غير مدعومة — جرب حفظه بصيغة .xlsx");
+      else toast.error(`فشل قراءة الملف: ${msg || "تأكد أن الملف صالح"}`);
     } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // ── Import — step 2: confirm & bulk-send to API ──────────────────────────
+  const confirmImport = async () => {
+    if (!importModal) return;
+    const { allRows, columns, mode, sheetName } = importModal;
+    setImporting(true);
+    setImportProgress(0);
+    try {
+      let targetSheetId = sheet?._id;
+
+      if (mode === "new") {
+        const sheetRes = await api.post(`/accounting/${ledgerId}/sheets`, { name: sheetName, columns });
+        targetSheetId = sheetRes.data.sheet._id;
+      }
+
+      // Build all rows payload
+      const rowsPayload = allRows.map((row) => {
+        const cells = {};
+        columns.forEach((col, i) => { cells[col.key] = serializeCell(row[i]); });
+        return { cells };
+      });
+
+      // Chunked bulk import (max 1000 per request to avoid timeouts)
+      const CHUNK = 1000;
+      let done = 0;
+      for (let start = 0; start < rowsPayload.length; start += CHUNK) {
+        const chunk = rowsPayload.slice(start, start + CHUNK);
+        await api.post(`/accounting/${ledgerId}/sheets/${targetSheetId}/rows/bulk-import`, { rows: chunk });
+        done += chunk.length;
+        setImportProgress(Math.round((done / rowsPayload.length) * 100));
+      }
+
+      toast.success(`تم استيراد ${done} سطر من "${importModal.fileName}" بنجاح`);
+      setImportModal(null);
+      onUpdate && onUpdate(null);
+    } catch (err) {
+      toast.error("فشل الاستيراد — " + (err?.response?.data?.message || err?.message || "حاول مرة أخرى"));
+    } finally {
+      setImporting(false);
+      setImportProgress(0);
     }
   };
 
@@ -2445,6 +2459,177 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           </>
         )}
       </div>
+
+      {/* ── Excel Import Modal ── */}
+      <AnimatePresence>
+        {importModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={(e) => { if (e.target === e.currentTarget && !importing) setImportModal(null); }}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden"
+              dir="rtl"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-l from-emerald-50 to-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                    <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-800 text-base">استيراد ملف Excel</h2>
+                    <p className="text-xs text-gray-400 truncate max-w-xs">{importModal.fileName}</p>
+                  </div>
+                </div>
+                <button onClick={() => !importing && setImportModal(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "عدد الصفوف", value: importModal.allRows.length.toLocaleString("ar-EG"), icon: "📊", color: "bg-blue-50 text-blue-700" },
+                    { label: "عدد الأعمدة", value: importModal.columns.length, icon: "📋", color: "bg-purple-50 text-purple-700" },
+                    { label: "نوع الملف", value: importModal.fileName.split(".").pop().toUpperCase(), icon: "📁", color: "bg-emerald-50 text-emerald-700" },
+                  ].map((s) => (
+                    <div key={s.label} className={`rounded-xl p-3 ${s.color.split(" ")[0]}`}>
+                      <p className="text-lg mb-0.5">{s.icon}</p>
+                      <p className={`text-xl font-bold ${s.color.split(" ")[1]}`}>{s.value}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Import mode */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">وجهة الاستيراد</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: "new", label: "إنشاء جدول جديد", desc: "يُنشئ جدولاً جديداً في هذا السجل", icon: Plus },
+                      { id: "current", label: "إضافة للجدول الحالي", desc: cols.length ? `إضافة للجدول: ${sheet?.name}` : "لا يوجد جدول مفتوح", icon: Table2, disabled: !cols.length },
+                    ].map(({ id, label, desc, icon: Icon, disabled }) => (
+                      <button
+                        key={id}
+                        disabled={disabled}
+                        onClick={() => !disabled && setImportModal((m) => ({ ...m, mode: id }))}
+                        className={`flex items-start gap-3 p-3 rounded-xl border-2 text-right transition-all ${
+                          importModal.mode === id
+                            ? "border-emerald-500 bg-emerald-50"
+                            : disabled
+                            ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                            : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50"
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${importModal.mode === id ? "text-emerald-600" : "text-gray-400"}`} />
+                        <div>
+                          <p className={`text-xs font-semibold ${importModal.mode === id ? "text-emerald-700" : "text-gray-700"}`}>{label}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">{desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {importModal.mode === "new" && (
+                    <div className="mt-3">
+                      <label className="text-xs text-gray-500 mb-1 block">اسم الجدول الجديد</label>
+                      <input
+                        value={importModal.sheetName}
+                        onChange={(e) => setImportModal((m) => ({ ...m, sheetName: e.target.value }))}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        placeholder="اسم الجدول..."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Detected columns */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">الأعمدة المكتشفة تلقائياً</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {importModal.columns.map((c) => (
+                      <span key={c.key} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 rounded-lg text-xs text-gray-700">
+                        <span>{c.label}</span>
+                        <span className="text-[10px] text-gray-400 bg-white px-1 rounded">{COLUMN_TYPES.find((t) => t.value === c.type)?.label || c.type}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preview table */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">معاينة البيانات (أول {Math.min(6, importModal.previewRows.length)} صفوف)</p>
+                  <div className="overflow-x-auto rounded-xl border border-gray-200">
+                    <table className="text-xs w-max min-w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {importModal.headers.map((h, i) => (
+                            <th key={i} className="px-3 py-2 text-right font-semibold text-gray-600 whitespace-nowrap border-b border-gray-200">{h || `عمود ${i+1}`}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importModal.previewRows.map((row, ri) => (
+                          <tr key={ri} className={ri % 2 === 0 ? "bg-white" : "bg-gray-50/50"}>
+                            {importModal.headers.map((_, ci) => (
+                              <td key={ci} className="px-3 py-1.5 text-gray-700 whitespace-nowrap border-b border-gray-100 max-w-[160px] truncate">
+                                {serializeCell(row[ci]) || <span className="text-gray-300">—</span>}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {importModal.allRows.length > 6 && (
+                    <p className="text-[11px] text-gray-400 mt-1.5 text-center">... و {(importModal.allRows.length - 6).toLocaleString("ar-EG")} صف آخر</p>
+                  )}
+                </div>
+
+                {/* Progress bar */}
+                {importing && importProgress > 0 && (
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>جاري الاستيراد...</span>
+                      <span>{importProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-emerald-500 h-2 rounded-full transition-all duration-300" style={{ width: `${importProgress}%` }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50">
+                <button
+                  onClick={() => !importing && setImportModal(null)}
+                  disabled={importing}
+                  className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={confirmImport}
+                  disabled={importing || (importModal.mode === "new" && !importModal.sheetName?.trim())}
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors"
+                >
+                  {importing ? (
+                    <><RefreshCw className="w-4 h-4 animate-spin" /> جاري الاستيراد...</>
+                  ) : (
+                    <><FileSpreadsheet className="w-4 h-4" /> استيراد {importModal.allRows.length.toLocaleString("ar-EG")} سطر</>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Modals ── */}
       <AnimatePresence>

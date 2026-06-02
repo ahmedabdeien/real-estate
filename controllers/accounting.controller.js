@@ -351,6 +351,41 @@ export const restoreRow = async (req, res) => {
   }
 };
 
+export const bulkImportRows = async (req, res) => {
+  try {
+    if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
+    const { rows } = req.body;
+    if (!Array.isArray(rows) || rows.length === 0)
+      return res.status(400).json({ success: false, message: "لا توجد صفوف للاستيراد" });
+    if (rows.length > 5000)
+      return res.status(400).json({ success: false, message: "الحد الأقصى 5000 سطر في الاستيراد الواحد" });
+
+    const ledger = await Ledger.findById(req.params.id);
+    if (!ledger) return res.status(404).json({ success: false, message: "السجل غير موجود" });
+    const sheet = ledger.sheets.id(req.params.sheetId);
+    if (!sheet) return res.status(404).json({ success: false, message: "الجدول غير موجود" });
+
+    const newRows = rows.map((r, i) => ({
+      cells: new Map(Object.entries(r.cells || {})),
+      order: sheet.rows.length + i,
+    }));
+    sheet.rows.push(...newRows);
+    await ledger.save();
+
+    await logActivity({
+      user: req.user._id,
+      action: "create",
+      entityId: ledger._id.toString(),
+      entityName: `استيراد إلى ${sheet.name}`,
+      details: `تم استيراد ${newRows.length} سطر إلى جدول "${sheet.name}" في السجل "${ledger.name}"`,
+      ip: getIp(req),
+    });
+    res.status(201).json({ success: true, imported: newRows.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "فشل الاستيراد" });
+  }
+};
+
 export const bulkDeleteRows = async (req, res) => {
   try {
     if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
