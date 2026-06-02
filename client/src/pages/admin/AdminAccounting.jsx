@@ -1596,19 +1596,21 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Tab bar */}
-      <div className="flex items-center gap-0.5 mb-3 border-b border-gray-200 pb-0 overflow-x-auto">
+      {/* Tab bar — Excel-style */}
+      <div className="flex items-end gap-0 border-b-2 border-gray-200 overflow-x-auto flex-shrink-0 bg-gray-50 px-2 pt-1">
         {[
-          { id:"table",  label:"البيانات",       icon:Table2,      color:"text-[#2d5d89]",   border:"border-[#2d5d89]"  },
-          { id:"charts", label:"مخططات",         icon:BarChart3,   color:"text-purple-600",  border:"border-purple-600" },
-          { id:"quick",  label:"إدخال سريع",     icon:Zap,         color:"text-amber-600",   border:"border-amber-600"  },
-          { id:"rates",  label:"معدلات",          icon:Activity,    color:"text-[#2d5d89]",   border:"border-[#2d5d89]"  },
-          { id:"excel",  label:"سحابة / Excel",   icon:Grid3x3,     color:"text-emerald-700", border:"border-emerald-600"},
-          ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList, color:"text-gray-600", border:"border-gray-500" }] : []),
-        ].map(({ id, label, icon: Icon, color, border }) => (
+          { id:"table",  label:"البيانات",       icon:Table2,      activeColor:"text-[#2d5d89]",   activeBorder:"border-[#2d5d89]",   activeBg:"bg-white"  },
+          { id:"charts", label:"مخططات",         icon:BarChart3,   activeColor:"text-purple-700",  activeBorder:"border-purple-600",  activeBg:"bg-white" },
+          { id:"quick",  label:"إدخال سريع",     icon:Zap,         activeColor:"text-amber-700",   activeBorder:"border-amber-500",   activeBg:"bg-white"  },
+          { id:"rates",  label:"معدلات",          icon:Activity,    activeColor:"text-[#2d5d89]",   activeBorder:"border-[#2d5d89]",   activeBg:"bg-white"  },
+          { id:"excel",  label:"سحابة / Excel",   icon:Grid3x3,     activeColor:"text-emerald-700", activeBorder:"border-emerald-600", activeBg:"bg-white"  },
+          ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList, activeColor:"text-gray-700", activeBorder:"border-gray-500", activeBg:"bg-white" }] : []),
+        ].map(({ id, label, icon: Icon, activeColor, activeBorder, activeBg }) => (
           <button key={id} onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === id ? `${border} ${color}` : "border-transparent text-gray-500 hover:text-gray-700"
+            className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-t-2 border-x border-b-0 rounded-t-md transition-all whitespace-nowrap select-none -mb-px ${
+              activeTab === id
+                ? `${activeBorder} border-x-gray-200 ${activeBg} ${activeColor} shadow-sm`
+                : "border-transparent bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
             }`}>
             <Icon className="w-3.5 h-3.5" /> {label}
           </button>
@@ -1703,53 +1705,103 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             )}
           </div>
 
-          {/* Toolbar */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            <span className="text-sm text-gray-500">{filteredRows.length} / {activeRows.length} سطر</span>
-            {isAdmin && rows.some(r => r.isDeleted) && (
-              <button onClick={() => setShowDeletedRows(p => !p)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
-                  showDeletedRows
-                    ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
-                    : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-                }`}>
-                <Trash2 className="w-3.5 h-3.5" />
-                {showDeletedRows ? "عرض النشطة" : `الصفوف المحذوفة (${rows.filter(r => r.isDeleted).length})`}
-              </button>
-            )}
-            {selected.size > 0 && (
-              <span className="text-sm font-medium text-[#2d5d89]">({selected.size} محدد)</span>
-            )}
-            <div className="relative flex-1 min-w-40 max-w-xs">
-              <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-              <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
-                placeholder="فلتر سريع..."
-                className="w-full pr-8 pl-2 py-1.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-            </div>
-            <div className="mr-auto flex items-center gap-2 flex-wrap">
+          {/* Toolbar — Excel ribbon style */}
+          <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5 flex items-center gap-1 flex-wrap mb-2">
+            {/* Group 1: Search + row count */}
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
+                  placeholder="بحث سريع..."
+                  className="w-44 pr-8 pl-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d5d89] focus:border-[#2d5d89]" />
+              </div>
+              <span className="text-xs text-gray-400 whitespace-nowrap font-medium bg-white border border-gray-200 px-2 py-1 rounded-lg">
+                {filteredRows.length} / {activeRows.length} سطر
+              </span>
               {selected.size > 0 && (
-                <button onClick={() => setConfirmBulk(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium">
-                  <Trash2 className="w-3.5 h-3.5" /> حذف المحدد ({selected.size})
+                <span className="text-xs font-semibold text-[#2d5d89] bg-[#2d5d89]/10 px-2 py-1 rounded-lg whitespace-nowrap">{selected.size} محدد</span>
+              )}
+              {isAdmin && rows.some(r => r.isDeleted) && (
+                <button onClick={() => setShowDeletedRows(p => !p)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    showDeletedRows
+                      ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+                      : "bg-white text-gray-500 border-gray-200 hover:bg-gray-100"
+                  }`}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                  {showDeletedRows ? "عرض النشطة" : `محذوف (${rows.filter(r => r.isDeleted).length})`}
                 </button>
               )}
+            </div>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Group 2: Primary actions */}
+            <div className="flex items-center gap-1">
+              <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 text-xs font-medium cursor-pointer border border-indigo-200 transition-colors ${importing ? "opacity-50 pointer-events-none" : ""}`}>
+                <Upload className="w-3.5 h-3.5" />
+                {importing ? "استيراد..." : "استيراد"}
+                <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv,.ods,.tsv,.numbers" className="hidden" onChange={handleExcelImport} />
+              </label>
+              <button onClick={() => setAddingRow(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-semibold shadow-sm transition-colors">
+                <Plus className="w-3.5 h-3.5" /> سطر جديد
+              </button>
+              {selected.size > 0 && (
+                <button onClick={() => setConfirmBulk(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium border border-red-200">
+                  <Trash2 className="w-3.5 h-3.5" /> حذف ({selected.size})
+                </button>
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Group 3: Export */}
+            <div className="flex items-center gap-1">
               <button onClick={exportCsv}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium">
-                <Download className="w-3.5 h-3.5" /> {selected.size > 0 ? "تحميل المحدد" : "CSV"}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 text-xs font-medium border border-gray-200 hover:border-emerald-300 transition-colors">
+                <Download className="w-3.5 h-3.5" /> CSV
               </button>
               <button onClick={exportExcelPython}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-50 hover:bg-green-100 text-green-700 text-xs font-medium border border-green-200">
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel (بايثون)
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-green-50 text-green-700 text-xs font-medium border border-gray-200 hover:border-green-300 transition-colors">
+                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
               </button>
               <button onClick={() => handlePrint(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-700 rounded-xl border border-red-200 transition-colors font-medium">
-                <FileDown className="w-3.5 h-3.5" />
-                تصدير PDF
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-white hover:bg-red-50 text-red-600 rounded-lg border border-gray-200 hover:border-red-300 transition-colors font-medium">
+                <FileDown className="w-3.5 h-3.5" /> PDF
               </button>
+            </div>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Group 4: Print */}
+            <div className="flex items-center gap-1">
+              {selected.size > 0 && (
+                <button onClick={() => handlePrint(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium transition-colors">
+                  <Printer className="w-3.5 h-3.5" /> طباعة ({selected.size})
+                </button>
+              )}
+              <button onClick={() => handlePrint(false)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-gray-100 text-gray-600 text-xs font-medium border border-gray-200 transition-colors">
+                <Printer className="w-3.5 h-3.5" /> طباعة
+              </button>
+            </div>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
+            {/* Group 5: View controls */}
+            <div className="flex items-center gap-1">
+              {/* Columns visibility */}
               <div className="relative">
                 <button onClick={() => setColsMenuOpen((p) => !p)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200">
-                  <EyeIcon className="w-3.5 h-3.5" /> عرض الأعمدة
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-gray-100 text-gray-600 text-xs font-medium border border-gray-200 transition-colors">
+                  <EyeIcon className="w-3.5 h-3.5" /> الأعمدة
                 </button>
                 {colsMenuOpen && (
                   <div className="absolute left-0 top-9 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 w-56 max-h-72 overflow-auto" dir="rtl">
@@ -1775,45 +1827,24 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   </div>
                 )}
               </div>
-              {selected.size > 0 && (
-                <button onClick={() => handlePrint(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
-                  <Printer className="w-3.5 h-3.5" /> طباعة المحدد ({selected.size})
-                </button>
-              )}
-              <button onClick={() => handlePrint(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium">
-                <Printer className="w-3.5 h-3.5" /> طباعة الكل
-              </button>
-              <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium cursor-pointer ${importing ? "opacity-50 pointer-events-none" : ""}`}>
-                <Upload className="w-3.5 h-3.5" />
-                {importing ? "جاري الاستيراد..." : "استيراد ملف"}
-                <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv,.ods,.tsv,.numbers" className="hidden" onChange={handleExcelImport} />
-              </label>
-              <button onClick={() => setAddingRow(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium">
-                <Plus className="w-3.5 h-3.5" /> سطر جديد
-              </button>
-              {/* Font size control */}
-              <div className="flex items-center gap-1 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden" title="حجم الخط">
+              {/* Font size */}
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white" title="حجم الخط">
                 <button onClick={() => setFontSize(s => Math.max(10, s - 2))}
-                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors">−</button>
-                <span className="px-2 text-xs text-gray-400 min-w-[32px] text-center">{fontSize}</span>
+                  className="px-2 py-1.5 hover:bg-gray-100 text-gray-600 text-sm font-bold transition-colors">−</button>
+                <span className="px-1.5 text-xs text-gray-500 min-w-[28px] text-center border-x border-gray-200">{fontSize}</span>
                 <button onClick={() => setFontSize(s => Math.min(24, s + 2))}
-                  className="px-2.5 py-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold transition-colors">+</button>
+                  className="px-2 py-1.5 hover:bg-gray-100 text-gray-600 text-sm font-bold transition-colors">+</button>
               </div>
-              {/* Row height control */}
-              <div className="flex items-center gap-1 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden" title="ارتفاع الصفوف">
+              {/* Row height */}
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white" title="ارتفاع الصفوف">
                 {[
-                  { id: "compact",      label: "مضغوط" },
-                  { id: "normal",       label: "عادي" },
-                  { id: "comfortable",  label: "مريح" },
+                  { id: "compact",     label: "م" },
+                  { id: "normal",      label: "ع" },
+                  { id: "comfortable", label: "و" },
                 ].map(({ id, label }) => (
-                  <button key={id} onClick={() => setRowHeight(id)}
-                    className={`px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                      rowHeight === id
-                        ? "bg-[#2d5d89] text-white"
-                        : "bg-white dark:bg-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  <button key={id} onClick={() => setRowHeight(id)} title={id === "compact" ? "مضغوط" : id === "normal" ? "عادي" : "مريح"}
+                    className={`px-2.5 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 first:border-l-0 ${
+                      rowHeight === id ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:bg-gray-50"
                     }`}>
                     {label}
                   </button>
@@ -1826,9 +1857,11 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
             <div ref={printRef}>
               <table className="w-full min-w-max text-sm" style={{ fontSize: `${fontSize}px` }}>
-                <thead className="sticky top-0 z-10 bg-[#2d5d89]">
-                  <tr className="bg-[#2d5d89] text-white sticky top-0 z-10">
-                    <th className="w-10 px-3 py-3 sticky top-0 bg-[#2d5d89] z-10">
+                <thead className="sticky top-0 z-10">
+                  <tr style={{ background: "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" }} className="text-white sticky top-0 z-10">
+                    {/* Row number column */}
+                    <th className="w-8 px-1 py-3 text-center text-[10px] font-normal text-white/50 select-none sticky right-0 z-20" style={{ background: "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" }}>#</th>
+                    <th className="w-10 px-3 py-3 sticky top-0 z-10" style={{ background: "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" }}>
                       <input type="checkbox"
                         checked={filteredRows.length > 0 && filteredRows.every((r) => selected.has(r._id))}
                         onChange={toggleAll}
@@ -1836,10 +1869,10 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                     </th>
                     {cols.map((col, ci) => (
                       <th key={col.key}
-                        className={`px-3 py-3 text-right font-semibold whitespace-nowrap text-sm relative group/th select-none ${
-                          ci === 0 ? "sticky right-0 bg-[#2d5d89] z-20 border-l border-[#1f4566]" : ""
+                        className={`px-3 py-3 text-right font-semibold whitespace-nowrap text-xs tracking-wide relative group/th select-none ${
+                          ci === 0 ? "sticky right-0 z-20 border-l border-[#1f4566]" : ""
                         }`}
-                        style={{ width: getColWidth(col), minWidth: 60 }}>
+                        style={{ width: getColWidth(col), minWidth: 60, background: ci === 0 ? "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" : undefined }}>
                         {col.label}
                         {/* Resize handle — drag left edge to resize (RTL) */}
                         <div
@@ -1855,7 +1888,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 <tbody>
                   {filteredRows.length === 0 && !addingRow && (
                     <tr>
-                      <td colSpan={cols.length + 2} className="text-center py-12 text-gray-400 text-sm">
+                      <td colSpan={cols.length + 3} className="text-center py-12 text-gray-400 text-sm">
                         <Table2 className="w-10 h-10 mx-auto mb-2 text-gray-300" />
                         لا توجد بيانات — اضغط "سطر جديد" لإضافة البيانات
                       </td>
@@ -1868,8 +1901,10 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           ? "bg-red-50/40 opacity-70"
                           : selected.has(row._id)
                           ? "bg-blue-50"
-                          : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                      } hover:bg-blue-50/50`}>
+                          : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/40"
+                      } hover:bg-blue-50/40`}>
+                      {/* Row number */}
+                      <td className="w-8 px-1 py-2 text-center text-[10px] text-gray-300 select-none font-mono sticky right-0 bg-gray-50/80 border-l border-gray-100">{rowIdx + 1}</td>
                       <td className="px-3 py-2 w-10">
                         <input type="checkbox" checked={selected.has(row._id)} onChange={() => toggleRow(row._id)}
                           className="rounded cursor-pointer accent-[#2d5d89]" />
@@ -1956,6 +1991,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   {/* New row input */}
                   {addingRow && (
                     <tr className="bg-emerald-50/50 border-b border-emerald-100">
+                      <td className="w-8 px-1 py-2 text-center text-[10px] text-emerald-400 select-none sticky right-0 bg-emerald-50/80 border-l border-emerald-100">*</td>
                       <td className="px-3 py-2 w-10 text-emerald-500">
                         <Plus className="w-4 h-4 mx-auto" />
                       </td>
@@ -1995,8 +2031,9 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
                   {/* Totals row */}
                   {filteredRows.length > 0 && (
-                    <tr className="bg-blue-50 font-bold border-t-2 border-[#2d5d89] sticky bottom-0">
-                      <td className="px-3 py-3 text-xs text-[#2d5d89] whitespace-nowrap" colSpan={2}>
+                    <tr className="bg-[#2d5d89]/5 font-bold border-t-2 border-[#2d5d89] sticky bottom-0">
+                      <td className="w-8 px-1 py-3 sticky right-0 bg-[#2d5d89]/5 border-l border-[#2d5d89]/20" />
+                      <td className="px-3 py-3 text-xs text-[#2d5d89] whitespace-nowrap font-bold" colSpan={2}>
                         الإجمالي
                       </td>
                       {cols.slice(1).map((col) => {
@@ -2074,14 +2111,18 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   return (
                     <div className="grid grid-cols-3 gap-3">
                       {[
-                        { label: "إجمالي الصفوف", value: totalRows.toLocaleString("ar-EG"), icon: "📊", color: "bg-blue-50 text-blue-700" },
-                        { label: "عدد الأوراق", value: importModal.parsedSheets.length, icon: "📋", color: "bg-purple-50 text-purple-700" },
-                        { label: "نوع الملف", value: importModal.fileName.split(".").pop().toUpperCase(), icon: "📁", color: "bg-emerald-50 text-emerald-700" },
+                        { label: "إجمالي الصفوف", value: totalRows.toLocaleString("ar-EG"), IconComp: BarChart3, color: "bg-blue-50 text-blue-700", iconBg: "bg-blue-100 text-blue-600" },
+                        { label: "عدد الأوراق",   value: importModal.parsedSheets.length,   IconComp: Layers,       color: "bg-purple-50 text-purple-700", iconBg: "bg-purple-100 text-purple-600" },
+                        { label: "نوع الملف",     value: importModal.fileName.split(".").pop().toUpperCase(), IconComp: FileSpreadsheet, color: "bg-emerald-50 text-emerald-700", iconBg: "bg-emerald-100 text-emerald-600" },
                       ].map((s) => (
-                        <div key={s.label} className={`rounded-xl p-3 ${s.color.split(" ")[0]}`}>
-                          <p className="text-lg mb-0.5">{s.icon}</p>
-                          <p className={`text-xl font-bold ${s.color.split(" ")[1]}`}>{s.value}</p>
-                          <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                        <div key={s.label} className={`rounded-xl p-3 ${s.color.split(" ")[0]} flex items-start gap-3`}>
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${s.iconBg}`}>
+                            <s.IconComp className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className={`text-xl font-bold ${s.color.split(" ")[1]}`}>{s.value}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -2364,63 +2405,83 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
   // Sidebar content (shared between desktop & mobile drawer)
   const SidebarContent = () => (
     <>
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-gray-900 text-sm">السجلات المحاسبية</h2>
+      {/* Sidebar header */}
+      <div className="px-4 pt-4 pb-3 border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-[#2d5d89]" />
+            </div>
+            <h2 className="font-bold text-gray-800 text-sm">السجلات المحاسبية</h2>
+          </div>
           <div className="flex items-center gap-1">
             {user?.role === "admin" && (
               <button onClick={() => { setShowTrash(true); loadTrash(); }}
                 title="سلة المحذوفات"
-                className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 transition-colors">
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             )}
             <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">
+              title="سجل جديد"
+              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079] shadow-sm transition-colors">
               <Plus className="w-4 h-4" />
             </button>
           </div>
         </div>
+        {ledgers.length > 0 && (
+          <p className="text-[11px] text-gray-400 mt-2">{ledgers.length} سجل</p>
+        )}
       </div>
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+
+      {/* Ledger list */}
+      <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-6 h-6 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : ledgers.length === 0 ? (
-          <div className="text-center py-12 px-4">
-            <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-400 text-xs">لا توجد سجلات بعد</p>
+          <div className="text-center py-10 px-4">
+            <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+              <BookOpen className="w-7 h-7 text-gray-300" />
+            </div>
+            <p className="text-gray-500 text-xs font-medium mb-1">لا توجد سجلات بعد</p>
+            <p className="text-gray-400 text-[11px] mb-3">ابدأ بإنشاء أول سجل محاسبي</p>
             <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-              className="mt-3 text-xs text-[#2d5d89] hover:underline font-medium">
-              إنشاء أول سجل
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] text-white text-xs font-medium hover:bg-[#245079] transition-colors">
+              <Plus className="w-3.5 h-3.5" /> إنشاء سجل
             </button>
           </div>
         ) : (
           ledgers.map((l) => {
             const LIcon = getLedgerIcon(l.icon);
+            const isActive = activeLedger?._id === l._id;
             return (
               <button key={l._id} onClick={() => { setActiveLedger(l); setSidebarOpen(false); }}
-                className={`w-full text-right px-3 py-2.5 rounded-xl flex items-center gap-3 transition-colors group ${
-                  activeLedger?._id === l._id
-                    ? "bg-[#2d5d89]/10 text-[#2d5d89]"
+                className={`w-full text-right px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all group relative ${
+                  isActive
+                    ? "bg-[#2d5d89]/10 text-[#2d5d89] shadow-sm"
                     : "hover:bg-gray-50 text-gray-700"
                 }`}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ backgroundColor: l.color + "20" }}>
-                  <LIcon className="w-5 h-5" style={{ color: l.color }} />
+                {/* Active left border indicator (RTL = right side) */}
+                {isActive && (
+                  <span className="absolute right-0 top-2 bottom-2 w-1 rounded-l-full bg-[#2d5d89]" />
+                )}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
+                  style={{ backgroundColor: l.color + (isActive ? "30" : "18") }}>
+                  <LIcon className="w-4 h-4" style={{ color: l.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{l.name}</p>
-                  {l.branch && <p className="text-xs text-gray-400 truncate">{l.branch}</p>}
+                  <p className={`text-sm truncate ${isActive ? "font-bold" : "font-semibold"}`}>{l.name}</p>
+                  {l.branch && <p className="text-[11px] text-gray-400 truncate">{l.branch}</p>}
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={(e) => { e.stopPropagation(); setEditLedger(l); setLedgerModal(true); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-gray-200 text-gray-400">
+                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors">
                     <Edit2 className="w-3 h-3" />
                   </button>
                   <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteLedger(l); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500">
+                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
@@ -2506,7 +2567,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
         ) : (
           <>
             {/* Ledger header */}
-            <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+            <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center gap-3 shadow-sm">
               {/* Mobile hamburger */}
               <button onClick={() => setSidebarOpen(true)}
                 className="lg:hidden w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500">
@@ -2515,68 +2576,77 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
               {(() => {
                 const LIcon = getLedgerIcon(activeLedger.icon);
                 return (
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: activeLedger.color + "20" }}>
-                    <LIcon className="w-5 h-5" style={{ color: activeLedger.color }} />
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: activeLedger.color + "20", border: `1.5px solid ${activeLedger.color}30` }}>
+                    <LIcon className="w-4.5 h-4.5" style={{ color: activeLedger.color }} />
                   </div>
                 );
               })()}
-              <div>
-                <h2 className="font-bold text-gray-900 text-base leading-tight">{activeLedger.name}</h2>
-                {activeLedger.branch && <p className="text-xs text-gray-400">{activeLedger.branch}</p>}
+              <div className="flex-1 min-w-0">
+                <h2 className="font-bold text-gray-900 text-sm leading-tight truncate">{activeLedger.name}</h2>
+                {activeLedger.branch && <p className="text-[11px] text-gray-400 truncate">{activeLedger.branch}</p>}
               </div>
-              <div className="mr-auto flex items-center gap-2">
+              {/* Sheet name + row count badge */}
+              {activeSheet && !showLedgerSummary && (
+                <div className="hidden sm:flex items-center gap-2">
+                  <span className="text-xs text-gray-400 font-medium truncate max-w-[140px]">{activeSheet.name}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 mr-auto">
                 <button onClick={() => loadFullLedger(activeLedger._id)}
-                  className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400">
-                  <RefreshCw className="w-4 h-4" />
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors" title="تحديث">
+                  <RefreshCw className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
             {/* Sheets tabs + content */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Sheet tabs */}
-              <div className="bg-white border-b border-gray-100 px-4 flex items-center gap-1 overflow-x-auto">
+              {/* Sheet tabs — Excel bottom-tab style */}
+              <div className="bg-gray-50 border-b border-gray-200 px-3 pt-1 flex items-end gap-0 overflow-x-auto flex-shrink-0">
                 <button
                   onClick={() => setShowLedgerSummary(true)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                  className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-t-2 border-x border-b-0 rounded-t-md transition-all whitespace-nowrap -mb-px select-none ${
                     showLedgerSummary
-                      ? "border-[#2d5d89] text-[#2d5d89]"
-                      : "border-transparent text-gray-500 hover:text-gray-700"
+                      ? "border-[#2d5d89] border-x-gray-200 bg-white text-[#2d5d89] shadow-sm"
+                      : "border-transparent bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                   }`}>
                   <BarChart3 className="w-3.5 h-3.5" />
                   ملخص
                 </button>
-                {(fullLedger?.sheets || []).map((s) => (
-                  <button key={s._id}
-                    onClick={() => { setShowLedgerSummary(false); setActiveSheet(s); }}
-                    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors group ${
-                      !showLedgerSummary && activeSheet?._id === s._id
-                        ? "border-[#2d5d89] text-[#2d5d89]"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
-                    }`}>
-                    <Table2 className="w-3.5 h-3.5" />
-                    {s.name}
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span onClick={(e) => { e.stopPropagation(); duplicateSheet(s); }}
-                        title="نسخ الجدول"
-                        className="p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-[#2d5d89]">
-                        <CopyIcon className="w-3 h-3" />
-                      </span>
-                      <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
-                        className="p-0.5 rounded hover:bg-gray-200 text-gray-400">
-                        <Edit2 className="w-3 h-3" />
-                      </span>
-                      <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteSheet(s); }}
-                        className="p-0.5 rounded hover:bg-red-100 text-gray-400 hover:text-red-500">
-                        <X className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </button>
-                ))}
+                {(fullLedger?.sheets || []).map((s) => {
+                  const isActive = !showLedgerSummary && activeSheet?._id === s._id;
+                  return (
+                    <button key={s._id}
+                      onClick={() => { setShowLedgerSummary(false); setActiveSheet(s); }}
+                      className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-t-2 border-x border-b-0 rounded-t-md transition-all whitespace-nowrap -mb-px select-none group ${
+                        isActive
+                          ? "border-[#2d5d89] border-x-gray-200 bg-white text-[#2d5d89] shadow-sm"
+                          : "border-transparent bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                      }`}>
+                      <Table2 className="w-3 h-3" />
+                      {s.name}
+                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mr-1">
+                        <span onClick={(e) => { e.stopPropagation(); duplicateSheet(s); }}
+                          title="نسخ الجدول"
+                          className="p-0.5 rounded hover:bg-gray-200 text-gray-300 hover:text-[#2d5d89]">
+                          <CopyIcon className="w-2.5 h-2.5" />
+                        </span>
+                        <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
+                          className="p-0.5 rounded hover:bg-gray-200 text-gray-300 hover:text-gray-600">
+                          <Edit2 className="w-2.5 h-2.5" />
+                        </span>
+                        <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteSheet(s); }}
+                          className="p-0.5 rounded hover:bg-red-100 text-gray-300 hover:text-red-500">
+                          <X className="w-2.5 h-2.5" />
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
                 <button onClick={() => { setEditSheet(null); setSheetModal(true); }}
-                  className="flex items-center gap-1 px-3 py-3 text-sm text-gray-400 hover:text-[#2d5d89] whitespace-nowrap ml-2 border-b-2 border-transparent">
-                  <Plus className="w-3.5 h-3.5" /> جدول جديد
+                  className="flex items-center gap-1 px-3 py-2 text-xs text-gray-400 hover:text-[#2d5d89] whitespace-nowrap mr-1 border-t-2 border-x border-b-0 rounded-t-md border-transparent hover:bg-gray-100 -mb-px transition-all">
+                  <Plus className="w-3 h-3" /> جدول جديد
                 </button>
               </div>
 
