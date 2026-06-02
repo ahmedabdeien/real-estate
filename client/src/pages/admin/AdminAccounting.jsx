@@ -1111,7 +1111,7 @@ const FINANCIAL_TEMPLATES = [
 function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const toast = useToast();
   const { user } = useAuth();
-  const [rows, setRows] = useState((sheet.rows || []));
+  const [rows, setRows] = useState((sheet.rows || []).filter(Boolean));
   const [editCell, setEditCell] = useState(null);
   const [cellVal, setCellVal] = useState("");
   const [selected, setSelected] = useState(new Set());
@@ -1508,8 +1508,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
   // ── quick filter ──
   const activeRows = showDeletedRows
-    ? rows.filter((r) => r.isDeleted)
-    : rows.filter((r) => !r.isDeleted);
+    ? rows.filter((r) => r && r.isDeleted)
+    : rows.filter((r) => r && !r.isDeleted);
 
   const filteredRows = quickFilter.trim()
     ? activeRows.filter((r) => {
