@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../Components/admin/Sidebar";
 import Topbar from "../Components/admin/Topbar";
@@ -17,6 +17,8 @@ export default function AdminLayout() {
   if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/admin/login" replace />;
   // viewer → home; custom roles (customRoleKey) are allowed if they have any allowedPages
+  const location = useLocation();
+  const isFullPage = /\/admin\/accounting/.test(location.pathname);
   const isStandardRole = ["admin", "supervisor", "manager", "employee", "sales"].includes(user.role);
   const isCustomRole = !!user.customRoleKey;
   if (!isStandardRole && !isCustomRole) return <Navigate to="/" replace />;
@@ -31,8 +33,8 @@ export default function AdminLayout() {
           sidebarCollapsed ? "mr-0 lg:mr-16" : "mr-0 lg:mr-64"
         }`}
       >
-        <div className="min-h-[calc(100vh-3.5rem)] overflow-auto">
-          <div className="p-3 sm:p-4 lg:p-6">
+        <div className={isFullPage ? "h-[calc(100vh-3.5rem)] overflow-hidden" : "min-h-[calc(100vh-3.5rem)] overflow-auto"}>
+          <div className={isFullPage ? "h-full" : "p-3 sm:p-4 lg:p-6"}>
             <Outlet />
           </div>
         </div>
