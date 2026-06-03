@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  # Node.js Backend
+  api:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - ACCOUNTING_CS_URL=http://accounting-cs:5050
+    depends_on:
+      - accounting-cs
+    restart: unless-stopped
+
+  # C# Accounting Microservice
+  accounting-cs:
+    build:
+      context: ./accounting-service/AccountingService
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    volumes:
+      - accounting_db:/app/data
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/accounting.db
+    restart: unless-stopped
+
+volumes:
+  accounting_db:

@@ -6,7 +6,7 @@ import {
   Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
   CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
   Package, ShoppingCart, Scale, ShieldCheck, MessageCircle,
-  BarChart2, Layers, Search, Globe, ChevronDown, ChevronRight,
+  BarChart2, Layers, Search, Globe, ChevronDown, ChevronRight, Sigma,
 } from "lucide-react";
 import LogoSvg from "../../assets/images/logo.svg";
 import { useAuth } from "../../context/AuthContext";
@@ -36,6 +36,7 @@ const navGroups = [
     label: "الحسابات",
     items: [
       { to: "/admin/accounting",                   label: "الحسابات الرئيسية",  icon: Calculator, pageKey: "accounting" },
+      { to: "/admin/accounting-advanced",           label: "الحسابات المتقدمة C#", icon: Sigma,      pageKey: "accounting" },
       { to: "/admin/accounting-beni-suef",         label: "حسابات بني سويف",   icon: Calculator, pageKey: "accounting-beni-suef" },
       { to: "/admin/accounting-records",           label: "السجلات المحاسبية", icon: BookOpen,   pageKey: "accounting-records" },
       { to: "/admin/accounting-records-beni-suef", label: "سجلات بني سويف",    icon: BookOpen,   pageKey: "accounting-records-beni-suef" },

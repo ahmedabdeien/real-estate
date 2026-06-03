@@ -47,6 +47,7 @@ const AdminAccounting = lazy(() => import("./pages/admin/AdminAccounting"));
 const AdminAccountingBeniSuef = lazy(() => import("./pages/admin/AdminAccountingBeniSuef"));
 const AdminAccountingRecords = lazy(() => import("./pages/admin/AdminAccountingRecords"));
 const AdminAccountingRecordsBeniSuef = lazy(() => import("./pages/admin/AdminAccountingRecordsBeniSuef"));
+const AdminAccountingCS = lazy(() => import("./pages/admin/AdminAccountingCS"));
 const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
@@ -186,6 +187,7 @@ export default function App() {
                 <Route path="accounting-records" element={<PageGuard pageKey="accounting-records"><AdminAccountingRecords /></PageGuard>} />
                 <Route path="accounting-beni-suef" element={<PageGuard pageKey="accounting-beni-suef"><AdminAccountingBeniSuef /></PageGuard>} />
                 <Route path="accounting-records-beni-suef" element={<PageGuard pageKey="accounting-records-beni-suef"><AdminAccountingRecordsBeniSuef /></PageGuard>} />
+                <Route path="accounting-advanced" element={<PageGuard pageKey="accounting"><AdminAccountingCS /></PageGuard>} />
                 <Route path="profile"       element={<PageGuard pageKey="profile"><StaffProfile /></PageGuard>} />
                 <Route path="changelog"     element={<PageGuard pageKey="changelog"><AdminChangelog /></PageGuard>} />
                 <Route path="notifications" element={<PageGuard pageKey="notifications"><AdminNotifications /></PageGuard>} />

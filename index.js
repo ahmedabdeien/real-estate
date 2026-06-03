@@ -201,6 +201,26 @@ app.use("/api/search", searchRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/accounting", accountingRouter);
+
+// ─── C# Accounting Microservice Proxy ────────────────────────────────────────
+const CS_ACCOUNTING_URL = process.env.ACCOUNTING_CS_URL || "http://localhost:5050";
+
+app.use("/api/accounting-cs", async (req, res) => {
+  try {
+    const { default: fetch } = await import("node-fetch");
+    const targetUrl = CS_ACCOUNTING_URL + req.url;
+    const headers = { "Content-Type": "application/json" };
+    const options = { method: req.method, headers };
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      options.body = JSON.stringify(req.body);
+    }
+    const upstream = await fetch(targetUrl, options);
+    const data = await upstream.json().catch(() => ({}));
+    res.status(upstream.status).json(data);
+  } catch (err) {
+    res.status(503).json({ success: false, message: "خدمة الحسابات C# غير متاحة حالياً", error: err.message });
+  }
+});
 app.use("/api/warehouse", warehouseRouter);
 app.use("/api/purchasing", purchasingRouter);
 app.use("/api/legal", legalRouter);
