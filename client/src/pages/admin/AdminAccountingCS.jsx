@@ -30,7 +30,9 @@ const TYPE_COLORS = {
 
 const fmt = (n) => Number(n || 0).toLocaleString("ar-EG", { minimumFractionDigits: 2 });
 const csApi = async (path, options = {}) => {
-  const res = await api({ url: `/accounting-cs${path}`, ...options });
+  // axios baseURL is already /api — strip duplicate /api/ prefix
+  const cleanPath = path.replace(/^\/api\//, "/");
+  const res = await api({ url: `/accounting-cs${cleanPath}`, ...options });
   return res.data;
 };
 
