@@ -53,9 +53,8 @@ function DashboardPanel({ branch }) {
   if (!data) return (
     <div className="flex-1 flex items-center justify-center flex-col gap-4 text-gray-400">
       <AlertTriangle className="w-12 h-12 text-amber-400" />
-      <p className="font-semibold text-gray-600">خدمة الحسابات C# غير متصلة</p>
-      <p className="text-sm text-center max-w-sm">تأكد من تشغيل خدمة AccountingService على المنفذ 5050<br/>أو استخدم Docker Compose لتشغيل الخدمات</p>
-      <code className="text-xs bg-gray-100 px-3 py-2 rounded-lg font-mono">docker compose up accounting-cs</code>
+      <p className="font-semibold text-gray-600">فشل تحميل بيانات الحسابات المتقدمة</p>
+      <p className="text-sm text-center max-w-sm">تأكد من الاتصال بالإنترنت أو تواصل مع المسؤول</p>
     </div>
   );
 
@@ -665,6 +664,78 @@ function IncomeStatementPanel({ branch }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// Balance Sheet
+// ═══════════════════════════════════════════════════════════════════
+function BalanceSheetPanel({ branch }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [asOf, setAsOf] = useState(new Date().toISOString().slice(0, 10));
+
+  const load = () => {
+    setLoading(true);
+    csApi(`/api/reports/balance-sheet?branch=${branch}&asOf=${asOf}`)
+      .then(d => setData(d.sheet)).catch(() => setData(null)).finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, [branch]);
+
+  const Section = ({ title, items, colorClass, bgClass }) => {
+    const total = (items || []).reduce((s, i) => s + i.Balance, 0);
+    return (
+      <div className={`rounded-2xl border overflow-hidden ${bgClass}`}>
+        <div className={`${colorClass} text-white px-5 py-3 flex justify-between items-center`}>
+          <span className="font-bold">{title}</span>
+          <span className="font-mono font-bold">{fmt(total)} ج</span>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {(!items || items.length === 0) ? <p className="px-5 py-3 text-sm text-gray-400">لا توجد أرصدة</p>
+          : items.map(i => (
+            <div key={i.Code} className="flex justify-between px-5 py-2.5">
+              <div><span className="text-xs font-mono text-gray-400 ml-2">{i.Code}</span><span className="text-sm text-gray-700">{i.Name}</span></div>
+              <span className="font-mono text-sm font-semibold">{fmt(i.Balance)} ج</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex-1 flex flex-col overflow-hidden" dir="rtl">
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-gray-200 bg-white flex-shrink-0">
+        <label className="text-sm text-gray-600">كما في تاريخ:</label>
+        <input type="date" value={asOf} onChange={e => setAsOf(e.target.value)}
+          className="border border-gray-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#217346]" />
+        <button onClick={load} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#217346] text-white text-sm font-semibold hover:bg-[#1a5c38]">
+          <RefreshCw className="w-4 h-4" /> تحديث
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto p-6">
+        {loading ? <div className="flex items-center justify-center h-full"><div className="w-8 h-8 border-2 border-[#217346] border-t-transparent rounded-full animate-spin" /></div>
+        : data ? (
+          <div className="max-w-2xl mx-auto space-y-5">
+            <h2 className="text-xl font-bold text-center text-gray-800">الميزانية العمومية</h2>
+            <p className="text-center text-sm text-gray-500">كما في {new Date(data.AsOf).toLocaleDateString("ar-EG")}</p>
+            <Section title="الأصول" items={data.Assets} colorClass="bg-blue-600" bgClass="border-blue-200 bg-blue-50" />
+            <Section title="الخصوم" items={data.Liabilities} colorClass="bg-red-600" bgClass="border-red-200 bg-red-50" />
+            <Section title="حقوق الملكية" items={data.Equity} colorClass="bg-purple-600" bgClass="border-purple-200 bg-purple-50" />
+            {(() => {
+              const a = (data.Assets || []).reduce((s,i) => s+i.Balance, 0);
+              const l = (data.Liabilities || []).reduce((s,i) => s+i.Balance, 0);
+              const e = (data.Equity || []).reduce((s,i) => s+i.Balance, 0);
+              const ok = Math.abs(a - (l+e)) < 1;
+              return <div className={`rounded-2xl px-5 py-4 flex items-center justify-between ${ok?"bg-emerald-600":"bg-red-600"} text-white`}>
+                <span className="font-bold">الأصول = الخصوم + حقوق الملكية</span>
+                <span className="font-mono">{fmt(a)} = {fmt(l+e)}</span>
+              </div>;
+            })()}
+          </div>
+        ) : <div className="flex items-center justify-center h-full text-gray-400">لا توجد بيانات</div>}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // Main Page
 // ═══════════════════════════════════════════════════════════════════
 export default function AdminAccountingCS({ branch = "main" }) {
@@ -707,13 +778,7 @@ export default function AdminAccountingCS({ branch = "main" }) {
         {activeTab === "journal"       && <JournalPanel        branch={branch} />}
         {activeTab === "trial-balance" && <TrialBalancePanel   branch={branch} />}
         {activeTab === "income-stmt"   && <IncomeStatementPanel branch={branch} />}
-        {activeTab === "balance-sheet" && (
-          <div className="flex-1 flex items-center justify-center text-gray-400 flex-col gap-3">
-            <Layers className="w-12 h-12 text-gray-200" />
-            <p>الميزانية العمومية</p>
-            <p className="text-xs text-gray-300">قريباً</p>
-          </div>
-        )}
+        {activeTab === "balance-sheet" && <BalanceSheetPanel branch={branch} />}
       </div>
     </div>
   );
