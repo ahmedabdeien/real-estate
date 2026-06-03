@@ -31,8 +31,10 @@ export default function AdminLayout() {
           sidebarCollapsed ? "mr-0 lg:mr-16" : "mr-0 lg:mr-64"
         }`}
       >
-        <div className="h-[calc(100vh-3.5rem)] overflow-hidden">
-          <Outlet />
+        <div className="min-h-[calc(100vh-3.5rem)] overflow-auto">
+          <div className="p-3 sm:p-4 lg:p-6">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>
