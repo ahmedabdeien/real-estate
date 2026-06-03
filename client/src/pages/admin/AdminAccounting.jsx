@@ -2402,54 +2402,49 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
     );
   }
 
-  // Sidebar content (shared between desktop & mobile drawer)
-  const SidebarContent = () => (
-    <>
+  // ── inlined sidebar JSX (avoids component-in-render React error #185) ──
+  const sidebarJSX = (
+    <div className="flex flex-col h-full">
       {/* Sidebar header */}
-      <div className="px-4 pt-4 pb-3 border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-[#2d5d89]" />
-            </div>
-            <h2 className="font-bold text-gray-800 text-sm">السجلات المحاسبية</h2>
-          </div>
-          <div className="flex items-center gap-1">
-            {user?.role === "admin" && (
-              <button onClick={() => { setShowTrash(true); loadTrash(); }}
-                title="سلة المحذوفات"
-                className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-100 text-red-400 hover:bg-red-50 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-              title="سجل جديد"
-              className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079] shadow-sm transition-colors">
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#e8eef4] bg-[#1e3a52] flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <BookMarked className="w-4 h-4 text-[#7eb8e0]" />
+          <span className="text-sm font-bold text-white">الدفاتر</span>
+          {ledgers.length > 0 && (
+            <span className="text-[10px] bg-white/10 text-[#7eb8e0] px-1.5 py-0.5 rounded-full font-medium">{ledgers.length}</span>
+          )}
         </div>
-        {ledgers.length > 0 && (
-          <p className="text-[11px] text-gray-400 mt-2">{ledgers.length} سجل</p>
-        )}
+        <div className="flex items-center gap-1">
+          {user?.role === "admin" && (
+            <button onClick={() => { setShowTrash(true); loadTrash(); }}
+              title="سلة المحذوفات"
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:bg-red-500/20 transition-colors">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
+            title="دفتر جديد"
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d6fa8] text-white hover:bg-[#3a7fbf] shadow-sm transition-colors">
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Ledger list */}
-      <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+      <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5 bg-[#1a3349]">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="w-5 h-5 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#7eb8e0] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : ledgers.length === 0 ? (
-          <div className="text-center py-10 px-4">
-            <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-              <BookOpen className="w-7 h-7 text-gray-300" />
+          <div className="text-center py-10 px-3">
+            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-3">
+              <BookOpen className="w-6 h-6 text-white/20" />
             </div>
-            <p className="text-gray-500 text-xs font-medium mb-1">لا توجد سجلات بعد</p>
-            <p className="text-gray-400 text-[11px] mb-3">ابدأ بإنشاء أول سجل محاسبي</p>
+            <p className="text-white/40 text-xs mb-3">لا توجد دفاتر بعد</p>
             <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] text-white text-xs font-medium hover:bg-[#245079] transition-colors">
-              <Plus className="w-3.5 h-3.5" /> إنشاء سجل
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] text-white text-xs font-medium hover:bg-[#3a6fa0] transition-colors">
+              <Plus className="w-3.5 h-3.5" /> إنشاء دفتر
             </button>
           </div>
         ) : (
@@ -2458,105 +2453,75 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
             const isActive = activeLedger?._id === l._id;
             return (
               <button key={l._id} onClick={() => { setActiveLedger(l); setSidebarOpen(false); }}
-                className={`w-full text-right px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all group relative ${
-                  isActive
-                    ? "bg-[#2d5d89]/10 text-[#2d5d89] shadow-sm"
-                    : "hover:bg-gray-50 text-gray-700"
+                className={`w-full text-right px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-all group relative ${
+                  isActive ? "bg-[#2d5d89] text-white" : "hover:bg-white/5 text-white/60 hover:text-white"
                 }`}>
-                {/* Active left border indicator (RTL = right side) */}
-                {isActive && (
-                  <span className="absolute right-0 top-2 bottom-2 w-1 rounded-l-full bg-[#2d5d89]" />
-                )}
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all"
-                  style={{ backgroundColor: l.color + (isActive ? "30" : "18") }}>
-                  <LIcon className="w-4 h-4" style={{ color: l.color }} />
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: isActive ? "rgba(255,255,255,0.15)" : l.color + "30" }}>
+                  <LIcon className="w-3.5 h-3.5" style={{ color: isActive ? "#fff" : l.color }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm truncate ${isActive ? "font-bold" : "font-semibold"}`}>{l.name}</p>
-                  {l.branch && <p className="text-[11px] text-gray-400 truncate">{l.branch}</p>}
+                  <p className={`text-xs truncate ${isActive ? "font-bold text-white" : "font-medium"}`}>{l.name}</p>
+                  {l.branch && <p className={`text-[10px] truncate ${isActive ? "text-white/60" : "text-white/30"}`}>{l.branch === "main" ? "رئيسي" : "بني سويف"}</p>}
                 </div>
                 <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={(e) => { e.stopPropagation(); setEditLedger(l); setLedgerModal(true); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors">
+                  <span onClick={(e) => { e.stopPropagation(); setEditLedger(l); setLedgerModal(true); }}
+                    className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/20 text-white/40 hover:text-white transition-colors cursor-pointer">
                     <Edit2 className="w-3 h-3" />
-                  </button>
-                  <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteLedger(l); }}
-                    className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors">
+                  </span>
+                  <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteLedger(l); }}
+                    className="w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/30 text-white/40 hover:text-red-300 transition-colors cursor-pointer">
                     <Trash2 className="w-3 h-3" />
-                  </button>
+                  </span>
                 </div>
               </button>
             );
           })
         )}
       </div>
-    </>
+
+      {/* Sidebar footer */}
+      <div className="px-4 py-3 border-t border-white/10 bg-[#1a3349] flex-shrink-0">
+        <p className="text-[10px] text-white/20 text-center">نظام الحسابات — الصرح للتطوير العقاري</p>
+      </div>
+    </div>
   );
 
   return (
-    <div className="flex flex-col h-full overflow-hidden" dir="rtl">
-    {branchLabel && (
-      <div className="px-4 pt-3 flex-shrink-0">
-        <div className="flex items-center gap-2 bg-[#2d5d89]/10 border border-[#2d5d89]/20 rounded-xl px-4 py-2 mb-1">
-          <Building2 className="w-4 h-4 text-[#2d5d89]" />
-          <span className="font-bold text-[#2d5d89] text-sm">{branchLabel}</span>
-          <span className="text-gray-400 text-xs mr-auto">نظام الحسابات الخاص بالفرع</span>
-        </div>
-      </div>
-    )}
-    <div className="px-4 pt-3 flex-shrink-0">
-      <HelpCard
-        title="دليل استخدام الحسابات"
-        tips={[
-          "أنشئ دفتراً جديداً بالضغط على '+' في الشريط الجانبي الأيمن",
-          "لكل دفتر أضف جداول بأعمدة مخصصة (نص، رقم، عملة، تاريخ، معادلة)",
-          "انقر نقراً مزدوجاً على أي خلية لتعديلها مباشرة، ثم Enter للحفظ",
-          "أعمدة المعادلة تحسب تلقائياً: مثلاً اكتب col2 * col3 في إعدادات العمود",
-          "زر 'استيراد Excel' ينشئ جدولاً كاملاً من ملف .xlsx",
-          "حدد صفوفاً ثم 'طباعة المحدد' لطباعة الصفوف المختارة فقط",
-        ]}
-      />
-    </div>
-    <div className="flex flex-1 overflow-hidden">
+    <div className="flex h-full overflow-hidden" dir="rtl">
+
       {/* ── Mobile sidebar overlay ── */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
-          <div className="absolute right-0 top-0 bottom-0 w-72 bg-white flex flex-col shadow-xl">
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h2 className="font-bold text-gray-900 text-sm">السجلات</h2>
-              <button onClick={() => setSidebarOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <SidebarContent />
-            </div>
+          <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <div className="absolute right-0 top-0 bottom-0 w-64 flex flex-col shadow-2xl">
+            {sidebarJSX}
           </div>
         </div>
       )}
 
       {/* ── Desktop sidebar ── */}
-      <div className="hidden lg:flex w-72 flex-shrink-0 bg-white border-l border-gray-100 flex-col">
-        <SidebarContent />
+      <div className="hidden lg:flex w-56 flex-shrink-0 flex-col border-l border-[#1a3349]">
+        {sidebarJSX}
       </div>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#f8fafc]">
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#f0f4f8]">
         {!activeLedger ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center px-4">
-              {/* Mobile hamburger */}
+            <div className="text-center px-6">
               <button onClick={() => setSidebarOpen(true)}
-                className="lg:hidden mb-4 flex items-center gap-2 mx-auto px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm">
-                <Menu className="w-4 h-4" /> عرض السجلات
+                className="lg:hidden mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">
+                <Menu className="w-4 h-4" /> عرض الدفاتر
               </button>
-              <FileSpreadsheet className="w-20 h-20 text-gray-200 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-400 mb-2">اختر سجلاً من القائمة</h3>
-              <p className="text-gray-400 text-sm">أو أنشئ سجلاً جديداً لبدء إدارة الحسابات</p>
+              <div className="w-24 h-24 rounded-3xl bg-white shadow-lg flex items-center justify-center mx-auto mb-6 border border-gray-200">
+                <BookOpen className="w-12 h-12 text-[#2d5d89]/30" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-700 mb-2">نظام الحسابات</h3>
+              <p className="text-gray-400 text-sm mb-6">اختر دفتراً من القائمة الجانبية أو أنشئ دفتراً جديداً</p>
               <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2d5d89] text-white text-sm font-medium hover:bg-[#245079]">
-                <Plus className="w-4 h-4" /> سجل جديد
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079] shadow-md transition-colors">
+                <Plus className="w-4 h-4" /> دفتر جديد
               </button>
             </div>
           </div>
@@ -2565,129 +2530,108 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
             <div className="w-8 h-8 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <>
-            {/* Ledger header */}
-            <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center gap-3 shadow-sm">
-              {/* Mobile hamburger */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+
+            {/* ── Ledger top bar ── */}
+            <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3 flex-shrink-0 shadow-sm">
               <button onClick={() => setSidebarOpen(true)}
-                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-500">
+                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500">
                 <Menu className="w-4 h-4" />
               </button>
-              {(() => {
-                const LIcon = getLedgerIcon(activeLedger.icon);
-                return (
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm"
-                    style={{ backgroundColor: activeLedger.color + "20", border: `1.5px solid ${activeLedger.color}30` }}>
-                    <LIcon className="w-4.5 h-4.5" style={{ color: activeLedger.color }} />
-                  </div>
-                );
-              })()}
-              <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-gray-900 text-sm leading-tight truncate">{activeLedger.name}</h2>
-                {activeLedger.branch && <p className="text-[11px] text-gray-400 truncate">{activeLedger.branch}</p>}
-              </div>
-              {/* Sheet name + row count badge */}
-              {activeSheet && !showLedgerSummary && (
-                <div className="hidden sm:flex items-center gap-2">
-                  <span className="text-xs text-gray-400 font-medium truncate max-w-[140px]">{activeSheet.name}</span>
+              {/* Ledger icon + name */}
+              {(() => { const LIcon = getLedgerIcon(activeLedger.icon); return (
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: activeLedger.color + "20" }}>
+                  <LIcon className="w-4 h-4" style={{ color: activeLedger.color }} />
                 </div>
-              )}
-              <div className="flex items-center gap-1.5 mr-auto">
-                <button onClick={() => loadFullLedger(activeLedger._id)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors" title="تحديث">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
+              ); })()}
+              <div className="min-w-0">
+                <h2 className="font-bold text-gray-900 text-sm leading-tight truncate">{activeLedger.name}</h2>
+                {branchLabel && <p className="text-[10px] text-[#2d5d89] font-medium">{branchLabel}</p>}
               </div>
-            </div>
-
-            {/* Sheets tabs + content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Sheet tabs — Excel bottom-tab style */}
-              <div className="bg-gray-50 border-b border-gray-200 px-3 pt-1 flex items-end gap-0 overflow-x-auto flex-shrink-0">
-                <button
-                  onClick={() => setShowLedgerSummary(true)}
-                  className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-t-2 border-x border-b-0 rounded-t-md transition-all whitespace-nowrap -mb-px select-none ${
-                    showLedgerSummary
-                      ? "border-[#2d5d89] border-x-gray-200 bg-white text-[#2d5d89] shadow-sm"
-                      : "border-transparent bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+              {/* Sheet tabs row inside top bar */}
+              <div className="flex-1 flex items-center gap-0 overflow-x-auto mr-2 border-r border-gray-200 pr-3">
+                <button onClick={() => setShowLedgerSummary(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    showLedgerSummary ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:bg-gray-100"
                   }`}>
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  ملخص
+                  <BarChart3 className="w-3 h-3" /> ملخص
                 </button>
                 {(fullLedger?.sheets || []).map((s) => {
                   const isActive = !showLedgerSummary && activeSheet?._id === s._id;
                   return (
-                    <button key={s._id}
-                      onClick={() => { setShowLedgerSummary(false); setActiveSheet(s); }}
-                      className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-t-2 border-x border-b-0 rounded-t-md transition-all whitespace-nowrap -mb-px select-none group ${
-                        isActive
-                          ? "border-[#2d5d89] border-x-gray-200 bg-white text-[#2d5d89] shadow-sm"
-                          : "border-transparent bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                    <button key={s._id} onClick={() => { setShowLedgerSummary(false); setActiveSheet(s); }}
+                      className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                        isActive ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:bg-gray-100"
                       }`}>
                       <Table2 className="w-3 h-3" />
                       {s.name}
-                      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity mr-1">
-                        <span onClick={(e) => { e.stopPropagation(); duplicateSheet(s); }}
-                          title="نسخ الجدول"
-                          className="p-0.5 rounded hover:bg-gray-200 text-gray-300 hover:text-[#2d5d89]">
-                          <CopyIcon className="w-2.5 h-2.5" />
+                      {isActive && (
+                        <span className="flex gap-0.5 mr-1">
+                          <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
+                            className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/20 cursor-pointer">
+                            <Edit2 className="w-2.5 h-2.5" />
+                          </span>
+                          <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteSheet(s); }}
+                            className="w-4 h-4 flex items-center justify-center rounded hover:bg-red-400/30 cursor-pointer">
+                            <X className="w-2.5 h-2.5" />
+                          </span>
                         </span>
-                        <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
-                          className="p-0.5 rounded hover:bg-gray-200 text-gray-300 hover:text-gray-600">
-                          <Edit2 className="w-2.5 h-2.5" />
-                        </span>
-                        <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteSheet(s); }}
-                          className="p-0.5 rounded hover:bg-red-100 text-gray-300 hover:text-red-500">
-                          <X className="w-2.5 h-2.5" />
-                        </span>
-                      </div>
+                      )}
                     </button>
                   );
                 })}
                 <button onClick={() => { setEditSheet(null); setSheetModal(true); }}
-                  className="flex items-center gap-1 px-3 py-2 text-xs text-gray-400 hover:text-[#2d5d89] whitespace-nowrap mr-1 border-t-2 border-x border-b-0 rounded-t-md border-transparent hover:bg-gray-100 -mb-px transition-all">
-                  <Plus className="w-3 h-3" /> جدول جديد
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-gray-400 hover:text-[#2d5d89] hover:bg-blue-50 transition-all whitespace-nowrap">
+                  <Plus className="w-3 h-3" />
                 </button>
               </div>
-
-              {/* Sheet content */}
-              <div className="flex-1 overflow-hidden p-4">
-                {showLedgerSummary ? (
-                  <LedgerSummary ledger={fullLedger} />
-                ) : !activeSheet ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
-                      <Table2 className="w-14 h-14 text-gray-200 mx-auto mb-3" />
-                      <p className="text-gray-400 text-sm mb-3">لا توجد جداول في هذا السجل</p>
-                      <button onClick={() => { setEditSheet(null); setSheetModal(true); }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm hover:bg-[#245079]">
-                        <Plus className="w-4 h-4" /> إضافة جدول
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <SheetTable
-                    key={activeSheet._id}
-                    ledgerId={activeLedger._id}
-                    sheet={activeSheet}
-                    onUpdate={(updated) => {
-                      if (updated === "reload") {
-                        loadFullLedger(activeLedger._id);
-                        return;
-                      }
-                      if (!updated) return;
-                      setFullLedger((prev) => ({
-                        ...prev,
-                        sheets: [...(prev?.sheets || []).filter(Boolean), updated],
-                      }));
-                      setActiveSheet(updated);
-                    }}
-                    printRef={printRef}
-                  />
-                )}
-              </div>
+              {/* Actions */}
+              <button onClick={() => loadFullLedger(activeLedger._id)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors flex-shrink-0" title="تحديث">
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
-          </>
+
+            {/* ── Sheet content (full height) ── */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              {showLedgerSummary ? (
+                <div className="flex-1 overflow-auto p-4">
+                  <LedgerSummary ledger={fullLedger} />
+                </div>
+              ) : !activeSheet ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-white shadow border border-gray-200 flex items-center justify-center mx-auto mb-4">
+                      <Table2 className="w-8 h-8 text-gray-300" />
+                    </div>
+                    <p className="text-gray-500 font-medium mb-1">لا توجد جداول</p>
+                    <p className="text-gray-400 text-sm mb-4">أضف جدولاً جديداً لبدء إدخال البيانات</p>
+                    <button onClick={() => { setEditSheet(null); setSheetModal(true); }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium hover:bg-[#245079] shadow transition-colors">
+                      <Plus className="w-4 h-4" /> إضافة جدول
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <SheetTable
+                  key={activeSheet._id}
+                  ledgerId={activeLedger._id}
+                  sheet={activeSheet}
+                  onUpdate={(updated) => {
+                    if (updated === "reload") { loadFullLedger(activeLedger._id); return; }
+                    if (!updated) return;
+                    setFullLedger((prev) => ({
+                      ...prev,
+                      sheets: [...(prev?.sheets || []).filter(Boolean), updated],
+                    }));
+                    setActiveSheet(updated);
+                  }}
+                  printRef={printRef}
+                />
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -2695,22 +2639,14 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
       <AnimatePresence>
         {ledgerModal && (
           <Modal open={ledgerModal} onClose={() => setLedgerModal(false)}
-            title={editLedger ? "تعديل السجل" : "سجل محاسبي جديد"}>
-            <LedgerForm
-              initial={editLedger}
-              onSave={editLedger ? updateLedger : createLedger}
-              onClose={() => setLedgerModal(false)}
-            />
+            title={editLedger ? "تعديل الدفتر" : "دفتر محاسبي جديد"}>
+            <LedgerForm initial={editLedger} onSave={editLedger ? updateLedger : createLedger} onClose={() => setLedgerModal(false)} />
           </Modal>
         )}
         {sheetModal && (
           <Modal open={sheetModal} onClose={() => setSheetModal(false)}
             title={editSheet ? "تعديل الجدول" : "جدول جديد"} size="lg">
-            <SheetForm
-              initial={editSheet}
-              onSave={editSheet ? updateSheet : createSheet}
-              onClose={() => setSheetModal(false)}
-            />
+            <SheetForm initial={editSheet} onSave={editSheet ? updateSheet : createSheet} onClose={() => setSheetModal(false)} />
           </Modal>
         )}
       </AnimatePresence>
@@ -2730,14 +2666,8 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleRestore(l._id)}
-                    className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-medium hover:bg-green-600">
-                    استعادة
-                  </button>
-                  <button onClick={() => handlePermanentDelete(l._id)}
-                    className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">
-                    حذف نهائي
-                  </button>
+                  <button onClick={() => handleRestore(l._id)} className="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-medium hover:bg-emerald-600">استعادة</button>
+                  <button onClick={() => handlePermanentDelete(l._id)} className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600">حذف نهائي</button>
                 </div>
               </div>
             ))}
@@ -2745,26 +2675,14 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
         )}
       </Modal>
 
-      <ConfirmModal
-        open={!!confirmDeleteLedger}
-        onClose={() => setConfirmDeleteLedger(null)}
-        onConfirm={deleteLedger}
-        loading={deletingLedger}
-        title="حذف السجل"
-        message={user?.role === "admin"
-          ? `هل تريد نقل السجل "${confirmDeleteLedger?.name}" إلى سلة المحذوفات؟`
-          : `هل أنت متأكد من حذف السجل "${confirmDeleteLedger?.name}"؟`
-        }
+      <ConfirmModal open={!!confirmDeleteLedger} onClose={() => setConfirmDeleteLedger(null)} onConfirm={deleteLedger} loading={deletingLedger}
+        title="حذف الدفتر"
+        message={user?.role === "admin" ? `هل تريد نقل الدفتر "${confirmDeleteLedger?.name}" إلى سلة المحذوفات؟` : `هل أنت متأكد من حذف الدفتر "${confirmDeleteLedger?.name}"؟`}
       />
-      <ConfirmModal
-        open={!!confirmDeleteSheet}
-        onClose={() => setConfirmDeleteSheet(null)}
-        onConfirm={deleteSheet}
-        loading={deletingSheet}
+      <ConfirmModal open={!!confirmDeleteSheet} onClose={() => setConfirmDeleteSheet(null)} onConfirm={deleteSheet} loading={deletingSheet}
         title="حذف الجدول"
         message={`هل تريد حذف الجدول "${confirmDeleteSheet?.name}"؟ سيتم فقدان جميع بيانات هذا الجدول.`}
       />
-    </div>
     </div>
   );
 }
