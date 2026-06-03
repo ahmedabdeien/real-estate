@@ -22,16 +22,16 @@ export default function AdminLayout() {
   if (!isStandardRole && !isCustomRole) return <Navigate to="/" replace />;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-gray-950" dir="rtl">
+    <div className="min-h-screen bg-[#f1f5f9] dark:bg-gray-950" dir="rtl">
       <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((p) => !p)} />
       <Topbar onMenuClick={() => setSidebarCollapsed((p) => !p)} collapsed={sidebarCollapsed} />
 
       <main
-        className={`pt-16 min-h-screen transition-all duration-300 ${
+        className={`pt-14 min-h-screen transition-all duration-300 ${
           sidebarCollapsed ? "mr-0 lg:mr-16" : "mr-0 lg:mr-64"
         }`}
       >
-        <div className="p-3 sm:p-4 lg:p-6">
+        <div className="p-2 sm:p-3 lg:p-5">
           <Outlet />
         </div>
       </main>

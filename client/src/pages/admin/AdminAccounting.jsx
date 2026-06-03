@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, Edit2, Check, X, Printer, Download, ChevronRight,
+  Plus, Trash2, Edit2, Check, X, Printer, Download, ChevronRight, ChevronLeft,
   BookOpen, Table2, Search, AlertTriangle, GripVertical,
   FileSpreadsheet, RefreshCw, Menu, Upload, ClipboardList,
   BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown,
@@ -1125,6 +1125,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [importModal, setImportModal] = useState(null); // { fileName, headers, previewRows, allRows, columns, mode:"new"|"current" }
   const [activeTab, setActiveTab] = useState("table"); // "table" | "charts" | "quick" | "excel" | "rates" | "audit"
   const [statsOpen, setStatsOpen] = useState(false);
+  const [formulaBarVal, setFormulaBarVal] = useState(""); // current cell value shown in formula bar
+  const [selectedCell, setSelectedCell] = useState(null); // { rowIdx, colKey, rowId }
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
   const [hiddenCols, setHiddenCols] = useState(new Set());
@@ -1169,12 +1171,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const isAdmin = user?.role === "admin";
 
   // ── inline editing (keyed by rowId) ──
-  const startEdit = (rowId, colKey) => {
+  const startEdit = (rowId, colKey, rowIdx) => {
     const col = cols.find((c) => c.key === colKey);
-    if (col?.type === "formula") return; // formula cells are read-only
+    if (col?.type === "formula") return;
     const row = rows.find((r) => r._id === rowId);
+    const val = row?.cells?.[colKey] ?? "";
     setEditCell({ rowId, colKey });
-    setCellVal(row?.cells?.[colKey] ?? "");
+    setCellVal(val);
+    setSelectedCell({ rowIdx, colKey, rowId });
+    setFormulaBarVal(col?.type === "formula" ? (col.formula || "") : val);
   };
 
   const commitCell = async (rowId, colKey, val) => {
@@ -1595,27 +1600,158 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Tab bar — Excel-style */}
-      <div className="flex items-end gap-0 border-b-2 border-gray-200 overflow-x-auto flex-shrink-0 bg-gray-50 px-2 pt-1">
-        {[
-          { id:"table",  label:"البيانات",       icon:Table2,      activeColor:"text-[#2d5d89]",   activeBorder:"border-[#2d5d89]",   activeBg:"bg-white"  },
-          { id:"charts", label:"مخططات",         icon:BarChart3,   activeColor:"text-purple-700",  activeBorder:"border-purple-600",  activeBg:"bg-white" },
-          { id:"quick",  label:"إدخال سريع",     icon:Zap,         activeColor:"text-amber-700",   activeBorder:"border-amber-500",   activeBg:"bg-white"  },
-          { id:"rates",  label:"معدلات",          icon:Activity,    activeColor:"text-[#2d5d89]",   activeBorder:"border-[#2d5d89]",   activeBg:"bg-white"  },
-          { id:"excel",  label:"سحابة / Excel",   icon:Grid3x3,     activeColor:"text-emerald-700", activeBorder:"border-emerald-600", activeBg:"bg-white"  },
-          ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList, activeColor:"text-gray-700", activeBorder:"border-gray-500", activeBg:"bg-white" }] : []),
-        ].map(({ id, label, icon: Icon, activeColor, activeBorder, activeBg }) => (
-          <button key={id} onClick={() => setActiveTab(id)}
-            className={`relative flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-t-2 border-x border-b-0 rounded-t-md transition-all whitespace-nowrap select-none -mb-px ${
-              activeTab === id
-                ? `${activeBorder} border-x-gray-200 ${activeBg} ${activeColor} shadow-sm`
-                : "border-transparent bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            }`}>
-            <Icon className="w-3.5 h-3.5" /> {label}
-          </button>
-        ))}
+    <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+
+      {/* ══ Excel Ribbon ══ */}
+      <div className="flex-shrink-0 bg-[#217346] text-white">
+        {/* View tabs (like Excel's ribbon tabs) */}
+        <div className="flex items-center gap-0 px-2 pt-1">
+          {[
+            { id:"table",  label:"البيانات",    icon:Table2      },
+            { id:"charts", label:"مخططات",      icon:BarChart3   },
+            { id:"quick",  label:"إدخال سريع",  icon:Zap         },
+            { id:"rates",  label:"معدلات",       icon:Activity    },
+            { id:"excel",  label:"Excel",        icon:Grid3x3     },
+            ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList }] : []),
+          ].map(({ id, label, icon: Icon }) => (
+            <button key={id} onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-t-md transition-all whitespace-nowrap ${
+                activeTab === id
+                  ? "bg-white text-[#217346]"
+                  : "text-white/70 hover:text-white hover:bg-white/10"
+              }`}>
+              <Icon className="w-3 h-3" /> {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Ribbon tools (only for table view) */}
+        {activeTab === "table" && (
+          <div className="flex items-center gap-1 px-2 py-1.5 bg-white border-b border-gray-200 flex-wrap">
+            {/* Group 1: Add/Import */}
+            <div className="flex items-center gap-1">
+              <button onClick={() => setAddingRow(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-[#217346] text-white hover:bg-[#1a5c38] transition-colors">
+                <Plus className="w-3.5 h-3.5" /> إضافة صف
+              </button>
+              <label className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors ${importing ? "opacity-50 pointer-events-none" : ""}`}>
+                <Upload className="w-3.5 h-3.5 text-[#217346]" />
+                {importing ? "استيراد..." : "استيراد Excel"}
+                <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv,.ods,.tsv" className="hidden" onChange={handleExcelImport} />
+              </label>
+            </div>
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+            {/* Group 2: Export */}
+            <div className="flex items-center gap-1">
+              <button onClick={exportCsv} title="تصدير CSV"
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
+                <Download className="w-3.5 h-3.5" /> CSV
+              </button>
+              <button onClick={exportExcelPython} title="تصدير Excel"
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs text-[#217346] border border-[#217346]/40 hover:bg-green-50 transition-colors">
+                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+              </button>
+              <button onClick={() => handlePrint(false)} title="تصدير PDF"
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-600 border border-red-200 hover:bg-red-50 transition-colors">
+                <FileDown className="w-3.5 h-3.5" /> PDF
+              </button>
+            </div>
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+            {/* Group 3: Print */}
+            <div className="flex items-center gap-1">
+              <button onClick={() => handlePrint(false)} title="طباعة"
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
+                <Printer className="w-3.5 h-3.5" /> طباعة
+              </button>
+              {selected.size > 0 && (
+                <button onClick={() => handlePrint(true)}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-[#2d5d89] border border-[#2d5d89]/40 hover:bg-blue-50 transition-colors">
+                  <Printer className="w-3.5 h-3.5" /> طباعة المحدد ({selected.size})
+                </button>
+              )}
+            </div>
+            <div className="w-px h-5 bg-gray-300 mx-1" />
+            {/* Group 4: View controls */}
+            <div className="flex items-center gap-1">
+              <div className="relative">
+                <button onClick={() => setColsMenuOpen((p) => !p)}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
+                  <EyeIcon className="w-3.5 h-3.5" /> الأعمدة
+                </button>
+                {colsMenuOpen && (
+                  <div className="absolute right-0 top-8 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 w-52 max-h-64 overflow-auto" dir="rtl">
+                    <p className="text-[10px] font-bold text-gray-400 px-2 pb-1 uppercase">إظهار / إخفاء</p>
+                    {allCols.map((c) => (
+                      <label key={c.key} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-xs">
+                        <input type="checkbox" checked={!hiddenCols.has(c.key)} onChange={() => toggleCol(c.key)} className="accent-[#217346]" />
+                        <span className="flex-1 text-gray-700">{c.label}</span>
+                        {hiddenCols.has(c.key) ? <EyeOff className="w-3 h-3 text-gray-300" /> : <EyeIcon className="w-3 h-3 text-[#217346]" />}
+                      </label>
+                    ))}
+                    <div className="flex gap-1 mt-1 pt-1 border-t border-gray-100">
+                      <button onClick={() => setHiddenCols(new Set())} className="flex-1 text-[10px] px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 text-gray-600">إظهار الكل</button>
+                      <button onClick={() => setColsMenuOpen(false)} className="flex-1 text-[10px] px-2 py-1 rounded bg-[#217346] text-white">تم</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Font size */}
+              <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                <button onClick={() => setFontSize(s => Math.max(10, s - 1))} className="px-1.5 py-1 hover:bg-gray-100 text-gray-600 text-xs">−</button>
+                <span className="px-1.5 text-xs text-gray-600 min-w-[24px] text-center border-x border-gray-300">{fontSize}</span>
+                <button onClick={() => setFontSize(s => Math.min(20, s + 1))} className="px-1.5 py-1 hover:bg-gray-100 text-gray-600 text-xs">+</button>
+              </div>
+              {/* Row height */}
+              <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+                {[{id:"compact",label:"م"},{id:"normal",label:"ع"},{id:"comfortable",label:"ر"}].map(({id,label})=>(
+                  <button key={id} onClick={() => setRowHeight(id)} title={id === "compact" ? "مضغوط" : id === "normal" ? "عادي" : "مريح"}
+                    className={`px-2 py-1 text-xs transition-colors ${rowHeight===id?"bg-[#217346] text-white":"hover:bg-gray-100 text-gray-600"}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Search */}
+            <div className="mr-auto relative">
+              <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
+                placeholder="بحث في الجدول..."
+                className="pr-7 pl-3 py-1 rounded border border-gray-300 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-[#217346] w-44" />
+            </div>
+            {/* Bulk delete */}
+            {selected.size > 0 && (
+              <button onClick={() => setConfirmBulk(true)}
+                className="flex items-center gap-1 px-2.5 py-1 rounded text-xs bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors">
+                <Trash2 className="w-3.5 h-3.5" /> حذف ({selected.size})
+              </button>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* ══ Formula Bar (Excel style) ══ */}
+      {activeTab === "table" && (
+        <div className="flex items-center gap-0 border-b border-gray-300 bg-white flex-shrink-0 h-8">
+          {/* Name box */}
+          <div className="w-24 border-l border-gray-300 h-full flex items-center justify-center px-2 bg-white flex-shrink-0">
+            <span className="text-xs font-medium text-gray-600 font-mono">
+              {selectedCell ? `${String.fromCharCode(65 + cols.findIndex(c=>c.key===selectedCell.colKey))}${(selectedCell.rowIdx||0)+1}` : ""}
+            </span>
+          </div>
+          {/* fx icon */}
+          <div className="w-8 h-full border-l border-gray-300 flex items-center justify-center flex-shrink-0 bg-gray-50">
+            <span className="text-xs text-gray-500 font-italic font-serif italic select-none">fx</span>
+          </div>
+          {/* Formula input */}
+          <input
+            value={formulaBarVal}
+            onChange={(e) => { setFormulaBarVal(e.target.value); setCellVal(e.target.value); }}
+            onKeyDown={(e) => { if (e.key === "Enter" && editCell) { handleCellBlur(); } }}
+            placeholder={selectedCell ? "" : "اختر خلية للتعديل..."}
+            className="flex-1 h-full px-3 text-xs text-gray-800 focus:outline-none bg-white font-mono"
+          />
+        </div>
+      )}
 
       {activeTab === "audit" && isAdmin ? (
         <AuditLogPanel />
@@ -1673,37 +1809,27 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         </div>
       ) : (
         <>
-          {/* Collapsible stats panel */}
-          <div className="mb-3">
-            <button
-              onClick={() => setStatsOpen((p) => !p)}
-              className="flex items-center gap-1.5 text-xs text-[#2d5d89] hover:underline font-medium"
-            >
-              <BarChart3 className="w-3.5 h-3.5" />
-              {statsOpen ? "إخفاء" : "عرض"} معدلات وتحليل
-            </button>
-            {statsOpen && (
-              <div className="mt-2 overflow-x-auto">
-                <div className="flex gap-2 pb-2 min-w-max">
-                  {cols.filter((c) => ["currency", "number", "percentage", "formula"].includes(c.type)).map((c) => {
-                    const s = colStats(filteredRows, c);
-                    if (!s) return null;
-                    return (
-                      <div key={c.key} className="bg-white rounded-xl border border-gray-200 p-2.5 min-w-[160px] shadow-sm">
-                        <p className="text-[10px] text-gray-400 truncate">{c.label}</p>
-                        <p className="text-sm font-bold text-[#2d5d89] mt-0.5">{formatCell(s.sum, c.type)}</p>
-                        <div className="grid grid-cols-3 gap-1 mt-1.5 text-[10px]">
-                          <div><span className="text-gray-400">متوسط:</span><br/><span className="text-gray-700 font-medium">{formatCell(s.avg, c.type)}</span></div>
-                          <div><span className="text-gray-400">أدنى:</span><br/><span className="text-gray-700 font-medium">{formatCell(s.min, c.type)}</span></div>
-                          <div><span className="text-gray-400">أعلى:</span><br/><span className="text-gray-700 font-medium">{formatCell(s.max, c.type)}</span></div>
-                        </div>
+          {/* Stats bar (collapsible) */}
+          {statsOpen && (
+            <div className="overflow-x-auto border-b border-gray-200 bg-[#f9fafb] flex-shrink-0">
+              <div className="flex gap-0 min-w-max">
+                {cols.filter((c) => ["currency","number","percentage","formula"].includes(c.type)).map((c) => {
+                  const s = colStats(filteredRows, c);
+                  if (!s) return null;
+                  return (
+                    <div key={c.key} className="border-l border-gray-200 px-4 py-2 min-w-[140px]">
+                      <p className="text-[10px] text-gray-400 truncate font-medium">{c.label}</p>
+                      <p className="text-sm font-bold text-[#217346]">{formatCell(s.sum, c.type)}</p>
+                      <div className="flex gap-3 mt-0.5 text-[10px] text-gray-400">
+                        <span>م: {formatCell(s.avg, c.type)}</span>
+                        <span>أعلى: {formatCell(s.max, c.type)}</span>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Toolbar — Excel ribbon style */}
           <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5 flex items-center gap-1 flex-wrap mb-2">
@@ -1853,36 +1979,33 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
+          {/* Table — Excel style */}
+          <div className="flex-1 overflow-auto border-t border-gray-300" style={{ background: "#fff" }}>
             <div ref={printRef}>
-              <table className="w-full min-w-max text-sm" style={{ fontSize: `${fontSize}px` }}>
+              <table className="w-full min-w-max border-collapse" style={{ fontSize: `${fontSize}px` }}>
                 <thead className="sticky top-0 z-10">
-                  <tr style={{ background: "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" }} className="text-white sticky top-0 z-10">
-                    {/* Row number column */}
-                    <th className="w-8 px-1 py-3 text-center text-[10px] font-normal text-white/50 select-none sticky right-0 z-20" style={{ background: "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" }}>#</th>
-                    <th className="w-10 px-3 py-3 sticky top-0 z-10" style={{ background: "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" }}>
+                  <tr className="text-gray-600 bg-[#f2f2f2] border-b-2 border-gray-400" style={{ fontFamily: "Calibri, Arial, sans-serif" }}>
+                    {/* Row # header */}
+                    <th className="w-12 px-2 py-2 text-center text-xs font-normal text-gray-500 select-none border-l border-r border-gray-300 bg-[#f2f2f2] sticky right-0 z-20 border-b border-gray-400" style={{ minWidth: 40 }}></th>
+                    {/* Checkbox header */}
+                    <th className="w-8 px-2 py-2 bg-[#f2f2f2] border-l border-gray-300 border-b border-gray-400">
                       <input type="checkbox"
                         checked={filteredRows.length > 0 && filteredRows.every((r) => selected.has(r._id))}
                         onChange={toggleAll}
-                        className="rounded border-white/40 text-white accent-white cursor-pointer" />
+                        className="cursor-pointer accent-[#217346]" />
                     </th>
                     {cols.map((col, ci) => (
                       <th key={col.key}
-                        className={`px-3 py-3 text-right font-semibold whitespace-nowrap text-xs tracking-wide relative group/th select-none ${
-                          ci === 0 ? "sticky right-0 z-20 border-l border-[#1f4566]" : ""
-                        }`}
-                        style={{ width: getColWidth(col), minWidth: 60, background: ci === 0 ? "linear-gradient(180deg, #3a6fa0 0%, #2d5d89 100%)" : undefined }}>
-                        {col.label}
-                        {/* Resize handle — drag left edge to resize (RTL) */}
+                        className="px-3 py-2 text-right font-semibold whitespace-nowrap text-xs border-l border-gray-300 border-b border-gray-400 bg-[#f2f2f2] relative group/th select-none hover:bg-[#e8e8e8] transition-colors"
+                        style={{ width: getColWidth(col), minWidth: 60 }}>
+                        <span className="text-gray-700">{col.label}</span>
                         <div
-                          className="absolute left-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-white/50 opacity-0 group-hover/th:opacity-100 transition-opacity"
+                          className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#217346] opacity-0 group-hover/th:opacity-100 transition-opacity"
                           onMouseDown={(e) => handleColResize(e, col.key, getColWidth(col))}
-                          title="اسحب لتغيير عرض العمود"
                         />
                       </th>
                     ))}
-                    <th className="w-12 px-3 py-3"></th>
+                    <th className="w-8 bg-[#f2f2f2] border-l border-gray-300 border-b border-gray-400"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1903,36 +2026,40 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           ? "bg-blue-50"
                           : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/40"
                       } hover:bg-blue-50/40`}>
-                      {/* Row number */}
-                      <td className="w-8 px-1 py-2 text-center text-[10px] text-gray-300 select-none font-mono sticky right-0 bg-gray-50/80 border-l border-gray-100">{rowIdx + 1}</td>
-                      <td className="px-3 py-2 w-10">
+                      {/* Row number — Excel style */}
+                      <td className="w-12 px-2 text-center text-[11px] text-gray-500 select-none font-mono sticky right-0 z-10 border-l border-r border-gray-300 border-b border-gray-200"
+                        style={{ background: selectedCell?.rowId === row._id ? "#dce6f1" : "#f2f2f2", minWidth: 40 }}>
+                        {rowIdx + 1}
+                      </td>
+                      {/* Checkbox */}
+                      <td className="px-2 w-8 border-l border-gray-200 border-b border-gray-200">
                         <input type="checkbox" checked={selected.has(row._id)} onChange={() => toggleRow(row._id)}
-                          className="rounded cursor-pointer accent-[#2d5d89]" />
+                          className="cursor-pointer accent-[#217346]" />
                       </td>
                       {cols.map((col, ci) => {
                         const isEditing = editCell?.rowId === row._id && editCell?.colKey === col.key;
+                        const isSelected = selectedCell?.rowId === row._id && selectedCell?.colKey === col.key;
                         const val = col.type === "formula"
                           ? evaluateFormula(col.formula || "", row.cells || {})
                           : (row.cells?.[col.key] ?? "");
                         const isFormula = col.type === "formula";
-                        const isFrozen = ci === 0;
-                        const rowBg = selected.has(row._id)
-                          ? "bg-blue-50"
-                          : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50";
                         return (
-                          <td key={col.key} style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col) }}
-                            className={`px-1 ${ROW_HEIGHTS[rowHeight]} ${isFormula ? "cursor-default" : "cursor-pointer"} ${
-                              isFrozen ? `sticky right-0 z-10 border-l border-gray-200 ${rowBg}` : ""
+                          <td key={col.key}
+                            style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col) }}
+                            className={`border-l border-b border-gray-200 ${ROW_HEIGHTS[rowHeight]} cursor-pointer relative ${
+                              isSelected ? "outline outline-2 outline-[#217346] outline-offset-[-2px] z-10" : ""
                             }`}
-                            onDoubleClick={() => startEdit(row._id, col.key)}>
+                            onClick={() => setSelectedCell({ rowIdx, colKey: col.key, rowId: row._id })}
+                            onDoubleClick={() => startEdit(row._id, col.key, rowIdx)}>
                             {isEditing ? (
                               <CellInput col={col} value={cellVal} onChange={setCellVal}
                                 onBlur={handleCellBlur} onKeyDown={handleCellKey} />
                             ) : (
-                              <div className={`px-2 py-1 min-h-[28px] text-sm whitespace-nowrap overflow-hidden text-ellipsis rounded ${
-                                isFormula ? "bg-blue-50/40 text-[#2d5d89] font-medium" : "text-gray-800 hover:bg-gray-100"
-                              }`}>
-                                {formatCell(val, col.type) || <span className="text-gray-300">—</span>}
+                              <div className={`px-2 py-0.5 h-full whitespace-nowrap overflow-hidden text-ellipsis ${
+                                isFormula ? "text-[#217346] font-medium" : "text-gray-800"
+                              } ${isSelected ? "bg-[#e2efda]/50" : ""}`}
+                                style={{ fontFamily: "Calibri, Arial, sans-serif" }}>
+                                {formatCell(val, col.type) || ""}
                               </div>
                             )}
                           </td>
@@ -2052,12 +2179,47 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-xs text-gray-400">انقر مرتين على أي خلية لتعديلها • Tab للانتقال • Enter للتأكيد • Esc للإلغاء</p>
-            {Object.keys(colWidths).length > 0 && (
-              <button onClick={() => setColWidths({})}
-                className="text-xs text-[#2d5d89] hover:underline">إعادة ضبط عرض الأعمدة</button>
-            )}
+          {/* ── Excel Status Bar ── */}
+          <div className="flex-shrink-0 bg-[#217346] text-white flex items-center justify-between px-4 py-1 text-xs select-none">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5 text-white/70">
+                <Table2 className="w-3 h-3" />
+                {filteredRows.length} صف
+                {selected.size > 0 && <span className="text-white font-semibold mr-2">• {selected.size} محدد</span>}
+              </span>
+              {(() => {
+                const numCols = cols.filter(c => ["currency","number","formula"].includes(c.type));
+                if (!numCols.length || !selected.size) return null;
+                const vals = [];
+                filteredRows.filter(r => selected.has(r._id)).forEach(r => {
+                  numCols.forEach(c => {
+                    const v = c.type === "formula" ? parseFloat(evaluateFormula(c.formula||"", r.cells||{})) : parseFloat(r.cells?.[c.key]);
+                    if (!isNaN(v)) vals.push(v);
+                  });
+                });
+                if (!vals.length) return null;
+                const sum = vals.reduce((a,b)=>a+b,0);
+                const avg = sum / vals.length;
+                return (
+                  <span className="flex items-center gap-3 text-white/80">
+                    <span>المجموع: <strong className="text-white">{sum.toLocaleString("ar-EG")}</strong></span>
+                    <span>المتوسط: <strong className="text-white">{avg.toFixed(2)}</strong></span>
+                    <span>العدد: <strong className="text-white">{vals.length}</strong></span>
+                  </span>
+                );
+              })()}
+              <button onClick={() => setStatsOpen(p => !p)}
+                className="flex items-center gap-1 text-white/60 hover:text-white transition-colors">
+                <BarChart3 className="w-3 h-3" />
+                {statsOpen ? "إخفاء المعدلات" : "عرض المعدلات"}
+              </button>
+            </div>
+            <div className="flex items-center gap-3 text-white/60">
+              {Object.keys(colWidths).length > 0 && (
+                <button onClick={() => setColWidths({})} className="hover:text-white transition-colors">إعادة ضبط الأعمدة</button>
+              )}
+              <span>انقر مرتين للتعديل</span>
+            </div>
           </div>
         </>
       )}
@@ -2255,6 +2417,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
   const [fullLedger, setFullLedger] = useState(null);
   const [loadingLedger, setLoadingLedger] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
+  const [ledgerSidebarCollapsed, setLedgerSidebarCollapsed] = useState(false); // desktop collapse
   const [showLedgerSummary, setShowLedgerSummary] = useState(false);
 
   const [ledgerModal, setLedgerModal] = useState(false);
@@ -2500,9 +2663,41 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
         </div>
       )}
 
-      {/* ── Desktop sidebar ── */}
-      <div className="hidden lg:flex w-56 flex-shrink-0 flex-col border-l border-[#1a3349]">
-        {sidebarJSX}
+      {/* ── Desktop sidebar (collapsible) ── */}
+      <div className={`hidden lg:flex flex-shrink-0 flex-col border-l border-[#1a3349] transition-all duration-200 ${ledgerSidebarCollapsed ? "w-10" : "w-56"}`}>
+        {ledgerSidebarCollapsed ? (
+          <div className="flex flex-col h-full bg-[#1a3349] items-center py-3 gap-3">
+            <button onClick={() => setLedgerSidebarCollapsed(false)}
+              className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-colors" title="فتح الدفاتر">
+              <ChevronLeft className="w-4 h-4 rotate-180" />
+            </button>
+            <div className="flex-1 flex flex-col gap-2 overflow-y-auto w-full px-1.5">
+              {ledgers.map((l) => {
+                const LIcon = getLedgerIcon(l.icon);
+                const isActive = activeLedger?._id === l._id;
+                return (
+                  <button key={l._id} onClick={() => setActiveLedger(l)} title={l.name}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center mx-auto transition-all ${isActive ? "bg-[#2d5d89]" : "hover:bg-white/10"}`}
+                    style={{ backgroundColor: isActive ? l.color : undefined }}>
+                    <LIcon className="w-3.5 h-3.5" style={{ color: isActive ? "#fff" : l.color }} />
+                  </button>
+                );
+              })}
+              <button onClick={() => { setEditLedger(null); setLedgerModal(true); }} title="دفتر جديد"
+                className="w-7 h-7 rounded-lg flex items-center justify-center mx-auto bg-white/5 hover:bg-white/15 text-white/40 hover:text-white transition-colors">
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col h-full relative">
+            <button onClick={() => setLedgerSidebarCollapsed(true)}
+              className="absolute top-3 left-2 z-10 w-5 h-5 rounded flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors" title="طي القائمة">
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            {sidebarJSX}
+          </div>
+        )}
       </div>
 
       {/* ── Main content ── */}
