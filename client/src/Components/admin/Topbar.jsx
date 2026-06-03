@@ -145,61 +145,44 @@ export default function Topbar({ onMenuClick, collapsed }) {
 
   return (
     <header
-      className={`fixed top-0 left-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-20 flex items-center gap-4 px-4 transition-all duration-300
+      className={`fixed top-0 left-0 h-14 bg-[#0f172a] border-b border-white/5 z-20 flex items-center gap-3 px-4 transition-all duration-300
         ${collapsed ? "right-0 lg:right-16" : "right-0 lg:right-64"}`}
     >
-      <button
-        onClick={onMenuClick}
-        className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-      >
-        <Menu className="w-5 h-5" />
+      <button onClick={onMenuClick}
+        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+        <Menu className="w-4 h-4" />
       </button>
 
-      {/* Search placeholder */}
-      <div className="flex-1 max-w-sm hidden md:block">
-        <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
-          <Search className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-400 text-sm">بحث سريع...</span>
+      {/* Search */}
+      <div className="flex-1 max-w-xs hidden md:block">
+        <div className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5 border border-white/10">
+          <Search className="w-3.5 h-3.5 text-white/30" />
+          <span className="text-white/30 text-xs">بحث سريع...</span>
         </div>
       </div>
 
-      <div className="mr-auto flex items-center gap-2">
-        <Link
-          to="/"
-          target="_blank"
-          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-          title="الموقع الإلكتروني"
-        >
+      <div className="mr-auto flex items-center gap-1">
+        <Link to="/" target="_blank"
+          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors" title="الموقع">
           <ExternalLink className="w-4 h-4" />
         </Link>
-
-        <button
-          onClick={toggleDark}
-          className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors"
-        >
+        <button onClick={toggleDark}
+          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors">
           {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
-
-        {/* Notification bell */}
         <div className="relative">
-          <button
-            onClick={() => setPanelOpen((p) => !p)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors relative"
-            title="الإشعارات"
-          >
+          <button onClick={() => setPanelOpen((p) => !p)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors relative">
             <Bell className="w-4 h-4" />
             {unread > 0 && (
-              <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+              <span className="absolute top-1 right-1 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                 {unread > 99 ? "99+" : unread}
               </span>
             )}
           </button>
-          {panelOpen && (
-            <NotificationPanel onClose={() => setPanelOpen(false)} />
-          )}
+          {panelOpen && <NotificationPanel onClose={() => setPanelOpen(false)} />}
         </div>
-
-        <div className="w-9 h-9 rounded-full bg-[#2d5d89] flex items-center justify-center text-white text-sm font-bold cursor-pointer">
+        <div className="w-7 h-7 rounded-full bg-[#2d5d89] flex items-center justify-center text-white text-xs font-bold cursor-pointer border-2 border-white/20">
           {user?.name?.[0] || "A"}
         </div>
       </div>

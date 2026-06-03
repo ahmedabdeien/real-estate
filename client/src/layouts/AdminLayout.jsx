@@ -27,11 +27,11 @@ export default function AdminLayout() {
       <Topbar onMenuClick={() => setSidebarCollapsed((p) => !p)} collapsed={sidebarCollapsed} />
 
       <main
-        className={`pt-14 min-h-screen transition-all duration-300 ${
+        className={`pt-14 transition-all duration-300 ${
           sidebarCollapsed ? "mr-0 lg:mr-16" : "mr-0 lg:mr-64"
         }`}
       >
-        <div className="p-2 sm:p-3 lg:p-5">
+        <div className="h-[calc(100vh-3.5rem)] overflow-hidden">
           <Outlet />
         </div>
       </main>

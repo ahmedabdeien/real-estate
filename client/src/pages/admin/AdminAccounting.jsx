@@ -8,7 +8,7 @@ import {
   PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
   Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
   Sparkles, Grid3x3, Zap, Target, PieChart, Activity, ArrowUpRight, ArrowDownRight,
-  ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma, Users,
+  ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma, Users, Package,
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell,
@@ -63,26 +63,34 @@ function evaluateFormula(formula, cells) {
 }
 
 const LEDGER_COLORS = [
-  "#2d5d89", "#1a7a4a", "#8b2500", "#5b2d89",
-  "#89602d", "#2d7a89", "#333333",
+  "#2d5d89","#217346","#0f4c81","#1a3a5c",
+  "#7b2d8b","#c0392b","#d35400","#16a085",
+  "#2c3e50","#8e44ad","#27ae60","#e67e22",
+  "#2980b9","#c0392b","#1abc9c","#f39c12",
 ];
 
 const LEDGER_ICONS = [
-  { name: "BookOpen",    Icon: BookOpen },
-  { name: "BookMarked",  Icon: BookMarked },
-  { name: "Calculator",  Icon: Calculator },
-  { name: "DollarSign",  Icon: DollarSign },
-  { name: "TrendingUp",  Icon: TrendingUp },
-  { name: "TrendingDown",Icon: TrendingDown },
-  { name: "PiggyBank",   Icon: PiggyBank },
-  { name: "Wallet",      Icon: Wallet },
-  { name: "CreditCard",  Icon: CreditCard },
-  { name: "Receipt",     Icon: Receipt },
-  { name: "FileText",    Icon: FileText },
-  { name: "Layers",      Icon: Layers },
-  { name: "Archive",     Icon: Archive },
-  { name: "Building2",   Icon: Building2 },
-  { name: "BarChart3",   Icon: BarChart3 },
+  { name: "BookOpen",      Icon: BookOpen },
+  { name: "BookMarked",    Icon: BookMarked },
+  { name: "Calculator",    Icon: Calculator },
+  { name: "DollarSign",    Icon: DollarSign },
+  { name: "TrendingUp",    Icon: TrendingUp },
+  { name: "TrendingDown",  Icon: TrendingDown },
+  { name: "PiggyBank",     Icon: PiggyBank },
+  { name: "Wallet",        Icon: Wallet },
+  { name: "CreditCard",    Icon: CreditCard },
+  { name: "Receipt",       Icon: Receipt },
+  { name: "FileText",      Icon: FileText },
+  { name: "Layers",        Icon: Layers },
+  { name: "Archive",       Icon: Archive },
+  { name: "Building2",     Icon: Building2 },
+  { name: "BarChart3",     Icon: BarChart3 },
+  { name: "Sigma",         Icon: Sigma },
+  { name: "Target",        Icon: Target },
+  { name: "Activity",      Icon: Activity },
+  { name: "PieChart",      Icon: PieChart },
+  { name: "Users",         Icon: Users },
+  { name: "Zap",           Icon: Zap },
 ];
 
 function getLedgerIcon(iconName) {
@@ -1019,6 +1027,12 @@ const TEMPLATE_ICONS = {
   expenses:         Receipt,
   contracts:        FileText,
   inventory:        Archive,
+  budget:           Target,
+  bank:             CreditCard,
+  tax:              Calculator,
+  assets:           Building2,
+  suppliers:        Package,
+  journal:          BookMarked,
 };
 
 const FINANCIAL_TEMPLATES = [
@@ -1093,7 +1107,6 @@ const FINANCIAL_TEMPLATES = [
   {
     id: "inventory",
     name: "المخزون والمشتريات",
-    
     columns: [
       { key:"col1", label:"الصنف",       type:"text",     width:200 },
       { key:"col2", label:"الكمية",      type:"number",   width:120 },
@@ -1102,6 +1115,73 @@ const FINANCIAL_TEMPLATES = [
       { key:"col5", label:"المورد",      type:"text",     width:180 },
       { key:"col6", label:"تاريخ الشراء",type:"date",    width:140 },
       { key:"col7", label:"الحالة",      type:"select",   width:130, options:["متوفر","نفد","طلبية معلقة"] },
+    ],
+  },
+  {
+    id: "budget",
+    name: "الميزانية التقديرية",
+    columns: [
+      { key:"col1", label:"البند",         type:"text",     width:200 },
+      { key:"col2", label:"الفئة",         type:"select",   width:150, options:["إيرادات","مصروفات تشغيلية","مصروفات إدارية","استثمارات"] },
+      { key:"col3", label:"المبلغ المخطط", type:"currency", width:160 },
+      { key:"col4", label:"المبلغ الفعلي", type:"currency", width:160 },
+      { key:"col5", label:"الفرق",         type:"formula",  width:150, formula:"col4 - col3" },
+      { key:"col6", label:"نسبة التنفيذ",  type:"formula",  width:150, formula:"col4 / col3 * 100" },
+      { key:"col7", label:"الربع",         type:"select",   width:120, options:["الأول","الثاني","الثالث","الرابع"] },
+    ],
+  },
+  {
+    id: "bank",
+    name: "كشف حساب بنكي",
+    columns: [
+      { key:"col1", label:"التاريخ",       type:"date",     width:140 },
+      { key:"col2", label:"البيان",        type:"text",     width:220 },
+      { key:"col3", label:"مدين",          type:"currency", width:150 },
+      { key:"col4", label:"دائن",          type:"currency", width:150 },
+      { key:"col5", label:"الرصيد",        type:"formula",  width:150, formula:"col4 - col3" },
+      { key:"col6", label:"رقم الشيك",     type:"text",     width:140 },
+      { key:"col7", label:"البنك",         type:"text",     width:150 },
+    ],
+  },
+  {
+    id: "tax",
+    name: "الضرائب والاستقطاعات",
+    columns: [
+      { key:"col1", label:"الموظف / الجهة",type:"text",     width:200 },
+      { key:"col2", label:"الإجمالي",      type:"currency", width:150 },
+      { key:"col3", label:"ضريبة الدخل",   type:"formula",  width:150, formula:"col2 * 0.1" },
+      { key:"col4", label:"التأمينات",     type:"formula",  width:150, formula:"col2 * 0.11" },
+      { key:"col5", label:"استقطاعات أخرى",type:"currency", width:160 },
+      { key:"col6", label:"الصافي",        type:"formula",  width:150, formula:"col2 - col3 - col4 - col5" },
+      { key:"col7", label:"الشهر",         type:"select",   width:120, options:["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"] },
+    ],
+  },
+  {
+    id: "journal",
+    name: "القيود اليومية",
+    columns: [
+      { key:"col1", label:"رقم القيد",     type:"text",     width:130 },
+      { key:"col2", label:"التاريخ",       type:"date",     width:140 },
+      { key:"col3", label:"الحساب",        type:"text",     width:200 },
+      { key:"col4", label:"نوع الحساب",    type:"select",   width:150, options:["أصول","خصوم","حقوق ملكية","إيرادات","مصروفات"] },
+      { key:"col5", label:"مدين",          type:"currency", width:150 },
+      { key:"col6", label:"دائن",          type:"currency", width:150 },
+      { key:"col7", label:"البيان",        type:"text",     width:220 },
+      { key:"col8", label:"المرجع",        type:"text",     width:140 },
+    ],
+  },
+  {
+    id: "assets",
+    name: "الأصول الثابتة",
+    columns: [
+      { key:"col1", label:"الأصل",         type:"text",     width:200 },
+      { key:"col2", label:"الفئة",         type:"select",   width:150, options:["عقارات","آلات","سيارات","أجهزة","أثاث"] },
+      { key:"col3", label:"تاريخ الشراء",  type:"date",     width:140 },
+      { key:"col4", label:"تكلفة الشراء",  type:"currency", width:160 },
+      { key:"col5", label:"نسبة الإهلاك",  type:"percentage",width:150 },
+      { key:"col6", label:"الإهلاك السنوي",type:"formula",  width:160, formula:"col4 * col5 / 100" },
+      { key:"col7", label:"القيمة الدفترية",type:"formula", width:160, formula:"col4 - col6" },
+      { key:"col8", label:"الحالة",        type:"select",   width:120, options:["نشط","مهلك","مباع"] },
     ],
   },
 ];
@@ -1831,153 +1911,6 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             </div>
           )}
 
-          {/* Toolbar — Excel ribbon style */}
-          <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5 flex items-center gap-1 flex-wrap mb-2">
-            {/* Group 1: Search + row count */}
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
-                  placeholder="بحث سريع..."
-                  className="w-44 pr-8 pl-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-2 focus:ring-[#2d5d89] focus:border-[#2d5d89]" />
-              </div>
-              <span className="text-xs text-gray-400 whitespace-nowrap font-medium bg-white border border-gray-200 px-2 py-1 rounded-lg">
-                {filteredRows.length} / {activeRows.length} سطر
-              </span>
-              {selected.size > 0 && (
-                <span className="text-xs font-semibold text-[#2d5d89] bg-[#2d5d89]/10 px-2 py-1 rounded-lg whitespace-nowrap">{selected.size} محدد</span>
-              )}
-              {isAdmin && rows.some(r => r.isDeleted) && (
-                <button onClick={() => setShowDeletedRows(p => !p)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    showDeletedRows
-                      ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
-                      : "bg-white text-gray-500 border-gray-200 hover:bg-gray-100"
-                  }`}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                  {showDeletedRows ? "عرض النشطة" : `محذوف (${rows.filter(r => r.isDeleted).length})`}
-                </button>
-              )}
-            </div>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gray-300 mx-1" />
-
-            {/* Group 2: Primary actions */}
-            <div className="flex items-center gap-1">
-              <label className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 text-xs font-medium cursor-pointer border border-indigo-200 transition-colors ${importing ? "opacity-50 pointer-events-none" : ""}`}>
-                <Upload className="w-3.5 h-3.5" />
-                {importing ? "استيراد..." : "استيراد"}
-                <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv,.ods,.tsv,.numbers" className="hidden" onChange={handleExcelImport} />
-              </label>
-              <button onClick={() => setAddingRow(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-semibold shadow-sm transition-colors">
-                <Plus className="w-3.5 h-3.5" /> سطر جديد
-              </button>
-              {selected.size > 0 && (
-                <button onClick={() => setConfirmBulk(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium border border-red-200">
-                  <Trash2 className="w-3.5 h-3.5" /> حذف ({selected.size})
-                </button>
-              )}
-            </div>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gray-300 mx-1" />
-
-            {/* Group 3: Export */}
-            <div className="flex items-center gap-1">
-              <button onClick={exportCsv}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 text-xs font-medium border border-gray-200 hover:border-emerald-300 transition-colors">
-                <Download className="w-3.5 h-3.5" /> CSV
-              </button>
-              <button onClick={exportExcelPython}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-green-50 text-green-700 text-xs font-medium border border-gray-200 hover:border-green-300 transition-colors">
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-              </button>
-              <button onClick={() => handlePrint(false)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-white hover:bg-red-50 text-red-600 rounded-lg border border-gray-200 hover:border-red-300 transition-colors font-medium">
-                <FileDown className="w-3.5 h-3.5" /> PDF
-              </button>
-            </div>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gray-300 mx-1" />
-
-            {/* Group 4: Print */}
-            <div className="flex items-center gap-1">
-              {selected.size > 0 && (
-                <button onClick={() => handlePrint(true)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2d5d89] hover:bg-[#245079] text-white text-xs font-medium transition-colors">
-                  <Printer className="w-3.5 h-3.5" /> طباعة ({selected.size})
-                </button>
-              )}
-              <button onClick={() => handlePrint(false)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-gray-100 text-gray-600 text-xs font-medium border border-gray-200 transition-colors">
-                <Printer className="w-3.5 h-3.5" /> طباعة
-              </button>
-            </div>
-
-            {/* Separator */}
-            <div className="w-px h-6 bg-gray-300 mx-1" />
-
-            {/* Group 5: View controls */}
-            <div className="flex items-center gap-1">
-              {/* Columns visibility */}
-              <div className="relative">
-                <button onClick={() => setColsMenuOpen((p) => !p)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white hover:bg-gray-100 text-gray-600 text-xs font-medium border border-gray-200 transition-colors">
-                  <EyeIcon className="w-3.5 h-3.5" /> الأعمدة
-                </button>
-                {colsMenuOpen && (
-                  <div className="absolute left-0 top-9 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 w-56 max-h-72 overflow-auto" dir="rtl">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase px-2 pb-1">إظهار/إخفاء الأعمدة</p>
-                    {allCols.map((c) => (
-                      <label key={c.key} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-xs">
-                        <input
-                          type="checkbox"
-                          checked={!hiddenCols.has(c.key)}
-                          onChange={() => toggleCol(c.key)}
-                          className="accent-[#2d5d89]"
-                        />
-                        <span className="flex-1 text-gray-700">{c.label}</span>
-                        {hiddenCols.has(c.key) ? <EyeOff className="w-3 h-3 text-gray-300" /> : <EyeIcon className="w-3 h-3 text-[#2d5d89]" />}
-                      </label>
-                    ))}
-                    <div className="flex justify-between gap-2 mt-2 pt-2 border-t border-gray-100">
-                      <button onClick={() => setHiddenCols(new Set())}
-                        className="flex-1 text-[10px] px-2 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">إظهار الكل</button>
-                      <button onClick={() => setColsMenuOpen(false)}
-                        className="flex-1 text-[10px] px-2 py-1 rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">تم</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {/* Font size */}
-              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white" title="حجم الخط">
-                <button onClick={() => setFontSize(s => Math.max(10, s - 2))}
-                  className="px-2 py-1.5 hover:bg-gray-100 text-gray-600 text-sm font-bold transition-colors">−</button>
-                <span className="px-1.5 text-xs text-gray-500 min-w-[28px] text-center border-x border-gray-200">{fontSize}</span>
-                <button onClick={() => setFontSize(s => Math.min(24, s + 2))}
-                  className="px-2 py-1.5 hover:bg-gray-100 text-gray-600 text-sm font-bold transition-colors">+</button>
-              </div>
-              {/* Row height */}
-              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white" title="ارتفاع الصفوف">
-                {[
-                  { id: "compact",     label: "م" },
-                  { id: "normal",      label: "ع" },
-                  { id: "comfortable", label: "و" },
-                ].map(({ id, label }) => (
-                  <button key={id} onClick={() => setRowHeight(id)} title={id === "compact" ? "مضغوط" : id === "normal" ? "عادي" : "مريح"}
-                    className={`px-2.5 py-1.5 text-xs font-medium transition-colors border-l border-gray-200 first:border-l-0 ${
-                      rowHeight === id ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:bg-gray-50"
-                    }`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
 
           {/* Table — Excel style */}
           <div className="flex-1 overflow-auto border-t border-gray-300" style={{ background: "#fff" }}>
@@ -2691,11 +2624,11 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           </div>
         ) : (
           <div className="flex flex-col h-full relative">
+            {sidebarJSX}
             <button onClick={() => setLedgerSidebarCollapsed(true)}
-              className="absolute top-3 left-2 z-10 w-5 h-5 rounded flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/10 transition-colors" title="طي القائمة">
+              className="absolute bottom-12 left-1.5 z-10 w-5 h-5 rounded flex items-center justify-center text-white/20 hover:text-white/60 hover:bg-white/10 transition-colors" title="طي القائمة">
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            {sidebarJSX}
           </div>
         )}
       </div>
