@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X, GripVertical, Save, ArrowUpDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X, GripVertical, Save, ArrowUpDown, CheckSquare } from "lucide-react";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay,
 } from "@dnd-kit/core";
@@ -54,7 +54,7 @@ const emptyProject = {
 };
 
 // ─── Sortable Row ─────────────────────────────────────────────────────────────
-function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, onEdit, onDelete, isDragging }) {
+function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, onEdit, onDelete, isDragging, selected, onToggleSelect, unitCount }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: p._id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -74,9 +74,13 @@ function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, o
             <GripVertical className="w-4 h-4" />
           </div>
         ) : (
-          <button onClick={() => onToggleFav(p._id)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-pink-50" title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
-            <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
-          </button>
+          <div className="flex flex-col items-center gap-1">
+            <input type="checkbox" checked={!!selected} onChange={() => onToggleSelect(p._id)}
+              className="w-4 h-4 rounded accent-[#2d5d89]" />
+            <button onClick={() => onToggleFav(p._id)} title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
+              <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
+            </button>
+          </div>
         )}
       </td>
       <td className="px-4 sm:px-6 py-4">
@@ -98,7 +102,24 @@ function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, o
       <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
         {p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : "—"}
       </td>
-      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{p.totalUnits || "—"}</td>
+      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+        <div>
+          <span>{p.totalUnits || "—"}</span>
+          {unitCount && unitCount.total > 0 && (
+            <div className="mt-1">
+              <div className="flex items-center gap-1 text-xs text-gray-400 mb-0.5">
+                <span>{unitCount.available} متاح</span>
+              </div>
+              <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full"
+                  style={{ width: `${Math.round((unitCount.available / unitCount.total) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </td>
       <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
         <Badge variant={p.published ? "success" : "gray"}>{p.published ? "منشور" : "مسودة"}</Badge>
       </td>
@@ -144,6 +165,9 @@ export default function AdminProjects() {
   const [reorderMode, setReorderMode] = useState(false);
   const [reorderSaving, setReorderSaving] = useState(false);
   const [activeId, setActiveId] = useState(null);
+  const [selectedProjects, setSelectedProjects] = useState([]);
+  const [bulkProjectStatus, setBulkProjectStatus] = useState("");
+  const [unitCounts, setUnitCounts] = useState({}); // projectId -> { available, total }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -329,6 +353,44 @@ export default function AdminProjects() {
     }
   };
 
+  const handleBulkProjectStatus = async () => {
+    if (!bulkProjectStatus || selectedProjects.length === 0) return;
+    try {
+      await Promise.all(selectedProjects.map((id) => api.put(`/projects/${id}`, { status: bulkProjectStatus })));
+      toast.success(`تم تحديث ${selectedProjects.length} مشروع`);
+      setSelectedProjects([]);
+      setBulkProjectStatus("");
+      load();
+    } catch {
+      toast.error("فشل التحديث الجماعي");
+    }
+  };
+
+  const toggleSelectProject = (id) => {
+    setSelectedProjects((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  };
+
+  // Load unit counts when projects are loaded
+  useEffect(() => {
+    if (projects.length === 0) return;
+    const fetchCounts = async () => {
+      const counts = {};
+      await Promise.all(
+        projects.map(async (p) => {
+          try {
+            const res = await api.get("/units", { params: { project: p._id, limit: 1 } });
+            const available = res.data.units?.filter(u => u.status === "available").length ?? 0;
+            counts[p._id] = { total: res.data.total ?? 0, available };
+          } catch {
+            counts[p._id] = { total: 0, available: 0 };
+          }
+        })
+      );
+      setUnitCounts(counts);
+    };
+    fetchCounts();
+  }, [projects]);
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -453,6 +515,24 @@ export default function AdminProjects() {
         </div>
       </div>
 
+      {/* Bulk actions bar for projects */}
+      {selectedProjects.length > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-3 flex flex-wrap items-center gap-3">
+          <CheckSquare className="w-4 h-4 text-blue-600" />
+          <span className="text-sm text-blue-700 dark:text-blue-300">{selectedProjects.length} مشروع محدد</span>
+          <select value={bulkProjectStatus} onChange={(e) => setBulkProjectStatus(e.target.value)}
+            className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
+            <option value="">تغيير الحالة</option>
+            {statusOptions.slice(1).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <button onClick={handleBulkProjectStatus} disabled={!bulkProjectStatus}
+            className="px-4 py-2 rounded-lg bg-[#2d5d89] text-white text-sm font-medium disabled:opacity-50">
+            تطبيق
+          </button>
+          <button onClick={() => setSelectedProjects([])} className="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">إلغاء التحديد</button>
+        </div>
+      )}
+
       {/* Table or Grid */}
       <div className={view === "grid" ? "" : "bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"}>
         {loading ? (
@@ -494,6 +574,18 @@ export default function AdminProjects() {
                       <span>الوحدات: {p.totalUnits || "—"}</span>
                       <span>{p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : ""}</span>
                     </div>
+                    {unitCounts[p._id] && unitCounts[p._id].total > 0 && (
+                      <div className="mt-1.5">
+                        <div className="flex justify-between text-xs text-gray-400 mb-1">
+                          <span>{unitCounts[p._id].available} وحدة متاحة</span>
+                          <span>{unitCounts[p._id].total} إجمالي</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                          <div className="h-full bg-emerald-500 rounded-full"
+                            style={{ width: `${Math.round((unitCounts[p._id].available / unitCounts[p._id].total) * 100)}%` }} />
+                        </div>
+                      </div>
+                    )}
                     <div className="mt-3 flex items-center gap-1">
                       <button onClick={() => openEdit(p)} className="flex-1 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-xs font-medium hover:bg-blue-100">تعديل</button>
                       <button onClick={() => setDeleteId(p._id)} className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 text-xs font-medium hover:bg-red-100">حذف</button>
@@ -546,6 +638,9 @@ export default function AdminProjects() {
                         onEdit={openEdit}
                         onDelete={(id) => setDeleteId(id)}
                         isDragging={activeId === p._id}
+                        selected={selectedProjects.includes(p._id)}
+                        onToggleSelect={toggleSelectProject}
+                        unitCount={unitCounts[p._id]}
                       />
                     ))}
                   </tbody>

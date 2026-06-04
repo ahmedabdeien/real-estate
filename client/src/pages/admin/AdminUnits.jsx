@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Heart, GitCompare, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Heart, GitCompare, Eye, EyeOff, Download, LayoutGrid, List, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -89,6 +89,9 @@ export default function AdminUnits() {
   const [compareIds, setCompareIds] = useState([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [customUnitAmenity, setCustomUnitAmenity] = useState("");
+  const [activeTab, setActiveTab] = useState("list"); // "list" | "floor"
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -243,6 +246,54 @@ export default function AdminUnits() {
     [units, compareIds]
   );
 
+  // Price-filtered units
+  const priceFilteredUnits = useMemo(() => {
+    let result = visibleUnits;
+    if (priceMin !== "") result = result.filter((u) => u.price >= Number(priceMin));
+    if (priceMax !== "") result = result.filter((u) => u.price <= Number(priceMax));
+    return result;
+  }, [visibleUnits, priceMin, priceMax]);
+
+  // Floor plan grouping
+  const floorGroups = useMemo(() => {
+    const groups = {};
+    priceFilteredUnits.forEach((u) => {
+      const key = u.floor?.trim() || "غير محدد";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(u);
+    });
+    return groups;
+  }, [priceFilteredUnits]);
+
+  const exportCSV = () => {
+    const headers = ["رقم الوحدة", "المشروع", "النوع", "الحالة", "المساحة", "السعر", "الدور", "غرف", "حمامات"];
+    const rows = priceFilteredUnits.map((u) => [
+      u.unitNumber,
+      u.project?.name?.ar || "",
+      unitTypeAr[u.type] || u.type,
+      statusBadge(u.status).label,
+      u.area,
+      u.price,
+      u.floor || "",
+      u.rooms,
+      u.bathrooms,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "units.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const statusColor = {
+    available: "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 text-emerald-700 dark:text-emerald-300",
+    sold: "bg-red-100 dark:bg-red-900/40 border-red-300 text-red-700 dark:text-red-300",
+    reserved: "bg-amber-100 dark:bg-amber-900/40 border-amber-300 text-amber-700 dark:text-amber-300",
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -272,17 +323,41 @@ export default function AdminUnits() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { label: "إجمالي الوحدات", value: stats.total },
-          { label: "متاحة", value: stats.available },
-          { label: "مبيعة", value: stats.sold },
-          { label: "محجوزة", value: stats.reserved },
-        ].map((s) => (
-          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
-            <p className="text-gray-500 dark:text-gray-400 text-xs">{s.label}</p>
-            <p className="text-2xl font-bold text-[#2d5d89] mt-1">{s.value}</p>
-          </div>
-        ))}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+          <p className="text-gray-500 dark:text-gray-400 text-xs">إجمالي الوحدات</p>
+          <p className="text-2xl font-bold text-[#2d5d89] mt-1">{stats.total}</p>
+        </div>
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 p-4">
+          <p className="text-emerald-600 dark:text-emerald-400 text-xs">متاحة</p>
+          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.available}</p>
+          {stats.total > 0 && <div className="mt-2 w-full h-1 bg-emerald-200 dark:bg-emerald-800 rounded-full"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.round((stats.available/stats.total)*100)}%` }} /></div>}
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800 p-4">
+          <p className="text-amber-600 dark:text-amber-400 text-xs">محجوزة</p>
+          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.reserved}</p>
+          {stats.total > 0 && <div className="mt-2 w-full h-1 bg-amber-200 dark:bg-amber-800 rounded-full"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((stats.reserved/stats.total)*100)}%` }} /></div>}
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-100 dark:border-red-800 p-4">
+          <p className="text-red-600 dark:text-red-400 text-xs">مبيعة</p>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{stats.sold}</p>
+          {stats.total > 0 && <div className="mt-2 w-full h-1 bg-red-200 dark:bg-red-800 rounded-full"><div className="h-full bg-red-500 rounded-full" style={{ width: `${Math.round((stats.sold/stats.total)*100)}%` }} /></div>}
+        </div>
+      </div>
+
+      {/* View tabs */}
+      <div className="flex items-center gap-2">
+        <button onClick={() => setActiveTab("list")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${activeTab === "list" ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"}`}>
+          <List className="w-4 h-4" /> قائمة
+        </button>
+        <button onClick={() => setActiveTab("floor")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${activeTab === "floor" ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"}`}>
+          <Layers className="w-4 h-4" /> مخطط الوحدات
+        </button>
+        <button onClick={exportCSV}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ml-auto">
+          <Download className="w-4 h-4" /> تصدير CSV
+        </button>
       </div>
 
       <div className="flex gap-3 flex-wrap items-center">
@@ -343,6 +418,20 @@ export default function AdminUnits() {
           <Eye className="w-4 h-4" />
           إظهار الكل
         </button>
+        <input
+          type="number"
+          value={priceMin}
+          onChange={(e) => setPriceMin(e.target.value)}
+          placeholder="سعر من"
+          className="w-24 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+        />
+        <input
+          type="number"
+          value={priceMax}
+          onChange={(e) => setPriceMax(e.target.value)}
+          placeholder="سعر إلى"
+          className="w-24 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+        />
       </div>
 
       {/* Bulk actions bar */}
@@ -364,10 +453,46 @@ export default function AdminUnits() {
         </div>
       )}
 
+      {activeTab === "floor" ? (
+        <div className="space-y-4">
+          {loading ? (
+            <LoadingSpinner className="h-64" size="lg" />
+          ) : priceFilteredUnits.length === 0 ? (
+            <EmptyState icon={Home} title="لا توجد وحدات" />
+          ) : (
+            Object.entries(floorGroups).sort(([a], [b]) => a.localeCompare(b, "ar")).map(([floor, floorUnits]) => (
+              <div key={floor} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#2d5d89]" />
+                  الدور: {floor}
+                  <span className="text-xs text-gray-400">({floorUnits.length} وحدة)</span>
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {floorUnits.map((u) => (
+                    <button
+                      key={u._id}
+                      onClick={() => openEdit(u)}
+                      title={`${u.unitNumber} — ${formatPrice(u.price)}`}
+                      className={`w-16 h-12 rounded-lg border-2 text-xs font-medium transition-all hover:scale-105 ${statusColor[u.status] || "bg-gray-100 border-gray-300 text-gray-600"}`}
+                    >
+                      {u.unitNumber}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3 mt-3 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-400 inline-block" /> متاح: {floorUnits.filter(u=>u.status==="available").length}</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> محجوز: {floorUnits.filter(u=>u.status==="reserved").length}</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400 inline-block" /> مباع: {floorUnits.filter(u=>u.status==="sold").length}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      ) : (
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         {loading ? (
           <LoadingSpinner className="h-64" size="lg" />
-        ) : visibleUnits.length === 0 ? (
+        ) : priceFilteredUnits.length === 0 ? (
           <EmptyState icon={Home} title={showFavorites ? "لا توجد مفضلات" : "لا توجد وحدات"} action={
             !showFavorites && <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium">إضافة وحدة</button>
           } />
@@ -379,8 +504,8 @@ export default function AdminUnits() {
                   <th className="px-2 py-3 w-10">
                     <input
                       type="checkbox"
-                      checked={visibleUnits.length > 0 && selected.length === visibleUnits.length}
-                      onChange={(e) => setSelected(e.target.checked ? visibleUnits.map((u) => u._id) : [])}
+                      checked={priceFilteredUnits.length > 0 && selected.length === priceFilteredUnits.length}
+                      onChange={(e) => setSelected(e.target.checked ? priceFilteredUnits.map((u) => u._id) : [])}
                       className="w-4 h-4 rounded accent-[#2d5d89]"
                     />
                   </th>
@@ -397,7 +522,7 @@ export default function AdminUnits() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                {visibleUnits.map((u) => {
+                {priceFilteredUnits.map((u) => {
                   const { label, variant } = statusBadge(u.status);
                   const fav = favorites.includes(u._id);
                   const inCompare = compareIds.includes(u._id);
@@ -469,6 +594,7 @@ export default function AdminUnits() {
           </div>
         )}
       </div>
+      )}
 
       <Pagination page={page} pages={pages} onPage={setPage} />
 
