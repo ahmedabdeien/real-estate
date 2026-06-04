@@ -6,8 +6,12 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit2, CheckCircle2, Clock, AlertCircle,
-  Layers, Flag, User, Building2, Search, X, Filter,
+  Layers, Flag, User, Building2, Search, X, Filter, Kanban,
 } from "lucide-react";
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+} from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -141,6 +145,80 @@ function TaskForm({ form, setForm, users, userRole, userDept }) {
   );
 }
 
+// ─── Kanban helpers ───────────────────────────────────────────────────────────
+
+const KANBAN_COLS = [
+  { key: "in_progress", label: "قيد التنفيذ",  color: "border-blue-300 bg-blue-50/40" },
+  { key: "pending",     label: "للمراجعة",      color: "border-yellow-300 bg-yellow-50/40" },
+  { key: "done",        label: "مكتمل",         color: "border-green-300 bg-green-50/40" },
+];
+
+const PRIORITY_BORDER = { high: "border-r-red-500", medium: "border-r-amber-400", low: "border-r-green-400" };
+
+function DraggableCard({ task, onEdit, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task._id });
+  const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)`, zIndex: 50 } : undefined;
+  const now = new Date();
+  const isOverdue = task.status !== "done" && task.dueDate && new Date(task.dueDate) < now;
+  const daysAgo = task.createdAt ? Math.floor((now - new Date(task.createdAt)) / (1000 * 60 * 60 * 24)) : null;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white rounded-xl border-r-4 border border-gray-100 p-3 shadow-sm cursor-grab active:cursor-grabbing select-none transition-shadow ${isDragging ? "shadow-lg opacity-80" : "hover:shadow-md"} ${PRIORITY_BORDER[task.priority] || "border-r-gray-300"} ${isOverdue ? "ring-1 ring-red-300" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className={`text-sm font-medium leading-snug ${isOverdue ? "text-red-700" : "text-gray-900"}`}>{task.title}</p>
+        <div className="flex gap-1 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
+          <button onClick={() => onEdit(task)} className="p-1 rounded hover:bg-blue-50 text-blue-500"><Edit2 className="w-3 h-3" /></button>
+          <button onClick={() => onDelete(task._id)} className="p-1 rounded hover:bg-red-50 text-red-400"><Trash2 className="w-3 h-3" /></button>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${PRIORITY_COLORS[task.priority]}`}>
+          {PRIORITY_LABELS[task.priority]}
+        </span>
+        {daysAgo !== null && (
+          <span className="text-[10px] text-gray-400">منذ {daysAgo} يوم</span>
+        )}
+        {isOverdue && <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">متأخرة</span>}
+      </div>
+      {task.assignedTo?.length > 0 && (
+        <div className="flex -space-x-1 space-x-reverse mt-2">
+          {task.assignedTo.slice(0, 3).map((u) => (
+            <div key={u._id} title={u.name} className="w-5 h-5 rounded-full bg-[#2d5d89]/10 border border-white flex items-center justify-center text-[9px] font-bold text-[#2d5d89]">
+              {u.name?.[0]?.toUpperCase()}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DroppableColumn({ colKey, label, color, tasks, onEdit, onDelete }) {
+  const { setNodeRef, isOver } = useDroppable({ id: colKey });
+  return (
+    <div className={`flex-1 min-w-[240px] rounded-2xl border-2 ${color} ${isOver ? "ring-2 ring-[#2d5d89]/40" : ""} transition-all`}>
+      <div className="px-3 py-2.5 border-b border-current/10">
+        <span className="font-semibold text-sm text-gray-700">{label}</span>
+        <span className="mr-2 text-xs text-gray-400 bg-white/60 px-1.5 py-0.5 rounded-full">{tasks.length}</span>
+      </div>
+      <div ref={setNodeRef} className="p-3 space-y-2.5 min-h-[200px]">
+        {tasks.map((t) => (
+          <DraggableCard key={t._id} task={t} onEdit={onEdit} onDelete={onDelete} />
+        ))}
+        {tasks.length === 0 && (
+          <p className="text-xs text-gray-400 text-center py-6">لا توجد مهام هنا</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main AdminTasks ──────────────────────────────────────────────────────────
 
 export default function AdminTasks() {
@@ -160,6 +238,9 @@ export default function AdminTasks() {
   const [deptFilter, setDeptFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selected,   setSelected]   = useState(new Set());
+  const [viewMode,   setViewMode]   = useState("list"); // "list" | "kanban"
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const canManage = ["admin", "supervisor", "manager"].includes(user?.role);
   const canSeeAll = ["admin", "supervisor"].includes(user?.role);
@@ -289,7 +370,26 @@ export default function AdminTasks() {
     }
   };
 
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    const newStatus = over.id;
+    const task = tasks.find((t) => t._id === active.id);
+    if (!task || task.status === newStatus) return;
+    try {
+      const r = await api.put(`/tasks/${active.id}`, { status: newStatus });
+      setTasks((p) => p.map((t) => t._id === active.id ? r.data.task : t));
+    } catch {
+      toast.error("فشل تحديث الحالة");
+    }
+  };
+
   const depts = [...new Set(tasks.map((t) => t.department))].filter(Boolean);
+
+  // Progress summary
+  const now = new Date();
+  const completedCount = tasks.filter((t) => t.status === "done").length;
+  const pendingCount = tasks.filter((t) => t.status !== "done").length;
+  const overdueCount = tasks.filter((t) => t.status !== "done" && t.dueDate && new Date(t.dueDate) < now).length;
 
   return (
     <div className="space-y-5" dir="rtl">
@@ -299,14 +399,44 @@ export default function AdminTasks() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{canManage ? "إدارة المهام" : "مهامي"}</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">{tasks.length} مهمة إجمالي</p>
         </div>
-        {canManage && (
-          <button onClick={openCreate}
-            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">مهمة جديدة</span>
-            <span className="sm:hidden">إضافة</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex border border-gray-200 rounded-xl overflow-hidden">
+            <button onClick={() => setViewMode("list")} className={`px-3 py-2 text-xs font-medium transition-colors ${viewMode === "list" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:bg-gray-50"}`}>
+              قائمة
+            </button>
+            <button onClick={() => setViewMode("kanban")} className={`px-3 py-2 text-xs font-medium transition-colors ${viewMode === "kanban" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:bg-gray-50"}`}>
+              كانبان
+            </button>
+          </div>
+          {canManage && (
+            <button onClick={openCreate}
+              className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">مهمة جديدة</span>
+              <span className="sm:hidden">إضافة</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── Progress summary bar ── */}
+      <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+          <CheckCircle2 className="w-4 h-4 text-green-600" />
+          <span className="text-sm font-bold text-green-700">{completedCount}</span>
+          <span className="text-xs text-green-600">مهمة مكتملة</span>
+        </div>
+        <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-100 rounded-xl px-3 py-2">
+          <Clock className="w-4 h-4 text-yellow-600" />
+          <span className="text-sm font-bold text-yellow-700">{pendingCount}</span>
+          <span className="text-xs text-yellow-600">معلقة</span>
+        </div>
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+          <span className="text-sm font-bold text-red-700">{overdueCount}</span>
+          <span className="text-xs text-red-600">متأخرة</span>
+        </div>
       </div>
 
       <HelpCard
@@ -403,8 +533,27 @@ export default function AdminTasks() {
         </div>
       )}
 
+      {/* ── Kanban Board ── */}
+      {viewMode === "kanban" && !loading && (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {KANBAN_COLS.map((col) => (
+              <DroppableColumn
+                key={col.key}
+                colKey={col.key}
+                label={col.label}
+                color={col.color}
+                tasks={filtered.filter((t) => t.status === col.key)}
+                onEdit={openEdit}
+                onDelete={setDeleteId}
+              />
+            ))}
+          </div>
+        </DndContext>
+      )}
+
       {/* ── Tasks list ── */}
-      {loading ? (
+      {viewMode === "list" && (loading ? (
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="bg-white dark:bg-gray-800 rounded-xl h-20 animate-pulse" />
@@ -447,7 +596,8 @@ export default function AdminTasks() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${
-                        selected.has(task._id) ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                        selected.has(task._id) ? "bg-blue-50/50 dark:bg-blue-900/10" :
+                        task.status !== "done" && task.dueDate && new Date(task.dueDate) < new Date() ? "bg-red-50/30" : ""
                       }`}>
                       {canManage && (
                         <td className="px-3 py-3 w-10">
@@ -563,7 +713,7 @@ export default function AdminTasks() {
             </table>
           </div>
         </div>
-      )}
+      ))}
 
       {/* ── Create/Edit Modal ── */}
       <Modal open={modal} onClose={() => setModal(false)}

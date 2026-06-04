@@ -68,6 +68,32 @@ function Select({ label, children, ...props }) {
   );
 }
 
+// ─── Status Pipeline ──────────────────────────────────────────────────────────
+const PIPELINE_STEPS = [
+  { key: "draft",     label: "مسودة" },
+  { key: "sent",      label: "مرسل" },
+  { key: "partial",   label: "استلام جزئي" },
+  { key: "received",  label: "مستلم" },
+];
+
+function StatusPipeline({ currentStatus }) {
+  const currentIdx = PIPELINE_STEPS.findIndex((s) => s.key === currentStatus);
+  if (currentStatus === "cancelled") {
+    return <span className="text-xs text-red-600 font-medium">ملغى</span>;
+  }
+  return (
+    <div className="flex items-center gap-1">
+      {PIPELINE_STEPS.map((step, i) => (
+        <div key={step.key} className="flex items-center gap-1">
+          <div className={`w-2 h-2 rounded-full ${i <= currentIdx ? "bg-[#2d5d89]" : "bg-gray-200"}`} title={step.label} />
+          {i < PIPELINE_STEPS.length - 1 && <div className={`w-4 h-0.5 ${i < currentIdx ? "bg-[#2d5d89]" : "bg-gray-200"}`} />}
+        </div>
+      ))}
+      <span className="text-xs text-gray-600 mr-1">{PIPELINE_STEPS[currentIdx]?.label || currentStatus}</span>
+    </div>
+  );
+}
+
 // ─── Orders Tab ───────────────────────────────────────────────────────────────
 function OrdersTab({ suppliers, warehouseItems, warehouses }) {
   const [orders, setOrders] = useState([]);
@@ -164,8 +190,58 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
     return matchSearch && matchStatus;
   });
 
+  // Supplier stats — top supplier by order count
+  const supplierMap = {};
+  orders.forEach((o) => {
+    const name = o.supplierName || (typeof o.supplier === "string" ? o.supplier : o.supplier?.name) || "غير معروف";
+    supplierMap[name] = (supplierMap[name] || 0) + 1;
+  });
+  const topSupplier = Object.entries(supplierMap).sort((a, b) => b[1] - a[1])[0];
+
+  // Budget vs actual (current month)
+  const now = new Date();
+  const monthOrders = orders.filter((o) => {
+    const d = new Date(o.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const monthTotal = monthOrders.reduce((s, o) => s + (Number(o.total) || 0), 0);
+  const MONTHLY_BUDGET = 50000; // placeholder — could be made configurable
+
+  // Quick approve: send a draft order
+  const approveOrder = async (id) => {
+    try {
+      await api.put(`/purchasing/orders/${id}`, { status: "sent" });
+      toast.success("تم إرسال الأمر");
+      fetchOrders();
+    } catch {
+      toast.error("فشل الموافقة");
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-[#2d5d89]/5 border border-[#2d5d89]/10 rounded-xl p-3">
+          <p className="text-xs text-gray-500 mb-0.5">أكثر المورّدين طلباً</p>
+          <p className="font-bold text-gray-900 truncate">{topSupplier ? topSupplier[0] : "—"}</p>
+          {topSupplier && <p className="text-xs text-[#2d5d89] mt-0.5">{topSupplier[1]} أمر شراء</p>}
+        </div>
+        <div className="col-span-1 sm:col-span-2 bg-gray-50 border border-gray-100 rounded-xl p-3">
+          <div className="flex justify-between items-center mb-1.5">
+            <p className="text-xs text-gray-500">الإنفاق الشهري مقابل الميزانية</p>
+            <p className="text-xs font-bold text-gray-700">{monthTotal.toLocaleString("ar-EG")} / {MONTHLY_BUDGET.toLocaleString("ar-EG")} ج</p>
+          </div>
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${monthTotal > MONTHLY_BUDGET ? "bg-red-500" : monthTotal > MONTHLY_BUDGET * 0.8 ? "bg-orange-400" : "bg-[#2d5d89]"}`}
+              style={{ width: `${Math.min(100, (monthTotal / MONTHLY_BUDGET) * 100)}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-gray-400 mt-1">{Math.round((monthTotal / MONTHLY_BUDGET) * 100)}% من الميزانية الشهرية</p>
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -188,7 +264,7 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
               <th className="px-4 py-3 text-right font-semibold text-gray-600">المورد</th>
               <th className="px-4 py-3 text-right font-semibold text-gray-600">التاريخ</th>
               <th className="px-4 py-3 text-right font-semibold text-gray-600">الإجمالي</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">الحالة</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-600">المسار</th>
               <th className="px-4 py-3 text-right font-semibold text-gray-600">الإجراءات</th>
             </tr>
           </thead>
@@ -198,7 +274,6 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
             ) : filtered.length === 0 ? (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">لا توجد أوامر شراء</td></tr>
             ) : filtered.map((order) => {
-              const st = ORDER_STATUS[order.status] || ORDER_STATUS.draft;
               return (
                 <tr key={order._id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-900">{order.orderNumber || "—"}</td>
@@ -206,11 +281,16 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
                   <td className="px-4 py-3 text-gray-500 text-xs">{order.createdAt ? new Date(order.createdAt).toLocaleDateString("ar-EG") : "—"}</td>
                   <td className="px-4 py-3 font-semibold text-gray-900">{order.total ? Number(order.total).toLocaleString("ar-EG") + " ج" : "—"}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-lg border ${st.color}`}>{st.label}</span>
+                    <StatusPipeline currentStatus={order.status} />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-wrap">
                       <button onClick={() => setViewModal(order)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="عرض"><Eye className="w-4 h-4" /></button>
+                      {order.status === "draft" && (
+                        <button onClick={() => approveOrder(order._id)} className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors" title="موافقة">
+                          <CheckCircle className="w-3.5 h-3.5" /> موافقة
+                        </button>
+                      )}
                       {(order.status === "sent" || order.status === "partial") && (
                         <button onClick={() => openReceive(order)} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 transition-colors" title="استلام"><CheckCircle className="w-4 h-4" /></button>
                       )}

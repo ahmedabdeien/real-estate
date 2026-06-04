@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
-import { Building2, Home, TrendingUp, FileText, ArrowUpRight, Clock, CheckCircle2, XCircle, CalendarDays, Plus, Pencil, Trash2, LogIn, Activity } from "lucide-react";
+import {
+  Building2, Home, TrendingUp, FileText, ArrowUpRight, Clock,
+  CheckCircle2, XCircle, CalendarDays, Plus, Pencil, Trash2, LogIn,
+  Activity, Users, Target, BarChart2, Layers
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell, Funnel, FunnelChart, LabelList
+} from "recharts";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
@@ -15,6 +23,7 @@ const actionMeta = {
   login:  { label: "دخل",   icon: LogIn,  color: "text-purple-500 bg-purple-50 dark:bg-purple-900/30" },
 };
 const entityAr = { project: "مشروع", unit: "وحدة", lead: "عميل", blog: "مقال", career: "وظيفة", auth: "نظام" };
+
 function timeAgo(d) {
   const s = (Date.now() - new Date(d)) / 1000;
   if (s < 60) return "الآن";
@@ -47,42 +56,6 @@ function StatCard({ icon: Icon, label, value, color, sub, to, delay = 0 }) {
   return to ? <Link to={to}>{inner}</Link> : inner;
 }
 
-function UnitStatusBar({ available = 0, sold = 0, reserved = 0 }) {
-  const total = available + sold + reserved || 1;
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-gray-900 dark:text-white text-sm">حالة الوحدات</h3>
-        <Link to="/admin/units" className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
-          عرض الكل <ArrowUpRight className="w-3 h-3" />
-        </Link>
-      </div>
-      <div className="space-y-3">
-        {[
-          { label: "متاحة", value: available, total, color: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
-          { label: "مباعة",  value: sold,      total, color: "bg-red-400",    text: "text-red-500 dark:text-red-400" },
-          { label: "محجوزة", value: reserved,  total, color: "bg-amber-400",  text: "text-amber-600 dark:text-amber-400" },
-        ].map((item) => (
-          <div key={item.label}>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600 dark:text-gray-400">{item.label}</span>
-              <span className={`font-semibold ${item.text}`}>{item.value}</span>
-            </div>
-            <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(item.value / item.total) * 100}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className={`${item.color} h-2 rounded-full`}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function QuickActions() {
   const actions = [
     { to: "/admin/projects", label: "مشروع جديد", icon: Building2, color: "bg-[#2d5d89]/10 text-[#2d5d89]" },
@@ -106,11 +79,222 @@ function QuickActions() {
   );
 }
 
+// Donut chart for units availability
+const DONUT_COLORS = ["#10b981", "#ef4444", "#f59e0b"];
+function UnitsDonut({ available = 0, sold = 0, reserved = 0 }) {
+  const total = available + sold + reserved || 1;
+  const data = [
+    { name: "متاح", value: available },
+    { name: "مباع", value: sold },
+    { name: "محجوز", value: reserved },
+  ];
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-gray-900 dark:text-white text-sm">توزيع الوحدات</h3>
+        <Link to="/admin/units" className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
+          عرض الكل <ArrowUpRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="relative" style={{ width: 110, height: 110 }}>
+          <PieChart width={110} height={110}>
+            <Pie data={data} cx={50} cy={50} innerRadius={32} outerRadius={50} dataKey="value" startAngle={90} endAngle={-270}>
+              {data.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i]} />)}
+            </Pie>
+          </PieChart>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-lg font-bold text-gray-900 dark:text-white">{total}</span>
+            <span className="text-xs text-gray-400">وحدة</span>
+          </div>
+        </div>
+        <div className="flex-1 space-y-2">
+          {data.map((d, i) => (
+            <div key={d.name} className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: DONUT_COLORS[i] }} />
+                <span className="text-gray-600 dark:text-gray-400">{d.name}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="font-semibold text-gray-900 dark:text-white">{d.value}</span>
+                <span className="text-gray-400 text-xs">({Math.round((d.value/total)*100)}%)</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Sales funnel: leads by status
+const FUNNEL_COLORS = ["#3b82f6", "#f59e0b", "#10b981", "#8b5cf6"];
+function SalesFunnelChart({ leadsByStatus }) {
+  const steps = [
+    { key: "new",       label: "جديد",         fill: "#3b82f6" },
+    { key: "contacted", label: "تم التواصل",    fill: "#f59e0b" },
+    { key: "interested",label: "مهتم",          fill: "#10b981" },
+    { key: "converted", label: "تحويل",         fill: "#2d5d89" },
+  ];
+  const data = steps.map((s) => ({ name: s.label, value: leadsByStatus[s.key] || 0, fill: s.fill }));
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-gray-900 dark:text-white text-sm">قمع المبيعات</h3>
+        <Link to="/admin/leads" className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
+          العملاء <ArrowUpRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <ResponsiveContainer width="100%" height={180}>
+        <BarChart data={data} layout="vertical" margin={{ left: 0, right: 20 }}>
+          <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12, fill: "#6b7280" }} />
+          <Tooltip formatter={(v) => [v, "عميل"]} />
+          <Bar dataKey="value" radius={[0, 6, 6, 0]}>
+            {data.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// Revenue vs Target bar chart
+const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+function RevenueChart({ financialData }) {
+  // Build last 6 months labels
+  const now = new Date();
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+    return { month: MONTHS_AR[d.getMonth()], key: `${d.getFullYear()}-${d.getMonth()+1}` };
+  });
+
+  const revenueMap = {};
+  if (financialData?.monthlyRevenue) {
+    financialData.monthlyRevenue.forEach((r) => { revenueMap[`${r._id?.year}-${r._id?.month}`] = r.total; });
+  }
+
+  const data = months.map((m) => ({
+    name: m.month,
+    "الإيرادات الفعلية": revenueMap[m.key] || 0,
+    "الهدف": financialData?.monthlyTarget || 500000,
+  }));
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-gray-900 dark:text-white text-sm">الإيرادات مقابل الهدف (6 أشهر)</h3>
+        <Link to="/admin/accounting" className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
+          المحاسبة <ArrowUpRight className="w-3 h-3" />
+        </Link>
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6b7280" }} />
+          <YAxis tick={{ fontSize: 10, fill: "#6b7280" }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+          <Tooltip formatter={(v) => [v.toLocaleString("ar-EG") + " ج.م", undefined]} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Bar dataKey="الإيرادات الفعلية" fill="#2d5d89" radius={[4,4,0,0]} />
+          <Bar dataKey="الهدف" fill="#e5e7eb" radius={[4,4,0,0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+// Recent sales table (converted leads)
+function RecentSalesTable({ leads }) {
+  const converted = (leads || []).filter((l) => l.status === "converted").slice(0, 5);
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <h3 className="font-bold text-gray-900 dark:text-white text-sm">آخر المبيعات المحوّلة</h3>
+        <Link to="/admin/leads" className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
+          عرض الكل <ArrowUpRight className="w-3 h-3" />
+        </Link>
+      </div>
+      {converted.length === 0 ? (
+        <p className="text-center text-gray-400 py-8 text-sm">لا توجد مبيعات محوّلة بعد</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                {["الاسم","المشروع","التاريخ","الحالة"].map((h) => (
+                  <th key={h} className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-5 py-3">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
+              {converted.map((l) => {
+                const { label, variant } = statusBadge(l.status);
+                return (
+                  <tr key={l._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td className="px-5 py-3 font-medium text-gray-900 dark:text-white">{l.name}</td>
+                    <td className="px-5 py-3 text-gray-600 dark:text-gray-400">{l.interestedProject?.name?.ar || "—"}</td>
+                    <td className="px-5 py-3 text-gray-400 text-xs">{new Date(l.createdAt).toLocaleDateString("ar-EG")}</td>
+                    <td className="px-5 py-3"><Badge variant={variant}>{label}</Badge></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Performance cards
+function PerformanceCards({ stats, recentLeads, leadsByStatus }) {
+  // Top project: count converted leads per project
+  const projectCounts = {};
+  (recentLeads || []).forEach((l) => {
+    if (l.interestedProject?.name?.ar) {
+      const name = l.interestedProject.name.ar;
+      projectCounts[name] = (projectCounts[name] || 0) + 1;
+    }
+  });
+  const topProject = Object.entries(projectCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+
+  // Conversion rate
+  const total = Object.values(leadsByStatus || {}).reduce((a, b) => a + b, 0) || 1;
+  const converted = leadsByStatus?.converted || 0;
+  const convRate = Math.round((converted / total) * 100);
+
+  const cards = [
+    { label: "أعلى مشروع مبيعاً", value: topProject, icon: Building2, color: "bg-[#2d5d89]" },
+    { label: "نسبة التحويل", value: `${convRate}%`, icon: Target, color: "bg-emerald-500" },
+    { label: "عملاء هذا الشهر", value: stats?.newLeads ?? "—", icon: Users, color: "bg-amber-500" },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {cards.map((c, i) => (
+        <motion.div key={c.label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+          className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
+          <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${c.color}`}>
+            <c.icon className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{c.value}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{c.label}</p>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState([]);
+  const [financial, setFinancial] = useState(null);
+
   const now = new Date();
   const hour = now.getHours();
   const greeting = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء النور";
@@ -118,6 +302,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     api.get("/dashboard/stats").then((r) => setData(r.data)).finally(() => setLoading(false));
     api.get("/activity", { params: { limit: 8 } }).then((r) => setActivities(r.data.activities || [])).catch(() => {});
+    api.get("/accounting/financial-summary", { params: { branch: "main" } }).then((r) => setFinancial(r.data)).catch(() => {});
   }, []);
 
   if (loading) return <LoadingSpinner className="h-64" size="lg" />;
@@ -125,11 +310,27 @@ export default function AdminDashboard() {
 
   const { stats, recentLeads, leadsByStatus: leadsArr } = data;
   const unitsByStatus = stats.unitsByStatus || {};
-  // Convert leadsByStatus array [{_id, count}] → object {new: N, ...}
   const leadsByStatus = (leadsArr || []).reduce((acc, item) => {
     acc[item._id] = item.count;
     return acc;
   }, {});
+
+  // Build 6 stat cards
+  const totalSales = financial?.totalRevenue ?? 0;
+  const pendingTasks = financial?.pendingTasks ?? stats?.pendingTasks ?? "—";
+  const convRate = (() => {
+    const total = Object.values(leadsByStatus).reduce((a, b) => a + b, 0) || 1;
+    return Math.round(((leadsByStatus.converted || 0) / total) * 100) + "%";
+  })();
+
+  const statCards = [
+    { icon: Building2, label: "المشاريع",           value: stats.totalProjects,          color: "bg-[#2d5d89]",   to: "/admin/projects", delay: 0 },
+    { icon: Home,      label: "الوحدات المتاحة",     value: unitsByStatus.available || 0, color: "bg-emerald-500", to: "/admin/units",    delay: 0.05 },
+    { icon: Users,     label: "عملاء هذا الشهر",     value: stats.newLeads || 0,          color: "bg-amber-500",   to: "/admin/leads",    delay: 0.1 },
+    { icon: TrendingUp,label: "إجمالي المبيعات",     value: totalSales ? totalSales.toLocaleString("ar-EG") + " ج" : "—", color: "bg-purple-500",  to: "/admin/accounting", delay: 0.15 },
+    { icon: Clock,     label: "المهام المعلقة",       value: pendingTasks,                 color: "bg-rose-500",    to: "/admin/tasks",    delay: 0.2 },
+    { icon: BarChart2, label: "نسبة التحويل",        value: convRate,                     color: "bg-teal-500",    delay: 0.25 },
+  ];
 
   return (
     <div className="space-y-6">
@@ -144,33 +345,27 @@ export default function AdminDashboard() {
         </p>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Building2} label="المشاريع" value={stats.totalProjects}
-          color="bg-[#2d5d89]" to="/admin/projects" delay={0} />
-        <StatCard icon={Home} label="الوحدات" value={stats.totalUnits}
-          color="bg-emerald-500" sub={`${unitsByStatus.available || 0} متاح`}
-          to="/admin/units" delay={0.05} />
-        <StatCard icon={TrendingUp} label="العملاء" value={stats.totalLeads}
-          color="bg-amber-500" sub={`${stats.newLeads || 0} جديد هذا الشهر`}
-          to="/admin/leads" delay={0.1} />
-        <StatCard icon={FileText} label="المقالات" value={stats.totalBlogs}
-          color="bg-purple-500" to="/admin/blogs" delay={0.15} />
+      {/* 6-card Stats Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {statCards.map((c) => (
+          <StatCard key={c.label} {...c} />
+        ))}
       </div>
 
-      {/* Middle row */}
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <SalesFunnelChart leadsByStatus={leadsByStatus} />
+        <RevenueChart financialData={financial} />
+      </div>
+
+      {/* Donut + Quick Actions + Lead status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Unit status bar */}
-        <UnitStatusBar
+        <UnitsDonut
           available={unitsByStatus.available}
           sold={unitsByStatus.sold}
           reserved={unitsByStatus.reserved}
         />
-
-        {/* Quick actions */}
         <QuickActions />
-
-        {/* Mini lead status */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-gray-900 dark:text-white text-sm">حالة العملاء</h3>
@@ -181,8 +376,10 @@ export default function AdminDashboard() {
           <div className="space-y-2">
             {[
               { label: "جديد",      key: "new",            icon: Clock,         color: "text-blue-500" },
-              { label: "محوّل",     key: "converted",      icon: CheckCircle2,  color: "text-emerald-500" },
-              { label: "غير مهتم", key: "not_interested",  icon: XCircle,       color: "text-red-400" },
+              { label: "تم التواصل",key: "contacted",       icon: Activity,      color: "text-amber-500" },
+              { label: "مهتم",      key: "interested",      icon: TrendingUp,    color: "text-purple-500" },
+              { label: "محوّل",     key: "converted",       icon: CheckCircle2,  color: "text-emerald-500" },
+              { label: "غير مهتم", key: "not_interested",   icon: XCircle,       color: "text-red-400" },
             ].map(({ label, key, icon: Icon, color }) => (
               <div key={key} className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-2">
@@ -197,6 +394,12 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Performance Cards */}
+      <PerformanceCards stats={stats} recentLeads={recentLeads} leadsByStatus={leadsByStatus} />
+
+      {/* Recent Sales Table */}
+      <RecentSalesTable leads={recentLeads} />
 
       {/* Recent Leads */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">

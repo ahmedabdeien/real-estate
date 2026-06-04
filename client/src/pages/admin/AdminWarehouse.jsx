@@ -89,6 +89,7 @@ function BalanceTab() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const toast = useToast();
 
   const fetchData = useCallback(async () => {
@@ -105,21 +106,55 @@ function BalanceTab() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const filtered = data.filter((row) =>
-    !search || row.itemName?.toLowerCase().includes(search.toLowerCase()) ||
-    row.warehouseName?.toLowerCase().includes(search.toLowerCase())
-  );
+  const allCategories = [...new Set(data.map((r) => r.category).filter(Boolean))];
+  const lowStockItems = data.filter((r) => r.minStock != null && r.quantity < r.minStock);
+  const totalValue = data.reduce((s, r) => s + (r.quantity || 0) * (r.avgCost || 0), 0);
+
+  const filtered = data.filter((row) => {
+    const matchSearch = !search || row.itemName?.toLowerCase().includes(search.toLowerCase()) || row.warehouseName?.toLowerCase().includes(search.toLowerCase());
+    const matchCat = !categoryFilter || row.category === categoryFilter;
+    return matchSearch && matchCat;
+  });
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-3">
-        <div className="relative flex-1">
+      {/* Stats Bar */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+          <p className="text-xl font-bold text-blue-700">{data.length}</p>
+          <p className="text-xs text-blue-600 mt-0.5">إجمالي الأصناف</p>
+        </div>
+        <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-center">
+          <p className="text-xl font-bold text-red-700">{lowStockItems.length}</p>
+          <p className="text-xs text-red-600 mt-0.5">منخفض المخزون</p>
+        </div>
+        <div className="bg-green-50 border border-green-100 rounded-xl p-3 text-center">
+          <p className="text-xl font-bold text-green-700">{totalValue.toLocaleString("ar-EG", { maximumFractionDigits: 0 })}</p>
+          <p className="text-xs text-green-600 mt-0.5">القيمة الإجمالية (ج)</p>
+        </div>
+      </div>
+
+      <div className="flex gap-3 flex-wrap">
+        <div className="relative flex-1 min-w-[180px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="بحث باسم الصنف أو المخزن..."
             className="w-full border border-gray-200 rounded-xl pr-10 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30"
           />
+        </div>
+        {/* Category chips */}
+        <div className="flex gap-2 flex-wrap items-center">
+          <button
+            onClick={() => setCategoryFilter("")}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${!categoryFilter ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d5d89]"}`}
+          >الكل</button>
+          {allCategories.map((cat) => (
+            <button key={cat}
+              onClick={() => setCategoryFilter(cat === categoryFilter ? "" : cat)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${categoryFilter === cat ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d5d89]"}`}
+            >{cat}</button>
+          ))}
         </div>
         <button onClick={fetchData} className="p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
           <RefreshCw className="w-4 h-4 text-gray-500" />
@@ -150,6 +185,9 @@ function BalanceTab() {
                     <div className="flex items-center gap-2">
                       {belowMin && <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />}
                       {row.itemName}
+                      {belowMin && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200">نفد تقريباً</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{row.warehouseName}</td>
@@ -157,6 +195,9 @@ function BalanceTab() {
                     <span className={`font-semibold ${belowMin ? "text-red-600" : "text-gray-900"}`}>
                       {row.quantity?.toLocaleString("ar-EG")}
                     </span>
+                    {row.minStock != null && (
+                      <span className="text-gray-400 text-xs mr-1">/ {row.minStock}</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{row.unit}</td>
                   <td className="px-4 py-3 text-gray-600">{row.avgCost ? Number(row.avgCost).toLocaleString("ar-EG") + " ج" : "—"}</td>

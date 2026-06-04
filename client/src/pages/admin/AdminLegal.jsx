@@ -294,6 +294,61 @@ function CasesTab() {
 }
 
 // ─── Contracts Tab ────────────────────────────────────────────────────────────
+const CONTRACT_DOCS = ["وثيقة موقعة", "دفع مُكمّل", "تسجيل عقاري"];
+
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr) - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+function ContractTimeline({ startDate, endDate }) {
+  if (!startDate || !endDate) return null;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const now = new Date();
+  const total = end - start;
+  if (total <= 0) return null;
+  const elapsed = Math.max(0, Math.min(now - start, total));
+  const pct = Math.round((elapsed / total) * 100);
+  const isOver = now > end;
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="flex justify-between text-[10px] text-gray-400">
+        <span>{start.toLocaleDateString("ar-EG", { month: "short", year: "numeric" })}</span>
+        <span>{end.toLocaleDateString("ar-EG", { month: "short", year: "numeric" })}</span>
+      </div>
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${isOver ? "bg-red-400" : pct > 80 ? "bg-orange-400" : "bg-[#2d5d89]"}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function DocChecklist({ contractId, docs = [] }) {
+  const [checked, setChecked] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`contract_docs_${contractId}`) || "{}"); } catch { return {}; }
+  });
+  const toggle = (doc) => {
+    const next = { ...checked, [doc]: !checked[doc] };
+    setChecked(next);
+    localStorage.setItem(`contract_docs_${contractId}`, JSON.stringify(next));
+  };
+  return (
+    <div className="space-y-1 mt-2">
+      {CONTRACT_DOCS.map((doc) => (
+        <label key={doc} className="flex items-center gap-2 cursor-pointer group">
+          <input type="checkbox" checked={!!checked[doc]} onChange={() => toggle(doc)}
+            className="w-3.5 h-3.5 rounded accent-[#2d5d89]" />
+          <span className={`text-xs transition-colors ${checked[doc] ? "line-through text-gray-400" : "text-gray-600 group-hover:text-gray-900"}`}>{doc}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 function ContractsTab() {
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -301,6 +356,10 @@ function ContractsTab() {
   const [editItem, setEditItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [partyFilter, setPartyFilter] = useState("");
+  const [expandedId, setExpandedId] = useState(null);
   const toast = useToast();
 
   const emptyForm = { contractNumber: "", title: "", type: "", partyA: "", partyB: "", startDate: "", endDate: "", value: "", status: "active", notes: "" };
@@ -369,68 +428,121 @@ function ContractsTab() {
     return c.status || "active";
   };
 
+  // Derived stats
+  const total = contracts.length;
+  const active = contracts.filter((c) => getEffectiveStatus(c) === "active").length;
+  const expired = contracts.filter((c) => getEffectiveStatus(c) === "expired").length;
+  const soonCount = contracts.filter((c) => isExpiringSoon(c.endDate) && getEffectiveStatus(c) !== "expired").length;
+
+  // Unique types and parties for filter chips
+  const types = [...new Set(contracts.map((c) => c.type).filter(Boolean))];
+  const parties = [...new Set(contracts.map((c) => c.partyA?.name || c.partyA).filter(Boolean))];
+
+  const filtered = contracts.filter((c) => {
+    const matchStatus = !statusFilter || getEffectiveStatus(c) === statusFilter;
+    const matchType = !typeFilter || c.type === typeFilter;
+    const matchParty = !partyFilter || (c.partyA?.name || c.partyA) === partyFilter;
+    return matchStatus && matchType && matchParty;
+  });
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button onClick={openAdd} className="flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+    <div className="space-y-5">
+      {/* Stats Dashboard */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "إجمالي العقود", value: total, color: "bg-blue-50 text-blue-700 border-blue-100" },
+          { label: "نشطة", value: active, color: "bg-green-50 text-green-700 border-green-100" },
+          { label: "منتهية", value: expired, color: "bg-red-50 text-red-700 border-red-100" },
+          { label: "وشيكة الانتهاء", value: soonCount, color: "bg-orange-50 text-orange-700 border-orange-100" },
+        ].map((s) => (
+          <div key={s.label} className={`rounded-xl border p-4 ${s.color}`}>
+            <p className="text-2xl font-bold">{s.value}</p>
+            <p className="text-xs font-medium mt-0.5 opacity-80">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filters + Add */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+          <option value="">كل الحالات</option>
+          {Object.entries(CONTRACT_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+        </select>
+        {types.length > 0 && (
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+            <option value="">كل الأنواع</option>
+            {types.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        )}
+        {parties.length > 0 && (
+          <select value={partyFilter} onChange={(e) => setPartyFilter(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none">
+            <option value="">كل الأطراف</option>
+            {parties.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+        )}
+        <button onClick={openAdd} className="mr-auto flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
           <Plus className="w-4 h-4" /> إضافة عقد
         </button>
       </div>
-      <div className="overflow-x-auto rounded-2xl border border-gray-100">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">رقم العقد</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">العنوان</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">النوع</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">الطرف الأول</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">تاريخ الانتهاء</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">القيمة</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">الحالة</th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-600">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {loading ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">جاري التحميل...</td></tr>
-            ) : contracts.length === 0 ? (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">لا توجد عقود</td></tr>
-            ) : contracts.map((c) => {
-              const effStatus = getEffectiveStatus(c);
-              const st = CONTRACT_STATUS[effStatus] || CONTRACT_STATUS.active;
-              const expiring = isExpiringSoon(c.endDate) && effStatus !== "expired";
-              return (
-                <tr key={c._id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500">{c.contractNumber || "—"}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900 max-w-[160px] truncate">{c.title}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.type || "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.partyA?.name || c.partyA || "—"}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-xs ${expiring ? "text-orange-600 font-medium" : "text-gray-500"}`}>
-                        {c.endDate ? new Date(c.endDate).toLocaleDateString("ar-EG") : "—"}
-                      </span>
-                      {expiring && <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />}
+
+      {/* Contracts List */}
+      <div className="space-y-3">
+        {loading ? (
+          <div className="py-8 text-center text-gray-400">جاري التحميل...</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-8 text-center text-gray-400">لا توجد عقود</div>
+        ) : filtered.map((c) => {
+          const effStatus = getEffectiveStatus(c);
+          const st = CONTRACT_STATUS[effStatus] || CONTRACT_STATUS.active;
+          const expiring = isExpiringSoon(c.endDate) && effStatus !== "expired";
+          const days = daysUntil(c.endDate);
+          const isExpanded = expandedId === c._id;
+          return (
+            <div key={c._id} className={`rounded-2xl border transition-all ${expiring ? "border-orange-200 bg-orange-50/20" : effStatus === "expired" ? "border-red-100 bg-red-50/10" : "border-gray-100 bg-white"}`}>
+              <div className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-gray-900 truncate">{c.title}</span>
+                      <span className="font-mono text-xs text-gray-400">{c.contractNumber}</span>
+                      {expiring && days !== null && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">
+                          يتبقى {days} يوم
+                        </span>
+                      )}
+                      {effStatus === "expired" && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200">منتهي</span>
+                      )}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{c.value ? Number(c.value).toLocaleString("ar-EG") + " ج" : "—"}</td>
-                  <td className="px-4 py-3">
-                    {expiring
-                      ? <span className="text-xs font-medium px-2 py-1 rounded-lg border text-orange-600 bg-orange-50 border-orange-200">ينتهي قريباً</span>
-                      : <span className={`text-xs font-medium px-2 py-1 rounded-lg border ${st.color}`}>{st.label}</span>
-                    }
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1.5">
-                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => setDeleteId(c._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-500">
+                      {c.type && <span>{c.type}</span>}
+                      {(c.partyA?.name || c.partyA) && <span>الطرف الأول: {c.partyA?.name || c.partyA}</span>}
+                      {c.value ? <span className="font-medium text-gray-700">{Number(c.value).toLocaleString("ar-EG")} ج</span> : null}
                     </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <ContractTimeline startDate={c.startDate} endDate={c.endDate} />
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-lg border ${st.color}`}>{st.label}</span>
+                    <button onClick={() => setExpandedId(isExpanded ? null : c._id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors text-xs">
+                      {isExpanded ? "إخفاء" : "تفاصيل"}
+                    </button>
+                    <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteId(c._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+
+                {/* Expanded: doc checklist */}
+                {isExpanded && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs font-semibold text-gray-600 mb-2">قائمة المستندات</p>
+                    <DocChecklist contractId={c._id} />
+                    {c.notes && <p className="mt-3 text-xs text-gray-500 bg-gray-50 rounded-lg p-2">{c.notes}</p>}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       <Modal open={modal} onClose={() => setModal(false)} title={editItem ? "تعديل العقد" : "إضافة عقد جديد"} wide>
