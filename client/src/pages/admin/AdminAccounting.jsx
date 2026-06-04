@@ -1354,6 +1354,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [sortConfig, setSortConfig] = useState(null); // { key, dir: 'asc'|'desc' }
   const [rowColorMenu, setRowColorMenu] = useState(null); // { rowId }
   const [findReplace, setFindReplace] = useState(null); // { find, replace, colKey:'all'|key }
+  const [colFilters, setColFilters] = useState({}); // { colKey: Set<value> | null }
+  const [colFilterOpen, setColFilterOpen] = useState(null); // colKey
+  const [cellFmt, setCellFmt] = useState({}); // { "rowId:colKey": { bold, italic, color, bg } }
+  const [fmtToolbar, setFmtToolbar] = useState(false); // show format toolbar
+  const [freezeCols, setFreezeCols] = useState(1); // number of cols to freeze (0=none,1=first,2=first two...)
+  const tableRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const getColWidth = (col) => colWidths[col.key] ?? col.width ?? 120;
@@ -1486,6 +1492,111 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     } catch { toast.error("فشل الحذف"); }
     finally { setDeleting(false); }
   };
+
+  // ── cell format helpers ──
+  const getFmt = (rowId, colKey) => cellFmt[`${rowId}:${colKey}`] || {};
+  const setFmt = async (rowId, colKey, patch) => {
+    const key = `${rowId}:${colKey}`;
+    const newFmt = { ...getFmt(rowId, colKey), ...patch };
+    setCellFmt(prev => ({ ...prev, [key]: newFmt }));
+    // persist into cells as __fmt_colKey
+    const row = rows.find(r => r._id === rowId);
+    if (!row) return;
+    const fmtCellKey = `__fmt_${colKey}`;
+    const newCells = { ...(row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}), [fmtCellKey]: JSON.stringify(newFmt) };
+    setRows(prev => prev.map(r => r._id === rowId ? { ...r, cells: newCells } : r));
+    try { await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}`, { cells: newCells }); } catch {}
+  };
+  // Initialize cellFmt from rows on mount/change
+  useEffect(() => {
+    const fmt = {};
+    rows.forEach(row => {
+      const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells || {});
+      Object.keys(cells).forEach(k => {
+        if (k.startsWith("__fmt_")) {
+          const colKey = k.slice(6);
+          try { fmt[`${row._id}:${colKey}`] = JSON.parse(cells[k]); } catch {}
+        }
+      });
+    });
+    setCellFmt(fmt);
+  }, [sheet._id]);
+
+  // ── arrow key navigation ──
+  const handleArrowNav = useCallback((e) => {
+    if (!selectedCell || editCell) return;
+    const { rowIdx, colKey } = selectedCell;
+    const colIdx = cols.findIndex(c => c.key === colKey);
+    let newRowIdx = rowIdx, newColIdx = colIdx;
+    if (e.key === "ArrowDown")  { e.preventDefault(); newRowIdx = Math.min(rowIdx + 1, sortedRows.length - 1); }
+    if (e.key === "ArrowUp")    { e.preventDefault(); newRowIdx = Math.max(rowIdx - 1, 0); }
+    if (e.key === "ArrowRight") { e.preventDefault(); newColIdx = Math.max(colIdx - 1, 0); }
+    if (e.key === "ArrowLeft")  { e.preventDefault(); newColIdx = Math.min(colIdx + 1, cols.length - 1); }
+    if (e.key === "Enter" || e.key === "F2") { e.preventDefault(); startEdit(selectedCell.rowId, colKey, rowIdx); return; }
+    if (e.key === "Delete" || e.key === "Backspace") {
+      if (!editCell && selectedCell) {
+        const col = cols[colIdx];
+        if (col?.type !== "formula") commitCell(selectedCell.rowId, colKey, "");
+      }
+      return;
+    }
+    if (newRowIdx !== rowIdx || newColIdx !== colIdx) {
+      const targetRow = sortedRows[newRowIdx];
+      const targetCol = cols[newColIdx];
+      if (targetRow && targetCol) {
+        setSelectedCell({ rowIdx: newRowIdx, colKey: targetCol.key, rowId: targetRow._id });
+        setFormulaBarVal(targetCol.type === "formula" ? (targetCol.formula || "") : (targetRow.cells?.[targetCol.key] ?? ""));
+      }
+    }
+  }, [selectedCell, editCell, cols, sortedRows]);
+
+  useEffect(() => {
+    if (activeTab !== "table") return;
+    window.addEventListener("keydown", handleArrowNav);
+    return () => window.removeEventListener("keydown", handleArrowNav);
+  }, [handleArrowNav, activeTab]);
+
+  // ── col filter helpers ──
+  const getColUniqueValues = useCallback((colKey) => {
+    const vals = new Set();
+    activeRows.forEach(r => {
+      const v = r.cells instanceof Map ? Object.fromEntries(r.cells)[colKey] : r.cells?.[colKey];
+      if (v !== undefined && v !== null && v !== "" && !String(v).startsWith("__")) vals.add(String(v));
+    });
+    return [...vals].slice(0, 100);
+  }, [activeRows]);
+
+  const toggleColFilter = (colKey, value) => {
+    setColFilters(prev => {
+      const existing = prev[colKey] ? new Set(prev[colKey]) : null;
+      if (!existing) {
+        return { ...prev, [colKey]: new Set([value]) };
+      }
+      const next = new Set(existing);
+      next.has(value) ? next.delete(value) : next.add(value);
+      if (next.size === 0) { const r = { ...prev }; delete r[colKey]; return r; }
+      return { ...prev, [colKey]: next };
+    });
+  };
+
+  const clearColFilter = (colKey) => setColFilters(prev => { const r = { ...prev }; delete r[colKey]; return r; });
+  const hasFilter = Object.keys(colFilters).length > 0;
+
+  // ── auto-complete ──
+  const [acOptions, setAcOptions] = useState([]); // autocomplete options
+  const [acIndex, setAcIndex] = useState(-1);
+  useEffect(() => {
+    if (!editCell) { setAcOptions([]); return; }
+    const col = cols.find(c => c.key === editCell.colKey);
+    if (!col || col.type !== "text" || !cellVal) { setAcOptions([]); return; }
+    const v = cellVal.toLowerCase();
+    const opts = [...new Set(activeRows
+      .map(r => (r.cells instanceof Map ? Object.fromEntries(r.cells) : r.cells || {})[editCell.colKey])
+      .filter(x => x && String(x).toLowerCase().startsWith(v) && String(x) !== cellVal)
+    )].slice(0, 6);
+    setAcOptions(opts);
+    setAcIndex(-1);
+  }, [cellVal, editCell]);
 
   // ── duplicate row ──
   const duplicateRow = async (row) => {
@@ -1784,14 +1895,24 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     ? rows.filter((r) => r && r.isDeleted)
     : rows.filter((r) => r && !r.isDeleted);
 
-  const filteredRows = quickFilter.trim()
-    ? activeRows.filter((r) => {
-        const q = quickFilter.toLowerCase();
-        return Object.values(r.cells || {}).some((v) =>
-          String(v ?? "").toLowerCase().includes(q)
-        );
-      })
-    : activeRows;
+  const filteredRows = useMemo(() => {
+    let result = activeRows;
+    if (quickFilter.trim()) {
+      const q = quickFilter.toLowerCase();
+      result = result.filter(r => Object.entries(r.cells instanceof Map ? Object.fromEntries(r.cells) : r.cells || {})
+        .some(([k, v]) => !k.startsWith("__") && String(v ?? "").toLowerCase().includes(q)));
+    }
+    if (hasFilter) {
+      result = result.filter(r => {
+        const cells = r.cells instanceof Map ? Object.fromEntries(r.cells) : (r.cells || {});
+        return Object.entries(colFilters).every(([colKey, allowed]) => {
+          const v = String(cells[colKey] ?? "");
+          return allowed.has(v);
+        });
+      });
+    }
+    return result;
+  }, [activeRows, quickFilter, colFilters, hasFilter]);
 
   // ── sorted rows ──
   const sortedRows = useMemo(() => {
@@ -2054,12 +2175,25 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               )}
             </div>
             <div className="w-px h-5 bg-gray-300 mx-1" />
+            {/* Formatting toolbar toggle */}
+            <button onClick={() => setFmtToolbar(p => !p)}
+              title="تنسيق الخلايا"
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${fmtToolbar ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+              <span className="font-bold text-sm leading-none">ب</span> تنسيق
+            </button>
             {/* Find & Replace button */}
             <button onClick={() => setFindReplace({ find: "", replace: "", colKey: "all" })}
               title="بحث واستبدال (Ctrl+H)"
               className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
               <Search className="w-3.5 h-3.5" /> بحث / استبدال
             </button>
+            {/* Active filters indicator */}
+            {hasFilter && (
+              <button onClick={() => setColFilters({})}
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 transition-colors">
+                <Filter className="w-3.5 h-3.5" /> مرشح ({Object.keys(colFilters).length}) × إلغاء
+              </button>
+            )}
             {/* Search */}
             <div className="mr-auto relative">
               <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
@@ -2077,6 +2211,50 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           </div>
         )}
       </div>
+
+      {/* ══ Formatting Toolbar ══ */}
+      {activeTab === "table" && fmtToolbar && selectedCell && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#f0f4f8] border-b border-gray-300 flex-shrink-0 flex-wrap">
+          <span className="text-[10px] text-gray-400 font-bold uppercase ml-1">تنسيق الخلية المحددة</span>
+          {/* Bold */}
+          <button onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { bold: !getFmt(selectedCell.rowId, selectedCell.colKey).bold })}
+            className={`px-2 py-1 rounded text-xs font-bold border transition-colors ${getFmt(selectedCell.rowId, selectedCell.colKey).bold ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
+            B
+          </button>
+          {/* Italic */}
+          <button onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { italic: !getFmt(selectedCell.rowId, selectedCell.colKey).italic })}
+            className={`px-2 py-1 rounded text-xs italic border transition-colors ${getFmt(selectedCell.rowId, selectedCell.colKey).italic ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
+            I
+          </button>
+          {/* Text Color */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-gray-500">لون النص:</span>
+            {["#000000","#dc2626","#16a34a","#2563eb","#9333ea","#ea580c","#0891b2"].map(c => (
+              <button key={c} onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { color: c })}
+                className={`w-5 h-5 rounded border-2 transition-transform hover:scale-110 ${getFmt(selectedCell.rowId, selectedCell.colKey).color === c ? "border-gray-800 scale-110" : "border-white"}`}
+                style={{ backgroundColor: c }} />
+            ))}
+            <button onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { color: null })}
+              className="text-[10px] text-gray-400 hover:text-gray-600 px-1">× مسح</button>
+          </div>
+          {/* Cell Background */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-gray-500">خلفية:</span>
+            {["#fef9c3","#dcfce7","#dbeafe","#fce7f3","#fde68a","#fee2e2","#f3e8ff","transparent"].map(c => (
+              <button key={c} onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { bg: c === "transparent" ? null : c })}
+                className={`w-5 h-5 rounded border-2 transition-transform hover:scale-110 ${getFmt(selectedCell.rowId, selectedCell.colKey).bg === c ? "border-gray-800" : "border-gray-200"}`}
+                style={{ backgroundColor: c === "transparent" ? "#fff" : c }}>
+                {c === "transparent" && <span className="text-[9px] text-gray-400">×</span>}
+              </button>
+            ))}
+          </div>
+          {/* Clear all formatting */}
+          <button onClick={() => { if(selectedCell) { const k = `${selectedCell.rowId}:${selectedCell.colKey}`; setCellFmt(p => { const n={...p}; delete n[k]; return n; }); }}}
+            className="text-[10px] text-red-400 hover:text-red-600 border border-red-200 px-2 py-1 rounded hover:bg-red-50">
+            مسح التنسيق
+          </button>
+        </div>
+      )}
 
       {/* ══ Formula Bar (Excel style) ══ */}
       {activeTab === "table" && (
@@ -2223,12 +2401,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         onChange={toggleAll}
                         className="cursor-pointer accent-[#217346]" />
                     </th>
-                    {cols.map((col, ci) => (
+                    {cols.map((col, ci) => {
+                      const isFiltered = !!colFilters[col.key];
+                      return (
                       <th key={col.key}
-                        className="px-3 py-2 text-right font-semibold whitespace-nowrap text-xs border-l border-gray-300 border-b border-gray-400 bg-[#f2f2f2] relative group/th select-none hover:bg-[#e8e8e8] transition-colors cursor-pointer"
+                        className={`px-3 py-2 text-right font-semibold whitespace-nowrap text-xs border-l border-gray-300 border-b border-gray-400 relative group/th select-none transition-colors cursor-pointer ${isFiltered ? "bg-amber-50" : "bg-[#f2f2f2] hover:bg-[#e8e8e8]"}`}
                         style={{ width: getColWidth(col), minWidth: 60 }}
                         onClick={() => handleColSort(col.key)}>
                         <span className="flex items-center gap-1 text-gray-700">
+                          {isFiltered && <Filter className="w-3 h-3 text-amber-600 flex-shrink-0" />}
                           {col.label}
                           {sortConfig?.key === col.key
                             ? sortConfig.dir === "asc"
@@ -2237,12 +2418,46 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                             : <SortAsc className="w-3 h-3 text-gray-300 opacity-0 group-hover/th:opacity-100" />
                           }
                         </span>
+                        {/* Filter dropdown button */}
+                        <button
+                          className="absolute bottom-0.5 left-4 opacity-0 group-hover/th:opacity-100 transition-opacity"
+                          onClick={(e) => { e.stopPropagation(); setColFilterOpen(colFilterOpen === col.key ? null : col.key); }}>
+                          <ChevronDown className="w-3 h-3 text-gray-400 hover:text-[#217346]" />
+                        </button>
+                        {/* Filter popup */}
+                        {colFilterOpen === col.key && (
+                          <div className="absolute right-0 top-full z-40 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 w-56 max-h-64 overflow-y-auto text-right"
+                            dir="rtl" onClick={e => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[11px] font-bold text-gray-500">فلتر: {col.label}</span>
+                              <button onClick={() => { clearColFilter(col.key); setColFilterOpen(null); }}
+                                className="text-[10px] text-red-400 hover:text-red-600">× مسح</button>
+                            </div>
+                            <div className="space-y-1">
+                              {getColUniqueValues(col.key).map(val => (
+                                <label key={val} className="flex items-center gap-2 text-xs text-gray-700 hover:bg-gray-50 px-1 py-0.5 rounded cursor-pointer">
+                                  <input type="checkbox"
+                                    checked={colFilters[col.key]?.has(val) || false}
+                                    onChange={() => toggleColFilter(col.key, val)}
+                                    className="accent-[#217346]" />
+                                  <span className="flex-1 truncate">{val}</span>
+                                </label>
+                              ))}
+                              {getColUniqueValues(col.key).length === 0 && (
+                                <p className="text-[11px] text-gray-400 text-center py-2">لا توجد قيم</p>
+                              )}
+                            </div>
+                            <button onClick={() => setColFilterOpen(null)}
+                              className="w-full mt-2 py-1 text-[11px] bg-[#217346] text-white rounded-lg hover:bg-[#1a5c38]">تطبيق</button>
+                          </div>
+                        )}
                         <div
                           className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#217346] opacity-0 group-hover/th:opacity-100 transition-opacity"
                           onMouseDown={(e) => { e.stopPropagation(); handleColResize(e, col.key, getColWidth(col)); }}
                         />
                       </th>
-                    ))}
+                      );
+                    })}
                     <th className="w-8 bg-[#f2f2f2] border-l border-gray-300 border-b border-gray-400"></th>
                   </tr>
                 </thead>
@@ -2309,45 +2524,64 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           if (numericVal < 0) condBg = "bg-red-50";
                           else if (numericVal > condFmtThreshold) condBg = "bg-emerald-50";
                         }
-                        const rowNote = (row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {})._notes;
+                        const cellsObj = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells || {});
+                        const rowNote = cellsObj._notes;
+                        const fmt = getFmt(row._id, col.key);
                         const frozenStyle = freezeFirstCol && ci === 0
                           ? { position: "sticky", right: "88px", zIndex: 5, background: isSelected ? "#e2efda" : "#fff" }
                           : {};
                         return (
                           <td key={col.key}
-                            style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col), ...frozenStyle }}
+                            style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col), ...frozenStyle, ...(fmt.bg ? { backgroundColor: fmt.bg } : {}) }}
                             className={`border-l border-b border-gray-200 ${ROW_HEIGHTS[rowHeight]} cursor-pointer relative ${condBg} ${
                               isSelected ? "outline outline-2 outline-[#217346] outline-offset-[-2px] z-10" : ""
                             }`}
-                            onClick={() => setSelectedCell({ rowIdx, colKey: col.key, rowId: row._id })}
+                            onClick={() => { setSelectedCell({ rowIdx, colKey: col.key, rowId: row._id }); setColFilterOpen(null); }}
                             onDoubleClick={() => startEdit(row._id, col.key, rowIdx)}
                             onContextMenu={(e) => {
                               if (ci === 0) {
                                 e.preventDefault();
                                 setNoteEditId(row._id);
-                                setNoteEditVal(cellNotes[row._id] || "");
+                                setNoteEditVal((row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {})._notes || "");
                               }
                             }}
                           >
                             {isEditing ? (
-                              <CellInput col={col} value={cellVal} onChange={setCellVal}
-                                onBlur={handleCellBlur} onKeyDown={handleCellKey} />
+                              <div className="relative">
+                                <CellInput col={col} value={cellVal} onChange={setCellVal}
+                                  onBlur={handleCellBlur} onKeyDown={(e) => {
+                                    if (e.key === "ArrowDown" && acOptions.length) { e.preventDefault(); setAcIndex(i => Math.min(i+1, acOptions.length-1)); return; }
+                                    if (e.key === "ArrowUp" && acOptions.length) { e.preventDefault(); setAcIndex(i => Math.max(i-1, 0)); return; }
+                                    if ((e.key === "Enter" || e.key === "Tab") && acIndex >= 0) { e.preventDefault(); setCellVal(String(acOptions[acIndex])); setAcOptions([]); setAcIndex(-1); return; }
+                                    if (e.key === "Escape") { setAcOptions([]); }
+                                    handleCellKey(e);
+                                  }} />
+                                {acOptions.length > 0 && (
+                                  <div className="absolute top-full right-0 z-50 bg-white border border-gray-200 rounded-lg shadow-xl w-full min-w-[140px] overflow-hidden">
+                                    {acOptions.map((opt, oi) => (
+                                      <div key={oi} onMouseDown={() => { setCellVal(String(opt)); setAcOptions([]); }}
+                                        className={`px-3 py-1.5 text-xs cursor-pointer ${oi === acIndex ? "bg-[#217346] text-white" : "hover:bg-gray-50 text-gray-700"}`}>
+                                        {String(opt)}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <div className={`px-2 py-0.5 h-full whitespace-nowrap overflow-hidden text-ellipsis ${
-                                isFormula ? "text-[#217346] font-medium" : "text-gray-800"
+                                isFormula ? "text-[#217346]" : "text-gray-800"
                               } ${isSelected ? "bg-[#e2efda]/50" : ""}`}
-                                style={{ fontFamily: "Calibri, Arial, sans-serif" }}>
+                                style={{
+                                  fontFamily: "Calibri, Arial, sans-serif",
+                                  fontWeight: fmt.bold ? "bold" : (isFormula ? "500" : "normal"),
+                                  fontStyle: fmt.italic ? "italic" : "normal",
+                                  color: fmt.color || (isFormula ? "#217346" : "#1f2937"),
+                                }}>
                                 {formatCell(val, col.type) || ""}
                                 {/* Orange triangle note indicator */}
                                 {ci === 0 && rowNote && (
-                                  <span
-                                    title={rowNote}
-                                    className="absolute top-0 left-0 w-0 h-0"
-                                    style={{
-                                      borderTop: "8px solid #f97316",
-                                      borderRight: "8px solid transparent",
-                                    }}
-                                  />
+                                  <span title={rowNote} className="absolute top-0 left-0 w-0 h-0"
+                                    style={{ borderTop: "8px solid #f97316", borderRight: "8px solid transparent" }} />
                                 )}
                               </div>
                             )}

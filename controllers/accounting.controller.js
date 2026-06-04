@@ -4,10 +4,11 @@ import Activity from "../models/activity.model.js";
 const ALLOWED_ROLES = ["admin", "accounts"];
 
 function canAccess(user) {
+  if (!user) return false;
   return user.role === "admin" ||
     user.department === "accounts" ||
-    user.allowedPages?.includes("accounting") ||
-    user.allowedPages?.includes("accounting-beni-suef");
+    user?.allowedPages?.includes("accounting") ||
+    user?.allowedPages?.includes("accounting-beni-suef");
 }
 
 function getIp(req) {
@@ -431,7 +432,7 @@ export const getFinancialSummary = async (req, res) => {
     const query = { isArchived: false, isDeleted: false };
     if (branch) query.branch = branch;
 
-    const ledgers = await Ledger.find(query);
+    const ledgers = await Ledger.find(query).lean();
 
     let totalIncome = 0;
     let totalExpense = 0;
@@ -441,52 +442,57 @@ export const getFinancialSummary = async (req, res) => {
 
     for (const ledger of ledgers) {
       for (const sheet of ledger.sheets || []) {
-        const cols = sheet.columns || [];
-        const rows = (sheet.rows || []).filter(r => !r.isDeleted);
+        const cols = Array.isArray(sheet.columns) ? sheet.columns : [];
+        const rows = (sheet.rows || []).filter(r => r && !r.isDeleted);
 
-        // Find currency/number columns and date column
-        const currencyCols = cols.filter(c => ["currency", "number"].includes(c.type));
-        const dateCol = cols.find(c => c.type === "date");
-        const textCol = cols.find(c => c.type === "text");
-        const selectCol = cols.find(c => c.type === "select");
+        const currencyCols = cols.filter(c => c && ["currency", "number"].includes(c.type));
+        const dateCol = cols.find(c => c && c.type === "date");
+        const textCol = cols.find(c => c && c.type === "text");
+        const selectCol = cols.find(c => c && c.type === "select");
         const categoryCol = selectCol || textCol;
 
         for (const row of rows) {
-          const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells || {});
+          if (!row) continue;
+          // .lean() returns plain objects, cells may be a plain object (Map stored as Object in lean)
+          let cells = {};
+          try {
+            if (row.cells instanceof Map) cells = Object.fromEntries(row.cells);
+            else if (row.cells && typeof row.cells === "object") cells = row.cells;
+          } catch { cells = {}; }
 
-          // Sum all currency cols; first col = income-like, second = expense-like (heuristic)
           currencyCols.forEach((col, idx) => {
-            const val = parseFloat(cells[col.key]) || 0;
+            const raw = cells[col.key];
+            const val = raw !== undefined && raw !== null ? (parseFloat(raw) || 0) : 0;
+            if (!isFinite(val)) return;
             if (idx === 0) totalIncome += val;
             else totalExpense += val;
 
-            // Monthly grouping
             if (dateCol) {
               const dateVal = cells[dateCol.key];
               if (dateVal) {
-                const d = new Date(dateVal);
-                if (!isNaN(d.getTime())) {
-                  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-                  if (!monthlyMap[key]) monthlyMap[key] = { income: 0, expense: 0 };
-                  if (idx === 0) monthlyMap[key].income += val;
-                  else monthlyMap[key].expense += val;
-                }
+                try {
+                  const d = new Date(dateVal);
+                  if (!isNaN(d.getTime())) {
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                    if (!monthlyMap[key]) monthlyMap[key] = { income: 0, expense: 0 };
+                    if (idx === 0) monthlyMap[key].income += val;
+                    else monthlyMap[key].expense += val;
+                  }
+                } catch {}
               }
             }
 
-            // Category grouping
             if (categoryCol) {
-              const cat = cells[categoryCol.key] || "أخرى";
+              const cat = (cells[categoryCol.key] || "أخرى").toString().slice(0, 100);
               if (!categoryMap[cat]) categoryMap[cat] = 0;
               categoryMap[cat] += val;
             }
           });
 
-          // Collect recent rows metadata
           recentRows.push({
-            ledgerName: ledger.name,
-            sheetName: sheet.name,
-            description: textCol ? (cells[textCol.key] || "") : "",
+            ledgerName: ledger.name || "",
+            sheetName: sheet.name || "",
+            description: textCol ? String(cells[textCol.key] || "").slice(0, 200) : "",
             amount: currencyCols.length > 0 ? (parseFloat(cells[currencyCols[0].key]) || 0) : 0,
             date: dateCol ? (cells[dateCol.key] || null) : null,
             createdAt: row.createdAt,
@@ -496,36 +502,21 @@ export const getFinancialSummary = async (req, res) => {
     }
 
     const netBalance = totalIncome - totalExpense;
-
-    // Monthly trend: last 6 months sorted
     const monthlyTrend = Object.entries(monthlyMap)
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-6)
       .map(([month, data]) => ({ month, ...data }));
-
-    // By category: top 10
     const byCategory = Object.entries(categoryMap)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
       .map(([name, total]) => ({ name, total }));
-
-    // Recent rows: last 10 sorted by date/createdAt
     const recent = recentRows
       .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
       .slice(0, 10);
 
-    res.json({
-      success: true,
-      totalIncome,
-      totalExpense,
-      netBalance,
-      ledgerCount: ledgers.length,
-      monthlyTrend,
-      byCategory,
-      recentRows: recent,
-    });
+    res.json({ success: true, totalIncome, totalExpense, netBalance, ledgerCount: ledgers.length, monthlyTrend, byCategory, recentRows: recent });
   } catch (err) {
-    res.status(500).json({ success: false, message: "فشل تحميل الملخص المالي" });
+    res.status(500).json({ success: false, message: "فشل تحميل الملخص المالي", error: err.message });
   }
 };
 
