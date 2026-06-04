@@ -42,7 +42,15 @@ export default function CareerDetail() {
     e.preventDefault();
     setSending(true);
     try {
-      await api.post("/job-applications", { ...form, career: id });
+      await api.post("/leads", {
+        name: form.name,
+        phone: form.phone,
+        email: form.email,
+        cv_link: form.cv_link || "",
+        career: id,
+        source: "website",
+        message: `تقديم على وظيفة: ${career?.title?.ar}`,
+      });
       setSent(true);
     } catch (err) {
       alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى");

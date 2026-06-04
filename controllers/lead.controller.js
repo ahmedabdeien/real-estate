@@ -115,6 +115,16 @@ export const deleteLead = async (req, res) => {
   }
 };
 
+export const getCareerApplications = async (req, res) => {
+  try {
+    const { careerId } = req.params;
+    const leads = await Lead.find({ career: careerId }).sort({ createdAt: -1 });
+    res.json({ success: true, applications: leads });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 export const getLeadStats = async (req, res) => {
   try {
     const stats = await Lead.aggregate([

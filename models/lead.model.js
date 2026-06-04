@@ -40,6 +40,12 @@ const leadSchema = new mongoose.Schema(
       enum: ["website", "admin_registration", "walk_in", "call", "social_media", "exhibition"],
       default: "website",
     },
+    career: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Career",
+      default: null,
+    },
+    cv_link: { type: String, default: "" },
   },
   { timestamps: true }
 );

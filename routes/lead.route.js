@@ -1,5 +1,5 @@
 import express from "express";
-import { getLeads, getLead, createLead, updateLead, deleteLead, getLeadStats } from "../controllers/lead.controller.js";
+import { getLeads, getLead, createLead, updateLead, deleteLead, getLeadStats, getCareerApplications } from "../controllers/lead.controller.js";
 import { authenticate, authorize, optionalAuthenticate } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -16,6 +16,7 @@ const authorizeLeads = (req, res, next) => {
 };
 
 router.get("/stats",  authenticate, authorize("admin", "supervisor"), getLeadStats);
+router.get("/career/:careerId", authenticate, authorize("admin", "supervisor"), getCareerApplications);
 router.get("/",       authenticate, authorizeLeads, getLeads);
 router.get("/:id",    authenticate, authorizeLeads, getLead);
 // POST is public (website contact forms) but also used by staff — optionalAuthenticate sets req.user if logged in

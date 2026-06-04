@@ -128,17 +128,17 @@ export default function AdminCareers() {
     setExpandedApps(careerId);
     if (applications[careerId]) return;
     try {
-      const res = await api.get(`/job-applications/career/${careerId}`);
+      const res = await api.get(`/leads/career/${careerId}`);
       setApplications(prev => ({ ...prev, [careerId]: res.data.applications || [] }));
     } catch { toast.error("فشل تحميل التقديمات"); }
   };
 
-  const STATUS_LABELS = { new: "جديد", reviewed: "تمت المراجعة", rejected: "مرفوض" };
-  const STATUS_COLORS = { new: "bg-blue-100 text-blue-700", reviewed: "bg-green-100 text-green-700", rejected: "bg-red-100 text-red-600" };
+  const STATUS_LABELS = { new: "جديد", contacted: "تم التواصل", interested: "مهتم", not_interested: "غير مهتم", converted: "تم التعيين", lost: "مرفوض" };
+  const STATUS_COLORS = { new: "bg-blue-100 text-blue-700", contacted: "bg-yellow-100 text-yellow-700", interested: "bg-green-100 text-green-700", not_interested: "bg-gray-100 text-gray-500", converted: "bg-emerald-100 text-emerald-700", lost: "bg-red-100 text-red-600" };
 
   const updateAppStatus = async (appId, careerId, status) => {
     try {
-      await api.patch(`/job-applications/${appId}/status`, { status });
+      await api.put(`/leads/${appId}`, { status });
       setApplications(prev => ({
         ...prev,
         [careerId]: prev[careerId].map(a => a._id === appId ? { ...a, status } : a),
@@ -148,7 +148,7 @@ export default function AdminCareers() {
 
   const deleteApp = async (appId, careerId) => {
     try {
-      await api.delete(`/job-applications/${appId}`);
+      await api.delete(`/leads/${appId}`);
       setApplications(prev => ({
         ...prev,
         [careerId]: prev[careerId].filter(a => a._id !== appId),
