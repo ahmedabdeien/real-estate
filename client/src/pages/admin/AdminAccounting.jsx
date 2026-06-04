@@ -18,6 +18,9 @@ import {
 
 import SpreadsheetEditor from "../../Components/admin/SpreadsheetEditor";
 import InlineAiChat from "../../Components/UI/InlineAiChat";
+import FinancialDashboard from "../../Components/admin/FinancialDashboard";
+import ReportsPanel from "../../Components/admin/ReportsPanel";
+import BudgetPanel from "../../Components/admin/BudgetPanel";
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
@@ -593,19 +596,69 @@ function RatesPanel({ rows, cols }) {
 function LedgerSummary({ ledger }) {
   if (!ledger) return null;
   const sheets    = ledger.sheets || [];
-  const totalRows = sheets.reduce((acc, s) => acc + (s.rows?.length || 0), 0);
+  const totalRows = sheets.reduce((acc, s) => acc + (s.rows?.filter(r=>!r.isDeleted)?.length || 0), 0);
 
   // Per-sheet currency totals
   const sheetTotals = sheets.map((s, idx) => {
-    const cols  = s.columns || [];
-    const rows  = s.rows    || [];
-    const total = cols
-      .filter((c) => c.type === "currency")
-      .reduce((sum, c) => sum + (sumColumn(rows, c.key, c.type, c) || 0), 0);
-    return { id: s._id, name: s.name.substring(0,16), color: CHART_COLORS[idx % CHART_COLORS.length], total, rowCount: rows.length };
+    const sCols  = s.columns || [];
+    const sRows  = (s.rows || []).filter(r => !r.isDeleted);
+    const currCols = sCols.filter(c => ["currency","number"].includes(c.type));
+    const total = currCols.reduce((sum, c) => sum + (sumColumn(sRows, c.key, c.type, c) || 0), 0);
+
+    // Totals by column type
+    const byColType = {};
+    sCols.forEach(c => {
+      if (!["currency","number","percentage","formula"].includes(c.type)) return;
+      const s2 = colStats(sRows, c);
+      if (s2) byColType[c.label] = { sum: s2.sum, type: c.type, count: s2.count };
+    });
+
+    // Monthly breakdown if date column exists
+    const dateCol = sCols.find(c => c.type === "date");
+    const monthlyMap = {};
+    if (dateCol && currCols.length > 0) {
+      sRows.forEach(row => {
+        const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells||{});
+        const d = cells[dateCol.key];
+        if (!d) return;
+        const dt = new Date(d);
+        if (isNaN(dt)) return;
+        const key = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`;
+        if (!monthlyMap[key]) monthlyMap[key] = 0;
+        currCols.forEach(c => { monthlyMap[key] += parseFloat(cells[c.key]||0)||0; });
+      });
+    }
+    const monthly = Object.entries(monthlyMap).sort(([a],[b])=>a.localeCompare(b)).map(([m,v])=>({month:m,total:v}));
+
+    // Top 5 entries by first currency col
+    const top5 = currCols.length > 0
+      ? [...sRows].sort((a,b)=>{
+          const aVal = parseFloat((a.cells instanceof Map ? Object.fromEntries(a.cells) : a.cells||{})[currCols[0].key])||0;
+          const bVal = parseFloat((b.cells instanceof Map ? Object.fromEntries(b.cells) : b.cells||{})[currCols[0].key])||0;
+          return bVal - aVal;
+        }).slice(0,5)
+      : [];
+
+    return { id: s._id, name: s.name.substring(0,16), color: CHART_COLORS[idx % CHART_COLORS.length], total, rowCount: sRows.length, byColType, monthly, top5, sCols, currCols };
   });
 
   const grandTotal = sheetTotals.reduce((a, b) => a + b.total, 0);
+
+  // Net balance: first col = income, second = expense (heuristic)
+  const allCurrencyCols = sheets.flatMap(s => (s.columns||[]).filter(c=>["currency","number"].includes(c.type)));
+  const uniqueColLabels = [...new Set(allCurrencyCols.map(c => c.label))];
+  const totalByLabel = {};
+  uniqueColLabels.forEach(label => {
+    sheets.forEach(s => {
+      const col = (s.columns||[]).find(c=>c.label===label);
+      if (!col) return;
+      const sRows = (s.rows||[]).filter(r=>!r.isDeleted);
+      if (!totalByLabel[label]) totalByLabel[label] = 0;
+      totalByLabel[label] += sumColumn(sRows, col.key, col.type, col)||0;
+    });
+  });
+  const labelEntries = Object.entries(totalByLabel);
+  const netBalance = labelEntries.length >= 2 ? labelEntries[0][1] - labelEntries[1][1] : null;
 
   const barData  = sheetTotals.map((s) => ({ name: s.name, القيمة: s.total }));
   const pieData  = sheetTotals.filter((s) => s.total > 0);
@@ -613,7 +666,7 @@ function LedgerSummary({ ledger }) {
   return (
     <div className="space-y-4 overflow-auto h-full pb-6">
       {/* KPI row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div className="bg-gradient-to-br from-[#2d5d89] to-[#1f4566] text-white rounded-2xl p-4 shadow-sm">
           <p className="text-xs opacity-70 mb-1">إجمالي قيمة العملات</p>
           <p className="text-2xl font-bold">{formatCell(grandTotal, "currency")}</p>
@@ -627,12 +680,37 @@ function LedgerSummary({ ledger }) {
           <p className="text-xs text-gray-400 mb-1">أعلى جدول قيمةً</p>
           {sheetTotals.length > 0 ? (
             <>
-              <p className="text-base font-bold text-[#2d5d89] truncate">{sheetTotals.sort((a,b)=>b.total-a.total)[0]?.name}</p>
+              <p className="text-base font-bold text-[#2d5d89] truncate">{[...sheetTotals].sort((a,b)=>b.total-a.total)[0]?.name}</p>
               <p className="text-sm text-gray-600">{formatCell(Math.max(...sheetTotals.map(s=>s.total)), "currency")}</p>
             </>
           ) : <p className="text-gray-400 text-sm">—</p>}
         </div>
+        {netBalance !== null && (
+          <div className={`rounded-2xl p-4 shadow-sm border ${netBalance >= 0 ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
+            <p className="text-xs text-gray-500 mb-1">صافي الرصيد</p>
+            <p className={`text-2xl font-bold ${netBalance >= 0 ? "text-emerald-700" : "text-red-600"}`}>{formatCell(Math.abs(netBalance), "currency")}</p>
+            <p className={`text-xs mt-1 ${netBalance >= 0 ? "text-emerald-500" : "text-red-400"}`}>{netBalance >= 0 ? "فائض" : "عجز"}</p>
+          </div>
+        )}
       </div>
+
+      {/* Totals by column type */}
+      {Object.keys(totalByLabel).length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <Sigma className="w-4 h-4 text-[#2d5d89]" />
+            مجموع الأعمدة الرقمية
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {Object.entries(totalByLabel).map(([label, val]) => (
+              <div key={label} className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-400 truncate mb-1">{label}</p>
+                <p className="text-base font-bold text-[#2d5d89]">{formatCell(val, "currency")}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bar chart */}
       {barData.length > 0 && (
@@ -654,6 +732,51 @@ function LedgerSummary({ ledger }) {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* Top 5 per sheet */}
+      {sheetTotals.filter(s => s.top5.length > 0).map(s => (
+        <div key={s.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            أعلى 5 قيم — {s.name}
+          </p>
+          <div className="space-y-1.5">
+            {s.top5.map((row, i) => {
+              const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells||{});
+              const firstTextCol = s.sCols.find(c=>["text","select"].includes(c.type));
+              const firstCurrCol = s.currCols[0];
+              const label = firstTextCol ? (cells[firstTextCol.key] || `سطر ${i+1}`) : `سطر ${i+1}`;
+              const val   = firstCurrCol ? (parseFloat(cells[firstCurrCol.key])||0) : 0;
+              return (
+                <div key={i} className="flex items-center gap-3 text-sm">
+                  <span className="w-5 h-5 rounded-full bg-[#2d5d89]/10 text-[#2d5d89] text-xs flex items-center justify-center font-bold flex-shrink-0">{i+1}</span>
+                  <span className="flex-1 text-gray-700 truncate">{label}</span>
+                  <span className="font-bold text-[#2d5d89] whitespace-nowrap">{formatCell(val, "currency")}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Monthly breakdown */}
+      {sheetTotals.filter(s => s.monthly.length > 0).map(s => (
+        <div key={s.id + "-monthly"} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-purple-600" />
+            التوزيع الشهري — {s.name}
+          </p>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={s.monthly.map(m => ({ name: m.month.split("-")[1], القيمة: m.total }))} margin={{top:4,right:4,left:4,bottom:4}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" tick={{fontSize:10}} />
+              <YAxis tick={{fontSize:10}} width={60} tickFormatter={v => (v/1000).toFixed(0)+"ك"} />
+              <Tooltip formatter={v => formatCell(v,"currency")} />
+              <Bar dataKey="القيمة" fill={s.color} radius={[4,4,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ))}
 
       {/* Pie chart + list side by side */}
       {pieData.length > 1 && (
@@ -1687,11 +1810,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         {/* View tabs (like Excel's ribbon tabs) */}
         <div className="flex items-center gap-0 px-2 pt-1">
           {[
-            { id:"table",  label:"البيانات",    icon:Table2      },
-            { id:"charts", label:"مخططات",      icon:BarChart3   },
-            { id:"quick",  label:"إدخال سريع",  icon:Zap         },
-            { id:"rates",  label:"معدلات",       icon:Activity    },
-            { id:"excel",  label:"Excel",        icon:Grid3x3     },
+            { id:"table",   label:"البيانات",      icon:Table2      },
+            { id:"charts",  label:"مخططات",        icon:BarChart3   },
+            { id:"quick",   label:"إدخال سريع",    icon:Zap         },
+            { id:"rates",   label:"معدلات",         icon:Activity    },
+            { id:"reports", label:"تقارير",         icon:FileText    },
+            { id:"budget",  label:"ميزانية",        icon:PiggyBank   },
+            { id:"excel",   label:"Excel",          icon:Grid3x3     },
             ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList }] : []),
           ].map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActiveTab(id)}
@@ -1879,6 +2004,25 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         </div>
       ) : activeTab === "rates" ? (
         <RatesPanel rows={filteredRows} cols={cols} />
+      ) : activeTab === "reports" ? (
+        <div className="flex-1 overflow-auto">
+          <ReportsPanel
+            rows={filteredRows}
+            cols={allCols}
+            sheetName={sheet.name}
+            ledgerName={sheet.ledgerName || ""}
+          />
+        </div>
+      ) : activeTab === "budget" ? (
+        <div className="flex-1 overflow-auto">
+          <BudgetPanel
+            ledgerId={ledgerId}
+            sheetId={sheet._id}
+            rows={filteredRows}
+            cols={allCols}
+            branch={null}
+          />
+        </div>
       ) : activeTab === "excel" ? (
         <div className="flex-1 overflow-hidden pb-2">
           <SpreadsheetEditor
@@ -2363,6 +2507,11 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
   const [deletingSheet, setDeletingSheet] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
   const [trashedLedgers, setTrashedLedgers] = useState([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchInputRef = useRef(null);
 
   const printRef = useRef(null);
 
@@ -2395,6 +2544,52 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
     if (activeLedger) loadFullLedger(activeLedger._id);
     else { setFullLedger(null); setActiveSheet(null); }
   }, [activeLedger]);
+
+  // ── Unified Search ──
+  const openSearch = () => {
+    setSearchOpen(true);
+    setSearchQuery("");
+    setSearchResults([]);
+    setTimeout(() => searchInputRef.current?.focus(), 50);
+  };
+
+  const runSearch = async (q) => {
+    if (!q.trim()) { setSearchResults([]); return; }
+    setSearchLoading(true);
+    try {
+      // Search locally through loaded ledgers; load all ledger data for search
+      const r = await api.get(`/accounting${branch ? `?branch=${branch}` : ""}`);
+      const allLedgers = r.data.ledgers || [];
+      const results = [];
+      for (const ledger of allLedgers) {
+        try {
+          const lr = await api.get(`/accounting/${ledger._id}`);
+          const fl = lr.data.ledger;
+          for (const sheet of fl.sheets || []) {
+            for (const row of (sheet.rows || []).filter(r2 => !r2.isDeleted)) {
+              const values = Object.values(row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells||{}));
+              const matches = values.some(v => String(v||"").toLowerCase().includes(q.toLowerCase()));
+              if (matches) {
+                results.push({ ledger, sheet, row, cells: row.cells });
+              }
+            }
+          }
+        } catch {}
+      }
+      setSearchResults(results.slice(0, 50));
+    } catch { toast.error("فشل البحث"); }
+    finally { setSearchLoading(false); }
+  };
+
+  // Keyboard shortcut Ctrl+K
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); openSearch(); }
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const loadTrash = async () => {
     try { const res = await api.get("/accounting/trash"); setTrashedLedgers(res.data.ledgers || []); }
@@ -2511,6 +2706,11 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           )}
         </div>
         <div className="flex items-center gap-1">
+          <button onClick={openSearch}
+            title="بحث شامل (Ctrl+K)"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-colors">
+            <Search className="w-3.5 h-3.5" />
+          </button>
           {user?.role === "admin" && (
             <button onClick={() => { setShowTrash(true); loadTrash(); }}
               title="سلة المحذوفات"
@@ -2636,22 +2836,19 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col overflow-hidden bg-[#f0f4f8]">
         {!activeLedger ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center px-6">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="lg:hidden px-4 pt-3 flex-shrink-0">
               <button onClick={() => setSidebarOpen(true)}
-                className="lg:hidden mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">
                 <Menu className="w-4 h-4" /> عرض الدفاتر
               </button>
-              <div className="w-24 h-24 rounded-3xl bg-white shadow-lg flex items-center justify-center mx-auto mb-6 border border-gray-200">
-                <BookOpen className="w-12 h-12 text-[#2d5d89]/30" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-700 mb-2">نظام الحسابات</h3>
-              <p className="text-gray-400 text-sm mb-6">اختر دفتراً من القائمة الجانبية أو أنشئ دفتراً جديداً</p>
-              <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079] shadow-md transition-colors">
-                <Plus className="w-4 h-4" /> دفتر جديد
-              </button>
             </div>
+            <FinancialDashboard
+              branch={branch}
+              onNewLedger={() => { setEditLedger(null); setLedgerModal(true); }}
+              onImportExcel={() => {}}
+              onOpenLedger={(id) => {}}
+            />
           </div>
         ) : loadingLedger ? (
           <div className="flex-1 flex items-center justify-center">
@@ -2811,6 +3008,81 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
         title="حذف الجدول"
         message={`هل تريد حذف الجدول "${confirmDeleteSheet?.name}"؟ سيتم فقدان جميع بيانات هذا الجدول.`}
       />
+
+      {/* ── Unified Search Modal ── */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            className="fixed inset-0 z-[9999] bg-black/60 flex items-start justify-center pt-16 px-4"
+            onClick={() => setSearchOpen(false)}>
+            <motion.div initial={{ y:-20, opacity:0 }} animate={{ y:0, opacity:1 }} exit={{ y:-20, opacity:0 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+              onClick={e => e.stopPropagation()}>
+              {/* Search input */}
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200" dir="rtl">
+                <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); runSearch(e.target.value); }}
+                  placeholder="ابحث في كل الدفاتر والجداول... (Ctrl+K)"
+                  className="flex-1 text-sm text-gray-800 focus:outline-none placeholder:text-gray-400"
+                />
+                {searchLoading && <div className="w-4 h-4 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin flex-shrink-0" />}
+                <button onClick={() => setSearchOpen(false)} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              {/* Results */}
+              <div className="max-h-[60vh] overflow-y-auto" dir="rtl">
+                {searchResults.length > 0 ? (
+                  (() => {
+                    const grouped = {};
+                    searchResults.forEach(r => {
+                      const key = r.ledger._id;
+                      if (!grouped[key]) grouped[key] = { ledger: r.ledger, items: [] };
+                      grouped[key].items.push(r);
+                    });
+                    return Object.values(grouped).map(({ ledger, items }) => (
+                      <div key={ledger._id}>
+                        <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+                          <p className="text-xs font-bold text-[#2d5d89]">{ledger.name}</p>
+                        </div>
+                        {items.map((item, i) => {
+                          const cellValues = Object.values(item.cells instanceof Map ? Object.fromEntries(item.cells) : (item.cells||{}))
+                            .filter(Boolean).slice(0,4).join(" · ");
+                          return (
+                            <button key={i} onClick={() => {
+                              setActiveLedger(ledger);
+                              setSearchOpen(false);
+                            }}
+                              className="w-full text-right flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 border-b border-gray-50 transition-colors">
+                              <Table2 className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-gray-500 mb-0.5">{item.sheet.name}</p>
+                                <p className="text-sm text-gray-800 truncate">{cellValues || "—"}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ));
+                  })()
+                ) : searchQuery && !searchLoading ? (
+                  <div className="py-10 text-center text-gray-400 text-sm">لا توجد نتائج لـ "{searchQuery}"</div>
+                ) : !searchQuery ? (
+                  <div className="py-8 text-center text-gray-400 text-sm">اكتب للبحث في كل الدفاتر والجداول</div>
+                ) : null}
+              </div>
+              {searchResults.length > 0 && (
+                <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400 text-right">
+                  {searchResults.length} نتيجة
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

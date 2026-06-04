@@ -8,6 +8,7 @@ import {
   addRow, updateRow, deleteRow, bulkDeleteRows, bulkImportRows, restoreRow,
   getAuditLog,
   getDeletedLedgers, restoreLedger, permanentDeleteLedger,
+  getFinancialSummary,
 } from "../controllers/accounting.controller.js";
 
 const router = express.Router();
@@ -35,6 +36,9 @@ const securityHeaders = (req, res, next) => {
 router.use(accountingLimiter);
 router.use(securityHeaders);
 router.use(authenticate);
+
+// ── Financial Summary ─────────────────────────────────────────────────────────
+router.get("/financial-summary", getFinancialSummary);
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 router.get("/audit-log", getAuditLog);

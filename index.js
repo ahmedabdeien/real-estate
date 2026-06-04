@@ -36,6 +36,7 @@ import legalRouter from "./routes/legal.route.js";
 import aiRouter from "./routes/ai.route.js";
 import roleConfigRouter from "./routes/roleConfig.route.js";
 import whatsappRouter from "./routes/whatsapp.route.js";
+import budgetRouter from "./routes/budget.route.js";
 import { seedDefaultRoles } from "./controllers/roleConfig.controller.js";
 
 dotenv.config();
@@ -211,6 +212,7 @@ app.use("/api/legal", legalRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/roles", roleConfigRouter);
 app.use("/api/whatsapp", whatsappRouter);
+app.use("/api/budgets", budgetRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");

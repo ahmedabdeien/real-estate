@@ -422,6 +422,113 @@ export const bulkDeleteRows = async (req, res) => {
   }
 };
 
+// ─── Financial Summary ────────────────────────────────────────────────────────
+
+export const getFinancialSummary = async (req, res) => {
+  try {
+    if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
+    const { branch } = req.query;
+    const query = { isArchived: false, isDeleted: false };
+    if (branch) query.branch = branch;
+
+    const ledgers = await Ledger.find(query);
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+    const monthlyMap = {};
+    const categoryMap = {};
+    const recentRows = [];
+
+    for (const ledger of ledgers) {
+      for (const sheet of ledger.sheets || []) {
+        const cols = sheet.columns || [];
+        const rows = (sheet.rows || []).filter(r => !r.isDeleted);
+
+        // Find currency/number columns and date column
+        const currencyCols = cols.filter(c => ["currency", "number"].includes(c.type));
+        const dateCol = cols.find(c => c.type === "date");
+        const textCol = cols.find(c => c.type === "text");
+        const selectCol = cols.find(c => c.type === "select");
+        const categoryCol = selectCol || textCol;
+
+        for (const row of rows) {
+          const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells || {});
+
+          // Sum all currency cols; first col = income-like, second = expense-like (heuristic)
+          currencyCols.forEach((col, idx) => {
+            const val = parseFloat(cells[col.key]) || 0;
+            if (idx === 0) totalIncome += val;
+            else totalExpense += val;
+
+            // Monthly grouping
+            if (dateCol) {
+              const dateVal = cells[dateCol.key];
+              if (dateVal) {
+                const d = new Date(dateVal);
+                if (!isNaN(d.getTime())) {
+                  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                  if (!monthlyMap[key]) monthlyMap[key] = { income: 0, expense: 0 };
+                  if (idx === 0) monthlyMap[key].income += val;
+                  else monthlyMap[key].expense += val;
+                }
+              }
+            }
+
+            // Category grouping
+            if (categoryCol) {
+              const cat = cells[categoryCol.key] || "أخرى";
+              if (!categoryMap[cat]) categoryMap[cat] = 0;
+              categoryMap[cat] += val;
+            }
+          });
+
+          // Collect recent rows metadata
+          recentRows.push({
+            ledgerName: ledger.name,
+            sheetName: sheet.name,
+            description: textCol ? (cells[textCol.key] || "") : "",
+            amount: currencyCols.length > 0 ? (parseFloat(cells[currencyCols[0].key]) || 0) : 0,
+            date: dateCol ? (cells[dateCol.key] || null) : null,
+            createdAt: row.createdAt,
+          });
+        }
+      }
+    }
+
+    const netBalance = totalIncome - totalExpense;
+
+    // Monthly trend: last 6 months sorted
+    const monthlyTrend = Object.entries(monthlyMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-6)
+      .map(([month, data]) => ({ month, ...data }));
+
+    // By category: top 10
+    const byCategory = Object.entries(categoryMap)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+      .map(([name, total]) => ({ name, total }));
+
+    // Recent rows: last 10 sorted by date/createdAt
+    const recent = recentRows
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 10);
+
+    res.json({
+      success: true,
+      totalIncome,
+      totalExpense,
+      netBalance,
+      ledgerCount: ledgers.length,
+      monthlyTrend,
+      byCategory,
+      recentRows: recent,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "فشل تحميل الملخص المالي" });
+  }
+};
+
 // ─── Audit Log ───────────────────────────────────────────────────────────────
 
 export const getAuditLog = async (req, res) => {
