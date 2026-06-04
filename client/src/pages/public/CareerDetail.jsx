@@ -42,12 +42,7 @@ export default function CareerDetail() {
     e.preventDefault();
     setSending(true);
     try {
-      await api.post("/leads", {
-        ...form,
-        source: "website",
-        message: `تقديم على وظيفة: ${career?.title?.ar}${form.cv_link ? ` — السيرة: ${form.cv_link}` : ""}`,
-        career: id,
-      });
+      await api.post("/job-applications", { ...form, career: id });
       setSent(true);
     } catch {} finally { setSending(false); }
   };

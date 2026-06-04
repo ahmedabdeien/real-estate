@@ -3,6 +3,7 @@ import {
   Plus, Pencil, Trash2, Briefcase, MapPin, Calendar, Clock,
   Eye, EyeOff, Users, CheckCircle, XCircle, Filter, Search,
   TrendingUp, Link2, ToggleLeft, ToggleRight, ChevronDown,
+  ExternalLink, ChevronUp, Mail, Phone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
@@ -42,6 +43,8 @@ export default function AdminCareers() {
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [reqInput, setReqInput] = useState("");
+  const [applications, setApplications] = useState({});
+  const [expandedApps, setExpandedApps] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -118,6 +121,39 @@ export default function AdminCareers() {
       setCareers(prev => prev.map(x => x._id === c._id ? { ...x, published: !x.published } : x));
       toast.success(c.published ? "تم إخفاء الوظيفة" : "تم نشر الوظيفة");
     } catch { toast.error("فشل التحديث"); }
+  };
+
+  const loadApplications = async (careerId) => {
+    if (expandedApps === careerId) { setExpandedApps(null); return; }
+    setExpandedApps(careerId);
+    if (applications[careerId]) return;
+    try {
+      const res = await api.get(`/job-applications/career/${careerId}`);
+      setApplications(prev => ({ ...prev, [careerId]: res.data.applications || [] }));
+    } catch { toast.error("فشل تحميل التقديمات"); }
+  };
+
+  const STATUS_LABELS = { new: "جديد", reviewed: "تمت المراجعة", rejected: "مرفوض" };
+  const STATUS_COLORS = { new: "bg-blue-100 text-blue-700", reviewed: "bg-green-100 text-green-700", rejected: "bg-red-100 text-red-600" };
+
+  const updateAppStatus = async (appId, careerId, status) => {
+    try {
+      await api.patch(`/job-applications/${appId}/status`, { status });
+      setApplications(prev => ({
+        ...prev,
+        [careerId]: prev[careerId].map(a => a._id === appId ? { ...a, status } : a),
+      }));
+    } catch { toast.error("فشل التحديث"); }
+  };
+
+  const deleteApp = async (appId, careerId) => {
+    try {
+      await api.delete(`/job-applications/${appId}`);
+      setApplications(prev => ({
+        ...prev,
+        [careerId]: prev[careerId].filter(a => a._id !== appId),
+      }));
+    } catch { toast.error("فشل الحذف"); }
   };
 
   const addRequirement = () => {
@@ -269,6 +305,60 @@ export default function AdminCareers() {
                       </span>
                     )}
                   </div>
+
+                  {/* Applications toggle */}
+                  <button onClick={() => loadApplications(c._id)}
+                    className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#2d5d89]/10 hover:bg-[#2d5d89]/20 text-[#2d5d89] text-xs font-semibold transition-colors border border-[#2d5d89]/20">
+                    <Users className="w-3.5 h-3.5" />
+                    التقديمات
+                    {expandedApps === c._id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
+
+                  <AnimatePresence>
+                    {expandedApps === c._id && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden mt-2">
+                        {!applications[c._id] ? (
+                          <p className="text-xs text-gray-400 text-center py-3">جاري التحميل...</p>
+                        ) : applications[c._id].length === 0 ? (
+                          <p className="text-xs text-gray-400 text-center py-3">لا توجد تقديمات بعد</p>
+                        ) : (
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {applications[c._id].map(app => (
+                              <div key={app._id} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-xs">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <span className="font-semibold text-gray-800 dark:text-white">{app.name}</span>
+                                  <button onClick={() => deleteApp(app._id, c._id)} className="text-red-400 hover:text-red-600 flex-shrink-0">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                                <div className="flex items-center gap-1 text-gray-500 mb-1">
+                                  <Phone className="w-3 h-3" /> {app.phone}
+                                </div>
+                                <div className="flex items-center gap-1 text-gray-500 mb-2">
+                                  <Mail className="w-3 h-3" /> {app.email}
+                                </div>
+                                {app.cv_link && (
+                                  <a href={app.cv_link} target="_blank" rel="noreferrer"
+                                    className="inline-flex items-center gap-1 text-[#2d5d89] hover:underline mb-2">
+                                    <ExternalLink className="w-3 h-3" /> السيرة الذاتية
+                                  </a>
+                                )}
+                                <div className="flex items-center gap-2 mt-1">
+                                  <select value={app.status}
+                                    onChange={e => updateAppStatus(app._id, c._id, e.target.value)}
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium border-0 outline-none cursor-pointer ${STATUS_COLORS[app.status]}`}>
+                                    {Object.entries(STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                                  </select>
+                                  <span className="text-gray-400 mr-auto">{new Date(app.createdAt).toLocaleDateString("ar-EG")}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             );
