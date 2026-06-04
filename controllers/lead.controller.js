@@ -4,7 +4,7 @@ import { logActivity } from "./activity.controller.js";
 export const getLeads = async (req, res) => {
   try {
     const { status, page = 1, limit = 20, search } = req.query;
-    const query = {};
+    const query = { career: null }; // exclude job applicants (career field = null means regular lead)
     if (status) query.status = status;
     if (search) query.$or = [
       { name: { $regex: search, $options: "i" } },

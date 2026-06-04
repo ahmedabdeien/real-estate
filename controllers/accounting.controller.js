@@ -432,7 +432,9 @@ export const getFinancialSummary = async (req, res) => {
     const query = { isArchived: false, isDeleted: false };
     if (branch) query.branch = branch;
 
-    const ledgers = await Ledger.find(query).select("name sheets").lean();
+    // use toObject() per-doc to properly serialize Mongoose Maps
+    const rawLedgers = await Ledger.find(query).select("name sheets");
+    const ledgers = rawLedgers.map(l => l.toObject());
 
     let totalIncome = 0;
     let totalExpense = 0;
@@ -542,7 +544,8 @@ export const getCrossLedgerReport = async (req, res) => {
     const toDate   = to   ? new Date(to)   : new Date();
     toDate.setHours(23, 59, 59, 999);
 
-    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false }).select("name sheets").lean();
+    const rawLedgers2 = await Ledger.find({ isArchived: false, isDeleted: false }).select("name sheets");
+    const ledgers = rawLedgers2.map(l => l.toObject());
 
     let grandTotal = 0;
     let rowCount = 0;

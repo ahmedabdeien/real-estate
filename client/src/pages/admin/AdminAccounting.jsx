@@ -1351,14 +1351,16 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
-  const [sortConfig, setSortConfig] = useState(null); // { key, dir: 'asc'|'desc' }
-  const [rowColorMenu, setRowColorMenu] = useState(null); // { rowId }
-  const [findReplace, setFindReplace] = useState(null); // { find, replace, colKey:'all'|key }
-  const [colFilters, setColFilters] = useState({}); // { colKey: Set<value> | null }
-  const [colFilterOpen, setColFilterOpen] = useState(null); // colKey
-  const [cellFmt, setCellFmt] = useState({}); // { "rowId:colKey": { bold, italic, color, bg } }
-  const [fmtToolbar, setFmtToolbar] = useState(false); // show format toolbar
-  const [freezeCols, setFreezeCols] = useState(1); // number of cols to freeze (0=none,1=first,2=first two...)
+  const [sortConfig, setSortConfig] = useState(null);
+  const [rowColorMenu, setRowColorMenu] = useState(null);
+  const [findReplace, setFindReplace] = useState(null);
+  const [colFilters, setColFilters] = useState({});
+  const [colFilterOpen, setColFilterOpen] = useState(null);
+  const [cellFmt, setCellFmt] = useState({});
+  const [fmtToolbar, setFmtToolbar] = useState(false);
+  const [freezeCols, setFreezeCols] = useState(1);
+  const [undoStack, setUndoStack] = useState([]); // { rowId, colKey, oldVal, newVal }[]
+  const [pastePreview, setPastePreview] = useState(null); // { rows: string[][], startRow, startCol }
   const tableRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -1406,12 +1408,62 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const commitCell = async (rowId, colKey, val) => {
     const row = rows.find((r) => r._id === rowId);
     if (!row) return;
-    const newCells = { ...(row.cells || {}), [colKey]: val };
+    const oldVal = (row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {})[colKey] ?? "";
+    if (oldVal === val) { setEditCell(null); return; }
+    const newCells = { ...(row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}), [colKey]: val };
     setRows((prev) => prev.map((r) => r._id === rowId ? { ...r, cells: newCells } : r));
+    setUndoStack(prev => [...prev.slice(-49), { rowId, colKey, oldVal, newVal: val }]);
     setEditCell(null);
     try {
       await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}`, { cells: newCells });
     } catch { toast.error("فشل حفظ الخلية"); }
+  };
+
+  // ── undo last edit ──
+  const undoLastEdit = async () => {
+    if (!undoStack.length) return;
+    const last = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    const row = rows.find(r => r._id === last.rowId);
+    if (!row) return;
+    const newCells = { ...(row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}), [last.colKey]: last.oldVal };
+    setRows(prev => prev.map(r => r._id === last.rowId ? { ...r, cells: newCells } : r));
+    try { await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${last.rowId}`, { cells: newCells }); }
+    catch { toast.error("فشل التراجع"); }
+    toast.success("تم التراجع");
+  };
+
+  // ── paste from clipboard (Ctrl+V) ──
+  const handlePaste = async (e) => {
+    if (editCell || !selectedCell) return;
+    const text = e.clipboardData?.getData("text");
+    if (!text) return;
+    e.preventDefault();
+    const pastedRows = text.trim().split(/\r?\n/).map(r => r.split("\t"));
+    if (!pastedRows.length) return;
+    const startColIdx = cols.findIndex(c => c.key === selectedCell.colKey);
+    const startRowIdx = sortedRows.findIndex(r => r._id === selectedCell.rowId);
+    if (startColIdx < 0 || startRowIdx < 0) return;
+    const updates = [];
+    for (let ri = 0; ri < pastedRows.length; ri++) {
+      const targetRow = sortedRows[startRowIdx + ri];
+      if (!targetRow || targetRow.isDeleted) continue;
+      const newCells = { ...(targetRow.cells instanceof Map ? Object.fromEntries(targetRow.cells) : targetRow.cells || {}) };
+      for (let ci = 0; ci < pastedRows[ri].length; ci++) {
+        const targetCol = cols[startColIdx + ci];
+        if (!targetCol || targetCol.type === "formula") continue;
+        const raw = pastedRows[ri][ci].trim();
+        const numVal = raw.replace(/,/g, "");
+        newCells[targetCol.key] = isFinite(Number(numVal)) && numVal !== "" ? numVal : raw;
+      }
+      updates.push({ row: targetRow, cells: newCells });
+    }
+    if (!updates.length) return;
+    for (const { row, cells } of updates) {
+      setRows(prev => prev.map(r => r._id === row._id ? { ...r, cells } : r));
+      try { await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${row._id}`, { cells }); } catch {}
+    }
+    toast.success(`تم لصق ${updates.length} صف`);
   };
 
   const handleCellBlur = () => {
@@ -2029,17 +2081,21 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     }
   };
 
-  // Ctrl+H → Find & Replace
+  // Global shortcuts: Ctrl+H, Ctrl+Z
   useEffect(() => {
     const handler = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "h") {
         e.preventDefault();
         setFindReplace({ find: "", replace: "", colKey: "all" });
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !editCell) {
+        e.preventDefault();
+        undoLastEdit();
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
+  }, [undoStack, editCell]);
 
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -2186,6 +2242,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               )}
             </div>
             <div className="w-px h-5 bg-gray-300 mx-1" />
+            {/* Undo */}
+            <button onClick={undoLastEdit} disabled={!undoStack.length}
+              title="تراجع (Ctrl+Z)"
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-40">
+              <RefreshCcw className="w-3.5 h-3.5" /> تراجع
+            </button>
+            <div className="w-px h-5 bg-gray-300 mx-0.5" />
             {/* Formatting toolbar toggle */}
             <button onClick={() => setFmtToolbar(p => !p)}
               title="تنسيق الخلايا"
@@ -2398,7 +2461,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
 
           {/* Table — Excel style */}
-          <div className="flex-1 overflow-auto border-t border-gray-300" style={{ background: "#fff" }}>
+          <div className="flex-1 overflow-auto border-t border-gray-300" style={{ background: "#fff" }}
+            onPaste={handlePaste}>
             <div ref={printRef}>
               <table className="w-full min-w-max border-collapse" style={{ fontSize: `${fontSize}px` }}>
                 <thead className="sticky top-0 z-10">
@@ -2756,11 +2820,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 {statsOpen ? "إخفاء المعدلات" : "عرض المعدلات"}
               </button>
             </div>
-            <div className="flex items-center gap-3 text-white/60">
+            <div className="flex items-center gap-3 text-white/60 text-[10px]">
               {Object.keys(colWidths).length > 0 && (
                 <button onClick={() => setColWidths({})} className="hover:text-white transition-colors">إعادة ضبط الأعمدة</button>
               )}
-              <span>انقر مرتين للتعديل</span>
+              {undoStack.length > 0 && (
+                <span className="text-white/50">Ctrl+Z تراجع</span>
+              )}
+              <span className="hidden lg:inline">F2 تعديل · ↑↓←→ تنقل · Ctrl+H بحث · Ctrl+V لصق</span>
+              <span className="lg:hidden">انقر مرتين للتعديل</span>
             </div>
           </div>
         </>
