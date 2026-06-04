@@ -529,6 +529,80 @@ export const getFinancialSummary = async (req, res) => {
   }
 };
 
+// ─── Cross-Ledger Report ─────────────────────────────────────────────────────
+
+export const getCrossLedgerReport = async (req, res) => {
+  try {
+    if (!canAccess(req.user)) return res.status(403).json({ success: false, message: "غير مصرح" });
+    const { from, to } = req.query;
+    const fromDate = from ? new Date(from) : new Date(new Date().getFullYear(), 0, 1);
+    const toDate   = to   ? new Date(to)   : new Date();
+    toDate.setHours(23, 59, 59, 999);
+
+    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false });
+
+    let grandTotal = 0;
+    let rowCount = 0;
+    const byLedger = [];
+    const monthlyMap = {};
+
+    for (const ledger of ledgers) {
+      let ledgerTotal = 0;
+      for (const sheet of ledger.sheets || []) {
+        const cols = sheet.columns || [];
+        const currencyCols = cols.filter((c) => ["currency","number"].includes(c.type));
+        const dateCol = cols.find((c) => c.type === "date");
+        const rows = (sheet.rows || []).filter((r) => !r.isDeleted);
+
+        for (const row of rows) {
+          const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells || {});
+          let inRange = true;
+          if (dateCol) {
+            const d = new Date(cells[dateCol.key]);
+            if (!isNaN(d.getTime())) {
+              inRange = d >= fromDate && d <= toDate;
+            }
+          }
+          if (!inRange) continue;
+
+          rowCount++;
+          currencyCols.forEach((col) => {
+            const val = parseFloat(cells[col.key]) || 0;
+            grandTotal += val;
+            ledgerTotal += val;
+
+            if (dateCol) {
+              const d = new Date(cells[dateCol.key]);
+              if (!isNaN(d.getTime())) {
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                monthlyMap[key] = (monthlyMap[key] || 0) + val;
+              }
+            }
+          });
+        }
+      }
+      if (ledgerTotal > 0) {
+        byLedger.push({ ledgerId: ledger._id, name: ledger.name, total: ledgerTotal });
+      }
+    }
+
+    const monthly = Object.entries(monthlyMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, total]) => ({ month, total }));
+
+    res.json({
+      success: true,
+      grandTotal,
+      rowCount,
+      ledgerCount: ledgers.length,
+      byLedger: byLedger.sort((a, b) => b.total - a.total),
+      monthly,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "فشل تحميل التقرير المتقاطع" });
+  }
+};
+
 // ─── Audit Log ───────────────────────────────────────────────────────────────
 
 export const getAuditLog = async (req, res) => {

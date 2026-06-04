@@ -1,15 +1,155 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   TrendingUp, TrendingDown, DollarSign, BookOpen, Plus, FileText, Upload,
-  RefreshCw, ArrowUpRight, ArrowDownRight,
+  RefreshCw, ArrowUpRight, ArrowDownRight, Layers, Printer,
 } from "lucide-react";
 import {
-  BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import api from "../../api/axios";
 
 const CHART_COLORS = ["#2d5d89","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#84cc16"];
+
+function CrossLedgerReports() {
+  const today = new Date();
+  const firstOfYear = `${today.getFullYear()}-01-01`;
+  const todayStr = today.toISOString().split("T")[0];
+
+  const [from, setFrom] = useState(firstOfYear);
+  const [to, setTo]     = useState(todayStr);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await api.get(`/accounting/cross-ledger-report?from=${from}&to=${to}`);
+      setData(r.data);
+    } catch {
+      setError("فشل تحميل التقارير المتقاطعة");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const monthlyData = useMemo(() => {
+    if (!data?.monthly) return [];
+    return data.monthly.map((m) => ({
+      name: m.month,
+      إجمالي: m.total,
+    }));
+  }, [data]);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+            <Layers className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">تقارير متقاطعة</h3>
+            <p className="text-xs text-gray-400">مجاميع من جميع الدفاتر</p>
+          </div>
+        </div>
+        <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 text-xs hover:bg-gray-50">
+          <Printer className="w-3.5 h-3.5" /> طباعة
+        </button>
+      </div>
+
+      {/* Date range */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">من</label>
+          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
+            className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+        </div>
+        <div>
+          <label className="block text-xs text-gray-500 mb-1">إلى</label>
+          <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
+            className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+        </div>
+        <div className="self-end">
+          <button onClick={load} className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079]">
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> تحديث
+          </button>
+        </div>
+      </div>
+
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1,2,3].map((i) => <div key={i} className="h-12 rounded-xl bg-gray-100 animate-pulse" />)}
+        </div>
+      ) : data ? (
+        <>
+          {/* Summary */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-blue-50 rounded-xl p-3 text-center">
+              <p className="text-xs text-blue-500 mb-0.5">إجمالي كل الدفاتر</p>
+              <p className="text-lg font-bold text-blue-700">{Number(data.grandTotal || 0).toLocaleString("ar-EG")} ج</p>
+            </div>
+            <div className="bg-purple-50 rounded-xl p-3 text-center">
+              <p className="text-xs text-purple-500 mb-0.5">عدد الدفاتر</p>
+              <p className="text-lg font-bold text-purple-700">{data.ledgerCount || 0}</p>
+            </div>
+            <div className="bg-emerald-50 rounded-xl p-3 text-center">
+              <p className="text-xs text-emerald-500 mb-0.5">عدد الصفوف</p>
+              <p className="text-lg font-bold text-emerald-700">{data.rowCount || 0}</p>
+            </div>
+          </div>
+
+          {/* Monthly trend */}
+          {monthlyData.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-2">التوجه الشهري — جميع الدفاتر</p>
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={monthlyData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 9 }} />
+                  <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => (v / 1000).toFixed(0) + "ك"} />
+                  <Tooltip formatter={(v) => [Number(v).toLocaleString("ar-EG") + " ج", "الإجمالي"]} />
+                  <Line type="monotone" dataKey="إجمالي" stroke="#2d5d89" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Breakdown by ledger */}
+          {data.byLedger?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-600 mb-2">تفصيل حسب الدفتر</p>
+              <div className="space-y-2 max-h-40 overflow-auto">
+                {data.byLedger.map((l, i) => (
+                  <div key={l.ledgerId} className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
+                    <span className="flex-1 text-xs text-gray-700 truncate">{l.name}</span>
+                    <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">{Number(l.total).toLocaleString("ar-EG")} ج</span>
+                    <div className="w-24 bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className="h-1.5 rounded-full"
+                        style={{ width: `${Math.min(100, (l.total / (data.grandTotal || 1)) * 100)}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-center py-6 text-gray-400 text-sm">لا توجد بيانات بعد</div>
+      )}
+    </div>
+  );
+}
 
 function KpiCard({ title, value, icon: Icon, iconBg, trend, trendLabel, sub }) {
   return (
@@ -65,8 +205,15 @@ export default function FinancialDashboard({ branch, onNewLedger, onImportExcel,
   useEffect(() => { load(); }, [branch]);
 
   if (loading) return (
-    <div className="flex-1 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+    <div className="flex-1 overflow-auto p-5 space-y-5" dir="rtl">
+      <div className="h-8 w-48 bg-gray-200 rounded-xl animate-pulse" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1,2,3,4].map((i) => <div key={i} className="h-24 rounded-2xl bg-gray-100 animate-pulse" />)}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="h-60 rounded-2xl bg-gray-100 animate-pulse" />
+        <div className="h-60 rounded-2xl bg-gray-100 animate-pulse" />
+      </div>
     </div>
   );
 
@@ -217,6 +364,9 @@ export default function FinancialDashboard({ branch, onNewLedger, onImportExcel,
           <div className="py-10 text-center text-gray-300 text-sm">لا توجد إدخالات حتى الآن</div>
         )}
       </div>
+
+      {/* Cross Ledger Reports */}
+      <CrossLedgerReports />
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">

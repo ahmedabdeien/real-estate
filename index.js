@@ -38,6 +38,8 @@ import roleConfigRouter from "./routes/roleConfig.route.js";
 import whatsappRouter from "./routes/whatsapp.route.js";
 import budgetRouter from "./routes/budget.route.js";
 import { seedDefaultRoles } from "./controllers/roleConfig.controller.js";
+import recurringTransactionRouter from "./routes/recurringTransaction.route.js";
+import { processRecurring } from "./controllers/recurringTransaction.controller.js";
 
 dotenv.config();
 const app = express();
@@ -146,6 +148,19 @@ mongoose
         .then(({ startReminderCron }) => startReminderCron())
         .catch((err) => console.warn("[WA-Cron] Start skipped:", err.message));
     }, 8000);
+
+    // Start recurring transactions cron — daily at 08:00
+    setTimeout(async () => {
+      try {
+        const cron = await import("node-cron");
+        cron.default.schedule("0 8 * * *", () => {
+          processRecurring().catch((e) => console.error("[RecurringCron]", e.message));
+        });
+        console.log("[RecurringCron] Scheduled daily at 08:00");
+      } catch (err) {
+        console.warn("[RecurringCron] Schedule skipped:", err.message);
+      }
+    }, 10000);
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
@@ -213,6 +228,7 @@ app.use("/api/ai", aiRouter);
 app.use("/api/roles", roleConfigRouter);
 app.use("/api/whatsapp", whatsappRouter);
 app.use("/api/budgets", budgetRouter);
+app.use("/api/recurring-transactions", recurringTransactionRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");

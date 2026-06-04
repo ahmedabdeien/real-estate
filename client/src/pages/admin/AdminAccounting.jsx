@@ -9,6 +9,7 @@ import {
   Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
   Sparkles, Grid3x3, Zap, Target, PieChart, Activity, ArrowUpRight, ArrowDownRight,
   ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma, Users, Package,
+  RefreshCcw, GitMerge, Pin, MessageSquare,
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell,
@@ -21,6 +22,8 @@ import InlineAiChat from "../../Components/UI/InlineAiChat";
 import FinancialDashboard from "../../Components/admin/FinancialDashboard";
 import ReportsPanel from "../../Components/admin/ReportsPanel";
 import BudgetPanel from "../../Components/admin/BudgetPanel";
+import RecurringPanel from "../../Components/admin/RecurringPanel";
+import ReconciliationPanel from "../../Components/admin/ReconciliationPanel";
 import * as XLSX from "xlsx";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
@@ -1332,6 +1335,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [selectedCell, setSelectedCell] = useState(null); // { rowIdx, colKey, rowId }
   const [quickFilter, setQuickFilter] = useState("");
   const [notePopover, setNotePopover] = useState(null); // { rowId, value }
+  const [cellNotes, setCellNotes] = useState({}); // { rowId: note string }
+  const [noteEditId, setNoteEditId] = useState(null); // rowId being edited
+  const [noteEditVal, setNoteEditVal] = useState("");
+  const [freezeFirstCol, setFreezeFirstCol] = useState(false);
+  const [condFmtEnabled, setCondFmtEnabled] = useState(false);
+  const [condFmtThreshold, setCondFmtThreshold] = useState(0);
   const [hiddenCols, setHiddenCols] = useState(new Set());
   const [colsMenuOpen, setColsMenuOpen] = useState(false);
   const [fontSize, setFontSize] = useState(14); // px
@@ -1810,13 +1819,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         {/* View tabs (like Excel's ribbon tabs) */}
         <div className="flex items-center gap-0 px-2 pt-1">
           {[
-            { id:"table",   label:"البيانات",      icon:Table2      },
-            { id:"charts",  label:"مخططات",        icon:BarChart3   },
-            { id:"quick",   label:"إدخال سريع",    icon:Zap         },
-            { id:"rates",   label:"معدلات",         icon:Activity    },
-            { id:"reports", label:"تقارير",         icon:FileText    },
-            { id:"budget",  label:"ميزانية",        icon:PiggyBank   },
-            { id:"excel",   label:"Excel",          icon:Grid3x3     },
+            { id:"table",     label:"البيانات",         icon:Table2      },
+            { id:"charts",    label:"مخططات",           icon:BarChart3   },
+            { id:"quick",     label:"إدخال سريع",       icon:Zap         },
+            { id:"rates",     label:"معدلات",            icon:Activity    },
+            { id:"reports",   label:"تقارير",            icon:FileText    },
+            { id:"budget",    label:"ميزانية",           icon:PiggyBank   },
+            { id:"recurring", label:"متكررة",            icon:RefreshCcw  },
+            { id:"reconcile", label:"مطابقة",            icon:GitMerge    },
+            { id:"excel",     label:"Excel",             icon:Grid3x3     },
             ...(isAdmin ? [{ id:"audit", label:"سجل العمليات", icon:ClipboardList }] : []),
           ].map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setActiveTab(id)}
@@ -1916,6 +1927,35 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                 ))}
               </div>
             </div>
+            {/* Group 5: Advanced features */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setFreezeFirstCol((p) => !p)}
+                title={freezeFirstCol ? "إلغاء تثبيت العمود" : "تثبيت العمود الأول"}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${freezeFirstCol ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+              >
+                <Pin className="w-3.5 h-3.5" /> تثبيت
+              </button>
+              <button
+                onClick={() => setCondFmtEnabled((p) => !p)}
+                title="تنسيق شرطي"
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${condFmtEnabled ? "bg-orange-500 text-white border-orange-500" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+              >
+                <Filter className="w-3.5 h-3.5" /> تنسيق شرطي
+              </button>
+              {condFmtEnabled && (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500">عتبة:</span>
+                  <input
+                    type="number"
+                    value={condFmtThreshold}
+                    onChange={(e) => setCondFmtThreshold(Number(e.target.value))}
+                    className="w-20 px-1.5 py-1 rounded border border-gray-300 text-xs focus:outline-none"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="w-px h-5 bg-gray-300 mx-1" />
             {/* Search */}
             <div className="mr-auto relative">
               <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
@@ -2023,6 +2063,14 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             branch={null}
           />
         </div>
+      ) : activeTab === "recurring" ? (
+        <div className="flex-1 overflow-auto">
+          <RecurringPanel ledgerId={ledgerId} sheet={sheet} />
+        </div>
+      ) : activeTab === "reconcile" ? (
+        <div className="flex-1 overflow-auto">
+          <ReconciliationPanel rows={filteredRows} cols={allCols} />
+        </div>
       ) : activeTab === "excel" ? (
         <div className="flex-1 overflow-hidden pb-2">
           <SpreadsheetEditor
@@ -2120,14 +2168,33 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           ? evaluateFormula(col.formula || "", row.cells || {})
                           : (row.cells?.[col.key] ?? "");
                         const isFormula = col.type === "formula";
+                        const isNumericCol = ["currency","number","percentage","formula"].includes(col.type);
+                        const numericVal = typeof val === "number" ? val : parseFloat(val);
+                        let condBg = "";
+                        if (condFmtEnabled && isNumericCol && isFinite(numericVal)) {
+                          if (numericVal < 0) condBg = "bg-red-50";
+                          else if (numericVal > condFmtThreshold) condBg = "bg-emerald-50";
+                        }
+                        const rowNote = cellNotes[row._id];
+                        const frozenStyle = freezeFirstCol && ci === 0
+                          ? { position: "sticky", right: "88px", zIndex: 5, background: isSelected ? "#e2efda" : "#fff" }
+                          : {};
                         return (
                           <td key={col.key}
-                            style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col) }}
-                            className={`border-l border-b border-gray-200 ${ROW_HEIGHTS[rowHeight]} cursor-pointer relative ${
+                            style={{ width: getColWidth(col), minWidth: 60, maxWidth: getColWidth(col), ...frozenStyle }}
+                            className={`border-l border-b border-gray-200 ${ROW_HEIGHTS[rowHeight]} cursor-pointer relative ${condBg} ${
                               isSelected ? "outline outline-2 outline-[#217346] outline-offset-[-2px] z-10" : ""
                             }`}
                             onClick={() => setSelectedCell({ rowIdx, colKey: col.key, rowId: row._id })}
-                            onDoubleClick={() => startEdit(row._id, col.key, rowIdx)}>
+                            onDoubleClick={() => startEdit(row._id, col.key, rowIdx)}
+                            onContextMenu={(e) => {
+                              if (ci === 0) {
+                                e.preventDefault();
+                                setNoteEditId(row._id);
+                                setNoteEditVal(cellNotes[row._id] || "");
+                              }
+                            }}
+                          >
                             {isEditing ? (
                               <CellInput col={col} value={cellVal} onChange={setCellVal}
                                 onBlur={handleCellBlur} onKeyDown={handleCellKey} />
@@ -2137,6 +2204,17 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                               } ${isSelected ? "bg-[#e2efda]/50" : ""}`}
                                 style={{ fontFamily: "Calibri, Arial, sans-serif" }}>
                                 {formatCell(val, col.type) || ""}
+                                {/* Orange triangle note indicator */}
+                                {ci === 0 && rowNote && (
+                                  <span
+                                    title={rowNote}
+                                    className="absolute top-0 left-0 w-0 h-0"
+                                    style={{
+                                      borderTop: "8px solid #f97316",
+                                      borderRight: "8px solid transparent",
+                                    }}
+                                  />
+                                )}
                               </div>
                             )}
                           </td>
@@ -2310,6 +2388,32 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         title="حذف الصفوف المحددة"
         message={`هل تريد حذف ${selected.size} سطر؟ لا يمكن التراجع.`}
       />
+
+      {/* Cell Note Edit Modal */}
+      <Modal open={!!noteEditId} onClose={() => setNoteEditId(null)} title="ملاحظة الخلية" size="sm">
+        <div className="space-y-3">
+          <textarea
+            value={noteEditVal}
+            onChange={(e) => setNoteEditVal(e.target.value)}
+            rows={4}
+            placeholder="اكتب ملاحظة للصف..."
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none"
+            autoFocus
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setNoteEditId(null)} className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
+            <button
+              onClick={() => {
+                setCellNotes((p) => ({ ...p, [noteEditId]: noteEditVal }));
+                setNoteEditId(null);
+              }}
+              className="flex-1 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079]"
+            >
+              حفظ
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Inline AI Chat — embedded at the bottom of every sheet */}
       <InlineAiChat

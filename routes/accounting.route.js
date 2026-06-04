@@ -8,7 +8,7 @@ import {
   addRow, updateRow, deleteRow, bulkDeleteRows, bulkImportRows, restoreRow,
   getAuditLog,
   getDeletedLedgers, restoreLedger, permanentDeleteLedger,
-  getFinancialSummary,
+  getFinancialSummary, getCrossLedgerReport,
 } from "../controllers/accounting.controller.js";
 
 const router = express.Router();
@@ -39,6 +39,7 @@ router.use(authenticate);
 
 // ── Financial Summary ─────────────────────────────────────────────────────────
 router.get("/financial-summary", getFinancialSummary);
+router.get("/cross-ledger-report", getCrossLedgerReport);
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 router.get("/audit-log", getAuditLog);
