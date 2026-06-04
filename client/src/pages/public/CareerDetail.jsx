@@ -44,7 +44,9 @@ export default function CareerDetail() {
     try {
       await api.post("/job-applications", { ...form, career: id });
       setSent(true);
-    } catch {} finally { setSending(false); }
+    } catch (err) {
+      alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى");
+    } finally { setSending(false); }
   };
 
   const copyLink = () => {

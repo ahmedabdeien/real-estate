@@ -1522,39 +1522,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     setCellFmt(fmt);
   }, [sheet._id]);
 
-  // ── arrow key navigation ──
-  const handleArrowNav = useCallback((e) => {
-    if (!selectedCell || editCell) return;
-    const { rowIdx, colKey } = selectedCell;
-    const colIdx = cols.findIndex(c => c.key === colKey);
-    let newRowIdx = rowIdx, newColIdx = colIdx;
-    if (e.key === "ArrowDown")  { e.preventDefault(); newRowIdx = Math.min(rowIdx + 1, sortedRows.length - 1); }
-    if (e.key === "ArrowUp")    { e.preventDefault(); newRowIdx = Math.max(rowIdx - 1, 0); }
-    if (e.key === "ArrowRight") { e.preventDefault(); newColIdx = Math.max(colIdx - 1, 0); }
-    if (e.key === "ArrowLeft")  { e.preventDefault(); newColIdx = Math.min(colIdx + 1, cols.length - 1); }
-    if (e.key === "Enter" || e.key === "F2") { e.preventDefault(); startEdit(selectedCell.rowId, colKey, rowIdx); return; }
-    if (e.key === "Delete" || e.key === "Backspace") {
-      if (!editCell && selectedCell) {
-        const col = cols[colIdx];
-        if (col?.type !== "formula") commitCell(selectedCell.rowId, colKey, "");
-      }
-      return;
-    }
-    if (newRowIdx !== rowIdx || newColIdx !== colIdx) {
-      const targetRow = sortedRows[newRowIdx];
-      const targetCol = cols[newColIdx];
-      if (targetRow && targetCol) {
-        setSelectedCell({ rowIdx: newRowIdx, colKey: targetCol.key, rowId: targetRow._id });
-        setFormulaBarVal(targetCol.type === "formula" ? (targetCol.formula || "") : (targetRow.cells?.[targetCol.key] ?? ""));
-      }
-    }
-  }, [selectedCell, editCell, cols, sortedRows]);
-
-  useEffect(() => {
-    if (activeTab !== "table") return;
-    window.addEventListener("keydown", handleArrowNav);
-    return () => window.removeEventListener("keydown", handleArrowNav);
-  }, [handleArrowNav, activeTab]);
+  // ── arrow key navigation — use ref to avoid TDZ with sortedRows ──
+  const sortedRowsRef = useRef([]);
 
   // ── col filter helpers ──
   const getColUniqueValues = useCallback((colKey) => {
@@ -1943,6 +1912,41 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       return { key: colKey, dir: "asc" };
     });
   };
+
+  // ── keep ref in sync so handleArrowNav can access latest sortedRows ──
+  useEffect(() => { sortedRowsRef.current = sortedRows; }, [sortedRows]);
+
+  // ── arrow key navigation (defined AFTER sortedRows to avoid TDZ) ──
+  useEffect(() => {
+    if (activeTab !== "table") return;
+    const handler = (e) => {
+      if (!selectedCell || editCell) return;
+      const currentRows = sortedRowsRef.current;
+      const { rowIdx, colKey } = selectedCell;
+      const colIdx = cols.findIndex(c => c.key === colKey);
+      let newRowIdx = rowIdx, newColIdx = colIdx;
+      if (e.key === "ArrowDown")  { e.preventDefault(); newRowIdx = Math.min(rowIdx + 1, currentRows.length - 1); }
+      else if (e.key === "ArrowUp")    { e.preventDefault(); newRowIdx = Math.max(rowIdx - 1, 0); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); newColIdx = Math.max(colIdx - 1, 0); }
+      else if (e.key === "ArrowLeft")  { e.preventDefault(); newColIdx = Math.min(colIdx + 1, cols.length - 1); }
+      else if (e.key === "F2") { e.preventDefault(); startEdit(selectedCell.rowId, colKey, rowIdx); return; }
+      else if (e.key === "Delete" && !editCell) {
+        const col = cols[colIdx];
+        if (col?.type !== "formula") commitCell(selectedCell.rowId, colKey, "");
+        return;
+      } else return;
+      if (newRowIdx !== rowIdx || newColIdx !== colIdx) {
+        const targetRow = currentRows[newRowIdx];
+        const targetCol = cols[newColIdx];
+        if (targetRow && targetCol) {
+          setSelectedCell({ rowIdx: newRowIdx, colKey: targetCol.key, rowId: targetRow._id });
+          setFormulaBarVal(targetCol.type === "formula" ? (targetCol.formula || "") : (targetRow.cells?.[targetCol.key] ?? ""));
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [activeTab, selectedCell, editCell, cols, startEdit, commitCell]);
 
   // ── export CSV ──
   const exportCsv = () => {

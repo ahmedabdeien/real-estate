@@ -432,13 +432,30 @@ export const getFinancialSummary = async (req, res) => {
     const query = { isArchived: false, isDeleted: false };
     if (branch) query.branch = branch;
 
-    const ledgers = await Ledger.find(query).lean();
+    const ledgers = await Ledger.find(query).select("name sheets").lean({ virtuals: false });
 
     let totalIncome = 0;
     let totalExpense = 0;
     const monthlyMap = {};
     const categoryMap = {};
     const recentRows = [];
+
+    const safeCells = (rawCells) => {
+      try {
+        if (!rawCells) return {};
+        if (rawCells instanceof Map) return Object.fromEntries(rawCells);
+        if (typeof rawCells === "object") {
+          // Mongoose Map stored as plain object in lean — may have nested structure
+          const result = {};
+          for (const [k, v] of Object.entries(rawCells)) {
+            if (k.startsWith("$") || k === "__v") continue;
+            result[k] = v;
+          }
+          return result;
+        }
+      } catch {}
+      return {};
+    };
 
     for (const ledger of ledgers) {
       for (const sheet of ledger.sheets || []) {
@@ -453,12 +470,7 @@ export const getFinancialSummary = async (req, res) => {
 
         for (const row of rows) {
           if (!row) continue;
-          // .lean() returns plain objects, cells may be a plain object (Map stored as Object in lean)
-          let cells = {};
-          try {
-            if (row.cells instanceof Map) cells = Object.fromEntries(row.cells);
-            else if (row.cells && typeof row.cells === "object") cells = row.cells;
-          } catch { cells = {}; }
+          let cells = safeCells(row.cells);
 
           currencyCols.forEach((col, idx) => {
             const raw = cells[col.key];
@@ -530,23 +542,32 @@ export const getCrossLedgerReport = async (req, res) => {
     const toDate   = to   ? new Date(to)   : new Date();
     toDate.setHours(23, 59, 59, 999);
 
-    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false });
+    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false }).select("name sheets").lean({ virtuals: false });
 
     let grandTotal = 0;
     let rowCount = 0;
     const byLedger = [];
     const monthlyMap = {};
 
+    const safeCells2 = (rawCells) => {
+      try {
+        if (!rawCells) return {};
+        if (rawCells instanceof Map) return Object.fromEntries(rawCells);
+        if (typeof rawCells === "object") return rawCells;
+      } catch {}
+      return {};
+    };
+
     for (const ledger of ledgers) {
       let ledgerTotal = 0;
       for (const sheet of ledger.sheets || []) {
-        const cols = sheet.columns || [];
-        const currencyCols = cols.filter((c) => ["currency","number"].includes(c.type));
-        const dateCol = cols.find((c) => c.type === "date");
-        const rows = (sheet.rows || []).filter((r) => !r.isDeleted);
+        const cols = Array.isArray(sheet.columns) ? sheet.columns : [];
+        const currencyCols = cols.filter((c) => c && ["currency","number"].includes(c.type));
+        const dateCol = cols.find((c) => c && c.type === "date");
+        const rows = (sheet.rows || []).filter((r) => r && !r.isDeleted);
 
         for (const row of rows) {
-          const cells = row.cells instanceof Map ? Object.fromEntries(row.cells) : (row.cells || {});
+          const cells = safeCells2(row.cells);
           let inRange = true;
           if (dateCol) {
             const d = new Date(cells[dateCol.key]);
