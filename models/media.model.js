@@ -12,6 +12,10 @@ const mediaSchema = new mongoose.Schema(
     },
     size: { type: Number, default: 0 },
     folder: { type: String, default: "general" },
+    tags: [String],
+    description: { type: String, default: "" },
+    width: { type: Number, default: 0 },
+    height: { type: Number, default: 0 },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

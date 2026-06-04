@@ -1,5 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Trash2, Upload, Image as ImageIcon, Copy, Check, CloudUpload, AlertCircle, Cloud, HardDrive, Wifi, Zap } from "lucide-react";
+import {
+  Trash2, Upload, Image as ImageIcon, Copy, Check,
+  CloudUpload, AlertCircle, Cloud, HardDrive, Wifi, Zap,
+  Search, Grid2X2, LayoutGrid, Rows3, ChevronRight, ChevronLeft,
+  FolderPlus, Folder, X, Pencil, MoveRight, CheckSquare,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadToCloudinary, getCloudinaryThumb } from "../../lib/cloudinary";
 import api from "../../api/axios";
@@ -7,22 +12,26 @@ import ConfirmModal from "../../Components/UI/ConfirmModal";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
-import HelpCard from "../../Components/UI/HelpCard";
 import { useToast } from "../../context/ToastContext";
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
-// ── Single file upload progress ────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function formatBytes(bytes) {
+  if (!bytes) return "0 MB";
+  const mb = bytes / (1024 * 1024);
+  return mb < 1024 ? `${mb.toFixed(1)} MB` : `${(mb / 1024).toFixed(2)} GB`;
+}
+
+// ── Upload progress item ───────────────────────────────────────────────────────
 function UploadItem({ file, queueId, onDone, onError }) {
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState("uploading"); // uploading | done | error
+  const [status, setStatus] = useState("uploading");
   const started = useRef(false);
 
   useEffect(() => {
-    // Guard against React StrictMode double-invoke
     if (started.current) return;
     started.current = true;
-
     uploadToCloudinary(file, setProgress)
       .then((data) => { setStatus("done"); onDone(data, queueId); })
       .catch((err) => { setStatus("error"); onError(file.name, err.message, queueId); });
@@ -54,7 +63,7 @@ function UploadItem({ file, queueId, onDone, onError }) {
   );
 }
 
-// ── No cloud name banner ───────────────────────────────────────────────────────
+// ── Setup banner ───────────────────────────────────────────────────────────────
 function SetupBanner() {
   return (
     <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl">
@@ -73,42 +82,254 @@ function SetupBanner() {
   );
 }
 
+// ── Lightbox ───────────────────────────────────────────────────────────────────
+function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
+  const item = items[index];
+  const [editingName, setEditingName] = useState(false);
+  const [nameVal, setNameVal] = useState(item?.name || "");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setNameVal(item?.name || "");
+    setEditingName(false);
+  }, [index, item]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") onNavigate(-1);
+      if (e.key === "ArrowLeft") onNavigate(1);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  if (!item) return null;
+
+  const copyUrl = () => {
+    navigator.clipboard.writeText(item.url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const saveRename = () => {
+    if (nameVal.trim() && nameVal !== item.name) onRename(item._id, nameVal.trim());
+    setEditingName(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+      onClick={onClose}
+    >
+      <div className="relative w-full h-full flex items-center justify-center gap-4 p-4" onClick={(e) => e.stopPropagation()}>
+        {/* Close */}
+        <button onClick={onClose} className="absolute top-4 left-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition">
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Prev */}
+        <button
+          onClick={() => onNavigate(-1)}
+          disabled={index === 0}
+          className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white disabled:opacity-30 transition shrink-0"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Image */}
+        <div className="flex-1 max-w-3xl max-h-[80vh] flex items-center justify-center">
+          <img
+            src={getCloudinaryThumb(item.url, 900)}
+            alt={item.name}
+            className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+          />
+        </div>
+
+        {/* Next */}
+        <button
+          onClick={() => onNavigate(1)}
+          disabled={index === items.length - 1}
+          className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white disabled:opacity-30 transition shrink-0"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+
+        {/* Details panel */}
+        <div className="absolute left-4 top-16 bottom-4 w-64 bg-white dark:bg-gray-900 rounded-2xl p-4 overflow-y-auto flex flex-col gap-4 shadow-xl">
+          {/* Name */}
+          <div>
+            <p className="text-xs text-gray-400 mb-1">الاسم</p>
+            {editingName ? (
+              <div className="flex gap-1">
+                <input
+                  autoFocus
+                  value={nameVal}
+                  onChange={(e) => setNameVal(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") setEditingName(false); }}
+                  className="flex-1 text-sm border border-[#2d5d89] rounded-lg px-2 py-1 outline-none"
+                />
+                <button onClick={saveRename} className="text-[#2d5d89]"><Check className="w-4 h-4" /></button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 group">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">{item.name}</p>
+                <button onClick={() => setEditingName(true)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[#2d5d89] transition">
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Stats */}
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-gray-400">الحجم</span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">{formatBytes(item.size)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">المجلد</span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">{item.folder}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">التاريخ</span>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                {new Date(item.createdAt).toLocaleDateString("ar-EG")}
+              </span>
+            </div>
+            {item.uploadedBy?.name && (
+              <div className="flex justify-between">
+                <span className="text-gray-400">رُفع بواسطة</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium truncate max-w-[120px]">{item.uploadedBy.name}</span>
+              </div>
+            )}
+          </div>
+
+          {/* URL */}
+          <div>
+            <p className="text-xs text-gray-400 mb-1">الرابط</p>
+            <div className="flex gap-1">
+              <input readOnly value={item.url} className="flex-1 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 truncate outline-none" />
+              <button onClick={copyUrl} className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${copied ? "bg-green-100 text-green-600" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-[#2d5d89]/10 hover:text-[#2d5d89]"}`}>
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Delete */}
+          <button
+            onClick={() => { onDelete(item._id); onClose(); }}
+            className="mt-auto w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl py-2.5 text-sm font-medium transition"
+          >
+            <Trash2 className="w-4 h-4" />
+            حذف الصورة
+          </button>
+        </div>
+
+        {/* Counter */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-3 py-1.5 rounded-full">
+          {index + 1} / {items.length}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function AdminMedia() {
   const toast = useToast();
   const inputRef = useRef();
+
+  // data
   const [media, setMedia]   = useState([]);
   const [total, setTotal]   = useState(0);
   const [page, setPage]     = useState(1);
   const [pages, setPages]   = useState(1);
-  const [loading, setLoading]   = useState(true);
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [copied, setCopied]     = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [folders, setFolders] = useState([]);
+  const [totalAll, setTotalAll] = useState(0);
+
+  // filters
+  const [activeFolder, setActiveFolder] = useState("all");
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [sort, setSort] = useState("newest");
+  const [viewSize, setViewSize] = useState("md"); // sm | md | lg
+
+  // selection
+  const [selected, setSelected] = useState(new Set());
+  const lastSelectedRef = useRef(null);
+
+  // modals
+  const [deleteId, setDeleteId]     = useState(null);
+  const [deleting, setDeleting]     = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(null);
   const [uploadQueue, setUploadQueue] = useState([]);
   const [isDragging, setIsDragging]   = useState(false);
-  const [cloudUsage, setCloudUsage]   = useState(null);
+
+  // move folder modal
+  const [moveTarget, setMoveTarget] = useState("");
+  const [showMoveModal, setShowMoveModal] = useState(false);
+
+  // bulk delete confirm
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const [cloudUsage, setCloudUsage] = useState(null);
+
+  // Stats derived
+  const thisMonth = media.filter((m) => {
+    const d = new Date(m.createdAt);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  const totalSize = media.reduce((acc, m) => acc + (m.size || 0), 0);
+
+  // ── Load folders
+  const loadFolders = async () => {
+    try {
+      const r = await api.get("/media/folders");
+      setFolders(r.data.folders || []);
+      setTotalAll(r.data.total || 0);
+    } catch {}
+  };
 
   useEffect(() => {
-    api.get("/media/cloudinary-usage")
-      .then((r) => setCloudUsage(r.data))
-      .catch(() => {});
+    api.get("/media/cloudinary-usage").then((r) => setCloudUsage(r.data)).catch(() => {});
+    loadFolders();
   }, []);
 
+  // ── Load media
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/media", { params: { page } });
-      setMedia(res.data.media  || []);
-      setTotal(res.data.total  || 0);
-      setPages(res.data.pages  || 1);
+      const params = { page, sort };
+      if (activeFolder !== "all") params.folder = activeFolder;
+      if (search) params.search = search;
+      const res = await api.get("/media", { params });
+      setMedia(res.data.media || []);
+      setTotal(res.data.total || 0);
+      setPages(res.data.pages || 1);
     } catch { toast.error("فشل تحميل الصور"); }
-    finally  { setLoading(false); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => {
+    setPage(1);
+    setSelected(new Set());
+  }, [activeFolder, search, sort]);
 
-  // Drag & Drop
+  useEffect(() => { load(); }, [page, activeFolder, search, sort]);
+
+  // Search debounce
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  // ── Drag & drop
   const onDragOver  = useCallback((e) => { e.preventDefault(); setIsDragging(true); }, []);
   const onDragLeave = useCallback((e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false); }, []);
   const onDrop      = useCallback((e) => {
@@ -122,7 +343,7 @@ export default function AdminMedia() {
 
   const addToQueue = (files) => {
     const valid = files.filter((f) => {
-      if (f.size > 2 * 1024 * 1024) { toast.error(`"${f.name}" أكبر من 2MB`); return false; }
+      if (f.size > 10 * 1024 * 1024) { toast.error(`"${f.name}" أكبر من 10MB`); return false; }
       return true;
     });
     setUploadQueue((prev) => [...prev, ...valid.map((f) => ({ id: `${Date.now()}_${Math.random()}`, file: f }))]);
@@ -136,8 +357,9 @@ export default function AdminMedia() {
       setMedia((prev) => [res.data.media, ...prev]);
       setTotal((prev) => prev + 1);
       toast.success(`تم رفع ${data.name}`);
+      loadFolders();
     } catch { toast.error("فشل حفظ الصورة"); }
-    finally  { removeFromQueue(queueId); }
+    finally { removeFromQueue(queueId); }
   };
 
   const handleUploadError = (_name, _err, queueId) => {
@@ -145,17 +367,28 @@ export default function AdminMedia() {
     setTimeout(() => removeFromQueue(queueId), 3000);
   };
 
-  const copyUrl = (url, id) => {
-    navigator.clipboard.writeText(url);
-    setCopied(id); setTimeout(() => setCopied(null), 2000);
+  // ── Selection
+  const toggleSelect = (id, e) => {
+    const idx = media.findIndex((m) => m._id === id);
+    if (e.shiftKey && lastSelectedRef.current !== null) {
+      const lastIdx = media.findIndex((m) => m._id === lastSelectedRef.current);
+      const [from, to] = [Math.min(idx, lastIdx), Math.max(idx, lastIdx)];
+      setSelected((prev) => {
+        const next = new Set(prev);
+        media.slice(from, to + 1).forEach((m) => next.add(m._id));
+        return next;
+      });
+    } else {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+      lastSelectedRef.current = id;
+    }
   };
 
-  function formatBytes(bytes) {
-    if (!bytes) return "0 MB";
-    const mb = bytes / (1024 * 1024);
-    return mb < 1024 ? `${mb.toFixed(1)} MB` : `${(mb / 1024).toFixed(2)} GB`;
-  }
-
+  // ── Delete single
   const confirmDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
@@ -163,196 +396,340 @@ export default function AdminMedia() {
       await api.delete(`/media/${deleteId}`);
       setMedia((prev) => prev.filter((m) => m._id !== deleteId));
       setTotal((prev) => prev - 1);
+      setSelected((prev) => { const n = new Set(prev); n.delete(deleteId); return n; });
       toast.success("تم حذف الصورة");
+      loadFolders();
     } catch { toast.error("فشل الحذف"); }
-    finally  { setDeleting(false); setDeleteId(null); }
+    finally { setDeleting(false); setDeleteId(null); }
   };
 
-  return (
-    <div className="space-y-6" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">مكتبة الصور</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{total} صورة • Cloudinary مجاني 25GB</p>
-        </div>
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={!CLOUD_NAME}
-          className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-40 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors"
-        >
-          <Upload className="w-4 h-4" />
-          رفع صور
-        </button>
-        <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={onFileInput} />
-      </div>
+  // ── Bulk delete
+  const confirmBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const ids = [...selected];
+      await api.post("/media/bulk-delete", { ids });
+      setMedia((prev) => prev.filter((m) => !selected.has(m._id)));
+      setTotal((prev) => prev - ids.length);
+      setSelected(new Set());
+      toast.success(`تم حذف ${ids.length} صورة`);
+      loadFolders();
+    } catch { toast.error("فشل الحذف"); }
+    finally { setBulkDeleting(false); setShowBulkDelete(false); }
+  };
 
-      {/* Cloudinary usage */}
-      {cloudUsage && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl border border-blue-100 dark:border-gray-700 p-5 mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-[#2d5d89] flex items-center justify-center">
-                <Cloud className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 dark:text-white text-sm">مساحة Cloudinary</h3>
-                <p className="text-xs text-gray-400">إحصائيات التخزين السحابي</p>
-              </div>
-            </div>
-            {cloudUsage.estimated && <span className="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full">تقديرية</span>}
+  // ── Move to folder
+  const moveToFolder = async () => {
+    if (!moveTarget) return;
+    try {
+      await Promise.all([...selected].map((id) => api.put(`/media/${id}`, { folder: moveTarget })));
+      toast.success(`تم نقل ${selected.size} صورة إلى "${moveTarget}"`);
+      setSelected(new Set());
+      setShowMoveModal(false);
+      setMoveTarget("");
+      load();
+      loadFolders();
+    } catch { toast.error("فشل النقل"); }
+  };
+
+  // ── Rename from lightbox
+  const handleRename = async (id, name) => {
+    try {
+      const r = await api.put(`/media/${id}/rename`, { name });
+      setMedia((prev) => prev.map((m) => m._id === id ? { ...m, name: r.data.media.name } : m));
+      toast.success("تم تغيير الاسم");
+    } catch { toast.error("فشل تغيير الاسم"); }
+  };
+
+  // ── New folder
+  const createFolder = () => {
+    const name = window.prompt("اسم المجلد الجديد:");
+    if (!name?.trim()) return;
+    // Folder is created implicitly when images are moved/uploaded there
+    setFolders((prev) => [...prev, { name: name.trim(), count: 0 }]);
+    toast.success(`تم إنشاء مجلد "${name.trim()}" — يظهر بعد نقل صور إليه`);
+  };
+
+  // ── Grid cols
+  const gridCols = { sm: "grid-cols-3 sm:grid-cols-4 md:grid-cols-5", md: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4", lg: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3" }[viewSize];
+
+  return (
+    <div className="flex h-full gap-0" dir="rtl">
+      {/* ── Sidebar ── */}
+      <aside className="w-56 shrink-0 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800 flex flex-col py-4 px-3 gap-1 overflow-y-auto">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 mb-2">المجلدات</p>
+
+        {/* All */}
+        <button
+          onClick={() => setActiveFolder("all")}
+          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
+            activeFolder === "all"
+              ? "bg-[#2d5d89] text-white"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <ImageIcon className="w-4 h-4" />
+            كل الصور
           </div>
-          {cloudUsage.usage ? (
-            <div className="space-y-4">
-              {/* Storage bar */}
-              <div className="bg-white dark:bg-gray-700 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <HardDrive className="w-4 h-4 text-[#2d5d89]" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">التخزين</span>
-                  <span className="text-xs text-gray-400 mr-auto">
-                    {formatBytes(cloudUsage.usage.storage_used)} / {formatBytes(cloudUsage.usage.storage_limit)}
-                  </span>
-                </div>
-                <div className="h-2.5 bg-gray-100 dark:bg-gray-600 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#2d5d89] to-indigo-500 rounded-full transition-all"
-                    style={{ width: `${Math.min(100, (cloudUsage.usage.storage_used / cloudUsage.usage.storage_limit) * 100).toFixed(1)}%` }}
-                  />
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1 text-left">
-                  {Math.min(100, (cloudUsage.usage.storage_used / cloudUsage.usage.storage_limit) * 100).toFixed(1)}% مستخدمة
-                </p>
-              </div>
-              {/* Stats grid */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white dark:bg-gray-700 rounded-xl p-3 text-center">
-                  <Zap className="w-4 h-4 text-amber-500 mx-auto mb-1" />
-                  <p className="text-base font-bold text-gray-800 dark:text-gray-200">{cloudUsage.usage.credits_used}</p>
-                  <p className="text-[10px] text-gray-400">كريدت مستخدم</p>
-                </div>
-                <div className="bg-white dark:bg-gray-700 rounded-xl p-3 text-center">
-                  <ImageIcon className="w-4 h-4 text-[#2d5d89] mx-auto mb-1" />
-                  <p className="text-base font-bold text-gray-800 dark:text-gray-200">{cloudUsage.usage.media_count}</p>
-                  <p className="text-[10px] text-gray-400">ملف وسائط</p>
-                </div>
-                <div className="bg-white dark:bg-gray-700 rounded-xl p-3 text-center">
-                  <Wifi className="w-4 h-4 text-emerald-500 mx-auto mb-1" />
-                  <p className="text-base font-bold text-gray-800 dark:text-gray-200">
-                    {cloudUsage.usage.credits_limit - cloudUsage.usage.credits_used}
-                  </p>
-                  <p className="text-[10px] text-gray-400">كريدت متبقي</p>
-                </div>
-              </div>
+          <span className={`text-xs rounded-full px-2 py-0.5 ${activeFolder === "all" ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+            {totalAll}
+          </span>
+        </button>
+
+        {/* Folders */}
+        {folders.map((f) => (
+          <button
+            key={f.name}
+            onClick={() => setActiveFolder(f.name)}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
+              activeFolder === f.name
+                ? "bg-[#2d5d89] text-white"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Folder className="w-4 h-4" />
+              <span className="truncate max-w-[100px]">{f.name}</span>
             </div>
-          ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">{cloudUsage.message || "جاري تحميل البيانات..."}</p>
+            <span className={`text-xs rounded-full px-2 py-0.5 ${activeFolder === f.name ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"}`}>
+              {f.count}
+            </span>
+          </button>
+        ))}
+
+        {/* New folder */}
+        <button
+          onClick={createFolder}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-[#2d5d89] hover:bg-[#2d5d89]/10 transition mt-2 border-2 border-dashed border-[#2d5d89]/30"
+        >
+          <FolderPlus className="w-4 h-4" />
+          مجلد جديد
+        </button>
+      </aside>
+
+      {/* ── Main ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-5 py-4 flex flex-wrap items-center gap-3">
+          {/* Title */}
+          <div className="me-auto">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">مكتبة الوسائط</h1>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {activeFolder === "all" ? "كل الصور" : `📁 ${activeFolder}`} — {total} صورة
+            </p>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="بحث بالاسم..."
+              className="pr-9 pl-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm outline-none focus:border-[#2d5d89] w-48 transition"
+            />
+          </div>
+
+          {/* Sort */}
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 outline-none focus:border-[#2d5d89]"
+          >
+            <option value="newest">الأحدث</option>
+            <option value="oldest">الأقدم</option>
+            <option value="name">الاسم</option>
+            <option value="size">الحجم</option>
+          </select>
+
+          {/* View toggle */}
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+            {[["sm", Rows3], ["md", Grid2X2], ["lg", LayoutGrid]].map(([size, Icon]) => (
+              <button
+                key={size}
+                onClick={() => setViewSize(size)}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition ${viewSize === size ? "bg-white dark:bg-gray-700 shadow text-[#2d5d89]" : "text-gray-400 hover:text-gray-600"}`}
+              >
+                <Icon className="w-4 h-4" />
+              </button>
+            ))}
+          </div>
+
+          {/* Upload */}
+          <button
+            onClick={() => inputRef.current?.click()}
+            disabled={!CLOUD_NAME}
+            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-40 text-white px-4 py-2 rounded-xl font-semibold text-sm transition-colors"
+          >
+            <Upload className="w-4 h-4" />
+            رفع صور
+          </button>
+          <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={onFileInput} />
+
+          {/* Bulk actions */}
+          {selected.size > 0 && (
+            <div className="flex items-center gap-2 pr-3 border-r border-gray-200 dark:border-gray-700">
+              <span className="text-sm font-medium text-[#2d5d89]">{selected.size} محدد</span>
+              <button
+                onClick={() => setShowMoveModal(true)}
+                className="flex items-center gap-1.5 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-xl transition"
+              >
+                <MoveRight className="w-4 h-4" />
+                نقل
+              </button>
+              <button
+                onClick={() => setShowBulkDelete(true)}
+                className="flex items-center gap-1.5 text-sm bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl transition"
+              >
+                <Trash2 className="w-4 h-4" />
+                حذف ({selected.size})
+              </button>
+              <button onClick={() => setSelected(new Set())} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
-      )}
 
-      <HelpCard
-        title="دليل مكتبة الوسائط"
-        tips={[
-          "اسحب الصور وأفلتها في منطقة الرفع أو انقر لاختيار ملفات",
-          "الحد الأقصى لحجم الملف 10 MB لكل صورة",
-          "انقر على أي صورة لنسخ رابطها مباشرة",
-          "الصور تُرفع على Cloudinary وتبقى متاحة دائماً",
-          "يمكنك رفع صور متعددة في آنٍ واحد",
-        ]}
-      />
+        {/* Stats bar */}
+        <div className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 px-5 py-2 flex gap-6 text-xs text-gray-500">
+          <span>إجمالي الصور: <strong className="text-gray-800 dark:text-gray-200">{total}</strong></span>
+          <span>المساحة: <strong className="text-gray-800 dark:text-gray-200">{formatBytes(totalSize)}</strong></span>
+          <span>هذا الشهر: <strong className="text-gray-800 dark:text-gray-200">{thisMonth} صورة جديدة</strong></span>
+        </div>
 
-      {/* Setup banner when no cloud name */}
-      {!CLOUD_NAME && <SetupBanner />}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {!CLOUD_NAME && <SetupBanner />}
 
-      {/* Drag & Drop Zone */}
-      <div
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
-        onClick={() => CLOUD_NAME && inputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 select-none ${
-          !CLOUD_NAME ? "opacity-50 cursor-not-allowed" :
-          isDragging
-            ? "border-[#2d5d89] bg-[#2d5d89]/5 scale-[1.01] shadow-lg cursor-copy"
-            : "border-gray-200 dark:border-gray-700 hover:border-[#2d5d89]/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
-        }`}
-      >
-        <CloudUpload className={`w-14 h-14 mx-auto mb-4 transition-colors duration-200 ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
-        <p className={`font-bold text-xl transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-500 dark:text-gray-400"}`}>
-          {isDragging ? "أفلت الصور هنا!" : "اسحب وأفلت الصور هنا"}
-        </p>
-        <p className="text-sm text-gray-400 mt-2">أو اضغط هنا • PNG, JPG, WEBP, GIF • الحد الأقصى 2MB</p>
-        <div className="mt-4 inline-flex items-center gap-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium px-3 py-1.5 rounded-full border border-green-200 dark:border-green-700">
-          <Check className="w-3.5 h-3.5" />
-          <span>Cloudinary — 25GB مجاني بدون بطاقة بنكية</span>
+          {/* Drag & drop zone */}
+          <div
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onClick={() => CLOUD_NAME && inputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 select-none ${
+              !CLOUD_NAME ? "opacity-50 cursor-not-allowed" :
+              isDragging
+                ? "border-[#2d5d89] bg-[#2d5d89]/5 scale-[1.01] shadow-lg cursor-copy"
+                : "border-gray-200 dark:border-gray-700 hover:border-[#2d5d89]/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
+            }`}
+          >
+            <CloudUpload className={`w-10 h-10 mx-auto mb-3 transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
+            <p className={`font-bold text-base transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-500 dark:text-gray-400"}`}>
+              {isDragging ? "أفلت الصور هنا!" : "اسحب وأفلت الصور هنا"}
+            </p>
+            <p className="text-xs text-gray-400 mt-1.5">أو اضغط هنا • PNG, JPG, WEBP, GIF • الحد الأقصى 10MB</p>
+          </div>
+
+          {/* Upload queue */}
+          <AnimatePresence>
+            {uploadQueue.length > 0 && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-2">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    جاري رفع {uploadQueue.length} صورة...
+                  </p>
+                  {uploadQueue.map(({ id, file }) => (
+                    <UploadItem key={id} file={file} queueId={id} onDone={handleUploadDone} onError={handleUploadError} />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Gallery */}
+          {loading ? (
+            <LoadingSpinner className="h-40" size="lg" />
+          ) : media.length === 0 ? (
+            <EmptyState icon={ImageIcon} title="لا توجد صور" description="ارفع أول صورة بالسحب والإفلات" />
+          ) : (
+            <>
+              <div className={`grid ${gridCols} gap-3`}>
+                <AnimatePresence>
+                  {media.map((item, idx) => {
+                    const isSelected = selected.has(item._id);
+                    return (
+                      <motion.div
+                        key={item._id} layout
+                        initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                        className={`group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
+                          isSelected
+                            ? "border-[#2d5d89] shadow-lg shadow-[#2d5d89]/20"
+                            : "border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-[#2d5d89]/30"
+                        }`}
+                        onClick={(e) => {
+                          if (e.target.closest(".cb-btn")) return;
+                          if (selected.size > 0) { toggleSelect(item._id, e); return; }
+                          setLightboxIdx(idx);
+                        }}
+                      >
+                        {/* Checkbox */}
+                        <div
+                          className={`cb-btn absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                          onClick={(e) => { e.stopPropagation(); toggleSelect(item._id, e); }}
+                        >
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${isSelected ? "bg-[#2d5d89] border-[#2d5d89]" : "bg-white/80 border-gray-300"}`}>
+                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          </div>
+                        </div>
+
+                        <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
+                          <img
+                            src={getCloudinaryThumb(item.url, 300)}
+                            alt={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                        </div>
+
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end pb-2 px-2 gap-1.5 pointer-events-none group-hover:pointer-events-auto">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setLightboxIdx(idx); }}
+                            className="flex-1 bg-white/90 hover:bg-white text-gray-700 text-xs font-medium py-1.5 rounded-lg transition text-center"
+                          >
+                            عرض
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteId(item._id); }}
+                            className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center text-white"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="p-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">{item.name}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">{formatBytes(item.size)}</p>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+              <Pagination page={page} pages={pages} onPage={setPage} />
+            </>
+          )}
         </div>
       </div>
 
-      {/* Upload queue */}
+      {/* ── Lightbox ── */}
       <AnimatePresence>
-        {uploadQueue.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-2">
-              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                جاري رفع {uploadQueue.length} صورة إلى Cloudinary...
-              </p>
-              {uploadQueue.map(({ id, file }) => (
-                <UploadItem key={id} file={file} queueId={id} onDone={handleUploadDone} onError={handleUploadError} />
-              ))}
-            </div>
-          </motion.div>
+        {lightboxIdx !== null && (
+          <Lightbox
+            items={media}
+            index={lightboxIdx}
+            onClose={() => setLightboxIdx(null)}
+            onNavigate={(dir) => setLightboxIdx((prev) => Math.max(0, Math.min(media.length - 1, prev + dir)))}
+            onDelete={(id) => setDeleteId(id)}
+            onRename={handleRename}
+          />
         )}
       </AnimatePresence>
 
-      {/* Gallery */}
-      {loading ? (
-        <LoadingSpinner className="h-40" size="lg" />
-      ) : media.length === 0 ? (
-        <EmptyState icon={ImageIcon} title="لا توجد صور بعد" description="ارفع أول صورة بالسحب والإفلات" />
-      ) : (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            <AnimatePresence>
-              {media.map((item) => (
-                <motion.div
-                  key={item._id} layout
-                  initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.85 }}
-                  className="group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:border-[#2d5d89]/30 transition-all duration-200"
-                >
-                  <div className="aspect-square overflow-hidden bg-gray-100 dark:bg-gray-700">
-                    <img
-                      src={getCloudinaryThumb(item.url, 300)}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                  </div>
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-end pb-3 gap-2">
-                    <button onClick={() => copyUrl(item.url, item._id)} title="نسخ الرابط"
-                      className="flex items-center gap-1.5 bg-white text-gray-700 hover:bg-gray-100 transition-colors shadow px-3 py-1.5 rounded-lg text-xs font-medium">
-                      {copied === item._id ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copied === item._id ? "تم النسخ" : "نسخ الرابط"}
-                    </button>
-                    <button onClick={() => setDeleteId(item._id)} title="حذف"
-                      className="w-8 h-8 bg-red-500 rounded-xl flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <div className="p-2.5">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate font-medium">{item.name}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-          <Pagination page={page} pages={pages} onPage={setPage} />
-        </>
-      )}
-
+      {/* ── Delete confirm ── */}
       <ConfirmModal
         open={!!deleteId}
         title="حذف الصورة"
@@ -361,6 +738,54 @@ export default function AdminMedia() {
         onCancel={() => setDeleteId(null)}
         loading={deleting}
       />
+
+      {/* ── Bulk delete confirm ── */}
+      <ConfirmModal
+        open={showBulkDelete}
+        title={`حذف ${selected.size} صورة`}
+        message={`هل أنت متأكد من حذف ${selected.size} صورة نهائياً؟ لا يمكن التراجع.`}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setShowBulkDelete(false)}
+        loading={bulkDeleting}
+      />
+
+      {/* ── Move to folder modal ── */}
+      <AnimatePresence>
+        {showMoveModal && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4"
+            onClick={() => setShowMoveModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-80 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="font-bold text-gray-900 dark:text-white mb-4">نقل {selected.size} صورة إلى مجلد</h3>
+              <select
+                value={moveTarget}
+                onChange={(e) => setMoveTarget(e.target.value)}
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#2d5d89] bg-white dark:bg-gray-800 mb-4"
+              >
+                <option value="">اختر مجلداً...</option>
+                <option value="general">general</option>
+                {folders.map((f) => (
+                  <option key={f.name} value={f.name}>{f.name}</option>
+                ))}
+              </select>
+              <div className="flex gap-3">
+                <button onClick={moveToFolder} disabled={!moveTarget} className="flex-1 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-40 text-white py-2.5 rounded-xl font-semibold text-sm transition">
+                  نقل
+                </button>
+                <button onClick={() => setShowMoveModal(false)} className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2.5 rounded-xl font-semibold text-sm transition">
+                  إلغاء
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
