@@ -23,6 +23,7 @@ import BlogPage from "./pages/public/Blog";
 import BlogDetailPage from "./pages/public/BlogDetail";
 import ContactPage from "./pages/public/Contact";
 import CareersPage from "./pages/public/Careers";
+const CareerDetail = lazy(() => import("./pages/public/CareerDetail"));
 import ProfilePage from "./pages/public/Profile";
 
 // Admin Login (not lazy — small, needed immediately)
@@ -145,6 +146,7 @@ export default function App() {
                 <Route path="/blog/:slug" element={<BlogDetailPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/careers" element={<CareersPage />} />
+                <Route path="/careers/:id" element={<CareerDetail />} />
                 <Route path="/profile" element={<ProfilePage />} />
               </Route>
 

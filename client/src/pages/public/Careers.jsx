@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, MapPin, Clock, Calendar, Link2 } from "lucide-react";
+import {
+  Briefcase, MapPin, Calendar, Clock, Search, Filter,
+  ArrowLeft, Users, CheckCircle, DollarSign, ChevronLeft,
+} from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import EmptyState from "../../Components/UI/EmptyState";
-import Badge from "../../Components/UI/Badge";
 import { useCms } from "../../hooks/useCms";
 
-const typeAr = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
+const TYPE_LABELS = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
+const TYPE_COLORS = { full_time: "bg-blue-100 text-blue-700", part_time: "bg-purple-100 text-purple-700", contract: "bg-amber-100 text-amber-700", internship: "bg-green-100 text-green-700" };
 
 export default function CareersPage() {
   const { data: cmsPage } = useCms("careers_page", {
@@ -15,140 +19,145 @@ export default function CareersPage() {
     subtitle_ar: "انضم إلى فريق الصرح للتطوير العقاري",
     image: "",
   });
-  const [careers, setCareers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
-  const [form, setForm] = useState({ name: "", phone: "", email: "", career: "", cv_link: "" });
-  const [sent, setSent] = useState(false);
+  const [careers, setCareers]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState("");
+  const [filterType, setFilter] = useState("all");
 
   useEffect(() => {
     api.get("/careers", { params: { published: true } })
-      .then((r) => setCareers(r.data.careers || []))
+      .then(r => setCareers(r.data.careers || []))
       .finally(() => setLoading(false));
   }, []);
 
-  const apply = (career) => {
-    setSelected(career);
-    setForm({ name: "", phone: "", email: "", career: career._id, cv_link: "" });
-  };
+  const filtered = careers.filter(c => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || c.title?.ar?.includes(search) || c.department?.ar?.includes(search) || c.location?.ar?.includes(search);
+    const matchType   = filterType === "all" || c.type === filterType;
+    return matchSearch && matchType;
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const msg = form.cv_link
-        ? `تقديم على وظيفة: ${selected?.title?.ar} — رابط السيرة الذاتية: ${form.cv_link}`
-        : `تقديم على وظيفة: ${selected?.title?.ar}`;
-      await api.post("/leads", { ...form, source: "website", message: msg });
-      setSent(true);
-    } catch {}
-  };
+  const active  = careers.filter(c => !c.deadline || new Date(c.deadline) >= new Date()).length;
+  const depts   = [...new Set(careers.map(c => c.department?.ar).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      <div
-        className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16 relative"
-        style={cmsPage.image ? { backgroundImage: `url('${cmsPage.image}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
-      >
-        {cmsPage.image && <div className="absolute inset-0 bg-[#1a3d5c]/70" />}
+      {/* Hero */}
+      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden"
+        style={cmsPage.image ? { backgroundImage: `url('${cmsPage.image}')`, backgroundSize: "cover", backgroundPosition: "center" } : {}}>
+        {cmsPage.image && <div className="absolute inset-0 bg-[#1a3d5c]/75" />}
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -left-20 w-80 h-80 bg-white/5 rounded-full" />
+        <div className="absolute -bottom-10 -right-10 w-60 h-60 bg-white/5 rounded-full" />
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-4xl font-black text-white mb-3">{cmsPage.title_ar}</h1>
-          <p className="text-white/70 text-lg">{cmsPage.subtitle_ar}</p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <span className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-sm px-4 py-1.5 rounded-full border border-white/20 mb-5">
+              <Users className="w-4 h-4" /> {active} وظيفة متاحة
+            </span>
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-4">{cmsPage.title_ar}</h1>
+            <p className="text-white/70 text-lg max-w-xl mx-auto">{cmsPage.subtitle_ar}</p>
+          </motion.div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-10">
-        {loading ? <LoadingSpinner className="h-64" size="lg" /> : careers.length === 0 ? (
-          <EmptyState icon={Briefcase} title="لا توجد وظائف متاحة حالياً" description="تابعنا للاطلاع على فرص العمل الجديدة" />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {careers.map((c) => (
-              <motion.div key={c._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:border-[#2d5d89]/30 transition-colors">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center">
-                    <Briefcase className="w-6 h-6 text-[#2d5d89]" />
-                  </div>
-                  <Badge variant="info">{typeAr[c.type]}</Badge>
-                </div>
-                <h3 className="text-lg font-black text-gray-900 mb-2">{c.title?.ar}</h3>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 mb-3">
-                  {c.department?.ar && (
-                    <span className="flex items-center gap-1"><Briefcase className="w-3.5 h-3.5" />{c.department.ar}</span>
-                  )}
-                  {c.location?.ar && (
-                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{c.location.ar}</span>
-                  )}
-                  {c.deadline && (
-                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />حتى {new Date(c.deadline).toLocaleDateString("ar-EG")}</span>
-                  )}
-                </div>
-                {c.description?.ar && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">{c.description.ar}</p>
-                )}
-                {c.cv_link ? (
-                  <a href={c.cv_link} target="_blank" rel="noreferrer"
-                    className="flex items-center justify-center gap-2 w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                    <span>📎</span> قدّم عبر الرابط
-                  </a>
-                ) : (
-                  <button onClick={() => apply(c)}
-                    className="w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                    قدّم الآن
-                  </button>
-                )}
-              </motion.div>
-            ))}
+        {/* Search + Filter */}
+        <div className="flex items-center gap-3 mb-8 flex-wrap">
+          <div className="relative flex-1 min-w-60">
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ابحث عن وظيفة..."
+              className="w-full pr-11 pl-4 py-3 rounded-2xl border border-gray-200 bg-white text-gray-900 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
           </div>
-        )}
+          <select value={filterType} onChange={e => setFilter(e.target.value)}
+            className="px-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
+            <option value="all">كل الأنواع</option>
+            {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          {(search || filterType !== "all") && (
+            <button onClick={() => { setSearch(""); setFilter("all"); }}
+              className="px-4 py-3 rounded-2xl border border-gray-200 bg-white text-sm text-gray-500 hover:bg-gray-50 shadow-sm transition-colors">
+              مسح الفلتر
+            </button>
+          )}
+        </div>
 
-        {/* Apply Modal */}
-        {selected && !sent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setSelected(null)}>
-            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <h3 className="font-bold text-xl text-gray-900 mb-1">التقديم على وظيفة</h3>
-              <p className="text-[#2d5d89] font-semibold text-sm mb-5">{selected.title?.ar}</p>
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="الاسم الكامل *" required
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-                <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="رقم الهاتف *" required
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="البريد الإلكتروني *" required
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Link2 className="w-3.5 h-3.5 text-gray-400" />
-                    <label className="text-xs text-gray-500">رابط سيرتك الذاتية (Google Drive / Dropbox)</label>
+        {loading ? <LoadingSpinner className="h-64" size="lg" /> :
+         filtered.length === 0 ? (
+          <EmptyState icon={Briefcase} title="لا توجد وظائف تطابق البحث" description="جرب تغيير كلمات البحث أو الفلاتر" />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {filtered.map((c, i) => {
+              const isExpired = c.deadline && new Date(c.deadline) < new Date();
+              return (
+                <motion.div key={c._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                  className={`bg-white rounded-2xl border shadow-sm overflow-hidden flex flex-col transition-all hover:-translate-y-1 hover:shadow-md ${
+                    isExpired ? "border-gray-200 opacity-80" : "border-gray-100 hover:border-[#2d5d89]/30"
+                  }`}>
+                  <div className={`h-1.5 ${isExpired ? "bg-gray-200" : "bg-gradient-to-r from-[#2d5d89] to-[#4a8ab5]"}`} />
+                  <div className="p-5 flex-1 flex flex-col">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${isExpired ? "bg-gray-100" : "bg-[#2d5d89]/10"}`}>
+                        <Briefcase className={`w-5 h-5 ${isExpired ? "text-gray-400" : "text-[#2d5d89]"}`} />
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${TYPE_COLORS[c.type]}`}>
+                        {TYPE_LABELS[c.type]}
+                      </span>
+                    </div>
+
+                    <h3 className="font-black text-gray-900 text-base mb-1 leading-snug">{c.title?.ar}</h3>
+                    {c.title?.en && <p className="text-gray-400 text-xs mb-2">{c.title.en}</p>}
+
+                    <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-gray-500 mb-3">
+                      {c.department?.ar && (
+                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{c.department.ar}</span>
+                      )}
+                      {c.location?.ar && (
+                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{c.location.ar}</span>
+                      )}
+                    </div>
+
+                    {c.description?.ar && (
+                      <p className="text-gray-500 text-sm mb-4 line-clamp-2 flex-1 leading-relaxed">{c.description.ar}</p>
+                    )}
+
+                    {/* Requirements count */}
+                    {c.requirements?.length > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-[#2d5d89] mb-3">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>{c.requirements.length} متطلب</span>
+                      </div>
+                    )}
+
+                    {/* Salary */}
+                    {c.salary?.min && !c.salary?.hidden && (
+                      <div className="flex items-center gap-1 text-xs text-green-600 font-semibold mb-3">
+                        <DollarSign className="w-3.5 h-3.5" />
+                        <span>{Number(c.salary.min).toLocaleString("ar-EG")} — {Number(c.salary.max).toLocaleString("ar-EG")} {c.salary.currency}</span>
+                      </div>
+                    )}
+
+                    <div className="mt-auto pt-3 border-t border-gray-100">
+                      {c.deadline && (
+                        <p className={`flex items-center gap-1 text-xs mb-3 ${isExpired ? "text-red-500" : "text-gray-400"}`}>
+                          <Calendar className="w-3 h-3" />
+                          {isExpired ? "انتهت في " : "حتى "}
+                          {new Date(c.deadline).toLocaleDateString("ar-EG")}
+                        </p>
+                      )}
+                      <Link to={`/careers/${c._id}`}
+                        className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold transition-colors ${
+                          isExpired
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
+                            : "bg-[#2d5d89] hover:bg-[#245079] text-white"
+                        }`}>
+                        عرض التفاصيل والتقديم
+                        <ChevronLeft className="w-4 h-4" />
+                      </Link>
+                    </div>
                   </div>
-                  <input type="url" value={form.cv_link} onChange={(e) => setForm({ ...form, cv_link: e.target.value })}
-                    placeholder="https://drive.google.com/..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button type="button" onClick={() => setSelected(null)}
-                    className="flex-1 border border-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
-                    إلغاء
-                  </button>
-                  <button type="submit"
-                    className="flex-1 bg-[#2d5d89] hover:bg-[#245079] text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                    إرسال
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-        {sent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { setSent(false); setSelected(null); }}>
-            <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
-              <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-600 text-2xl">✓</span>
-              </div>
-              <h3 className="font-bold text-xl text-gray-900 mb-2">تم إرسال طلبك!</h3>
-              <p className="text-gray-500 text-sm">سيتواصل معك فريق الموارد البشرية قريباً</p>
-            </div>
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>

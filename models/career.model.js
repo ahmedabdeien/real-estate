@@ -25,6 +25,12 @@ const careerSchema = new mongoose.Schema(
     },
     requirements: [{ type: String }],
     cv_link:   { type: String, default: "" },
+    salary: {
+      min:      { type: Number, default: null },
+      max:      { type: Number, default: null },
+      currency: { type: String, default: "ج.م" },
+      hidden:   { type: Boolean, default: false },
+    },
     published: { type: Boolean, default: true },
     deadline:  { type: Date },
   },
