@@ -432,7 +432,7 @@ export const getFinancialSummary = async (req, res) => {
     const query = { isArchived: false, isDeleted: false };
     if (branch) query.branch = branch;
 
-    const ledgers = await Ledger.find(query).select("name sheets").lean({ virtuals: false });
+    const ledgers = await Ledger.find(query).select("name sheets").lean();
 
     let totalIncome = 0;
     let totalExpense = 0;
@@ -542,7 +542,7 @@ export const getCrossLedgerReport = async (req, res) => {
     const toDate   = to   ? new Date(to)   : new Date();
     toDate.setHours(23, 59, 59, 999);
 
-    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false }).select("name sheets").lean({ virtuals: false });
+    const ledgers = await Ledger.find({ isArchived: false, isDeleted: false }).select("name sheets").lean();
 
     let grandTotal = 0;
     let rowCount = 0;

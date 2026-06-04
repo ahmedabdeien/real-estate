@@ -1525,22 +1525,28 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   // ── arrow key navigation — use ref to avoid TDZ with sortedRows ──
   const sortedRowsRef = useRef([]);
 
-  // ── col filter helpers ──
-  const getColUniqueValues = useCallback((colKey) => {
+  // ── auto-complete state (must be useState, placed before non-hook helpers) ──
+  const [acOptions, setAcOptions] = useState([]);
+  const [acIndex, setAcIndex] = useState(-1);
+
+  // ── col filter helpers (regular functions — no dep array, no TDZ) ──
+  const getColUniqueValues = (colKey) => {
+    const curActive = showDeletedRows
+      ? rows.filter(r => r && r.isDeleted)
+      : rows.filter(r => r && !r.isDeleted);
     const vals = new Set();
-    activeRows.forEach(r => {
-      const v = r.cells instanceof Map ? Object.fromEntries(r.cells)[colKey] : r.cells?.[colKey];
+    curActive.forEach(r => {
+      const cells = r.cells instanceof Map ? Object.fromEntries(r.cells) : (r.cells || {});
+      const v = cells[colKey];
       if (v !== undefined && v !== null && v !== "" && !String(v).startsWith("__")) vals.add(String(v));
     });
     return [...vals].slice(0, 100);
-  }, [activeRows]);
+  };
 
   const toggleColFilter = (colKey, value) => {
     setColFilters(prev => {
       const existing = prev[colKey] ? new Set(prev[colKey]) : null;
-      if (!existing) {
-        return { ...prev, [colKey]: new Set([value]) };
-      }
+      if (!existing) return { ...prev, [colKey]: new Set([value]) };
       const next = new Set(existing);
       next.has(value) ? next.delete(value) : next.add(value);
       if (next.size === 0) { const r = { ...prev }; delete r[colKey]; return r; }
@@ -1549,23 +1555,6 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   };
 
   const clearColFilter = (colKey) => setColFilters(prev => { const r = { ...prev }; delete r[colKey]; return r; });
-  const hasFilter = Object.keys(colFilters).length > 0;
-
-  // ── auto-complete ──
-  const [acOptions, setAcOptions] = useState([]); // autocomplete options
-  const [acIndex, setAcIndex] = useState(-1);
-  useEffect(() => {
-    if (!editCell) { setAcOptions([]); return; }
-    const col = cols.find(c => c.key === editCell.colKey);
-    if (!col || col.type !== "text" || !cellVal) { setAcOptions([]); return; }
-    const v = cellVal.toLowerCase();
-    const opts = [...new Set(activeRows
-      .map(r => (r.cells instanceof Map ? Object.fromEntries(r.cells) : r.cells || {})[editCell.colKey])
-      .filter(x => x && String(x).toLowerCase().startsWith(v) && String(x) !== cellVal)
-    )].slice(0, 6);
-    setAcOptions(opts);
-    setAcIndex(-1);
-  }, [cellVal, editCell]);
 
   // ── duplicate row ──
   const duplicateRow = async (row) => {
@@ -1859,10 +1848,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     } catch { toast.error("فشل حفظ الملاحظة"); }
   };
 
-  // ── quick filter ──
+  // ── active rows + filters (defined here so useMemos below can use them) ──
   const activeRows = showDeletedRows
     ? rows.filter((r) => r && r.isDeleted)
     : rows.filter((r) => r && !r.isDeleted);
+
+  const hasFilter = Object.keys(colFilters).length > 0;
 
   const filteredRows = useMemo(() => {
     let result = activeRows;
@@ -1882,6 +1873,22 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
     }
     return result;
   }, [activeRows, quickFilter, colFilters, hasFilter]);
+
+  // ── auto-complete effect (placed after activeRows is defined) ──
+  useEffect(() => {
+    if (!editCell) { setAcOptions([]); return; }
+    const col = cols.find(c => c.key === editCell.colKey);
+    if (!col || col.type !== "text" || !cellVal) { setAcOptions([]); return; }
+    const v = cellVal.toLowerCase();
+    const opts = [...new Set(
+      activeRows
+        .map(r => (r.cells instanceof Map ? Object.fromEntries(r.cells) : r.cells || {})[editCell.colKey])
+        .filter(x => x && String(x).toLowerCase().startsWith(v) && String(x) !== cellVal)
+    )].slice(0, 6);
+    setAcOptions(opts);
+    setAcIndex(-1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cellVal, editCell, rows, showDeletedRows]);
 
   // ── sorted rows ──
   const sortedRows = useMemo(() => {
