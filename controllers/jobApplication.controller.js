@@ -1,4 +1,6 @@
 import JobApplication from "../models/jobApplication.model.js";
+import Career from "../models/career.model.js";
+import Lead from "../models/lead.model.js";
 
 export const createApplication = async (req, res) => {
   try {
@@ -14,8 +16,43 @@ export const createApplication = async (req, res) => {
 
 export const getApplicationsByCareer = async (req, res) => {
   try {
-    const apps = await JobApplication.find({ career: req.params.careerId }).sort({ createdAt: -1 });
-    res.json({ success: true, applications: apps });
+    const careerId = req.params.careerId;
+
+    // New applications from JobApplication collection
+    const newApps = await JobApplication.find({ career: careerId }).sort({ createdAt: -1 });
+
+    // Old applications stored in Leads (message starts with "تقديم على وظيفة:")
+    // Fetch career title to match leads
+    const career = await Career.findById(careerId).select("title");
+    let legacyApps = [];
+    if (career?.title?.ar) {
+      const prefix = `تقديم على وظيفة: ${career.title.ar}`;
+      const leads = await Lead.find({
+        message: { $regex: `^${prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}` },
+      }).sort({ createdAt: -1 });
+
+      legacyApps = leads.map((l) => {
+        // Parse cv_link from message if embedded: "... — السيرة: <url>"
+        const cvMatch = l.message.match(/— السيرة: (.+)$/);
+        return {
+          _id: l._id,
+          career: careerId,
+          name: l.name,
+          phone: l.phone,
+          email: l.email,
+          cv_link: cvMatch ? cvMatch[1].trim() : "",
+          status: l.status === "new" ? "new" : "reviewed",
+          createdAt: l.createdAt,
+          _legacy: true,
+        };
+      });
+    }
+
+    const applications = [...newApps, ...legacyApps].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    res.json({ success: true, applications });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

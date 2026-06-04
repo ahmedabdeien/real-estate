@@ -470,7 +470,7 @@ function AuditLogPanel() {
 
   useEffect(() => {
     api.get("/accounting/audit-log")
-      .then((r) => setLogs(r.data.logs || []))
+      .then((r) => setLogs(r.data.activities || []))
       .catch(() => toast.error("فشل تحميل سجل العمليات"))
       .finally(() => setLoading(false));
   }, []);
@@ -510,8 +510,8 @@ function AuditLogPanel() {
             {logs.map((log, i) => (
               <tr key={log._id || i}
                 className={`border-b border-gray-100 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/50"}`}>
-                <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">{log.userName || "—"}</td>
-                <td className="px-4 py-2.5 text-gray-500 text-xs whitespace-nowrap">{log.userEmail || "—"}</td>
+                <td className="px-4 py-2.5 font-medium text-gray-800 whitespace-nowrap">{log.user?.name || "—"}</td>
+                <td className="px-4 py-2.5 text-gray-500 text-xs whitespace-nowrap">{log.user?.email || "—"}</td>
                 <td className="px-4 py-2.5">
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                     log.action === "create" ? "bg-emerald-100 text-emerald-700" :
@@ -1351,6 +1351,9 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
   const [aiQuery, setAiQuery] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState(null);
+  const [sortConfig, setSortConfig] = useState(null); // { key, dir: 'asc'|'desc' }
+  const [rowColorMenu, setRowColorMenu] = useState(null); // { rowId }
+  const [findReplace, setFindReplace] = useState(null); // { find, replace, colKey:'all'|key }
   const fileInputRef = useRef(null);
 
   const getColWidth = (col) => colWidths[col.key] ?? col.width ?? 120;
@@ -1482,6 +1485,59 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       toast.success("تم حذف الصفوف");
     } catch { toast.error("فشل الحذف"); }
     finally { setDeleting(false); }
+  };
+
+  // ── duplicate row ──
+  const duplicateRow = async (row) => {
+    const cells = { ...(row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}) };
+    delete cells.__rowColor; // don't copy color
+    try {
+      const res = await api.post(`/accounting/${ledgerId}/sheets/${sheet._id}/rows`, { cells });
+      setRows((prev) => [...prev, res.data.row]);
+      toast.success("تم نسخ السطر");
+    } catch { toast.error("فشل نسخ السطر"); }
+  };
+
+  // ── set row color ──
+  const setRowColor = async (rowId, color) => {
+    const row = rows.find((r) => r._id === rowId);
+    if (!row) return;
+    const newCells = { ...(row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}), __rowColor: color };
+    setRows((prev) => prev.map((r) => r._id === rowId ? { ...r, cells: newCells } : r));
+    setRowColorMenu(null);
+    try {
+      await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${rowId}`, { cells: newCells });
+    } catch { toast.error("فشل حفظ لون السطر"); }
+  };
+
+  // ── find & replace ──
+  const applyFindReplace = async () => {
+    if (!findReplace?.find?.trim()) return;
+    const { find, replace, colKey } = findReplace;
+    const targetCols = colKey === "all"
+      ? cols.filter((c) => ["text", "select"].includes(c.type))
+      : cols.filter((c) => c.key === colKey);
+    let count = 0;
+    const updatedRows = [];
+    for (const row of activeRows) {
+      const cells = { ...(row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}) };
+      let changed = false;
+      targetCols.forEach((c) => {
+        if (cells[c.key] !== undefined && String(cells[c.key]).includes(find)) {
+          cells[c.key] = String(cells[c.key]).replaceAll(find, replace || "");
+          changed = true;
+          count++;
+        }
+      });
+      if (changed) updatedRows.push({ row, cells });
+    }
+    if (!updatedRows.length) { toast.error("لم يتم إيجاد النص"); return; }
+    for (const { row, cells } of updatedRows) {
+      setRows((prev) => prev.map((r) => r._id === row._id ? { ...r, cells } : r));
+      try { await api.put(`/accounting/${ledgerId}/sheets/${sheet._id}/rows/${row._id}`, { cells }); } catch {}
+    }
+    toast.success(`تم استبدال ${count} خلية`);
+    setFindReplace(null);
   };
 
   const toggleRow = (id) => {
@@ -1737,6 +1793,36 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       })
     : activeRows;
 
+  // ── sorted rows ──
+  const sortedRows = useMemo(() => {
+    if (!sortConfig) return filteredRows;
+    const { key, dir } = sortConfig;
+    const col = cols.find((c) => c.key === key);
+    return [...filteredRows].sort((a, b) => {
+      let aVal = col?.type === "formula"
+        ? evaluateFormula(col.formula || "", a.cells || {})
+        : (a.cells?.[key] ?? "");
+      let bVal = col?.type === "formula"
+        ? evaluateFormula(col.formula || "", b.cells || {})
+        : (b.cells?.[key] ?? "");
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return dir === "asc" ? aVal - bVal : bVal - aVal;
+      }
+      const aStr = String(aVal ?? "").toLowerCase();
+      const bStr = String(bVal ?? "").toLowerCase();
+      if (aStr < bStr) return dir === "asc" ? -1 : 1;
+      if (aStr > bStr) return dir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [filteredRows, sortConfig, cols]);
+
+  const handleColSort = (colKey) => {
+    setSortConfig((prev) => {
+      if (prev?.key === colKey) return prev.dir === "asc" ? { key: colKey, dir: "desc" } : null;
+      return { key: colKey, dir: "asc" };
+    });
+  };
+
   // ── export CSV ──
   const exportCsv = () => {
     const header = cols.map((c) => `"${c.label}"`).join(",");
@@ -1810,6 +1896,18 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
       setAiLoading(false);
     }
   };
+
+  // Ctrl+H → Find & Replace
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "h") {
+        e.preventDefault();
+        setFindReplace({ find: "", replace: "", colKey: "all" });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
@@ -1956,12 +2054,18 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               )}
             </div>
             <div className="w-px h-5 bg-gray-300 mx-1" />
+            {/* Find & Replace button */}
+            <button onClick={() => setFindReplace({ find: "", replace: "", colKey: "all" })}
+              title="بحث واستبدال (Ctrl+H)"
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
+              <Search className="w-3.5 h-3.5" /> بحث / استبدال
+            </button>
             {/* Search */}
             <div className="mr-auto relative">
               <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
               <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
-                placeholder="بحث في الجدول..."
-                className="pr-7 pl-3 py-1 rounded border border-gray-300 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-[#217346] w-44" />
+                placeholder="تصفية سريعة..."
+                className="pr-7 pl-3 py-1 rounded border border-gray-300 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-[#217346] w-36" />
             </div>
             {/* Bulk delete */}
             {selected.size > 0 && (
@@ -2121,12 +2225,21 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                     </th>
                     {cols.map((col, ci) => (
                       <th key={col.key}
-                        className="px-3 py-2 text-right font-semibold whitespace-nowrap text-xs border-l border-gray-300 border-b border-gray-400 bg-[#f2f2f2] relative group/th select-none hover:bg-[#e8e8e8] transition-colors"
-                        style={{ width: getColWidth(col), minWidth: 60 }}>
-                        <span className="text-gray-700">{col.label}</span>
+                        className="px-3 py-2 text-right font-semibold whitespace-nowrap text-xs border-l border-gray-300 border-b border-gray-400 bg-[#f2f2f2] relative group/th select-none hover:bg-[#e8e8e8] transition-colors cursor-pointer"
+                        style={{ width: getColWidth(col), minWidth: 60 }}
+                        onClick={() => handleColSort(col.key)}>
+                        <span className="flex items-center gap-1 text-gray-700">
+                          {col.label}
+                          {sortConfig?.key === col.key
+                            ? sortConfig.dir === "asc"
+                              ? <SortAsc className="w-3 h-3 text-[#217346]" />
+                              : <SortDesc className="w-3 h-3 text-[#217346]" />
+                            : <SortAsc className="w-3 h-3 text-gray-300 opacity-0 group-hover/th:opacity-100" />
+                          }
+                        </span>
                         <div
                           className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-[#217346] opacity-0 group-hover/th:opacity-100 transition-opacity"
-                          onMouseDown={(e) => handleColResize(e, col.key, getColWidth(col))}
+                          onMouseDown={(e) => { e.stopPropagation(); handleColResize(e, col.key, getColWidth(col)); }}
                         />
                       </th>
                     ))}
@@ -2142,19 +2255,40 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                       </td>
                     </tr>
                   )}
-                  {filteredRows.map((row, rowIdx) => (
+                  {sortedRows.map((row, rowIdx) => {
+                    const rowBgColor = (row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {}).__rowColor;
+                    return (
                     <tr key={row._id}
                       className={`border-b border-gray-100 transition-colors group ${
                         row.isDeleted
-                          ? "bg-red-50/40 opacity-70"
+                          ? "opacity-70"
                           : selected.has(row._id)
                           ? "bg-blue-50"
-                          : rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/40"
-                      } hover:bg-blue-50/40`}>
-                      {/* Row number — Excel style */}
-                      <td className="w-12 px-2 text-center text-[11px] text-gray-500 select-none font-mono sticky right-0 z-10 border-l border-r border-gray-300 border-b border-gray-200"
-                        style={{ background: selectedCell?.rowId === row._id ? "#dce6f1" : "#f2f2f2", minWidth: 40 }}>
+                          : !rowBgColor ? (rowIdx % 2 === 0 ? "bg-white" : "bg-gray-50/40") : ""
+                      } hover:brightness-95`}
+                      style={rowBgColor && !row.isDeleted && !selected.has(row._id) ? { backgroundColor: rowBgColor } : row.isDeleted ? { backgroundColor: "#fef2f2" } : {}}>
+                      {/* Row number — Excel style + right-click color */}
+                      <td className="w-12 px-2 text-center text-[11px] text-gray-500 select-none font-mono sticky right-0 z-10 border-l border-r border-gray-300 border-b border-gray-200 cursor-context-menu relative"
+                        style={{ background: selectedCell?.rowId === row._id ? "#dce6f1" : "#f2f2f2", minWidth: 40 }}
+                        onContextMenu={(e) => { e.preventDefault(); setRowColorMenu({ rowId: row._id }); }}>
                         {rowIdx + 1}
+                        {rowColorMenu?.rowId === row._id && (
+                          <div className="absolute right-12 top-0 z-50 bg-white rounded-xl shadow-2xl border border-gray-200 p-3 w-48" dir="rtl"
+                            onMouseLeave={() => setRowColorMenu(null)}>
+                            <p className="text-[10px] font-bold text-gray-400 mb-2">لون الصف</p>
+                            <div className="grid grid-cols-5 gap-1.5 mb-2">
+                              {["#fef08a","#bbf7d0","#bfdbfe","#fecaca","#e9d5ff","#fed7aa","#cffafe","#fce7f3","#d1fae5","#f1f5f9"].map(c => (
+                                <button key={c} onClick={() => setRowColor(row._id, c)}
+                                  className="w-6 h-6 rounded border border-white/50 hover:scale-110 transition-transform shadow-sm"
+                                  style={{ backgroundColor: c }} />
+                              ))}
+                            </div>
+                            <button onClick={() => setRowColor(row._id, "")}
+                              className="w-full text-[11px] py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 mt-1">
+                              بدون لون
+                            </button>
+                          </div>
+                        )}
                       </td>
                       {/* Checkbox */}
                       <td className="px-2 w-8 border-l border-gray-200 border-b border-gray-200">
@@ -2175,7 +2309,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           if (numericVal < 0) condBg = "bg-red-50";
                           else if (numericVal > condFmtThreshold) condBg = "bg-emerald-50";
                         }
-                        const rowNote = cellNotes[row._id];
+                        const rowNote = (row.cells instanceof Map ? Object.fromEntries(row.cells) : row.cells || {})._notes;
                         const frozenStyle = freezeFirstCol && ci === 0
                           ? { position: "sticky", right: "88px", zIndex: 5, background: isSelected ? "#e2efda" : "#fff" }
                           : {};
@@ -2220,7 +2354,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                           </td>
                         );
                       })}
-                      <td className="px-2 py-1 w-20 relative">
+                      <td className="px-2 py-1 w-24 relative">
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setNotePopover({ rowId: row._id, value: row.cells?._notes || "" })}
@@ -2232,6 +2366,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                             }`}>
                             <FileText className="w-3.5 h-3.5" />
                           </button>
+                          {!row.isDeleted && (
+                            <button onClick={() => duplicateRow(row)}
+                              title="نسخ السطر"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors opacity-0 group-hover:opacity-100">
+                              <CopyIcon className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           {row.isDeleted ? (
                             isAdmin && (
                               <button onClick={() => restoreRow(row._id)}
@@ -2268,7 +2409,8 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         )}
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
 
                   {/* New row input */}
                   {addingRow && (
@@ -2403,10 +2545,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           <div className="flex gap-2">
             <button onClick={() => setNoteEditId(null)} className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
             <button
-              onClick={() => {
-                setCellNotes((p) => ({ ...p, [noteEditId]: noteEditVal }));
-                setNoteEditId(null);
-              }}
+              onClick={() => saveRowNote(noteEditId, noteEditVal)}
               className="flex-1 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079]"
             >
               حفظ
@@ -2420,6 +2559,58 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         context="accounting"
         pageData={{ sheetName: sheet?.name, rowCount: filteredRows.length, cols: cols.map(c => c.label) }}
       />
+
+      {/* ── Find & Replace Modal ── */}
+      <AnimatePresence>
+        {findReplace && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/30"
+            onClick={() => setFindReplace(null)}>
+            <motion.div initial={{ scale: 0.95, y: -10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-5 w-full max-w-md"
+              dir="rtl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  <Search className="w-4 h-4 text-[#217346]" /> بحث واستبدال
+                </h3>
+                <button onClick={() => setFindReplace(null)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">البحث عن</label>
+                  <input value={findReplace.find} onChange={(e) => setFindReplace({ ...findReplace, find: e.target.value })}
+                    placeholder="النص المراد البحث عنه..."
+                    autoFocus
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#217346]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">الاستبدال بـ</label>
+                  <input value={findReplace.replace} onChange={(e) => setFindReplace({ ...findReplace, replace: e.target.value })}
+                    placeholder="النص البديل (اتركه فارغاً للحذف)..."
+                    onKeyDown={(e) => e.key === "Enter" && applyFindReplace()}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#217346]" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">في العمود</label>
+                  <select value={findReplace.colKey} onChange={(e) => setFindReplace({ ...findReplace, colKey: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#217346] bg-white">
+                    <option value="all">كل الأعمدة النصية</option>
+                    {cols.filter(c => ["text","select"].includes(c.type)).map(c => (
+                      <option key={c.key} value={c.key}>{c.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setFindReplace(null)}
+                    className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
+                  <button onClick={applyFindReplace}
+                    className="flex-1 py-2 rounded-xl bg-[#217346] text-white text-sm font-semibold hover:bg-[#1a5c38]">استبدال الكل</button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Excel Import Modal ── */}
       <AnimatePresence>
