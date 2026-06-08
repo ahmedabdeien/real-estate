@@ -21,6 +21,7 @@ import {
   useDeleteLead,
 } from "../../hooks/queries/useLeads";
 import { leadSchema, parseSchema } from "../../schemas/index";
+import ConfirmDialog from "../../Components/UI/ConfirmDialog";
 
 // ─────────────────────────────────────────────
 // Constants
@@ -150,64 +151,7 @@ function InlineStatusCell({ lead }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// ConfirmDelete overlay
-// ─────────────────────────────────────────────
-function ConfirmDeleteModal({ count, onConfirm, onCancel }) {
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0, zIndex: 100,
-        background: "rgba(0,0,0,0.45)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          background: "var(--card-bg, #fff)",
-          borderRadius: "12px",
-          padding: "28px 32px",
-          maxWidth: "380px",
-          width: "90%",
-          textAlign: "center",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-        }}
-      >
-        <div style={{ fontSize: "40px", marginBottom: "12px" }}>🗑️</div>
-        <h3 style={{ margin: "0 0 8px", fontSize: "18px", color: "var(--text, #111)" }}>
-          تأكيد الحذف
-        </h3>
-        <p style={{ color: "var(--text-muted, #666)", marginBottom: "24px", fontSize: "14px" }}>
-          هل تريد حذف <strong>{count}</strong> عميل محتمل؟ لا يمكن التراجع عن هذا الإجراء.
-        </p>
-        <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: "9px 20px", borderRadius: "8px",
-              border: "1px solid var(--border, #e5e7eb)",
-              background: "none", cursor: "pointer",
-              fontSize: "14px", color: "var(--text, #111)",
-            }}
-          >
-            إلغاء
-          </button>
-          <button
-            onClick={onConfirm}
-            style={{
-              padding: "9px 20px", borderRadius: "8px",
-              border: "none",
-              background: "#ef4444", color: "#fff",
-              cursor: "pointer", fontSize: "14px", fontWeight: 600,
-            }}
-          >
-            حذف
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+// ConfirmDelete is now handled by shared ConfirmDialog
 
 // ─────────────────────────────────────────────
 // LeadModal (Add / Edit)
@@ -862,13 +806,14 @@ export default function AdminLeads() {
       )}
 
       {/* Confirm Delete */}
-      {confirmDelete && (
-        <ConfirmDeleteModal
-          count={confirmDelete.length}
-          onConfirm={executeDelete}
-          onCancel={() => setConfirmDelete(null)}
-        />
-      )}
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        onConfirm={executeDelete}
+        title="تأكيد الحذف"
+        message={`هل تريد حذف ${confirmDelete?.length ?? 0} عميل محتمل؟ لا يمكن التراجع عن هذا الإجراء.`}
+        loading={deleteLead.isPending}
+      />
     </div>
   );
 }

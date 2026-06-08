@@ -107,8 +107,8 @@ function NotificationPanel({ onClose, onChange }) {
                 <span className="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full bg-[#2d5d89]" />
               )}
               <div className={`flex-1 min-w-0 ${n.read ? "pr-5" : ""}`}>
-                <p className="text-sm font-semibold text-gray-900 leading-snug">{n.title}</p>
-                {n.body && <p className="text-xs text-gray-500 mt-0.5 truncate">{n.body}</p>}
+                <p className="text-sm font-semibold text-gray-900 leading-snug">{typeof n.title === "object" ? (n.title?.ar ?? n.title?.en ?? "—") : (n.title ?? "—")}</p>
+                {n.body && <p className="text-xs text-gray-500 mt-0.5 truncate">{typeof n.body === "object" ? (n.body?.ar ?? n.body?.en ?? "") : n.body}</p>}
                 <p className="text-xs text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
               </div>
             </button>

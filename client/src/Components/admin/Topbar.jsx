@@ -8,6 +8,7 @@ import {
   FaCircle,
 } from "react-icons/fa6";
 import { useAuth } from "../../context/AuthContext";
+import { t } from "../../lib/t";
 import { useToast } from "../../context/ToastContext";
 import { toggleDarkMode, selectDarkMode, toggleSidebar } from "../../store/slices/uiSlice";
 import { fetchNotifications, markAllRead } from "../../store/slices/notificationsSlice";
@@ -102,11 +103,11 @@ function NotificationPanel({ onClose }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <p className={`text-xs leading-snug ${!n.read ? "font-semibold text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}>
-                    {n.title}
+                    {t(n.title)}
                   </p>
                   <span className="text-[10px] text-gray-400 flex-shrink-0">{timeAgo(n.createdAt)}</span>
                 </div>
-                {n.body && <p className="text-[10px] text-gray-400 mt-0.5 truncate">{n.body}</p>}
+                {n.body && <p className="text-[10px] text-gray-400 mt-0.5 truncate">{t(n.body, "ar", "")}</p>}
               </div>
               {!n.read && <FaCircle className="w-1.5 h-1.5 text-blue-500 flex-shrink-0 mt-1.5" />}
             </button>

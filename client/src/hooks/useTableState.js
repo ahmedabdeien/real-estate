@@ -52,11 +52,14 @@ export function useTableState({
     onFilterChange: handleSearch,
   }), [page, pageSize, search, handleSearch]);
 
+  const handlePageChange = useCallback((p) => setPage(Math.max(0, p - 1)), []);
+
   return {
     page, setPage,
     pageSize, setPageSize,
     search, setSearch: handleSearch,
     sort, setSort,
+    handlePageChange,
     filters, setFilter: handleFilter, clearFilters,
     queryParams,
     tableProps,

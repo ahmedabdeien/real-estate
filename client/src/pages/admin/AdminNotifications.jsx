@@ -225,14 +225,14 @@ export default function AdminNotifications() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-gray-900 dark:text-white text-sm">{n.title}</p>
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm">{typeof n.title === "object" ? (n.title?.ar ?? n.title?.en ?? "—") : (n.title ?? "—")}</p>
                             {!n.read && (
                               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "var(--primary)" }} />
                             )}
                           </div>
                           <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">{formatDate(n.createdAt)}</span>
                         </div>
-                        {n.body && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{n.body}</p>}
+                        {n.body && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{typeof n.body === "object" ? (n.body?.ar ?? n.body?.en ?? "") : n.body}</p>}
                         {n.link && (
                           <span className="text-xs mt-1 inline-block font-semibold" style={{ color: "var(--primary)" }}>
                             اضغط للفتح ←
