@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Users, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, Eye, Search, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -99,8 +99,35 @@ export default function AdminUsers() {
     api.get("/roles").then((r) => setAllRoles(r.data.roles || [])).catch(() => {});
   }, []);
 
+  const [staffSearch, setStaffSearch] = useState("");
+
   const staff = users.filter((u) => STAFF_ROLES.includes(u.role));
   const viewers = users.filter((u) => VIEWER_ROLES.includes(u.role));
+  const onlineCount = staff.filter((u) => isOnline(u.lastSeen)).length;
+
+  const filteredStaff = staffSearch.trim()
+    ? staff.filter((u) =>
+        u.name?.toLowerCase().includes(staffSearch.toLowerCase()) ||
+        u.email?.toLowerCase().includes(staffSearch.toLowerCase()) ||
+        u.phone?.includes(staffSearch)
+      )
+    : staff;
+
+  const exportUsersCSV = () => {
+    const rows = filteredStaff.map((u) => [
+      u.name, u.email, u.phone || "",
+      u.role, DEPARTMENTS[u.department] || u.department || "",
+      u.isActive !== false ? "نشط" : "موقوف",
+      isOnline(u.lastSeen) ? "متصل" : "",
+    ]);
+    const header = ["الاسم", "البريد", "الهاتف", "الدور", "القسم", "الحالة", "متصل"];
+    const csv = [header, ...rows].map((r) => r.map((c) => `"${(c||"").toString().replace(/"/g,'""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "users.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const openCreate = () => { setEditItem(null); setForm(emptyUser); setModal(true); };
   const openEdit = (u) => { setEditItem(u); setForm({ ...u, password: "", customRoleKey: u.customRoleKey || "" }); setModal(true); };
@@ -164,15 +191,45 @@ export default function AdminUsers() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المستخدمون</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">{users.length} مستخدم</p>
         </div>
-        {tab === "staff" && (
-          <button onClick={openCreate}
-            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">إضافة موظف</span>
-            <span className="sm:hidden">إضافة</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {tab === "staff" && (
+            <button onClick={exportUsersCSV}
+              className="flex items-center gap-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors">
+              <Download className="w-4 h-4" /> تصدير CSV
+            </button>
+          )}
+          {tab === "staff" && (
+            <button onClick={openCreate}
+              className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">إضافة موظف</span>
+              <span className="sm:hidden">إضافة</span>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Staff stats */}
+      {tab === "staff" && (
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl px-4 py-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{onlineCount}</span>
+            <span className="text-xs text-emerald-600 dark:text-emerald-500">متصل الآن</span>
+          </div>
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5">
+            <Users className="w-4 h-4 text-[#2d5d89]" />
+            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{staff.length}</span>
+            <span className="text-xs text-gray-500">موظف</span>
+          </div>
+          <div className="relative mr-auto">
+            <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+            <input value={staffSearch} onChange={(e) => setStaffSearch(e.target.value)}
+              placeholder="بحث بالاسم أو البريد..."
+              className="pr-9 pl-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-52" />
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
@@ -203,8 +260,8 @@ export default function AdminUsers() {
       {/* Staff Tab */}
       {tab === "staff" && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          {loading ? <LoadingSpinner className="h-64" size="lg" /> : staff.length === 0 ? (
-            <EmptyState icon={Users} title="لا يوجد موظفون" description="أضف موظفاً جديداً من خلال زر الإضافة أعلاه" />
+          {loading ? <LoadingSpinner className="h-64" size="lg" /> : filteredStaff.length === 0 ? (
+            <EmptyState icon={Users} title={staffSearch ? "لا نتائج للبحث" : "لا يوجد موظفون"} description={staffSearch ? "جرب كلمة بحث مختلفة" : "أضف موظفاً جديداً من خلال زر الإضافة أعلاه"} />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -219,7 +276,7 @@ export default function AdminUsers() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                  {staff.map((u) => {
+                  {filteredStaff.map((u) => {
                     const { label, variant } = statusBadge(u.role);
                     return (
                       <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}

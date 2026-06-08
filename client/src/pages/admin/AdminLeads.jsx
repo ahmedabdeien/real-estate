@@ -162,6 +162,7 @@ export default function AdminLeads() {
   const [bulkStatus, setBulkStatus] = useState("");
   const [activeId, setActiveId] = useState(null);
   const [statusCounts, setStatusCounts] = useState({});
+  const [sourceFilter, setSourceFilter] = useState("");
   const [drawerLead, setDrawerLead] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -173,7 +174,7 @@ export default function AdminLeads() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/leads", { params: { page, search, status: statusFilter } });
+      const res = await api.get("/leads", { params: { page, search, status: statusFilter, source: sourceFilter || undefined } });
       setLeads(res.data.leads);
       setTotal(res.data.total);
       setPages(res.data.pages);
@@ -201,7 +202,7 @@ export default function AdminLeads() {
     } catch {}
   };
 
-  useEffect(() => { load(); loadCounts(); }, [page, statusFilter]);
+  useEffect(() => { load(); loadCounts(); }, [page, statusFilter, sourceFilter]);
   useEffect(() => { if (viewMode === "kanban") loadAll(); }, [viewMode, search, statusFilter]);
   useEffect(() => {
     api.get("/projects", { params: { limit: 100 } }).then((r) => setProjects(r.data.projects));
@@ -447,14 +448,10 @@ export default function AdminLeads() {
           <option value="">كل الحالات</option>
           {leadStatuses.map((s) => <option key={s} value={s}>{statusBadge(s).label}</option>)}
         </select>
-        {/* Source filter */}
-        <select onChange={(e) => {}} defaultValue=""
+        <select value={sourceFilter} onChange={(e) => { setSourceFilter(e.target.value); setPage(1); }}
           className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
           <option value="">كل المصادر</option>
-          {sources.map((s) => {
-            const Icon = SOURCE_ICONS[s] || Users;
-            return <option key={s} value={s}>{sourceAr[s]}</option>;
-          })}
+          {sources.map((s) => <option key={s} value={s}>{sourceAr[s]}</option>)}
         </select>
       </div>
 

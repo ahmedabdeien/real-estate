@@ -161,6 +161,13 @@ export default function AdminBlogs() {
   const readingTime = useMemo(() => calcReadingTime(form.content?.ar), [form.content?.ar]);
   const wordCount = useMemo(() => countWords(form.content?.ar), [form.content?.ar]);
 
+  const blogStats = useMemo(() => ({
+    published: blogs.filter((b) => b.status === "published").length,
+    draft:     blogs.filter((b) => b.status === "draft").length,
+    featured:  blogs.filter((b) => b.featured).length,
+    totalViews:blogs.reduce((acc, b) => acc + (b.views || 0), 0),
+  }), [blogs]);
+
   return (
     <div className="space-y-5" dir="rtl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -174,6 +181,22 @@ export default function AdminBlogs() {
           <span className="hidden sm:inline">إضافة مقال</span>
           <span className="sm:hidden">إضافة</span>
         </button>
+      </div>
+
+      {/* Stats */}
+      <div className="flex flex-wrap gap-3">
+        {[
+          { label: "منشور",   value: blogStats.published, color: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-400",  filter: "published" },
+          { label: "مسودة",   value: blogStats.draft,     color: "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400",  filter: "draft" },
+          { label: "مميز",    value: blogStats.featured,  color: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-400", filter: "" },
+          { label: "مشاهدة", value: blogStats.totalViews.toLocaleString("ar-EG"), color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400",  filter: "" },
+        ].map(({ label, value, color, filter }) => (
+          <button key={label} onClick={() => filter && setStatusFilter(filter)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all hover:opacity-80 ${color} ${filter ? "cursor-pointer" : "cursor-default"}`}>
+            <span className="text-lg font-bold">{value}</span>
+            <span className="text-xs opacity-75">{label}</span>
+          </button>
+        ))}
       </div>
 
       <HelpCard
