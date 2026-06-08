@@ -21,7 +21,7 @@ import HelpCard from "../../Components/UI/HelpCard";
 import InlineAiChat from "../../Components/UI/InlineAiChat";
 import { useToast } from "../../context/ToastContext";
 import { TrendingUp } from "lucide-react";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/Components/UI/drawer";
 
 const leadStatuses = ["new", "contacted", "interested", "not_interested", "converted", "lost"];
 const sources = ["website", "whatsapp", "phone", "referral", "campaign", "other"];

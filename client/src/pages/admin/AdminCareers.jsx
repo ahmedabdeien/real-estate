@@ -14,16 +14,16 @@ import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import { useToast } from "../../context/ToastContext";
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/Components/UI/card";
+import { Button } from "@/Components/UI/button";
+import { Input } from "@/Components/UI/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/Components/UI/tabs";
+import { Avatar, AvatarFallback } from "@/Components/UI/avatar";
+import { Separator } from "@/Components/UI/separator";
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
   DrawerDescription, DrawerFooter, DrawerClose,
-} from "@/components/ui/drawer";
+} from "@/Components/UI/drawer";
 
 // ─── Constants ────────────────────────────────────────────────
 const TYPE_LABELS = {
