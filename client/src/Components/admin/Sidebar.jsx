@@ -1,73 +1,78 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  LayoutDashboard, Building2, Home, Users, FileText, Image,
-  Settings, Briefcase, ChevronLeft, LogOut, TrendingUp, Activity,
-  CheckSquare, Calculator, History, UserCircle, Edit3, BookOpen, Bell, UserPlus,
-  Package, ShoppingCart, Scale, ShieldCheck, MessageCircle,
-  BarChart2, Layers, Search, Globe, ChevronDown, ChevronRight, Sigma,
-} from "lucide-react";
+  FaTableColumns, FaBuilding, FaHouse, FaUsers, FaFileLines,
+  FaImage, FaGear, FaBriefcase, FaRightFromBracket,
+  FaChartLine, FaWaveSquare, FaSquareCheck, FaCalculator, FaClockRotateLeft,
+  FaCircleUser, FaPenToSquare, FaBook, FaBell, FaUserPlus,
+  FaBoxesStacked, FaCartShopping, FaScaleBalanced, FaShieldHalved,
+  FaCommentDots, FaChevronDown, FaChevronUp,
+  FaAnglesLeft, FaAnglesRight,
+} from "react-icons/fa6";
 import LogoSvg from "../../assets/images/logo.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import api from "../../api/axios";
+import { fetchUnreadCount } from "../../store/slices/notificationsSlice";
+import { toggleSidebar, selectSidebarCollapsed } from "../../store/slices/uiSlice";
+import { selectUnreadCount } from "../../store";
 
 // ─── Nav groups ──────────────────────────────────────────────────────────────
 const navGroups = [
   {
     label: "الرئيسية",
     items: [
-      { to: "/admin",               label: "لوحة التحكم",   icon: LayoutDashboard, exact: true, pageKey: "dashboard" },
-      { to: "/admin/notifications", label: "الإشعارات",     icon: Bell,            pageKey: "notifications" },
-      { to: "/admin/tasks",         label: "المهام",        icon: CheckSquare,     pageKey: "tasks" },
+      { to: "/admin",               label: "لوحة التحكم",      icon: FaTableColumns, exact: true, pageKey: "dashboard" },
+      { to: "/admin/notifications", label: "الإشعارات",         icon: FaBell,         pageKey: "notifications", badge: true },
+      { to: "/admin/tasks",         label: "المهام",            icon: FaSquareCheck,  pageKey: "tasks" },
     ],
   },
   {
     label: "العقارات",
     items: [
-      { to: "/admin/projects",      label: "المشاريع",      icon: Building2,       pageKey: "projects" },
-      { to: "/admin/units",         label: "الوحدات",       icon: Home,            pageKey: "units" },
-      { to: "/admin/leads",         label: "العملاء",       icon: TrendingUp,      pageKey: "leads" },
-      { to: "/admin/client-reg",    label: "تسجيل العملاء", icon: UserPlus,        pageKey: "client-reg" },
+      { to: "/admin/projects",      label: "المشاريع",          icon: FaBuilding,     pageKey: "projects" },
+      { to: "/admin/units",         label: "الوحدات",           icon: FaHouse,        pageKey: "units" },
+      { to: "/admin/leads",         label: "العملاء",           icon: FaChartLine,    pageKey: "leads" },
+      { to: "/admin/client-reg",    label: "تسجيل العملاء",     icon: FaUserPlus,     pageKey: "client-reg" },
     ],
   },
   {
     label: "الحسابات",
     items: [
-      { to: "/admin/accounting",                   label: "الحسابات الرئيسية",  icon: Calculator, pageKey: "accounting" },
-      { to: "/admin/accounting-beni-suef",         label: "حسابات بني سويف",   icon: Calculator, pageKey: "accounting-beni-suef" },
-      { to: "/admin/accounting-records",           label: "السجلات المحاسبية", icon: BookOpen,   pageKey: "accounting-records" },
-      { to: "/admin/accounting-records-beni-suef", label: "سجلات بني سويف",    icon: BookOpen,   pageKey: "accounting-records-beni-suef" },
+      { to: "/admin/accounting",                   label: "الحسابات الرئيسية",   icon: FaCalculator, pageKey: "accounting" },
+      { to: "/admin/accounting-beni-suef",         label: "حسابات بني سويف",    icon: FaCalculator, pageKey: "accounting-beni-suef" },
+      { to: "/admin/accounting-records",           label: "السجلات المحاسبية",  icon: FaBook,       pageKey: "accounting-records" },
+      { to: "/admin/accounting-records-beni-suef", label: "سجلات بني سويف",     icon: FaBook,       pageKey: "accounting-records-beni-suef" },
     ],
   },
   {
     label: "المخازن",
     items: [
-      { to: "/admin/warehouse",     label: "المخازن",       icon: Package,         pageKey: "warehouse" },
-      { to: "/admin/purchasing",    label: "المشتريات",     icon: ShoppingCart,    pageKey: "purchasing" },
-      { to: "/admin/legal",         label: "الشئون القانونية", icon: Scale,        pageKey: "legal" },
+      { to: "/admin/warehouse",  label: "المخازن",              icon: FaBoxesStacked,  pageKey: "warehouse" },
+      { to: "/admin/purchasing", label: "المشتريات",            icon: FaCartShopping,  pageKey: "purchasing" },
+      { to: "/admin/legal",      label: "الشئون القانونية",     icon: FaScaleBalanced, pageKey: "legal" },
     ],
   },
   {
     label: "المحتوى",
     items: [
-      { to: "/admin/blogs",         label: "المقالات",      icon: FileText,        pageKey: "blogs" },
-      { to: "/admin/content",       label: "المحتوى",       icon: Edit3,           pageKey: "content" },
-      { to: "/admin/media",         label: "مكتبة الصور",   icon: Image,           pageKey: "media" },
-      { to: "/admin/careers",       label: "الوظائف",       icon: Briefcase,       pageKey: "careers" },
+      { to: "/admin/blogs",    label: "المقالات",               icon: FaFileLines,    pageKey: "blogs" },
+      { to: "/admin/content",  label: "المحتوى",                icon: FaPenToSquare,  pageKey: "content" },
+      { to: "/admin/media",    label: "مكتبة الصور",            icon: FaImage,        pageKey: "media" },
+      { to: "/admin/careers",  label: "الوظائف",                icon: FaBriefcase,    pageKey: "careers" },
     ],
   },
   {
     label: "النظام",
     items: [
-      { to: "/admin/whatsapp",      label: "الواتساب",      icon: MessageCircle,   pageKey: "whatsapp" },
-      { to: "/admin/users",         label: "المستخدمون",    icon: Users,           pageKey: "users" },
-      { to: "/admin/roles",         label: "إدارة الأدوار", icon: ShieldCheck,     pageKey: "roles" },
-      { to: "/admin/activity",      label: "سجل النشاط",    icon: Activity,        pageKey: "activity" },
-      { to: "/admin/settings",      label: "الإعدادات",     icon: Settings,        pageKey: "settings" },
-      { to: "/admin/profile",       label: "الملف الشخصي",  icon: UserCircle,      pageKey: "profile" },
-      { to: "/admin/changelog",     label: "التحديثات",     icon: History,         pageKey: "changelog" },
+      { to: "/admin/whatsapp",   label: "الواتساب",             icon: FaCommentDots,     pageKey: "whatsapp" },
+      { to: "/admin/users",      label: "المستخدمون",           icon: FaUsers,           pageKey: "users" },
+      { to: "/admin/roles",      label: "إدارة الأدوار",        icon: FaShieldHalved,    pageKey: "roles" },
+      { to: "/admin/activity",   label: "سجل النشاط",           icon: FaWaveSquare,      pageKey: "activity" },
+      { to: "/admin/settings",   label: "الإعدادات",            icon: FaGear,            pageKey: "settings" },
+      { to: "/admin/profile",    label: "الملف الشخصي",         icon: FaCircleUser,      pageKey: "profile" },
+      { to: "/admin/changelog",  label: "التحديثات",            icon: FaClockRotateLeft, pageKey: "changelog" },
     ],
   },
 ];
@@ -91,28 +96,25 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const dispatch = useDispatch();
+  const unreadCount = useSelector(selectUnreadCount);
+  const reduxCollapsed = useSelector(selectSidebarCollapsed);
   const [openGroups, setOpenGroups] = useState({});
+
+  const isCollapsed = collapsed ?? reduxCollapsed;
+  const handleToggle = onToggle ?? (() => dispatch(toggleSidebar()));
 
   useEffect(() => {
     if (!user || user.role === "viewer") return;
-    const fetchCount = () => {
-      api.get("/notifications/unread-count")
-        .then((r) => setUnreadCount(r.data.count || 0))
-        .catch(() => {});
-    };
-    fetchCount();
-    const interval = setInterval(fetchCount, 30000);
+    dispatch(fetchUnreadCount());
+    const interval = setInterval(() => dispatch(fetchUnreadCount()), 60000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, dispatch]);
 
-  const handleNavClick = () => {
-    if (window.innerWidth < 1024) onToggle();
-  };
-
-  const handleLogout = async () => {
-    try { await logout(); navigate("/admin/login"); }
-    catch { toast.error("حدث خطأ أثناء تسجيل الخروج"); }
+  const handleLogout = () => {
+    logout();
+    toast.success("تم تسجيل الخروج بنجاح");
+    navigate("/admin/login");
   };
 
   const toggleGroup = (label) => {
@@ -120,146 +122,154 @@ export default function Sidebar({ collapsed, onToggle }) {
   };
 
   return (
-    <>
-      {/* Mobile overlay */}
-      <AnimatePresence>
-        {!collapsed && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={onToggle}
-            className="fixed inset-0 bg-black/60 z-30 lg:hidden backdrop-blur-sm"
-          />
-        )}
-      </AnimatePresence>
+    <motion.aside
+      animate={{ width: isCollapsed ? 72 : 256 }}
+      transition={{ type: "spring", stiffness: 300, damping: 35 }}
+      className="h-screen flex flex-col bg-[#0f1e2e] border-l border-white/5 overflow-hidden relative select-none"
+      dir="rtl"
+    >
+      {/* ── Logo ── */}
+      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/5 flex-shrink-0">
+        <img src={LogoSvg} alt="logo" className="w-8 h-8 flex-shrink-0 rounded-lg" />
+        <AnimatePresence initial={false}>
+          {!isCollapsed && (
+            <motion.span
+              initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
+              className="text-white font-bold text-sm leading-tight whitespace-nowrap flex-1"
+            >
+              الصـرح للعقارات
+            </motion.span>
+          )}
+        </AnimatePresence>
+        <button
+          onClick={handleToggle}
+          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          {isCollapsed ? <FaAnglesRight className="w-3 h-3" /> : <FaAnglesLeft className="w-3 h-3" />}
+        </button>
+      </div>
 
-      <aside className={`fixed top-0 right-0 h-full z-40 flex flex-col transition-all duration-300
-        bg-[#0f172a] text-white
-        ${collapsed ? "translate-x-full lg:translate-x-0 w-64 lg:w-16" : "translate-x-0 w-64"}`}>
+      {/* ── Nav ── */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2 no-scrollbar">
+        {navGroups.map((group) => {
+          const visibleItems = group.items.filter((item) => canSee(user, item.pageKey));
+          if (!visibleItems.length) return null;
+          const isOpen = openGroups[group.label] !== false;
 
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 min-h-[60px] flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-[#2d5d89] flex items-center justify-center flex-shrink-0 overflow-hidden shadow">
-            <img src={LogoSvg} alt="الصرح" className="w-7 h-7 object-contain" />
-          </div>
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-hidden flex-1 min-w-0">
-                <p className="font-bold text-sm text-white leading-tight whitespace-nowrap truncate">الصرح للتطوير العقاري</p>
-                <p className="text-white/30 text-[10px] whitespace-nowrap">لوحة الإدارة</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <button onClick={onToggle}
-            className="mr-auto w-6 h-6 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors text-white/40 hover:text-white flex-shrink-0">
-            <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${collapsed ? "rotate-180" : ""}`} />
-          </button>
-        </div>
+          return (
+            <div key={group.label} className="mb-1">
+              {!isCollapsed ? (
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className="w-full flex items-center justify-between px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                >
+                  {group.label}
+                  {isOpen ? <FaChevronUp className="w-2 h-2" /> : <FaChevronDown className="w-2 h-2" />}
+                </button>
+              ) : (
+                <div className="my-1 mx-4 border-t border-white/5" />
+              )}
 
-        {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
-          {navGroups.map((group) => {
-            const visibleItems = group.items.filter((item) => canSee(user, item.pageKey));
-            if (!visibleItems.length) return null;
-            const isOpen = openGroups[group.label] !== false; // default open
-
-            return (
-              <div key={group.label}>
-                {/* Group label */}
-                {!collapsed && (
-                  <button onClick={() => toggleGroup(group.label)}
-                    className="w-full flex items-center justify-between px-2 py-1.5 text-[10px] font-semibold text-white/25 uppercase tracking-widest hover:text-white/50 transition-colors mt-2">
-                    <span>{group.label}</span>
-                    <ChevronDown className={`w-3 h-3 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
-                  </button>
+              <AnimatePresence initial={false}>
+                {(isOpen || isCollapsed) && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="overflow-hidden"
+                  >
+                    {visibleItems.map((item) => (
+                      <SidebarItem
+                        key={item.to}
+                        item={item}
+                        collapsed={isCollapsed}
+                        unreadCount={item.badge ? unreadCount : 0}
+                      />
+                    ))}
+                  </motion.div>
                 )}
-                {collapsed && <div className="my-2 mx-2 h-px bg-white/5" />}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </nav>
 
-                <AnimatePresence initial={false}>
-                  {(isOpen || collapsed) && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="overflow-hidden space-y-0.5"
-                    >
-                      {visibleItems.map(({ to, label, icon: Icon, exact, pageKey }) => {
-                        const isNotifications = to === "/admin/notifications";
-                        const showBadge = isNotifications && unreadCount > 0;
-                        return (
-                          <NavLink key={to} to={to} end={exact} onClick={handleNavClick}
-                            className={({ isActive }) =>
-                              `group flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 text-sm font-medium relative ${
-                                isActive
-                                  ? "bg-[#2d5d89] text-white shadow-sm"
-                                  : "text-white/50 hover:bg-white/5 hover:text-white"
-                              }`
-                            }>
-                            <span className="relative flex-shrink-0">
-                              <Icon className="w-4 h-4" />
-                              {showBadge && collapsed && (
-                                <span className="absolute -top-1.5 -left-1.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                                  {unreadCount > 9 ? "9+" : unreadCount}
-                                </span>
-                              )}
-                            </span>
-                            <AnimatePresence>
-                              {!collapsed && (
-                                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                  className="overflow-hidden whitespace-nowrap text-xs">
-                                  {label}
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
-                            {showBadge && !collapsed && (
-                              <span className="mr-auto bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[16px] h-4 flex items-center justify-center px-1">
-                                {unreadCount > 9 ? "9+" : unreadCount}
-                              </span>
-                            )}
-                            {/* Tooltip on collapsed */}
-                            {collapsed && (
-                              <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 border border-white/10">
-                                {label}
-                              </div>
-                            )}
-                          </NavLink>
-                        );
-                      })}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* User + Logout */}
-        <div className="px-2 pb-3 pt-2 border-t border-white/5 flex-shrink-0">
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex items-center gap-2.5 px-3 py-2 mb-1 rounded-lg bg-white/5">
-                <div className="w-7 h-7 rounded-full bg-[#2d5d89] flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {user?.name?.[0] || "A"}
-                </div>
-                <div className="overflow-hidden flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">{user?.name}</p>
-                  <p className="text-[10px] text-white/30 truncate">{roleLabels[user?.role] || user?.customRoleKey || user?.role}</p>
-                </div>
+      {/* ── User footer ── */}
+      <div className="border-t border-white/5 p-3 flex-shrink-0">
+        <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
+          <div
+            className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold text-white"
+            style={{ background: "var(--primary)" }}
+          >
+            {user?.name?.[0]?.toUpperCase() || "A"}
+          </div>
+          <AnimatePresence initial={false}>
+            {!isCollapsed && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="flex-1 min-w-0"
+              >
+                <p className="text-white text-xs font-semibold truncate">{user?.name || "مدير النظام"}</p>
+                <p className="text-white/40 text-[10px] truncate">{roleLabels[user?.role] || "مستخدم"}</p>
               </motion.div>
             )}
           </AnimatePresence>
-          <button onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white/40 hover:bg-red-500/10 hover:text-red-400 transition-all text-xs font-medium group relative">
-            <LogOut className="w-4 h-4 flex-shrink-0" />
-            {!collapsed && <span>تسجيل الخروج</span>}
-            {collapsed && (
-              <div className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 border border-white/10">
-                تسجيل الخروج
-              </div>
-            )}
-          </button>
+          {!isCollapsed && (
+            <button
+              onClick={handleLogout}
+              title="تسجيل الخروج"
+              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            >
+              <FaRightFromBracket className="w-3 h-3" />
+            </button>
+          )}
         </div>
-      </aside>
-    </>
+      </div>
+    </motion.aside>
+  );
+}
+
+function SidebarItem({ item, collapsed, unreadCount }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.exact}
+      className={({ isActive }) =>
+        `relative flex items-center gap-3 mx-2 my-0.5 px-3 py-2.5 rounded-xl text-sm transition-all group
+        ${isActive
+          ? "bg-white/10 text-white font-semibold"
+          : "text-white/45 hover:bg-white/5 hover:text-white/75"}`
+      }
+    >
+      {({ isActive }) => (
+        <>
+          {isActive && (
+            <span
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-l-full"
+              style={{ background: "var(--primary)" }}
+            />
+          )}
+          <item.icon
+            className={`w-3.5 h-3.5 flex-shrink-0 transition-colors ${isActive ? "text-[color:var(--primary)]" : ""}`}
+          />
+          {!collapsed && (
+            <span className="flex-1 truncate text-[12px]">{item.label}</span>
+          )}
+          {unreadCount > 0 && (
+            <span className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white leading-none
+              ${collapsed ? "absolute -top-1 -left-1 min-w-[16px] text-center" : ""}`}>
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+          {collapsed && (
+            <span className="absolute right-full mr-3 px-2.5 py-1.5 bg-gray-900/95 backdrop-blur-sm text-white text-xs rounded-lg
+              whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] shadow-xl border border-white/10">
+              {item.label}
+            </span>
+          )}
+        </>
+      )}
+    </NavLink>
   );
 }
