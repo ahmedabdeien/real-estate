@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import {
   Building2, Home, TrendingUp, FileText, ArrowUpRight, Clock,
   CheckCircle2, XCircle, CalendarDays, Plus, Pencil, Trash2, LogIn,
-  Activity, Users, Target, BarChart2, Layers
+  Activity, Users, Target, BarChart2, Layers, AlertTriangle, Zap,
+  RefreshCw, UserPlus, CalendarCheck
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -315,6 +316,15 @@ export default function AdminDashboard() {
     return acc;
   }, {});
 
+  // Today stats (computed from recentLeads)
+  const todayStr = new Date().toLocaleDateString("ar-EG");
+  const todayLeads = (recentLeads || []).filter((l) =>
+    new Date(l.createdAt).toLocaleDateString("ar-EG") === todayStr
+  ).length;
+  const overdueFollowUps = (recentLeads || []).filter((l) =>
+    l.followUpDate && new Date(l.followUpDate) < new Date() && l.status !== "converted" && l.status !== "lost"
+  ).length;
+
   // Build 6 stat cards
   const totalSales = financial?.totalRevenue ?? 0;
   const pendingTasks = financial?.pendingTasks ?? stats?.pendingTasks ?? "—";
@@ -343,6 +353,39 @@ export default function AdminDashboard() {
           <CalendarDays className="w-4 h-4" />
           {now.toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
         </p>
+      </motion.div>
+
+      {/* Today at a glance */}
+      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-3">
+        {[
+          {
+            icon: UserPlus, label: "عميل جديد اليوم", value: todayLeads,
+            color: todayLeads > 0 ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400" : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500",
+            to: "/admin/leads"
+          },
+          {
+            icon: AlertTriangle, label: "متابعة متأخرة", value: overdueFollowUps,
+            color: overdueFollowUps > 0 ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-600 dark:text-red-400" : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400",
+            to: "/admin/leads"
+          },
+          {
+            icon: Zap, label: "وحدات متاحة", value: unitsByStatus.available || 0,
+            color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400",
+            to: "/admin/units"
+          },
+        ].map(({ icon: Icon, label, value, color, to }) => (
+          <Link key={label} to={to}
+            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all hover:shadow-sm ${color}`}>
+            <Icon className="w-4 h-4 flex-shrink-0" />
+            <span className="text-xs opacity-75">{label}:</span>
+            <span className="font-bold text-base">{value}</span>
+          </Link>
+        ))}
+        <div className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs text-gray-400 mr-auto">
+          <RefreshCw className="w-3.5 h-3.5" />
+          آخر تحديث: {now.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
+        </div>
       </motion.div>
 
       {/* 6-card Stats Row */}

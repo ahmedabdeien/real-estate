@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Heart, GitCompare, Eye, EyeOff, Download, LayoutGrid, List, Layers } from "lucide-react";
+import { Plus, Pencil, Trash2, Heart, GitCompare, Eye, EyeOff, Download, LayoutGrid, List, Layers, Search, X } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -92,6 +92,8 @@ export default function AdminUnits() {
   const [activeTab, setActiveTab] = useState("list"); // "list" | "floor"
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [unitSearch, setUnitSearch] = useState("");
 
   const toggleFavorite = (id) => {
     setFavorites((prev) => {
@@ -251,8 +253,16 @@ export default function AdminUnits() {
     let result = visibleUnits;
     if (priceMin !== "") result = result.filter((u) => u.price >= Number(priceMin));
     if (priceMax !== "") result = result.filter((u) => u.price <= Number(priceMax));
+    if (typeFilter) result = result.filter((u) => u.type === typeFilter);
+    if (unitSearch.trim()) {
+      const q = unitSearch.trim().toLowerCase();
+      result = result.filter((u) =>
+        u.unitNumber?.toString().toLowerCase().includes(q) ||
+        u.description?.ar?.toLowerCase().includes(q)
+      );
+    }
     return result;
-  }, [visibleUnits, priceMin, priceMax]);
+  }, [visibleUnits, priceMin, priceMax, typeFilter, unitSearch]);
 
   // Floor plan grouping
   const floorGroups = useMemo(() => {
@@ -361,6 +371,21 @@ export default function AdminUnits() {
       </div>
 
       <div className="flex gap-3 flex-wrap items-center">
+        {/* Search by unit number */}
+        <div className="relative">
+          <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+          <input
+            value={unitSearch}
+            onChange={(e) => setUnitSearch(e.target.value)}
+            placeholder="رقم الوحدة..."
+            className="pr-9 pl-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-36"
+          />
+          {unitSearch && (
+            <button onClick={() => setUnitSearch("")} className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400 hover:text-gray-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
         <select value={projectFilter} onChange={(e) => { setProjectFilter(e.target.value); setPage(1); }}
           className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
           <option value="">كل المشاريع</option>
@@ -372,6 +397,11 @@ export default function AdminUnits() {
           <option value="available">متاح</option>
           <option value="sold">مباع</option>
           <option value="reserved">محجوز</option>
+        </select>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
+          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
+          <option value="">كل الأنواع</option>
+          {unitTypes.map((t) => <option key={t} value={t}>{unitTypeAr[t]}</option>)}
         </select>
         <button
           onClick={() => setShowFavorites((v) => !v)}

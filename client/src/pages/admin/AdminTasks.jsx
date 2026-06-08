@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Edit2, CheckCircle2, Clock, AlertCircle,
-  Layers, Flag, User, Building2, Search, X, Filter, Kanban,
+  Layers, Flag, User, Building2, Search, X, Filter, Kanban, Activity,
 } from "lucide-react";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -391,6 +391,10 @@ export default function AdminTasks() {
   const pendingCount = tasks.filter((t) => t.status !== "done").length;
   const overdueCount = tasks.filter((t) => t.status !== "done" && t.dueDate && new Date(t.dueDate) < now).length;
 
+  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
+  const totalCount = tasks.length;
+  const donePct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
+
   return (
     <div className="space-y-5" dir="rtl">
       {/* ── Page header ── */}
@@ -421,23 +425,30 @@ export default function AdminTasks() {
       </div>
 
       {/* ── Progress summary bar ── */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
-          <CheckCircle2 className="w-4 h-4 text-green-600" />
-          <span className="text-sm font-bold text-green-700">{completedCount}</span>
-          <span className="text-xs text-green-600">مهمة مكتملة</span>
-        </div>
-        <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-100 rounded-xl px-3 py-2">
-          <Clock className="w-4 h-4 text-yellow-600" />
-          <span className="text-sm font-bold text-yellow-700">{pendingCount}</span>
-          <span className="text-xs text-yellow-600">معلقة</span>
-        </div>
-        <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
-          <AlertCircle className="w-4 h-4 text-red-600" />
-          <span className="text-sm font-bold text-red-700">{overdueCount}</span>
-          <span className="text-xs text-red-600">متأخرة</span>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { icon: Layers,       label: "الإجمالي",    value: totalCount,       color: "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300", action: () => setStatusFilter("all") },
+          { icon: Clock,        label: "معلقة",       value: pendingCount,      color: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400", action: () => setStatusFilter("pending") },
+          { icon: Activity,     label: "قيد التنفيذ", value: inProgressCount,   color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400", action: () => setStatusFilter("in_progress") },
+          { icon: CheckCircle2, label: "مكتملة",      value: completedCount,    color: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-400", action: () => setStatusFilter("done") },
+        ].map(({ icon: Icon, label, value, color, action }) => (
+          <button key={label} onClick={action}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all hover:shadow-sm text-right ${color}`}>
+            <div className="flex-1">
+              <p className="text-2xl font-bold">{value}</p>
+              <p className="text-xs opacity-75 mt-0.5">{label}</p>
+            </div>
+            <Icon className="w-6 h-6 opacity-50 flex-shrink-0" />
+          </button>
+        ))}
       </div>
+      {overdueCount > 0 && (
+        <button onClick={() => setStatusFilter("pending")}
+          className="w-full flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-red-100 transition-colors">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          تنبيه: {overdueCount} مهمة متأخرة عن موعدها — اضغط للمراجعة
+        </button>
+      )}
 
       <HelpCard
         title="دليل إدارة المهام"
