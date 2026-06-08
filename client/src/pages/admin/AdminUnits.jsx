@@ -1,111 +1,165 @@
+/**
+ * AdminUnits — migrated to TanStack Query + shared UI components
+ * Preserves: favorites, compare mode, floor plan view, bulk actions, visibility toggle, CSV export
+ */
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Heart, GitCompare, Eye, EyeOff, Download, LayoutGrid, List, Layers, Search, X } from "lucide-react";
-import { motion } from "framer-motion";
-import api from "../../api/axios";
-import Modal from "../../Components/UI/Modal";
-import ConfirmModal from "../../Components/UI/ConfirmModal";
-import Pagination from "../../Components/UI/Pagination";
-import EmptyState from "../../Components/UI/EmptyState";
-import LoadingSpinner from "../../Components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../Components/UI/Badge";
-import { useToast } from "../../context/ToastContext";
-import { Home } from "lucide-react";
-import HelpCard from "../../Components/UI/HelpCard";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FaHouseChimney, FaPlus, FaPen, FaTrash, FaHeart, FaCodeCompare,
+  FaEye, FaEyeSlash, FaDownload, FaTableList, FaLayerGroup,
+  FaMagnifyingGlass, FaXmark, FaSpinner, FaArrowsRotate,
+} from "react-icons/fa6";
 
+import { useUnits, useCreateUnit, useUpdateUnit, useDeleteUnit } from "../../hooks/queries/useUnits";
+import { useProjects } from "../../hooks/queries/useProjects";
+import { useTableState } from "../../hooks/useTableState";
+import { useDisclosure } from "../../hooks/useDisclosure";
+
+import AdminModal from "../../Components/UI/AdminModal";
+import ConfirmDialog from "../../Components/UI/ConfirmDialog";
+import PageHeader, { PrimaryButton, SecondaryButton } from "../../Components/UI/PageHeader";
+import FormField, { inputCls, SelectField, TextareaField, ToggleField } from "../../Components/UI/FormField";
+import StatusBadge from "../../Components/UI/StatusBadge";
+import { useToast } from "../../context/ToastContext";
+import apiClient from "../../api/axios";
+
+// ── Constants ──────────────────────────────────────────────────────────────
 const FAVORITES_KEY = "favorites_units";
-const loadFavorites = () => {
-  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; }
-};
-const saveFavorites = (arr) => localStorage.setItem(FAVORITES_KEY, JSON.stringify(arr));
+const loadFavs  = () => { try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; } };
+const saveFavs  = (arr) => localStorage.setItem(FAVORITES_KEY, JSON.stringify(arr));
 
 const formatPrice = (p) => {
   if (p == null || p === "") return "—";
-  try {
-    return `${Number(p).toLocaleString("ar-EG")} ج.م`;
-  } catch {
-    return `${p} ج.م`;
-  }
+  try { return `${Number(p).toLocaleString("ar-EG")} ج.م`; } catch { return `${p} ج.م`; }
 };
 
-const AMENITY_GROUPS = [
-  { label: "التكييف والتدفئة", items: ["تكييف مركزي", "تكييف سبليت", "تدفئة مركزية", "تهوية صناعية"] },
-  { label: "الخدمات الأساسية", items: ["مصعد", "جنرايتور", "مولد كهربائي", "خزان مياه", "سخان شمسي", "غاز طبيعي", "خطوط تليفون", "تمديدات كهرباء أمريكي"] },
-  { label: "الأمن والحماية", items: ["أمن وحراسة 24 ساعة", "كاميرات مراقبة", "إنتركم", "باب أوتوماتيكي", "بواب"] },
-  { label: "السيارات", items: ["جراج خاص", "جراج مشترك", "جراج ثنائي", "مواقف خارجية"] },
-  { label: "المساحات الخارجية", items: ["حديقة خاصة", "حديقة مشتركة", "تراس/شرفة", "روف خاص", "ملعب أطفال"] },
-  { label: "المرافق الترفيهية", items: ["حمام سباحة خاص", "حمام سباحة مشترك", "جيم وصالة رياضة", "نادي اجتماعي", "ملعب تنس/رياضة"] },
-  { label: "الغرف الإضافية", items: ["غرفة غسيل", "مخزن", "غرفة سائق", "غرفة خادمة", "مكتب منزلي"] },
-  { label: "التقنية", items: ["إنترنت فايبر", "كابل/IPTV", "نظام ذكي (Smart Home)", "طاقة شمسية"] },
-  { label: "الإطلالة والموقع", items: ["إطلالة على البحر", "إطلالة على الحديقة", "إطلالة بانورامية", "طابق أرضي مع حديقة", "زاوية/كورنر"] },
-];
-const AMENITIES = AMENITY_GROUPS.flatMap((g) => g.items);
+const UNIT_TYPES      = ["apartment", "villa", "studio", "duplex", "penthouse", "office", "shop", "chalet"];
+const UNIT_TYPE_AR    = { apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس", penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه" };
+const UNIT_STATUSES   = ["available", "sold", "reserved"];
+const UNIT_STATUS_AR  = { available: "متاح", sold: "مباع", reserved: "محجوز" };
 
 const FINISHING_OPTIONS = ["تشطيب سوبر لوكس", "تشطيب لوكس", "تشطيب نصف تشطيب", "بدون تشطيب"];
-const FACING_OPTIONS = ["شمال", "جنوب", "شرق", "غرب", "شمال شرق", "شمال غرب", "جنوب شرق", "جنوب غرب"];
+const FACING_OPTIONS    = ["شمال", "جنوب", "شرق", "غرب", "شمال شرق", "شمال غرب", "جنوب شرق", "جنوب غرب"];
 
-const unitTypes = ["apartment", "villa", "studio", "duplex", "penthouse", "office", "shop", "chalet"];
-const unitTypeAr = { apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس", penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه" };
-const unitStatuses = ["available", "sold", "reserved"];
+const AMENITY_GROUPS = [
+  { label: "التكييف والتدفئة",    items: ["تكييف مركزي","تكييف سبليت","تدفئة مركزية","تهوية صناعية"] },
+  { label: "الخدمات الأساسية",   items: ["مصعد","جنرايتور","مولد كهربائي","خزان مياه","سخان شمسي","غاز طبيعي","خطوط تليفون","تمديدات كهرباء أمريكي"] },
+  { label: "الأمن والحماية",     items: ["أمن وحراسة 24 ساعة","كاميرات مراقبة","إنتركم","باب أوتوماتيكي","بواب"] },
+  { label: "السيارات",            items: ["جراج خاص","جراج مشترك","جراج ثنائي","مواقف خارجية"] },
+  { label: "المساحات الخارجية",  items: ["حديقة خاصة","حديقة مشتركة","تراس/شرفة","روف خاص","ملعب أطفال"] },
+  { label: "المرافق الترفيهية",  items: ["حمام سباحة خاص","حمام سباحة مشترك","جيم وصالة رياضة","نادي اجتماعي","ملعب تنس/رياضة"] },
+  { label: "الغرف الإضافية",     items: ["غرفة غسيل","مخزن","غرفة سائق","غرفة خادمة","مكتب منزلي"] },
+  { label: "التقنية",             items: ["إنترنت فايبر","كابل/IPTV","نظام ذكي (Smart Home)","طاقة شمسية"] },
+  { label: "الإطلالة والموقع",   items: ["إطلالة على البحر","إطلالة على الحديقة","إطلالة بانورامية","طابق أرضي مع حديقة","زاوية/كورنر"] },
+];
 
-const emptyUnit = {
-  project: "",
-  unitNumber: "",
-  type: "apartment",
-  area: "",
-  price: "",
-  floor: "",
-  rooms: 1,
-  bathrooms: 1,
-  status: "available",
-  featured: false,
-  published: true,
-  description: { ar: "", en: "" },
-  amenities: [],
-  finishing: "",
-  facing: "",
+const STATUS_COLOR = {
+  available: "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 text-emerald-700 dark:text-emerald-300",
+  sold:      "bg-red-100 dark:bg-red-900/40 border-red-300 text-red-700 dark:text-red-300",
+  reserved:  "bg-amber-100 dark:bg-amber-900/40 border-amber-300 text-amber-700 dark:text-amber-300",
 };
 
+const emptyUnit = {
+  project: "", unitNumber: "", type: "apartment",
+  area: "", price: "", floor: "", rooms: 1, bathrooms: 1,
+  status: "available", featured: false, published: true,
+  description: { ar: "", en: "" }, amenities: [],
+  finishing: "", facing: "",
+};
+
+// ── Component ──────────────────────────────────────────────────────────────
 export default function AdminUnits() {
   const toast = useToast();
-  const [units, setUnits] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [projectFilter, setProjectFilter] = useState("");
-  const [modal, setModal] = useState(false);
-  const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState(emptyUnit);
-  const [saving, setSaving] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [favorites, setFavorites] = useState(loadFavorites());
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [selected, setSelected] = useState([]);
-  const [bulkStatus, setBulkStatus] = useState("");
-  const [compareMode, setCompareMode] = useState(false);
-  const [compareIds, setCompareIds] = useState([]);
-  const [compareOpen, setCompareOpen] = useState(false);
-  const [customUnitAmenity, setCustomUnitAmenity] = useState("");
-  const [activeTab, setActiveTab] = useState("list"); // "list" | "floor"
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [unitSearch, setUnitSearch] = useState("");
 
-  const toggleFavorite = (id) => {
+  const [form,            setForm]           = useState(emptyUnit);
+  const [editItem,        setEditItem]       = useState(null);
+  const [modalOpen,       setModalOpen]      = useState(false);
+  const [activeModalTab,  setActiveModalTab] = useState("ar");
+  const [activeView,      setActiveView]     = useState("list"); // "list" | "floor"
+  const [favorites,       setFavorites]      = useState(loadFavs);
+  const [showFavs,        setShowFavs]       = useState(false);
+  const [selected,        setSelected]       = useState([]);
+  const [bulkStatus,      setBulkStatus]     = useState("");
+  const [compareMode,     setCompareMode]    = useState(false);
+  const [compareIds,      setCompareIds]     = useState([]);
+  const [compareOpen,     setCompareOpen]    = useState(false);
+  const [customAmenity,   setCustomAmenity]  = useState("");
+  const [priceMin,        setPriceMin]       = useState("");
+  const [priceMax,        setPriceMax]       = useState("");
+  const [typeFilter,      setTypeFilter]     = useState("");
+  const [unitSearch,      setUnitSearch]     = useState("");
+  const [statusFilter,    setStatusFilter]   = useState("");
+  const [projectFilter,   setProjectFilter]  = useState("");
+
+  const table         = useTableState({ defaultPageSize: 20 });
+  const confirmDelete = useDisclosure();
+
+  // ── Queries ──
+  const { data, isLoading, isFetching, refetch } = useUnits({
+    page:    table.queryParams.page,
+    limit:   table.queryParams.pageSize,
+    status:  statusFilter || undefined,
+    project: projectFilter || undefined,
+  });
+
+  const units  = data?.units ?? [];
+  const total  = data?.total ?? 0;
+
+  const { data: projData } = useProjects({ limit: 100 });
+  const projects = projData?.projects ?? [];
+
+  const createMutation = useCreateUnit();
+  const updateMutation = useUpdateUnit();
+  const deleteMutation = useDeleteUnit();
+
+  // ── Derived state ──
+  const stats = useMemo(() => ({
+    total,
+    available: units.filter((u) => u.status === "available").length,
+    sold:      units.filter((u) => u.status === "sold").length,
+    reserved:  units.filter((u) => u.status === "reserved").length,
+  }), [units, total]);
+
+  const baseUnits = showFavs ? units.filter((u) => favorites.includes(u._id)) : units;
+
+  const filteredUnits = useMemo(() => {
+    let r = baseUnits;
+    if (priceMin !== "") r = r.filter((u) => u.price >= Number(priceMin));
+    if (priceMax !== "") r = r.filter((u) => u.price <= Number(priceMax));
+    if (typeFilter) r = r.filter((u) => u.type === typeFilter);
+    if (unitSearch.trim()) {
+      const q = unitSearch.toLowerCase();
+      r = r.filter((u) => u.unitNumber?.toString().toLowerCase().includes(q) || u.description?.ar?.toLowerCase().includes(q));
+    }
+    return r;
+  }, [baseUnits, priceMin, priceMax, typeFilter, unitSearch]);
+
+  const floorGroups = useMemo(() => {
+    const g = {};
+    filteredUnits.forEach((u) => {
+      const k = u.floor?.trim() || "غير محدد";
+      if (!g[k]) g[k] = [];
+      g[k].push(u);
+    });
+    return g;
+  }, [filteredUnits]);
+
+  const compareUnits = useMemo(() => units.filter((u) => compareIds.includes(u._id)), [units, compareIds]);
+
+  // ── Helpers ──
+  const f = (key, val) => setForm((p) => ({ ...p, [key]: val }));
+  const fNested = (key, subKey, val) => setForm((p) => ({ ...p, [key]: { ...p[key], [subKey]: val } }));
+
+  const toggleFav = (id) => {
     setFavorites((prev) => {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      saveFavorites(next);
-      return next;
+      saveFavs(next); return next;
     });
   };
 
-  const toggleSelected = (id) => {
-    setSelected((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
+  const toggleSelected = (id) =>
+    setSelected((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
+
   const toggleCompare = (id) => {
     setCompareIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
@@ -114,703 +168,543 @@ export default function AdminUnits() {
     });
   };
 
-  const stats = useMemo(() => ({
-    total,
-    available: units.filter((u) => u.status === "available").length,
-    sold: units.filter((u) => u.status === "sold").length,
-    reserved: units.filter((u) => u.status === "reserved").length,
-  }), [units, total]);
+  const openCreate = () => { setEditItem(null); setForm(emptyUnit); setActiveModalTab("ar"); setModalOpen(true); };
 
-  const visibleUnits = useMemo(
-    () => (showFavorites ? units.filter((u) => favorites.includes(u._id)) : units),
-    [units, favorites, showFavorites]
-  );
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/units", { params: { page, status: statusFilter, project: projectFilter } });
-      setUnits(res.data.units);
-      setTotal(res.data.total);
-      setPages(res.data.pages);
-    } catch {
-      toast.error("فشل تحميل الوحدات");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [page, statusFilter, projectFilter]);
-  useEffect(() => {
-    api.get("/projects", { params: { limit: 100 } }).then((r) => setProjects(r.data.projects));
-  }, []);
-
-  const openCreate = () => { setEditItem(null); setForm(emptyUnit); setModal(true); };
   const openEdit = (u) => {
     setEditItem(u);
     setForm({
-      ...emptyUnit,
-      ...u,
-      project: u.project?._id || u.project || "",
-      unitNumber: u.unitNumber ?? "",
-      area: u.area ?? "",
-      price: u.price ?? "",
-      floor: u.floor ?? "",
-      rooms: u.rooms ?? 1,
-      bathrooms: u.bathrooms ?? 1,
+      ...emptyUnit, ...u,
+      project:     u.project?._id || u.project || "",
+      unitNumber:  u.unitNumber ?? "",
+      area:        u.area ?? "",
+      price:       u.price ?? "",
+      floor:       u.floor ?? "",
+      rooms:       u.rooms ?? 1,
+      bathrooms:   u.bathrooms ?? 1,
       description: { ar: u.description?.ar ?? "", en: u.description?.en ?? "" },
-      amenities: Array.isArray(u.amenities) ? u.amenities : [],
+      amenities:   Array.isArray(u.amenities) ? u.amenities : [],
     });
-    setModal(true);
+    setActiveModalTab("ar");
+    setModalOpen(true);
   };
 
+  const buildPayload = () => ({
+    ...form,
+    area:      Number(form.area)      || 0,
+    price:     Number(form.price)     || 0,
+    floor:     form.floor || "",
+    rooms:     Number(form.rooms)     || 1,
+    bathrooms: Number(form.bathrooms) || 1,
+  });
+
   const handleSave = async () => {
-    setSaving(true);
-    // Convert numeric fields – empty string → 0, string numbers → numbers
-    const payload = {
-      ...form,
-      area:      Number(form.area)      || 0,
-      price:     Number(form.price)     || 0,
-      floor:     form.floor || "",
-      rooms:     Number(form.rooms)     || 1,
-      bathrooms: Number(form.bathrooms) || 1,
-    };
+    if (!form.project) return toast.error("اختر المشروع أولاً");
     try {
       if (editItem) {
-        await api.put(`/units/${editItem._id}`, payload);
+        await updateMutation.mutateAsync({ id: editItem._id, data: buildPayload() });
         toast.success("تم تحديث الوحدة");
       } else {
-        await api.post("/units", payload);
+        await createMutation.mutateAsync(buildPayload());
         toast.success("تم إضافة الوحدة");
       }
-      setModal(false);
-      load();
+      setModalOpen(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "حدث خطأ");
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    setDeleting(true);
     try {
-      await api.delete(`/units/${deleteId}`);
+      await deleteMutation.mutateAsync(confirmDelete.data._id);
       toast.success("تم حذف الوحدة");
-      setDeleteId(null);
-      load();
-    } catch {
-      toast.error("فشل الحذف");
-    } finally {
-      setDeleting(false);
-    }
+      confirmDelete.close();
+    } catch { toast.error("فشل الحذف"); }
   };
 
-  const f = (key, val) => setForm((p) => ({ ...p, [key]: val }));
+  const handleBulkStatus = async () => {
+    if (!bulkStatus || !selected.length) return;
+    await Promise.all(selected.map((id) => updateMutation.mutateAsync({ id, data: { status: bulkStatus } })));
+    toast.success(`تم تحديث ${selected.length} وحدة`);
+    setSelected([]); setBulkStatus("");
+  };
 
   const handleToggleVisibility = async (id) => {
     try {
-      const res = await api.patch(`/units/${id}/toggle-visibility`);
+      const res = await apiClient.patch(`/units/${id}/toggle-visibility`);
       toast.success(res.data.message || "تم تحديث الرؤية");
-      // Update local state without full reload
-      setUnits((prev) => prev.map((u) => u._id === id ? { ...u, isVisible: res.data.unit.isVisible } : u));
-    } catch {
-      toast.error("فشل تحديث رؤية الوحدة");
-    }
+      refetch();
+    } catch { toast.error("فشل تحديث الرؤية"); }
   };
 
   const handleProjectVisibility = async (isVisible) => {
     if (!projectFilter) return;
     try {
-      const res = await api.patch(`/units/project/${projectFilter}/visibility`, { isVisible });
+      const res = await apiClient.patch(`/units/project/${projectFilter}/visibility`, { isVisible });
       toast.success(res.data.message || (isVisible ? "تم إظهار جميع الوحدات" : "تم إخفاء جميع الوحدات"));
-      load();
-    } catch {
-      toast.error("فشل تحديث رؤية الوحدات");
-    }
+      refetch();
+    } catch { toast.error("فشل التحديث"); }
   };
-
-  const handleBulkStatus = async () => {
-    if (!bulkStatus || selected.length === 0) return;
-    try {
-      await Promise.all(selected.map((id) => api.put(`/units/${id}`, { status: bulkStatus })));
-      toast.success(`تم تحديث ${selected.length} وحدة`);
-      setSelected([]);
-      setBulkStatus("");
-      load();
-    } catch {
-      toast.error("فشل التحديث الجماعي");
-    }
-  };
-
-  const compareUnits = useMemo(
-    () => units.filter((u) => compareIds.includes(u._id)),
-    [units, compareIds]
-  );
-
-  // Price-filtered units
-  const priceFilteredUnits = useMemo(() => {
-    let result = visibleUnits;
-    if (priceMin !== "") result = result.filter((u) => u.price >= Number(priceMin));
-    if (priceMax !== "") result = result.filter((u) => u.price <= Number(priceMax));
-    if (typeFilter) result = result.filter((u) => u.type === typeFilter);
-    if (unitSearch.trim()) {
-      const q = unitSearch.trim().toLowerCase();
-      result = result.filter((u) =>
-        u.unitNumber?.toString().toLowerCase().includes(q) ||
-        u.description?.ar?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [visibleUnits, priceMin, priceMax, typeFilter, unitSearch]);
-
-  // Floor plan grouping
-  const floorGroups = useMemo(() => {
-    const groups = {};
-    priceFilteredUnits.forEach((u) => {
-      const key = u.floor?.trim() || "غير محدد";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(u);
-    });
-    return groups;
-  }, [priceFilteredUnits]);
 
   const exportCSV = () => {
-    const headers = ["رقم الوحدة", "المشروع", "النوع", "الحالة", "المساحة", "السعر", "الدور", "غرف", "حمامات"];
-    const rows = priceFilteredUnits.map((u) => [
-      u.unitNumber,
-      u.project?.name?.ar || "",
-      unitTypeAr[u.type] || u.type,
-      statusBadge(u.status).label,
-      u.area,
-      u.price,
-      u.floor || "",
-      u.rooms,
-      u.bathrooms,
+    const headers = ["رقم الوحدة","المشروع","النوع","الحالة","المساحة","السعر","الدور","غرف","حمامات"];
+    const rows = filteredUnits.map((u) => [
+      u.unitNumber, u.project?.name?.ar || "", UNIT_TYPE_AR[u.type] || u.type,
+      UNIT_STATUS_AR[u.status] || u.status, u.area, u.price, u.floor || "", u.rooms, u.bathrooms,
     ]);
     const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "units.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "units.csv" });
+    a.click(); URL.revokeObjectURL(a.href);
   };
 
-  const statusColor = {
-    available: "bg-emerald-100 dark:bg-emerald-900/40 border-emerald-300 text-emerald-700 dark:text-emerald-300",
-    sold: "bg-red-100 dark:bg-red-900/40 border-red-300 text-red-700 dark:text-red-300",
-    reserved: "bg-amber-100 dark:bg-amber-900/40 border-amber-300 text-amber-700 dark:text-amber-300",
-  };
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">الوحدات</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{total} وحدة</p>
-        </div>
-        <button onClick={openCreate}
-          className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">إضافة وحدة</span>
-          <span className="sm:hidden">إضافة</span>
-        </button>
-      </div>
-
-      <HelpCard
-        title="دليل إدارة الوحدات"
-        tips={[
-          "أضف الوحدة وربطها بمشروع من القائمة المنسدلة",
-          "حقل 'الدور' يقبل نصاً مثل: أرضي، الدور الأول، B1",
-          "استخدم وضع 'المقارنة' لعرض مواصفات 3 وحدات جنباً لجنب",
-          "علّم الوحدات المفضلة بالقلب لتصفيتها بسرعة",
-          "حدد وحدات متعددة لتغيير حالتها (متاحة/محجوزة/مبيعة) دفعة واحدة",
-          "المرافق تظهر للزوار في صفحة تفاصيل الوحدة على الموقع",
+    <div className="flex flex-col h-full" dir="rtl">
+      {/* Header */}
+      <PageHeader
+        title="الوحدات"
+        subtitle={`${total} وحدة`}
+        icon={<FaHouseChimney />}
+        loading={isFetching && !isLoading}
+        stats={[
+          { label: "الإجمالي",  value: stats.total,     color: "text-[color:var(--primary)]" },
+          { label: "متاحة",     value: stats.available, color: "text-emerald-600" },
+          { label: "محجوزة",    value: stats.reserved,  color: "text-amber-600" },
+          { label: "مبيعة",     value: stats.sold,       color: "text-red-600" },
         ]}
+        actions={<PrimaryButton icon={<FaPlus />} onClick={openCreate}>إضافة وحدة</PrimaryButton>}
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
-          <p className="text-gray-500 dark:text-gray-400 text-xs">إجمالي الوحدات</p>
-          <p className="text-2xl font-bold text-[#2d5d89] mt-1">{stats.total}</p>
-        </div>
-        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800 p-4">
-          <p className="text-emerald-600 dark:text-emerald-400 text-xs">متاحة</p>
-          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.available}</p>
-          {stats.total > 0 && <div className="mt-2 w-full h-1 bg-emerald-200 dark:bg-emerald-800 rounded-full"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.round((stats.available/stats.total)*100)}%` }} /></div>}
-        </div>
-        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800 p-4">
-          <p className="text-amber-600 dark:text-amber-400 text-xs">محجوزة</p>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{stats.reserved}</p>
-          {stats.total > 0 && <div className="mt-2 w-full h-1 bg-amber-200 dark:bg-amber-800 rounded-full"><div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.round((stats.reserved/stats.total)*100)}%` }} /></div>}
-        </div>
-        <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-100 dark:border-red-800 p-4">
-          <p className="text-red-600 dark:text-red-400 text-xs">مبيعة</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{stats.sold}</p>
-          {stats.total > 0 && <div className="mt-2 w-full h-1 bg-red-200 dark:bg-red-800 rounded-full"><div className="h-full bg-red-500 rounded-full" style={{ width: `${Math.round((stats.sold/stats.total)*100)}%` }} /></div>}
-        </div>
-      </div>
-
-      {/* View tabs */}
-      <div className="flex items-center gap-2">
-        <button onClick={() => setActiveTab("list")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${activeTab === "list" ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"}`}>
-          <List className="w-4 h-4" /> قائمة
-        </button>
-        <button onClick={() => setActiveTab("floor")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${activeTab === "floor" ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"}`}>
-          <Layers className="w-4 h-4" /> مخطط الوحدات
-        </button>
-        <button onClick={exportCSV}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ml-auto">
-          <Download className="w-4 h-4" /> تصدير CSV
-        </button>
-      </div>
-
-      <div className="flex gap-3 flex-wrap items-center">
-        {/* Search by unit number */}
-        <div className="relative">
-          <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-          <input
-            value={unitSearch}
-            onChange={(e) => setUnitSearch(e.target.value)}
-            placeholder="رقم الوحدة..."
-            className="pr-9 pl-8 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-36"
-          />
-          {unitSearch && (
-            <button onClick={() => setUnitSearch("")} className="absolute top-1/2 -translate-y-1/2 left-2 text-gray-400 hover:text-gray-600">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-        <select value={projectFilter} onChange={(e) => { setProjectFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-          <option value="">كل المشاريع</option>
-          {projects.map((p) => <option key={p._id} value={p._id}>{p.name?.ar}</option>)}
-        </select>
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-          <option value="">كل الحالات</option>
-          <option value="available">متاح</option>
-          <option value="sold">مباع</option>
-          <option value="reserved">محجوز</option>
-        </select>
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-          <option value="">كل الأنواع</option>
-          {unitTypes.map((t) => <option key={t} value={t}>{unitTypeAr[t]}</option>)}
-        </select>
-        <button
-          onClick={() => setShowFavorites((v) => !v)}
-          className={`px-3 py-2.5 rounded-xl border text-sm font-medium flex items-center gap-2 ${
-            showFavorites
-              ? "bg-pink-50 dark:bg-pink-900/30 border-pink-200 dark:border-pink-700 text-pink-600"
-              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
-          }`}
-        >
-          <Heart className={`w-4 h-4 ${showFavorites ? "fill-pink-500 text-pink-500" : ""}`} />
-          المفضلة
-        </button>
-        <button
-          onClick={() => { setCompareMode((v) => !v); setCompareIds([]); }}
-          className={`px-3 py-2.5 rounded-xl border text-sm font-medium flex items-center gap-2 ${
-            compareMode
-              ? "bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-700"
-              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
-          }`}
-        >
-          <GitCompare className="w-4 h-4" />
-          مقارنة {compareMode && compareIds.length > 0 ? `(${compareIds.length})` : ""}
-        </button>
-        {compareMode && compareIds.length >= 2 && (
-          <button onClick={() => setCompareOpen(true)} className="px-3 py-2.5 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">
-            عرض المقارنة
-          </button>
-        )}
-        <button
-          onClick={() => handleProjectVisibility(false)}
-          disabled={!projectFilter}
-          title={!projectFilter ? "اختر مشروعاً أولاً" : "إخفاء جميع وحدات المشروع"}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <EyeOff className="w-4 h-4" />
-          إخفاء الكل
-        </button>
-        <button
-          onClick={() => handleProjectVisibility(true)}
-          disabled={!projectFilter}
-          title={!projectFilter ? "اختر مشروعاً أولاً" : "إظهار جميع وحدات المشروع"}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Eye className="w-4 h-4" />
-          إظهار الكل
-        </button>
-        <input
-          type="number"
-          value={priceMin}
-          onChange={(e) => setPriceMin(e.target.value)}
-          placeholder="سعر من"
-          className="w-24 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
-        />
-        <input
-          type="number"
-          value={priceMax}
-          onChange={(e) => setPriceMax(e.target.value)}
-          placeholder="سعر إلى"
-          className="w-24 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
-        />
-      </div>
-
-      {/* Bulk actions bar */}
-      {selected.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-3 flex flex-wrap items-center gap-3">
-          <span className="text-sm text-blue-700 dark:text-blue-300">{selected.length} وحدة محددة</span>
-          <select value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
-            <option value="">تغيير الحالة للمحدد</option>
+      {/* Filters bar */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Search */}
+          <div className="relative">
+            <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+            <input value={unitSearch} onChange={(e) => setUnitSearch(e.target.value)}
+              placeholder="رقم الوحدة..." className={`${inputCls} pr-9 py-2 w-36`} />
+            {unitSearch && (
+              <button onClick={() => setUnitSearch("")} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
+                <FaXmark className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          {/* Project filter */}
+          <SelectField value={projectFilter} onChange={(e) => { setProjectFilter(e.target.value); table.resetPage(); }} className="w-auto py-2 text-sm">
+            <option value="">كل المشاريع</option>
+            {projects.map((p) => <option key={p._id} value={p._id}>{p.name?.ar}</option>)}
+          </SelectField>
+          {/* Status filter */}
+          <SelectField value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); table.resetPage(); }} className="w-auto py-2 text-sm">
+            <option value="">كل الحالات</option>
             <option value="available">متاح</option>
             <option value="sold">مباع</option>
             <option value="reserved">محجوز</option>
-          </select>
-          <button onClick={handleBulkStatus} disabled={!bulkStatus}
-            className="px-4 py-2 rounded-lg bg-[#2d5d89] text-white text-sm font-medium disabled:opacity-50">
-            تطبيق
+          </SelectField>
+          {/* Type filter */}
+          <SelectField value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="w-auto py-2 text-sm">
+            <option value="">كل الأنواع</option>
+            {UNIT_TYPES.map((t) => <option key={t} value={t}>{UNIT_TYPE_AR[t]}</option>)}
+          </SelectField>
+          {/* Price range */}
+          <input type="number" value={priceMin} onChange={(e) => setPriceMin(e.target.value)}
+            placeholder="سعر من" className={`${inputCls} w-24 py-2 text-sm`} />
+          <input type="number" value={priceMax} onChange={(e) => setPriceMax(e.target.value)}
+            placeholder="سعر إلى" className={`${inputCls} w-24 py-2 text-sm`} />
+          {/* Favorites toggle */}
+          <button onClick={() => setShowFavs((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-semibold transition-colors ${showFavs ? "bg-pink-50 border-pink-200 text-pink-600 dark:bg-pink-900/20" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-600"}`}>
+            <FaHeart className={`w-3.5 h-3.5 ${showFavs ? "text-pink-500" : "text-gray-300"}`} />
+            مفضلة
           </button>
-          <button onClick={() => setSelected([])} className="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">إلغاء التحديد</button>
+          {/* Compare toggle */}
+          <button onClick={() => { setCompareMode((v) => !v); setCompareIds([]); }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-semibold transition-colors ${compareMode ? "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-600"}`}>
+            <FaCodeCompare className="w-3.5 h-3.5" />
+            مقارنة {compareMode && compareIds.length ? `(${compareIds.length})` : ""}
+          </button>
+          {compareMode && compareIds.length >= 2 && (
+            <button onClick={() => setCompareOpen(true)}
+              className="px-3 py-2 rounded-xl text-white text-sm font-semibold" style={{ background: "var(--primary)" }}>
+              عرض المقارنة
+            </button>
+          )}
+          {/* Visibility bulk */}
+          <button onClick={() => handleProjectVisibility(false)} disabled={!projectFilter}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-600 disabled:opacity-40">
+            <FaEyeSlash className="w-3.5 h-3.5" /> إخفاء الكل
+          </button>
+          <button onClick={() => handleProjectVisibility(true)} disabled={!projectFilter}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-600 disabled:opacity-40">
+            <FaEye className="w-3.5 h-3.5" /> إظهار الكل
+          </button>
+          {/* View toggle */}
+          <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden mr-auto">
+            {[{ key: "list", icon: <FaTableList className="w-3.5 h-3.5" /> }, { key: "floor", icon: <FaLayerGroup className="w-3.5 h-3.5" /> }].map((v) => (
+              <button key={v.key} onClick={() => setActiveView(v.key)}
+                className={`px-3 py-2 transition-colors ${activeView === v.key ? "text-white" : "text-gray-500 bg-white dark:bg-gray-800"}`}
+                style={activeView === v.key ? { background: "var(--primary)" } : {}}>
+                {v.icon}
+              </button>
+            ))}
+          </div>
+          {/* Export */}
+          <button onClick={exportCSV}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-600">
+            <FaDownload className="w-3.5 h-3.5" /> CSV
+          </button>
         </div>
-      )}
+      </div>
 
-      {activeTab === "floor" ? (
-        <div className="space-y-4">
-          {loading ? (
-            <LoadingSpinner className="h-64" size="lg" />
-          ) : priceFilteredUnits.length === 0 ? (
-            <EmptyState icon={Home} title="لا توجد وحدات" />
-          ) : (
-            Object.entries(floorGroups).sort(([a], [b]) => a.localeCompare(b, "ar")).map(([floor, floorUnits]) => (
-              <div key={floor} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-[#2d5d89]" />
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-6 space-y-4">
+        {/* Bulk actions */}
+        {selected.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border bg-[color:var(--primary)]/5 border-[color:var(--primary)]/20">
+            <span className="text-sm font-bold text-[color:var(--primary)]">{selected.length} وحدة محددة</span>
+            <SelectField value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="w-auto text-sm">
+              <option value="">تغيير الحالة</option>
+              <option value="available">متاح</option>
+              <option value="sold">مباع</option>
+              <option value="reserved">محجوز</option>
+            </SelectField>
+            <button onClick={handleBulkStatus} disabled={!bulkStatus}
+              className="px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50"
+              style={{ background: "var(--primary)" }}>تطبيق</button>
+            <button onClick={() => setSelected([])} className="px-3 py-2 text-sm text-gray-500">إلغاء</button>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex items-center justify-center h-48">
+            <FaSpinner className="w-6 h-6 animate-spin text-gray-300" />
+          </div>
+        ) : filteredUnits.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
+            <FaHouseChimney className="w-10 h-10 opacity-20" />
+            <p className="text-sm">{showFavs ? "لا توجد مفضلات" : "لا توجد وحدات"}</p>
+            {!showFavs && <PrimaryButton icon={<FaPlus />} onClick={openCreate}>إضافة وحدة</PrimaryButton>}
+          </div>
+        ) : activeView === "floor" ? (
+          // Floor plan view
+          <div className="space-y-4">
+            {Object.entries(floorGroups).sort(([a], [b]) => a.localeCompare(b, "ar")).map(([floor, floorUnits]) => (
+              <div key={floor} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  <FaLayerGroup className="w-4 h-4" style={{ color: "var(--primary)" }} />
                   الدور: {floor}
                   <span className="text-xs text-gray-400">({floorUnits.length} وحدة)</span>
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {floorUnits.map((u) => (
-                    <button
-                      key={u._id}
-                      onClick={() => openEdit(u)}
+                    <button key={u._id} onClick={() => openEdit(u)}
                       title={`${u.unitNumber} — ${formatPrice(u.price)}`}
-                      className={`w-16 h-12 rounded-lg border-2 text-xs font-medium transition-all hover:scale-105 ${statusColor[u.status] || "bg-gray-100 border-gray-300 text-gray-600"}`}
-                    >
+                      className={`w-16 h-12 rounded-lg border-2 text-xs font-medium transition-all hover:scale-105 ${STATUS_COLOR[u.status] || "bg-gray-100 border-gray-300 text-gray-600"}`}>
                       {u.unitNumber}
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-3 mt-3 text-xs text-gray-500">
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-400 inline-block" /> متاح: {floorUnits.filter(u=>u.status==="available").length}</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" /> محجوز: {floorUnits.filter(u=>u.status==="reserved").length}</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400 inline-block" /> مباع: {floorUnits.filter(u=>u.status==="sold").length}</span>
+                <div className="flex gap-3 mt-3 text-xs text-gray-400">
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-400 inline-block" />متاح: {floorUnits.filter((u) => u.status === "available").length}</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-amber-400 inline-block" />محجوز: {floorUnits.filter((u) => u.status === "reserved").length}</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400 inline-block" />مباع: {floorUnits.filter((u) => u.status === "sold").length}</span>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      ) : (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        {loading ? (
-          <LoadingSpinner className="h-64" size="lg" />
-        ) : priceFilteredUnits.length === 0 ? (
-          <EmptyState icon={Home} title={showFavorites ? "لا توجد مفضلات" : "لا توجد وحدات"} action={
-            !showFavorites && <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium">إضافة وحدة</button>
-          } />
+            ))}
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                <tr>
-                  <th className="px-2 py-3 w-10">
-                    <input
-                      type="checkbox"
-                      checked={priceFilteredUnits.length > 0 && selected.length === priceFilteredUnits.length}
-                      onChange={(e) => setSelected(e.target.checked ? priceFilteredUnits.map((u) => u._id) : [])}
-                      className="w-4 h-4 rounded accent-[#2d5d89]"
-                    />
-                  </th>
-                  <th className="px-2 py-3 w-10"></th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الوحدة</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
-                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النوع</th>
-                  <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المساحة</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر</th>
-                  <th className="hidden lg:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الدور</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
-                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الرؤية</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                {priceFilteredUnits.map((u) => {
-                  const { label, variant } = statusBadge(u.status);
-                  const fav = favorites.includes(u._id);
-                  const inCompare = compareIds.includes(u._id);
-                  return (
-                    <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${inCompare ? "bg-amber-50/50 dark:bg-amber-900/10" : ""}`}>
-                      <td className="px-2 py-4">
-                        <input type="checkbox" checked={selected.includes(u._id)} onChange={() => toggleSelected(u._id)}
-                          className="w-4 h-4 rounded accent-[#2d5d89]" />
-                      </td>
-                      <td className="px-2 py-4">
-                        <div className="flex flex-col items-center gap-1">
-                          <button onClick={() => toggleFavorite(u._id)} title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
-                            <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
-                          </button>
+          // List / table view
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 text-xs text-gray-500">
+                  <tr>
+                    <th className="px-2 py-3 w-10">
+                      <input type="checkbox" className="w-4 h-4 rounded accent-[color:var(--primary)]"
+                        checked={filteredUnits.length > 0 && selected.length === filteredUnits.length}
+                        onChange={(e) => setSelected(e.target.checked ? filteredUnits.map((u) => u._id) : [])} />
+                    </th>
+                    <th className="w-8" />
+                    {["الوحدة","المشروع","النوع","المساحة","السعر","الدور","الحالة","الرؤية",""].map((h, i) => (
+                      <th key={i} className="text-right px-4 py-3 font-semibold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                  {filteredUnits.map((u) => {
+                    const fav       = favorites.includes(u._id);
+                    const inCompare = compareIds.includes(u._id);
+                    return (
+                      <motion.tr key={u._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${inCompare ? "bg-amber-50/50 dark:bg-amber-900/10" : ""}`}>
+                        <td className="px-2 py-3">
+                          <div className="flex flex-col items-center gap-1">
+                            <input type="checkbox" checked={selected.includes(u._id)} onChange={() => toggleSelected(u._id)}
+                              className="w-4 h-4 rounded accent-[color:var(--primary)]" />
+                            <button onClick={() => toggleFav(u._id)}>
+                              <FaHeart className={`w-3 h-3 ${fav ? "text-pink-500" : "text-gray-300"}`} />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-2 py-3">
                           {compareMode && (
-                            <button onClick={() => toggleCompare(u._id)} title="إضافة للمقارنة">
-                              <GitCompare className={`w-4 h-4 ${inCompare ? "text-amber-600" : "text-gray-400"}`} />
+                            <button onClick={() => toggleCompare(u._id)}
+                              className={`w-6 h-6 rounded text-xs font-bold border transition-colors ${inCompare ? "text-white border-transparent" : "border-gray-300 text-gray-400"}`}
+                              style={inCompare ? { background: "var(--primary)" } : {}}>
+                              {inCompare ? compareIds.indexOf(u._id) + 1 : ""}
+                              {!inCompare && <FaCodeCompare className="w-3 h-3 mx-auto" />}
                             </button>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 font-medium text-gray-900 dark:text-white text-sm">{u.unitNumber}</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-[100px] sm:max-w-none truncate">{u.project?.name?.ar || "—"}</td>
-                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{unitTypeAr[u.type] || u.type}</td>
-                      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.area} م²</td>
-                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{formatPrice(u.price)}</td>
-                      <td className="hidden lg:table-cell px-4 sm:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{u.floor}</td>
-                      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
-                      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
-                        {u.isVisible === false ? (
-                          <span className="inline-flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-full">
-                            <EyeOff className="w-3 h-3" /> مخفي
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-2 py-1 rounded-full">
-                            <Eye className="w-3 h-3" /> ظاهر
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4">
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleToggleVisibility(u._id)}
-                            title={u.isVisible === false ? "إظهار الوحدة" : "إخفاء الوحدة"}
-                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
-                              u.isVisible === false
-                                ? "hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600"
-                                : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"
-                            }`}
-                          >
-                            {u.isVisible === false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="font-semibold text-gray-900 dark:text-white">{u.unitNumber}</p>
+                          <p className="text-xs text-gray-400">{UNIT_TYPE_AR[u.type] || u.type}</p>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300 text-sm">
+                          {u.project?.name?.ar || "—"}
+                        </td>
+                        <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-500">
+                          {UNIT_TYPE_AR[u.type] || u.type}
+                        </td>
+                        <td className="hidden md:table-cell px-4 py-3 text-sm text-gray-500">
+                          {u.area ? `${u.area} م²` : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">
+                          {formatPrice(u.price)}
+                        </td>
+                        <td className="hidden lg:table-cell px-4 py-3 text-sm text-gray-500">
+                          {u.floor || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={u.status} label={UNIT_STATUS_AR[u.status]} />
+                        </td>
+                        <td className="hidden sm:table-cell px-4 py-3">
+                          <button onClick={() => handleToggleVisibility(u._id)}
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${u.isVisible !== false ? "text-emerald-500 hover:bg-emerald-50" : "text-gray-400 hover:bg-gray-100"}`}>
+                            {u.isVisible !== false ? <FaEye className="w-3.5 h-3.5" /> : <FaEyeSlash className="w-3.5 h-3.5" />}
                           </button>
-                          <button onClick={() => openEdit(u)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => setDeleteId(u._id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => openEdit(u)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500 transition-colors">
+                              <FaPen className="w-3 h-3" />
+                            </button>
+                            <button onClick={() => confirmDelete.open(u)}
+                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors">
+                              <FaTrash className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {total > table.queryParams.pageSize && (
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>عرض {filteredUnits.length} من {total}</span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => table.handlePageChange(table.queryParams.page - 1)} disabled={table.queryParams.page <= 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40">السابق</button>
+              <span className="px-3 font-semibold">{table.queryParams.page}</span>
+              <button onClick={() => table.handlePageChange(table.queryParams.page + 1)} disabled={filteredUnits.length < table.queryParams.pageSize}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40">التالي</button>
+            </div>
           </div>
         )}
       </div>
-      )}
 
-      <Pagination page={page} pages={pages} onPage={setPage} />
-
-      <Modal open={modal} onClose={() => setModal(false)} title={editItem ? "تعديل وحدة" : "إضافة وحدة"} size="lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المشروع</label>
-            <select value={form.project} onChange={(e) => f("project", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-              <option value="">اختر مشروع</option>
-              {projects.map((p) => <option key={p._id} value={p._id}>{p.name?.ar}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم الوحدة</label>
-            <input value={form.unitNumber} onChange={(e) => f("unitNumber", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">النوع</label>
-            <select value={form.type} onChange={(e) => f("type", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-              {unitTypes.map((t) => <option key={t} value={t}>{unitTypeAr[t]}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-            <select value={form.status} onChange={(e) => f("status", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-              {unitStatuses.map((s) => <option key={s} value={s}>{statusBadge(s).label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المساحة (م²)</label>
-            <input type="number" value={form.area} onChange={(e) => f("area", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">السعر (جنيه)</label>
-            <input type="number" value={form.price} onChange={(e) => f("price", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الدور</label>
-            <input type="text" value={form.floor} onChange={(e) => f("floor", e.target.value)}
-              placeholder="مثال: الأرضي، الدور الأول، B1"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع الإنهاء</label>
-            <select value={form.finishing} onChange={(e) => f("finishing", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-              <option value="">— اختر —</option>
-              {FINISHING_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الجهة</label>
-            <select value={form.facing} onChange={(e) => f("facing", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-              <option value="">— اختر —</option>
-              {FACING_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">غرف النوم</label>
-            <input type="number" value={form.rooms} onChange={(e) => f("rooms", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحمامات</label>
-            <input type="number" value={form.bathrooms} onChange={(e) => f("bathrooms", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          {/* Amenities */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">المرافق والمميزات</label>
-            <div className="flex flex-wrap gap-2">
-              {AMENITIES.map((a) => {
-                const selected = (form.amenities || []).includes(a);
-                return (
-                  <button
-                    key={a}
-                    type="button"
-                    onClick={() => {
-                      const cur = form.amenities || [];
-                      f("amenities", selected ? cur.filter((x) => x !== a) : [...cur, a]);
-                    }}
-                    className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                      selected
-                        ? "bg-[#2d5d89] text-white border-[#2d5d89]"
-                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
-                    }`}
-                  >
-                    {a}
-                  </button>
-                );
-              })}
-              {/* Custom amenities not in predefined list */}
-              {(form.amenities || []).filter(a => !AMENITIES.includes(a)).map((a) => (
-                <button key={a} type="button"
-                  onClick={() => f("amenities", (form.amenities || []).filter((x) => x !== a))}
-                  className="px-3 py-1.5 rounded-full text-xs border bg-[#2d5d89] text-white border-[#2d5d89] flex items-center gap-1">
-                  {a} <span className="text-white/70">×</span>
-                </button>
+      {/* ── Compare Modal ── */}
+      <AdminModal isOpen={compareOpen} onClose={() => setCompareOpen(false)}
+        title="مقارنة الوحدات" size="3xl">
+        <div className={`grid gap-4 ${compareUnits.length === 2 ? "grid-cols-2" : "grid-cols-3"}`}>
+          {compareUnits.map((u) => (
+            <div key={u._id} className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-2">
+              <p className="font-bold text-center text-gray-900 dark:text-white text-lg">{u.unitNumber}</p>
+              <p className="text-center text-xs text-gray-400">{u.project?.name?.ar || "—"}</p>
+              <hr className="border-gray-100 dark:border-gray-700" />
+              {[
+                ["النوع",    UNIT_TYPE_AR[u.type] || u.type],
+                ["الحالة",   UNIT_STATUS_AR[u.status]],
+                ["المساحة",  u.area ? `${u.area} م²` : "—"],
+                ["السعر",    formatPrice(u.price)],
+                ["الدور",    u.floor || "—"],
+                ["الغرف",    u.rooms],
+                ["الحمامات", u.bathrooms],
+                ["التشطيب",  u.finishing || "—"],
+                ["الاتجاه",  u.facing || "—"],
+              ].map(([label, val]) => (
+                <div key={label} className="flex justify-between text-sm">
+                  <span className="text-gray-500">{label}</span>
+                  <span className="font-semibold text-gray-800 dark:text-gray-200">{val}</span>
+                </div>
               ))}
-            </div>
-            <div className="flex gap-2 mt-2">
-              <input value={customUnitAmenity} onChange={e => setCustomUnitAmenity(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (customUnitAmenity.trim() && !(form.amenities||[]).includes(customUnitAmenity.trim())) { f("amenities", [...(form.amenities||[]), customUnitAmenity.trim()]); setCustomUnitAmenity(""); } } }}
-                placeholder="إضافة ميزة مخصصة..."
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]" />
-              <button type="button" onClick={() => { if (customUnitAmenity.trim() && !(form.amenities||[]).includes(customUnitAmenity.trim())) { f("amenities", [...(form.amenities||[]), customUnitAmenity.trim()]); setCustomUnitAmenity(""); } }}
-                className="px-3 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">+</button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.featured} onChange={(e) => f("featured", e.target.checked)}
-                className="w-4 h-4 rounded accent-[#2d5d89]" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">مميز</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.published} onChange={(e) => f("published", e.target.checked)}
-                className="w-4 h-4 rounded accent-[#2d5d89]" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">منشور</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={() => setModal(false)}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-colors">
-            إلغاء
-          </button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium transition-colors disabled:opacity-50">
-            {saving ? "جاري الحفظ..." : "حفظ"}
-          </button>
-        </div>
-      </Modal>
-
-      <ConfirmModal open={!!deleteId} onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
-
-      {/* Compare modal */}
-      <Modal open={compareOpen} onClose={() => setCompareOpen(false)} title="مقارنة الوحدات" size="lg">
-        {compareUnits.length === 0 ? (
-          <p className="text-center text-gray-500 py-6">لا توجد وحدات للمقارنة</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-right py-2 px-3 text-gray-500 font-semibold">الخاصية</th>
-                  {compareUnits.map((u) => (
-                    <th key={u._id} className="text-right py-2 px-3 text-gray-900 dark:text-white">
-                      {u.unitNumber}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {[
-                  ["المشروع", (u) => u.project?.name?.ar || "—"],
-                  ["النوع", (u) => unitTypeAr[u.type] || u.type],
-                  ["الحالة", (u) => statusBadge(u.status).label],
-                  ["المساحة", (u) => `${u.area} م²`],
-                  ["السعر", (u) => formatPrice(u.price)],
-                  ["الدور", (u) => u.floor ?? "—"],
-                  ["غرف", (u) => u.rooms ?? "—"],
-                  ["حمامات", (u) => u.bathrooms ?? "—"],
-                  ["المرافق", (u) => (u.amenities && u.amenities.length ? u.amenities.join("، ") : "—")],
-                ].map(([label, fn]) => (
-                  <tr key={label}>
-                    <td className="py-2 px-3 text-gray-500">{label}</td>
-                    {compareUnits.map((u) => (
-                      <td key={u._id} className="py-2 px-3 text-gray-800 dark:text-gray-200">{fn(u)}</td>
+              {(u.amenities || []).length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">المرافق</p>
+                  <div className="flex flex-wrap gap-1">
+                    {u.amenities.map((a) => (
+                      <span key={a} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">{a}</span>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </AdminModal>
+
+      {/* ── Create/Edit Modal ── */}
+      <AdminModal isOpen={modalOpen} onClose={() => setModalOpen(false)}
+        title={editItem ? "تعديل الوحدة" : "إضافة وحدة جديدة"}
+        icon={<FaHouseChimney className="w-4 h-4" />} size="2xl"
+        footer={
+          <>
+            <button onClick={() => setModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 dark:bg-gray-800">إلغاء</button>
+            <button onClick={handleSave} disabled={isPending}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: "var(--primary)" }}>
+              {isPending && <FaSpinner className="w-3.5 h-3.5 animate-spin" />}
+              {editItem ? "حفظ التغييرات" : "إضافة الوحدة"}
+            </button>
+          </>
+        }>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-5 border-b border-gray-100 dark:border-gray-800 pb-3">
+          {[{ k: "ar", l: "عربي" }, { k: "en", l: "English" }, { k: "specs", l: "مواصفات" }, { k: "amenities", l: "مرافق" }].map((t) => (
+            <button key={t.k} onClick={() => setActiveModalTab(t.k)}
+              className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${activeModalTab === t.k ? "text-white" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+              style={activeModalTab === t.k ? { background: "var(--primary)" } : {}}>{t.l}</button>
+          ))}
+        </div>
+
+        {/* Arabic tab */}
+        {activeModalTab === "ar" && (
+          <div className="space-y-4">
+            <FormField label="المشروع" required>
+              <SelectField value={form.project} onChange={(e) => f("project", e.target.value)}>
+                <option value="">اختر المشروع</option>
+                {projects.map((p) => <option key={p._id} value={p._id}>{p.name?.ar}</option>)}
+              </SelectField>
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="رقم الوحدة" required>
+                <input value={form.unitNumber} onChange={(e) => f("unitNumber", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="الدور">
+                <input value={form.floor} onChange={(e) => f("floor", e.target.value)} placeholder="مثال: أرضي، الدور الأول" className={inputCls} />
+              </FormField>
+            </div>
+            <FormField label="الوصف (عربي)">
+              <TextareaField value={form.description?.ar} onChange={(e) => fNested("description", "ar", e.target.value)} rows={3} />
+            </FormField>
           </div>
         )}
-      </Modal>
+
+        {/* English tab */}
+        {activeModalTab === "en" && (
+          <div className="space-y-4">
+            <FormField label="Description (English)">
+              <TextareaField value={form.description?.en} onChange={(e) => fNested("description", "en", e.target.value)} rows={3} />
+            </FormField>
+          </div>
+        )}
+
+        {/* Specs tab */}
+        {activeModalTab === "specs" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="النوع">
+                <SelectField value={form.type} onChange={(e) => f("type", e.target.value)}>
+                  {UNIT_TYPES.map((t) => <option key={t} value={t}>{UNIT_TYPE_AR[t]}</option>)}
+                </SelectField>
+              </FormField>
+              <FormField label="الحالة">
+                <SelectField value={form.status} onChange={(e) => f("status", e.target.value)}>
+                  {UNIT_STATUSES.map((s) => <option key={s} value={s}>{UNIT_STATUS_AR[s]}</option>)}
+                </SelectField>
+              </FormField>
+              <FormField label="المساحة (م²)">
+                <input type="number" value={form.area} onChange={(e) => f("area", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="السعر (ج.م)">
+                <input type="number" value={form.price} onChange={(e) => f("price", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="غرف النوم">
+                <input type="number" min={0} value={form.rooms} onChange={(e) => f("rooms", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="الحمامات">
+                <input type="number" min={0} value={form.bathrooms} onChange={(e) => f("bathrooms", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="التشطيب">
+                <SelectField value={form.finishing} onChange={(e) => f("finishing", e.target.value)}>
+                  <option value="">اختر التشطيب</option>
+                  {FINISHING_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </SelectField>
+              </FormField>
+              <FormField label="الاتجاه">
+                <SelectField value={form.facing} onChange={(e) => f("facing", e.target.value)}>
+                  <option value="">اختر الاتجاه</option>
+                  {FACING_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                </SelectField>
+              </FormField>
+            </div>
+            <div className="flex items-center gap-6">
+              <ToggleField checked={form.featured} onChange={(v) => f("featured", v)} label="وحدة مميزة" />
+              <ToggleField checked={form.published} onChange={(v) => f("published", v)} label="منشورة" />
+            </div>
+          </div>
+        )}
+
+        {/* Amenities tab */}
+        {activeModalTab === "amenities" && (
+          <div className="space-y-4">
+            {AMENITY_GROUPS.map((g) => (
+              <div key={g.label}>
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">{g.label}</p>
+                <div className="flex flex-wrap gap-2">
+                  {g.items.map((a) => {
+                    const active = (form.amenities || []).includes(a);
+                    return (
+                      <button key={a} type="button"
+                        onClick={() => f("amenities", active ? form.amenities.filter((x) => x !== a) : [...(form.amenities || []), a])}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${active ? "text-white border-transparent" : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400"}`}
+                        style={active ? { background: "var(--primary)" } : {}}>
+                        {a}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            {/* Custom amenity */}
+            <div className="flex gap-2 pt-2">
+              <input value={customAmenity} onChange={(e) => setCustomAmenity(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (customAmenity.trim() && !(form.amenities || []).includes(customAmenity.trim())) { f("amenities", [...(form.amenities || []), customAmenity.trim()]); setCustomAmenity(""); } }}}
+                placeholder="إضافة ميزة مخصصة..." className={`${inputCls} flex-1`} />
+              <button type="button" onClick={() => { if (customAmenity.trim()) { f("amenities", [...(form.amenities || []), customAmenity.trim()]); setCustomAmenity(""); }}}
+                className="px-4 rounded-xl text-white font-semibold" style={{ background: "var(--primary)" }}>+</button>
+            </div>
+          </div>
+        )}
+      </AdminModal>
+
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen} onClose={confirmDelete.close}
+        onConfirm={handleDelete}
+        title="حذف الوحدة"
+        message={`هل تريد حذف الوحدة "${confirmDelete.data?.unitNumber ?? ""}"؟`}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }

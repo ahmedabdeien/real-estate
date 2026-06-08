@@ -1,138 +1,156 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+/**
+ * AdminProjects — migrated to TanStack Query + shared UI components
+ * Preserves: DnD reorder (sortable), grid/table toggle, favorites, unit counts
+ */
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Pencil, Trash2, Search, LayoutGrid, List, Heart, X, GripVertical, Save, ArrowUpDown, CheckSquare } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay,
+  FaBuilding, FaPlus, FaPen, FaTrash, FaMagnifyingGlass,
+  FaTableList, FaTableCellsLarge, FaHeart, FaXmark, FaSpinner,
+  FaGrip, FaFloppyDisk, FaArrowsUpDown, FaSquareCheck,
+} from "react-icons/fa6";
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
 } from "@dnd-kit/core";
 import {
   SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { motion } from "framer-motion";
-import api from "../../api/axios";
-import Modal from "../../Components/UI/Modal";
-import ConfirmModal from "../../Components/UI/ConfirmModal";
-import Pagination from "../../Components/UI/Pagination";
-import EmptyState from "../../Components/UI/EmptyState";
-import LoadingSpinner from "../../Components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../Components/UI/Badge";
+
+import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from "../../hooks/queries/useProjects";
+import { useUnits } from "../../hooks/queries/useUnits";
+import { useTableState } from "../../hooks/useTableState";
+import { useDisclosure } from "../../hooks/useDisclosure";
+
+import AdminModal from "../../Components/UI/AdminModal";
+import ConfirmDialog from "../../Components/UI/ConfirmDialog";
+import PageHeader, { PrimaryButton, SecondaryButton } from "../../Components/UI/PageHeader";
+import FormField, { inputCls, SelectField, TextareaField, ToggleField } from "../../Components/UI/FormField";
+import StatusBadge from "../../Components/UI/StatusBadge";
 import ImageUpload from "../../Components/UI/ImageUpload";
 import { useToast } from "../../context/ToastContext";
-import { Building2 } from "lucide-react";
-import HelpCard from "../../Components/UI/HelpCard";
+import apiClient from "../../api/axios";
 
+// ── Constants ──────────────────────────────────────────────────────────────
 const FAVORITES_KEY = "favorites_projects";
-const loadFavorites = () => {
-  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; }
-};
-const saveFavorites = (arr) => localStorage.setItem(FAVORITES_KEY, JSON.stringify(arr));
+const loadFavs  = () => { try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; } };
+const saveFavs  = (arr) => localStorage.setItem(FAVORITES_KEY, JSON.stringify(arr));
 
-const statusOptions = [
-  { value: "", label: "كل الحالات" },
+const STATUS_OPTIONS = [
   { value: "under_construction", label: "قيد الإنشاء" },
-  { value: "ready", label: "جاهز" },
-  { value: "sold_out", label: "نفذت الوحدات" },
-  { value: "coming_soon", label: "قريباً" },
+  { value: "ready",              label: "جاهز" },
+  { value: "sold_out",           label: "نفذت الوحدات" },
+  { value: "coming_soon",        label: "قريباً" },
+];
+
+const STATUS_BADGE_MAP = {
+  under_construction: "قيد الإنشاء",
+  ready:              "جاهز",
+  sold_out:           "مباعة",
+  coming_soon:        "قريباً",
+};
+
+const PREDEFINED_AMENITIES = [
+  "حمام سباحة", "نادي رياضي", "أمن 24 ساعة", "مواقف سيارات",
+  "حديقة", "مدرسة", "مسجد", "مركز تجاري", "منطقة ألعاب", "كهرباء احتياطي",
 ];
 
 const emptyProject = {
-  name: { ar: "", en: "" },
-  description: { ar: "", en: "" },
+  name: { ar: "", en: "" }, description: { ar: "", en: "" },
   location: { address: { ar: "", en: "" }, city: { ar: "", en: "" }, lat: "", lng: "" },
-  status: "under_construction",
-  coverImage: "",
-  images: [],
-  featured: false,
-  published: false,
-  startingPrice: "",
-  totalUnits: "",
-  amenities: [],
-  developer: { ar: "", en: "" },
-  videoUrl: "",
-  brochureUrl: "",
-  mapEmbedUrl: "",
+  status: "under_construction", coverImage: "", images: [],
+  featured: false, published: false, startingPrice: "", totalUnits: "",
+  amenities: [], developer: { ar: "", en: "" }, videoUrl: "", brochureUrl: "", mapEmbedUrl: "",
 };
 
-// ─── Sortable Row ─────────────────────────────────────────────────────────────
-function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, onEdit, onDelete, isDragging, selected, onToggleSelect, unitCount }) {
+// Deep nested setter helper
+function setDeep(obj, path, value) {
+  const keys = path.split(".");
+  const next = { ...obj };
+  let cur = next;
+  for (let i = 0; i < keys.length - 1; i++) {
+    cur[keys[i]] = { ...cur[keys[i]] };
+    cur = cur[keys[i]];
+  }
+  cur[keys[keys.length - 1]] = value;
+  return next;
+}
+
+// ── Sortable Row ──────────────────────────────────────────────────────────
+function SortableRow({ project: p, reorderMode, favorites, onToggleFav, onEdit, onDelete, selected, onToggleSelect, unitCount }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: p._id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-  const { label, variant } = statusBadge(p.status);
+  const style = { transform: CSS.Transform.toString(transform), transition };
   const fav = favorites.includes(p._id);
+
   return (
     <tr ref={setNodeRef} style={style}
-      className={`border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-        reorderMode ? "cursor-grab active:cursor-grabbing" : ""
-      }`}>
-      <td className="px-2 py-4 w-10">
+      className="border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+      <td className="px-2 py-3 w-10">
         {reorderMode ? (
-          <div {...attributes} {...listeners} className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
-            <GripVertical className="w-4 h-4" />
+          <div {...attributes} {...listeners}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 cursor-grab active:cursor-grabbing">
+            <FaGrip className="w-4 h-4" />
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1">
             <input type="checkbox" checked={!!selected} onChange={() => onToggleSelect(p._id)}
-              className="w-4 h-4 rounded accent-[#2d5d89]" />
-            <button onClick={() => onToggleFav(p._id)} title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}>
-              <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-400"}`} />
+              className="w-4 h-4 rounded cursor-pointer accent-[color:var(--primary)]" />
+            <button onClick={() => onToggleFav(p._id)}>
+              <FaHeart className={`w-3.5 h-3.5 ${fav ? "text-pink-500" : "text-gray-300"}`} />
             </button>
           </div>
         )}
       </td>
-      <td className="px-4 sm:px-6 py-4">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
           {p.coverImage ? (
-            <img src={p.coverImage} alt="" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover flex-shrink-0" />
+            <img src={p.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
           ) : (
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#2d5d89]" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "var(--primary)/10" }}>
+              <FaBuilding className="w-4 h-4" style={{ color: "var(--primary)" }} />
             </div>
           )}
-          <div className="min-w-0">
-            <p className="font-medium text-gray-900 dark:text-white text-sm truncate max-w-[120px] sm:max-w-none">{p.name?.ar}</p>
+          <div>
+            <p className="font-semibold text-gray-900 dark:text-white text-sm truncate max-w-[150px]">{p.name?.ar}</p>
             <p className="text-gray-400 text-xs">{p.location?.city?.ar}</p>
           </div>
         </div>
       </td>
-      <td className="px-4 sm:px-6 py-4"><Badge variant={variant}>{label}</Badge></td>
-      <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+      <td className="px-4 py-3">
+        <StatusBadge status={p.status} label={STATUS_BADGE_MAP[p.status]} />
+      </td>
+      <td className="hidden sm:table-cell px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
         {p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : "—"}
       </td>
-      <td className="hidden md:table-cell px-4 sm:px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+      <td className="hidden md:table-cell px-4 py-3">
         <div>
-          <span>{p.totalUnits || "—"}</span>
-          {unitCount && unitCount.total > 0 && (
+          <span className="text-sm text-gray-700 dark:text-gray-300">{p.totalUnits || "—"}</span>
+          {unitCount?.total > 0 && (
             <div className="mt-1">
-              <div className="flex items-center gap-1 text-xs text-gray-400 mb-0.5">
-                <span>{unitCount.available} متاح</span>
-              </div>
               <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full"
-                  style={{ width: `${Math.round((unitCount.available / unitCount.total) * 100)}%` }}
-                />
+                <div className="h-full bg-emerald-500 rounded-full"
+                  style={{ width: `${Math.round((unitCount.available / unitCount.total) * 100)}%` }} />
               </div>
+              <p className="text-[10px] text-gray-400 mt-0.5">{unitCount.available} متاح</p>
             </div>
           )}
         </div>
       </td>
-      <td className="hidden sm:table-cell px-4 sm:px-6 py-4">
-        <Badge variant={p.published ? "success" : "gray"}>{p.published ? "منشور" : "مسودة"}</Badge>
+      <td className="hidden sm:table-cell px-4 py-3">
+        <StatusBadge status={p.published ? "published" : "draft"} />
       </td>
-      <td className="px-4 sm:px-6 py-4">
+      <td className="px-4 py-3">
         {!reorderMode && (
           <div className="flex items-center gap-1">
             <button onClick={() => onEdit(p)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
-              <Pencil className="w-4 h-4" />
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500 transition-colors">
+              <FaPen className="w-3 h-3" />
             </button>
-            <button onClick={() => onDelete(p._id)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 transition-colors">
-              <Trash2 className="w-4 h-4" />
+            <button onClick={() => onDelete(p)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors">
+              <FaTrash className="w-3 h-3" />
             </button>
           </div>
         )}
@@ -141,700 +159,568 @@ function SortableProjectRow({ project: p, reorderMode, favorites, onToggleFav, o
   );
 }
 
+// ── Main Component ─────────────────────────────────────────────────────────
 export default function AdminProjects() {
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [projects, setProjects] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [modal, setModal] = useState(false);
-  const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState(emptyProject);
-  const [saving, setSaving] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [view, setView] = useState("table"); // "table" | "grid"
-  const [favorites, setFavorites] = useState(loadFavorites());
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [galleryUrl, setGalleryUrl] = useState("");
+
+  const [form,          setForm]          = useState(emptyProject);
+  const [editItem,      setEditItem]      = useState(null);
+  const [modalOpen,     setModalOpen]     = useState(false);
+  const [activeTab,     setActiveTab]     = useState("ar");
+  const [galleryUrl,    setGalleryUrl]    = useState("");
   const [customAmenity, setCustomAmenity] = useState("");
-  const [reorderMode, setReorderMode] = useState(false);
-  const [reorderSaving, setReorderSaving] = useState(false);
-  const [activeId, setActiveId] = useState(null);
-  const [selectedProjects, setSelectedProjects] = useState([]);
-  const [bulkProjectStatus, setBulkProjectStatus] = useState("");
-  const [unitCounts, setUnitCounts] = useState({}); // projectId -> { available, total }
+  const [view,          setView]          = useState("table");
+  const [favorites,     setFavorites]     = useState(loadFavs);
+  const [showFavs,      setShowFavs]      = useState(false);
+  const [reorderMode,   setReorderMode]   = useState(false);
+  const [localProjects, setLocalProjects] = useState(null); // for reorder only
+  const [selectedIds,   setSelectedIds]   = useState([]);
+  const [bulkStatus,    setBulkStatus]    = useState("");
+  const [unitCounts,    setUnitCounts]    = useState({});
+  const [statusFilter,  setStatusFilter]  = useState("");
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
-  );
+  const table         = useTableState({ defaultPageSize: 15 });
+  const confirmDelete = useDisclosure();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  const toggleFavorite = (id) => {
-    setFavorites((prev) => {
-      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      saveFavorites(next);
-      return next;
-    });
-  };
+  // Queries
+  const { data, isLoading, isFetching, refetch } = useProjects({
+    page:   table.queryParams.page,
+    limit:  table.queryParams.pageSize,
+    search: table.queryParams.search,
+    status: statusFilter || undefined,
+  });
 
-  // Stats from loaded projects
+  const projects = localProjects ?? (data?.projects ?? []);
+  const total    = data?.total ?? 0;
+
+  // Reset localProjects when data refreshes (and not reordering)
+  useEffect(() => {
+    if (!reorderMode) setLocalProjects(null);
+  }, [data, reorderMode]);
+
+  const createMutation = useCreateProject();
+  const updateMutation = useUpdateProject();
+  const deleteMutation = useDeleteProject();
+
+  // Stats
   const stats = useMemo(() => ({
     total,
-    active: projects.filter((p) => p.status === "ready" || p.status === "under_construction").length,
-    completed: projects.filter((p) => p.status === "ready").length,
-    underConstruction: projects.filter((p) => p.status === "under_construction").length,
+    active:           projects.filter((p) => ["ready","under_construction"].includes(p.status)).length,
+    completed:        projects.filter((p) => p.status === "ready").length,
+    underConstruction:projects.filter((p) => p.status === "under_construction").length,
   }), [projects, total]);
 
-  const visibleProjects = useMemo(
-    () => (showFavorites ? projects.filter((p) => favorites.includes(p._id)) : projects),
-    [projects, favorites, showFavorites]
+  const visibleProjects = useMemo(() =>
+    showFavs ? projects.filter((p) => favorites.includes(p._id)) : projects,
+    [projects, favorites, showFavs]
   );
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/projects", { params: { page, search, status: statusFilter } });
-      setProjects(res.data.projects);
-      setTotal(res.data.total);
-      setPages(res.data.pages);
-    } catch {
-      toast.error("فشل تحميل المشاريع");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, [page, statusFilter]);
-
-  const openCreate = () => { setEditItem(null); setForm(emptyProject); setModal(true); };
-  const openEdit = (p) => {
-    setEditItem(p);
-    setForm({
-      ...emptyProject,
-      ...p,
-      name: { ar: p.name?.ar ?? "", en: p.name?.en ?? "" },
-      description: { ar: p.description?.ar ?? "", en: p.description?.en ?? "" },
-      location: {
-        address: { ar: p.location?.address?.ar ?? "", en: p.location?.address?.en ?? "" },
-        city: { ar: p.location?.city?.ar ?? "", en: p.location?.city?.en ?? "" },
-        lat: p.location?.lat ?? "",
-        lng: p.location?.lng ?? "",
-      },
-      startingPrice: p.startingPrice ?? "",
-      totalUnits: p.totalUnits ?? "",
-      coverImage: p.coverImage ?? "",
-      images: Array.isArray(p.images) ? p.images : [],
-      amenities: Array.isArray(p.amenities) ? p.amenities : [],
-      developer: p.developer || { ar: "", en: "" },
-      videoUrl: p.videoUrl || "",
-      brochureUrl: p.brochureUrl || "",
-      mapEmbedUrl: p.mapEmbedUrl || "",
-    });
-    setModal(true);
-  };
-
-  // Auto-open edit modal when ?edit=PROJECT_ID is in URL
+  // Unit counts
   useEffect(() => {
-    const editId = searchParams.get("edit");
-    if (!editId) return;
-    if (projects.length > 0) {
-      const found = projects.find(p => p._id === editId);
-      if (found) {
-        openEdit(found);
-        setSearchParams({}, { replace: true });
-      } else {
-        // project not in current page — fetch it directly
-        api.get(`/projects/${editId}`).then(res => {
-          if (res.data) { openEdit(res.data); setSearchParams({}, { replace: true }); }
-        }).catch(() => {});
-      }
-    }
-  }, [projects, searchParams]);
-
-  const handleSave = async () => {
-    if (!form.name?.ar?.trim()) return toast.error("اسم المشروع بالعربية مطلوب");
-    setSaving(true);
-    try {
-      const payload = {
-        name: form.name,
-        description: form.description,
-        location: {
-          address: form.location?.address || { ar: "", en: "" },
-          city: form.location?.city || { ar: "", en: "" },
-          lat: form.location?.lat ? parseFloat(form.location.lat) : undefined,
-          lng: form.location?.lng ? parseFloat(form.location.lng) : undefined,
-        },
-        status: form.status,
-        coverImage: form.coverImage,
-        images: Array.isArray(form.images) ? form.images : [],
-        featured: form.featured,
-        published: form.published,
-        startingPrice: Number(form.startingPrice) || 0,
-        totalUnits: Number(form.totalUnits) || 0,
-        amenities: form.amenities || [],
-        developer: form.developer || { ar: "", en: "" },
-        videoUrl: form.videoUrl || "",
-        brochureUrl: form.brochureUrl || "",
-        mapEmbedUrl: form.mapEmbedUrl || "",
-      };
-
-      if (editItem) {
-        await api.put(`/projects/${editItem._id}`, payload);
-        toast.success("تم تحديث المشروع");
-      } else {
-        await api.post("/projects", payload);
-        toast.success("تم إنشاء المشروع");
-      }
-      setModal(false);
-      load();
-    } catch {
-      toast.error("حدث خطأ، حاول مجدداً");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setDeleting(true);
-    try {
-      await api.delete(`/projects/${deleteId}`);
-      toast.success("تم حذف المشروع");
-      setDeleteId(null);
-      load();
-    } catch {
-      toast.error("فشل الحذف");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const f = (path, value) => {
-    const keys = path.split(".");
-    setForm((prev) => {
-      const next = { ...prev };
-      let obj = next;
-      for (let i = 0; i < keys.length - 1; i++) {
-        obj[keys[i]] = { ...obj[keys[i]] };
-        obj = obj[keys[i]];
-      }
-      obj[keys[keys.length - 1]] = value;
-      return next;
-    });
-  };
-
-  // ── Drag-and-drop order ──
-  const handleDragStart = ({ active }) => setActiveId(active.id);
-
-  const handleDragEnd = useCallback(({ active, over }) => {
-    setActiveId(null);
-    if (!over || active.id === over.id) return;
-    setProjects((prev) => {
-      const oldIdx = prev.findIndex((p) => p._id === active.id);
-      const newIdx = prev.findIndex((p) => p._id === over.id);
-      return arrayMove(prev, oldIdx, newIdx);
-    });
-  }, []);
-
-  const saveOrder = async () => {
-    setReorderSaving(true);
-    try {
-      const order = projects.map((p, i) => ({ _id: p._id, order: i }));
-      await api.put("/projects/reorder", { order });
-      toast.success("تم حفظ الترتيب");
-      setReorderMode(false);
-    } catch {
-      toast.error("فشل حفظ الترتيب");
-    } finally {
-      setReorderSaving(false);
-    }
-  };
-
-  const handleBulkProjectStatus = async () => {
-    if (!bulkProjectStatus || selectedProjects.length === 0) return;
-    try {
-      await Promise.all(selectedProjects.map((id) => api.put(`/projects/${id}`, { status: bulkProjectStatus })));
-      toast.success(`تم تحديث ${selectedProjects.length} مشروع`);
-      setSelectedProjects([]);
-      setBulkProjectStatus("");
-      load();
-    } catch {
-      toast.error("فشل التحديث الجماعي");
-    }
-  };
-
-  const toggleSelectProject = (id) => {
-    setSelectedProjects((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  };
-
-  // Load unit counts when projects are loaded
-  useEffect(() => {
-    if (projects.length === 0) return;
+    if (!projects.length) return;
     const fetchCounts = async () => {
       const counts = {};
-      await Promise.all(
-        projects.map(async (p) => {
-          try {
-            const res = await api.get("/units", { params: { project: p._id, limit: 1 } });
-            const available = res.data.units?.filter(u => u.status === "available").length ?? 0;
-            counts[p._id] = { total: res.data.total ?? 0, available };
-          } catch {
-            counts[p._id] = { total: 0, available: 0 };
-          }
-        })
-      );
+      await Promise.all(projects.map(async (p) => {
+        try {
+          const res = await apiClient.get("/units", { params: { project: p._id, limit: 200 } });
+          const units = res.data.units ?? [];
+          counts[p._id] = { total: res.data.total ?? units.length, available: units.filter((u) => u.status === "متاحة" || u.status === "available").length };
+        } catch { counts[p._id] = { total: 0, available: 0 }; }
+      }));
       setUnitCounts(counts);
     };
     fetchCounts();
   }, [projects]);
 
+  // Auto-open edit from URL ?edit=id
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId || !projects.length) return;
+    const found = projects.find((p) => p._id === editId);
+    if (found) { openEdit(found); setSearchParams({}, { replace: true }); }
+  }, [projects, searchParams]);
+
+  // ── Helpers ──
+  const f = useCallback((path, value) => setForm((prev) => setDeep(prev, path, value)), []);
+
+  const openCreate = () => { setEditItem(null); setForm(emptyProject); setActiveTab("ar"); setModalOpen(true); };
+
+  const openEdit = (p) => {
+    setEditItem(p);
+    setForm({
+      ...emptyProject, ...p,
+      name:        { ar: p.name?.ar ?? "", en: p.name?.en ?? "" },
+      description: { ar: p.description?.ar ?? "", en: p.description?.en ?? "" },
+      location:    { address: { ar: p.location?.address?.ar ?? "", en: p.location?.address?.en ?? "" },
+                     city:    { ar: p.location?.city?.ar ?? "", en: p.location?.city?.en ?? "" },
+                     lat: p.location?.lat ?? "", lng: p.location?.lng ?? "" },
+      startingPrice: p.startingPrice ?? "", totalUnits: p.totalUnits ?? "",
+      coverImage: p.coverImage ?? "", images: Array.isArray(p.images) ? p.images : [],
+      amenities:  Array.isArray(p.amenities) ? p.amenities : [],
+      developer:  p.developer || { ar: "", en: "" },
+      videoUrl: p.videoUrl || "", brochureUrl: p.brochureUrl || "", mapEmbedUrl: p.mapEmbedUrl || "",
+    });
+    setActiveTab("ar");
+    setModalOpen(true);
+  };
+
+  const buildPayload = () => ({
+    name: form.name, description: form.description,
+    location: { address: form.location?.address || {}, city: form.location?.city || {},
+      lat: form.location?.lat ? parseFloat(form.location.lat) : undefined,
+      lng: form.location?.lng ? parseFloat(form.location.lng) : undefined,
+    },
+    status: form.status, coverImage: form.coverImage, images: form.images || [],
+    featured: form.featured, published: form.published,
+    startingPrice: Number(form.startingPrice) || 0, totalUnits: Number(form.totalUnits) || 0,
+    amenities: form.amenities || [], developer: form.developer || {},
+    videoUrl: form.videoUrl || "", brochureUrl: form.brochureUrl || "", mapEmbedUrl: form.mapEmbedUrl || "",
+  });
+
+  const handleSave = async () => {
+    if (!form.name?.ar?.trim()) return toast.error("اسم المشروع بالعربية مطلوب");
+    try {
+      if (editItem) {
+        await updateMutation.mutateAsync({ id: editItem._id, data: buildPayload() });
+        toast.success("تم تحديث المشروع");
+      } else {
+        await createMutation.mutateAsync(buildPayload());
+        toast.success("تم إنشاء المشروع");
+      }
+      setModalOpen(false);
+    } catch {
+      toast.error("حدث خطأ، حاول مجدداً");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync(confirmDelete.data._id);
+      toast.success("تم حذف المشروع");
+      confirmDelete.close();
+    } catch { toast.error("فشل الحذف"); }
+  };
+
+  const toggleFav = (id) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      saveFavs(next); return next;
+    });
+  };
+
+  // Reorder DnD
+  const handleDragEnd = useCallback(({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    setLocalProjects((prev) => {
+      const src = prev ?? projects;
+      const oi = src.findIndex((p) => p._id === active.id);
+      const ni = src.findIndex((p) => p._id === over.id);
+      return arrayMove(src, oi, ni);
+    });
+  }, [projects]);
+
+  const saveOrder = async () => {
+    try {
+      const order = (localProjects ?? projects).map((p, i) => ({ _id: p._id, order: i }));
+      await apiClient.put("/projects/reorder", { order });
+      toast.success("تم حفظ الترتيب");
+      setReorderMode(false);
+      setLocalProjects(null);
+      refetch();
+    } catch { toast.error("فشل حفظ الترتيب"); }
+  };
+
+  const handleBulkStatus = async () => {
+    if (!bulkStatus || !selectedIds.length) return;
+    await Promise.all(selectedIds.map((id) => updateMutation.mutateAsync({ id, data: { status: bulkStatus } })));
+    toast.success(`تم تحديث ${selectedIds.length} مشروع`);
+    setSelectedIds([]); setBulkStatus("");
+  };
+
+  const addGalleryUrl = () => {
+    const url = galleryUrl.trim();
+    if (!url) return;
+    f("images", [...(form.images || []), url]);
+    setGalleryUrl("");
+  };
+
+  const addAmenity = () => {
+    const a = customAmenity.trim();
+    if (!a || (form.amenities || []).includes(a)) return;
+    f("amenities", [...(form.amenities || []), a]);
+    setCustomAmenity("");
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col h-full" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المشاريع</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{total} مشروع</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {reorderMode ? (
+      <PageHeader
+        title="المشاريع"
+        subtitle={`${total} مشروع`}
+        icon={<FaBuilding />}
+        loading={isFetching && !isLoading}
+        stats={[
+          { label: "الإجمالي",    value: stats.total },
+          { label: "النشطة",      value: stats.active },
+          { label: "المكتملة",    value: stats.completed },
+          { label: "قيد الإنشاء", value: stats.underConstruction },
+        ]}
+        actions={
+          reorderMode ? (
             <>
-              <button
-                onClick={() => { setReorderMode(false); load(); }}
-                className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <X className="w-4 h-4" /> إلغاء
-              </button>
-              <button
-                onClick={saveOrder}
-                disabled={reorderSaving}
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
-              >
-                <Save className="w-4 h-4" />
-                {reorderSaving ? "جاري الحفظ..." : "حفظ الترتيب"}
+              <SecondaryButton icon={<FaXmark />} onClick={() => { setReorderMode(false); setLocalProjects(null); }}>
+                إلغاء
+              </SecondaryButton>
+              <button onClick={saveOrder}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors">
+                <FaFloppyDisk className="w-3.5 h-3.5" />
+                حفظ الترتيب
               </button>
             </>
           ) : (
             <>
-              <button
-                onClick={() => { setView("table"); setReorderMode(true); }}
-                className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                title="ترتيب المشاريع بالسحب والإفلات"
-              >
-                <ArrowUpDown className="w-4 h-4" />
-                <span className="hidden sm:inline">ترتيب</span>
-              </button>
-              <button
-                onClick={openCreate}
-                className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">إضافة مشروع</span>
-                <span className="sm:hidden">إضافة</span>
-              </button>
+              <SecondaryButton icon={<FaArrowsUpDown className="w-3.5 h-3.5" />}
+                onClick={() => { setView("table"); setReorderMode(true); }}>
+                ترتيب
+              </SecondaryButton>
+              <PrimaryButton icon={<FaPlus />} onClick={openCreate}>إضافة مشروع</PrimaryButton>
             </>
-          )}
-        </div>
-      </div>
-
-      <HelpCard
-        title="دليل إدارة المشاريع"
-        tips={[
-          "أضف مشروعاً جديداً مع الاسم بالعربية والإنجليزية للظهور في نسختي الموقع",
-          "أضف صوراً متعددة لمعرض الصور (Gallery) للمشروع",
-          "لإضافة خريطة: اذهب إلى Google Maps → مشاركة → تضمين الخريطة → انسخ الرابط src من iframe",
-          "يمكنك إضافة مميزات مخصصة للمشروع من حقل 'إضافة ميزة مخصصة'",
-          "علّم المشروع كـ'مميز' لظهوره في أعلى قائمة المشاريع",
-          "يمكنك التبديل بين عرض البطاقات وعرض الجدول من الزر أعلى اليمين",
-        ]}
+          )
+        }
       />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { label: "إجمالي المشاريع", value: stats.total },
-          { label: "النشطة", value: stats.active },
-          { label: "المكتملة", value: stats.completed },
-          { label: "قيد الإنشاء", value: stats.underConstruction },
-        ].map((s) => (
-          <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
-            <p className="text-gray-500 dark:text-gray-400 text-xs">{s.label}</p>
-            <p className="text-2xl font-bold text-[#2d5d89] mt-1">{s.value}</p>
-          </div>
-        ))}
-      </div>
-
       {/* Filters */}
-      <div className="flex gap-3 flex-wrap items-center">
-        <div className="relative flex-1 min-w-[160px]">
-          <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            onKeyDown={(e) => e.key === "Enter" && load()}
-            placeholder="بحث..."
-            className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
-        >
-          {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <button
-          onClick={() => setShowFavorites((v) => !v)}
-          className={`px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors flex items-center gap-2 ${
-            showFavorites
-              ? "bg-pink-50 dark:bg-pink-900/30 border-pink-200 dark:border-pink-700 text-pink-600"
-              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
-          }`}
-        >
-          <Heart className={`w-4 h-4 ${showFavorites ? "fill-pink-500 text-pink-500" : ""}`} />
-          المفضلة
-        </button>
-        <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <button
-            onClick={() => setView("table")}
-            className={`px-3 py-2.5 text-sm ${view === "table" ? "bg-[#2d5d89] text-white" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"}`}
-            title="عرض جدول"
-          >
-            <List className="w-4 h-4" />
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+            <input value={table.queryParams.search} onChange={(e) => table.handleSearch(e.target.value)}
+              placeholder="بحث..." className={`${inputCls} pr-9 py-2`} />
+          </div>
+          <SelectField value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); table.resetPage(); }}
+            className="w-auto py-2 text-sm">
+            <option value="">كل الحالات</option>
+            {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </SelectField>
+          <button onClick={() => setShowFavs((v) => !v)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition-colors ${
+              showFavs ? "bg-pink-50 border-pink-200 text-pink-600 dark:bg-pink-900/20" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-600"
+            }`}>
+            <FaHeart className={`w-3.5 h-3.5 ${showFavs ? "text-pink-500" : "text-gray-300"}`} />
+            المفضلة
           </button>
-          <button
-            onClick={() => setView("grid")}
-            className={`px-3 py-2.5 text-sm ${view === "grid" ? "bg-[#2d5d89] text-white" : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"}`}
-            title="عرض بطاقات"
-          >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
+          <div className="inline-flex rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden">
+            {[
+              { key: "table", icon: <FaTableList className="w-3.5 h-3.5" /> },
+              { key: "grid",  icon: <FaTableCellsLarge className="w-3.5 h-3.5" /> },
+            ].map((v) => (
+              <button key={v.key} onClick={() => setView(v.key)}
+                className={`px-3 py-2 transition-colors ${view === v.key ? "text-white" : "text-gray-500 bg-white dark:bg-gray-800"}`}
+                style={view === v.key ? { background: "var(--primary)" } : {}}>
+                {v.icon}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Bulk actions bar for projects */}
-      {selectedProjects.length > 0 && (
-        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl p-3 flex flex-wrap items-center gap-3">
-          <CheckSquare className="w-4 h-4 text-blue-600" />
-          <span className="text-sm text-blue-700 dark:text-blue-300">{selectedProjects.length} مشروع محدد</span>
-          <select value={bulkProjectStatus} onChange={(e) => setBulkProjectStatus(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm">
-            <option value="">تغيير الحالة</option>
-            {statusOptions.slice(1).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <button onClick={handleBulkProjectStatus} disabled={!bulkProjectStatus}
-            className="px-4 py-2 rounded-lg bg-[#2d5d89] text-white text-sm font-medium disabled:opacity-50">
-            تطبيق
-          </button>
-          <button onClick={() => setSelectedProjects([])} className="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">إلغاء التحديد</button>
-        </div>
-      )}
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-6 space-y-4">
+        {/* Bulk actions */}
+        {selectedIds.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border bg-[color:var(--primary)]/5 border-[color:var(--primary)]/20">
+            <FaSquareCheck className="w-4 h-4 text-[color:var(--primary)]" />
+            <span className="text-sm font-bold text-[color:var(--primary)]">{selectedIds.length} مشروع محدد</span>
+            <SelectField value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)} className="w-auto text-sm">
+              <option value="">تغيير الحالة</option>
+              {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </SelectField>
+            <button onClick={handleBulkStatus} disabled={!bulkStatus}
+              className="px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-50"
+              style={{ background: "var(--primary)" }}>تطبيق</button>
+            <button onClick={() => setSelectedIds([])} className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700">إلغاء</button>
+          </div>
+        )}
 
-      {/* Table or Grid */}
-      <div className={view === "grid" ? "" : "bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"}>
-        {loading ? (
-          <LoadingSpinner className="h-64" size="lg" />
+        {isLoading ? (
+          <div className="flex items-center justify-center h-48">
+            <FaSpinner className="w-6 h-6 animate-spin text-gray-300" />
+          </div>
         ) : visibleProjects.length === 0 ? (
-          <EmptyState icon={Building2} title={showFavorites ? "لا توجد مفضلات" : "لا توجد مشاريع"} description={showFavorites ? "أضف مشاريع للمفضلة بالضغط على القلب" : "ابدأ بإضافة مشروع جديد"} action={
-            !showFavorites && <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium">
-              إضافة مشروع
-            </button>
-          } />
+          <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
+            <FaBuilding className="w-10 h-10 opacity-20" />
+            <p className="text-sm">{showFavs ? "لا توجد مفضلات" : "لا توجد مشاريع"}</p>
+            {!showFavs && <PrimaryButton icon={<FaPlus />} onClick={openCreate}>إضافة مشروع</PrimaryButton>}
+          </div>
         ) : view === "grid" ? (
+          // Grid view
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {visibleProjects.map((p) => {
-              const { label, variant } = statusBadge(p.status);
-              const fav = favorites.includes(p._id);
-              return (
-                <div key={p._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col">
-                  <div className="relative h-40 bg-gray-100 dark:bg-gray-900">
-                    {p.coverImage ? (
-                      <img src={p.coverImage} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Building2 className="w-10 h-10 text-gray-400" />
-                      </div>
-                    )}
-                    <button
-                      onClick={() => toggleFavorite(p._id)}
-                      className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 flex items-center justify-center"
-                      title={fav ? "إزالة من المفضلة" : "إضافة للمفضلة"}
-                    >
-                      <Heart className={`w-4 h-4 ${fav ? "fill-pink-500 text-pink-500" : "text-gray-500"}`} />
-                    </button>
-                    <div className="absolute top-2 right-2"><Badge variant={variant}>{label}</Badge></div>
-                  </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <p className="font-semibold text-gray-900 dark:text-white truncate">{p.name?.ar}</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{p.location?.city?.ar || "—"}</p>
-                    <div className="mt-2 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                      <span>الوحدات: {p.totalUnits || "—"}</span>
-                      <span>{p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : ""}</span>
+            {visibleProjects.map((p) => (
+              <motion.div key={p._id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+                <div className="relative h-40 bg-gray-100 dark:bg-gray-800">
+                  {p.coverImage ? <img src={p.coverImage} alt="" className="w-full h-full object-cover" /> : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <FaBuilding className="w-10 h-10 text-gray-300" />
                     </div>
-                    {unitCounts[p._id] && unitCounts[p._id].total > 0 && (
-                      <div className="mt-1.5">
-                        <div className="flex justify-between text-xs text-gray-400 mb-1">
-                          <span>{unitCounts[p._id].available} وحدة متاحة</span>
-                          <span>{unitCounts[p._id].total} إجمالي</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full"
-                            style={{ width: `${Math.round((unitCounts[p._id].available / unitCounts[p._id].total) * 100)}%` }} />
-                        </div>
-                      </div>
-                    )}
-                    <div className="mt-3 flex items-center gap-1">
-                      <button onClick={() => openEdit(p)} className="flex-1 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-xs font-medium hover:bg-blue-100">تعديل</button>
-                      <button onClick={() => setDeleteId(p._id)} className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 text-xs font-medium hover:bg-red-100">حذف</button>
-                    </div>
+                  )}
+                  <button onClick={() => toggleFav(p._id)}
+                    className="absolute top-2 left-2 w-8 h-8 rounded-full bg-white/90 dark:bg-gray-900/90 flex items-center justify-center">
+                    <FaHeart className={`w-4 h-4 ${favorites.includes(p._id) ? "text-pink-500" : "text-gray-400"}`} />
+                  </button>
+                  <div className="absolute top-2 right-2">
+                    <StatusBadge status={p.status} label={STATUS_BADGE_MAP[p.status]} size="xs" />
                   </div>
                 </div>
-              );
-            })}
+                <div className="p-4 flex-1 flex flex-col">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">{p.name?.ar}</p>
+                  <p className="text-gray-400 text-xs mt-0.5">{p.location?.city?.ar || "—"}</p>
+                  <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>الوحدات: {p.totalUnits || "—"}</span>
+                    <span>{p.startingPrice ? `${p.startingPrice.toLocaleString()} ج` : ""}</span>
+                  </div>
+                  {unitCounts[p._id]?.total > 0 && (
+                    <div className="mt-2">
+                      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full"
+                          style={{ width: `${Math.round((unitCounts[p._id].available / unitCounts[p._id].total) * 100)}%` }} />
+                      </div>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{unitCounts[p._id].available} وحدة متاحة</p>
+                    </div>
+                  )}
+                  <div className="mt-3 flex gap-2">
+                    <button onClick={() => openEdit(p)} className="flex-1 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 text-xs font-semibold">تعديل</button>
+                    <button onClick={() => confirmDelete.open(p)} className="py-1.5 px-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 text-xs font-semibold">حذف</button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          // Table view with sortable DnD
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
             {reorderMode && (
-              <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400 text-xs font-medium">
-                <GripVertical className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-700 text-amber-700 text-xs font-semibold">
+                <FaGrip className="w-3.5 h-3.5" />
                 وضع الترتيب — اسحب المشاريع لتغيير ترتيبها، ثم اضغط "حفظ الترتيب"
               </div>
             )}
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                  <tr>
-                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-2 py-3 w-10">
-                      {reorderMode ? <GripVertical className="w-3.5 h-3.5 text-gray-400 mx-auto" /> : ""}
-                    </th>
-                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المشروع</th>
-                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الحالة</th>
-                    <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">السعر من</th>
-                    <th className="hidden md:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الوحدات</th>
-                    <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النشر</th>
-                    <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
-                  </tr>
-                </thead>
-                <SortableContext
-                  items={visibleProjects.map((p) => p._id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                    {visibleProjects.map((p) => (
-                      <SortableProjectRow
-                        key={p._id}
-                        project={p}
-                        reorderMode={reorderMode}
-                        favorites={favorites}
-                        onToggleFav={toggleFavorite}
-                        onEdit={openEdit}
-                        onDelete={(id) => setDeleteId(id)}
-                        isDragging={activeId === p._id}
-                        selected={selectedProjects.includes(p._id)}
-                        onToggleSelect={toggleSelectProject}
-                        unitCount={unitCounts[p._id]}
-                      />
-                    ))}
-                  </tbody>
-                </SortableContext>
-              </table>
-            </DndContext>
+            <div className="overflow-x-auto">
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                    <tr className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      {["", "المشروع", "الحالة", "السعر من", "الوحدات", "النشر", ""].map((h, i) => (
+                        <th key={i} className="text-right px-4 py-3">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <SortableContext items={visibleProjects.map((p) => p._id)} strategy={verticalListSortingStrategy}>
+                    <tbody>
+                      {visibleProjects.map((p) => (
+                        <SortableRow key={p._id} project={p} reorderMode={reorderMode}
+                          favorites={favorites} onToggleFav={toggleFav}
+                          onEdit={openEdit} onDelete={confirmDelete.open}
+                          selected={selectedIds.includes(p._id)}
+                          onToggleSelect={(id) => setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])}
+                          unitCount={unitCounts[p._id]} />
+                      ))}
+                    </tbody>
+                  </SortableContext>
+                </table>
+              </DndContext>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {total > table.queryParams.pageSize && (
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>عرض {visibleProjects.length} من {total}</span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => table.handlePageChange(table.queryParams.page - 1)} disabled={table.queryParams.page <= 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">السابق</button>
+              <span className="px-3 font-semibold">{table.queryParams.page}</span>
+              <button onClick={() => table.handlePageChange(table.queryParams.page + 1)} disabled={visibleProjects.length < table.queryParams.pageSize}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">التالي</button>
+            </div>
           </div>
         )}
       </div>
 
-      <Pagination page={page} pages={pages} onPage={setPage} />
+      {/* ── Create/Edit Modal ── */}
+      <AdminModal isOpen={modalOpen} onClose={() => setModalOpen(false)}
+        title={editItem ? "تعديل المشروع" : "إضافة مشروع جديد"}
+        icon={<FaBuilding className="w-4 h-4" />} size="3xl"
+        footer={
+          <>
+            <button onClick={() => setModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 transition-colors">
+              إلغاء
+            </button>
+            <button onClick={handleSave} disabled={isPending}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: "var(--primary)" }}>
+              {isPending && <FaSpinner className="w-3.5 h-3.5 animate-spin" />}
+              {editItem ? "حفظ التغييرات" : "إضافة المشروع"}
+            </button>
+          </>
+        }>
 
-      {/* Form Modal */}
-      <Modal open={modal} onClose={() => setModal(false)} title={editItem ? "تعديل المشروع" : "إضافة مشروع"} size="lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم (عربي)</label>
-            <input value={form.name?.ar} onChange={(e) => f("name.ar", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم (إنجليزي)</label>
-            <input value={form.name?.en} onChange={(e) => f("name.en", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوصف (عربي)</label>
-            <textarea rows={3} value={form.description?.ar} onChange={(e) => f("description.ar", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المدينة (عربي)</label>
-            <input value={form.location?.city?.ar} onChange={(e) => f("location.city.ar", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">العنوان (عربي)</label>
-            <input value={form.location?.address?.ar} onChange={(e) => f("location.address.ar", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-            <select value={form.status} onChange={(e) => f("status", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-              {statusOptions.slice(1).map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">السعر الابتدائي (جنيه)</label>
-            <input type="number" value={form.startingPrice} onChange={(e) => f("startingPrice", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">إجمالي الوحدات</label>
-            <input type="number" value={form.totalUnits} onChange={(e) => f("totalUnits", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-          <ImageUpload
-            className="md:col-span-2"
-            label="الصورة الرئيسية للمشروع"
-            value={form.coverImage}
-            onChange={(url) => f("coverImage", url)}
-          />
+        {/* Tabs */}
+        <div className="flex gap-2 mb-5 border-b border-gray-100 dark:border-gray-800 pb-3">
+          {[{ key: "ar", label: "عربي" }, { key: "en", label: "English" }, { key: "details", label: "تفاصيل" }, { key: "media", label: "وسائط" }].map((t) => (
+            <button key={t.key} onClick={() => setActiveTab(t.key)}
+              className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === t.key ? "text-white" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+              style={activeTab === t.key ? { background: "var(--primary)" } : {}}>{t.label}</button>
+          ))}
+        </div>
 
-          {/* Gallery */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">معرض الصور</label>
-            <div className="flex gap-2 mb-2">
-              <input
-                value={galleryUrl}
-                onChange={(e) => setGalleryUrl(e.target.value)}
-                placeholder="رابط صورة"
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" />
-              <button
-                type="button"
-                onClick={() => {
-                  const url = galleryUrl.trim();
-                  if (!url) return;
-                  f("images", [...(form.images || []), url]);
-                  setGalleryUrl("");
-                }}
-                className="px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium"
-              >إضافة</button>
+        {/* Arabic tab */}
+        {activeTab === "ar" && (
+          <div className="space-y-4">
+            <FormField label="اسم المشروع (عربي)" required>
+              <input value={form.name?.ar} onChange={(e) => f("name.ar", e.target.value)} className={inputCls} />
+            </FormField>
+            <FormField label="الوصف (عربي)">
+              <TextareaField value={form.description?.ar} onChange={(e) => f("description.ar", e.target.value)} rows={4} />
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="المدينة (عربي)">
+                <input value={form.location?.city?.ar} onChange={(e) => f("location.city.ar", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="العنوان (عربي)">
+                <input value={form.location?.address?.ar} onChange={(e) => f("location.address.ar", e.target.value)} className={inputCls} />
+              </FormField>
             </div>
-            {Array.isArray(form.images) && form.images.length > 0 && (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {form.images.map((url, i) => (
-                  <div key={`${url}-${i}`} className="relative group">
-                    <img src={url} alt="" className="w-full h-20 object-cover rounded-lg" />
-                    <button
-                      type="button"
-                      onClick={() => f("images", form.images.filter((_, idx) => idx !== i))}
-                      className="absolute top-1 left-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center opacity-90"
-                    ><X className="w-3 h-3" /></button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+        )}
 
-          {/* Google Maps Embed URL */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط تضمين خريطة Google Maps</label>
-            <input value={form.mapEmbedUrl || ""} onChange={(e) => f("mapEmbedUrl", e.target.value)}
-              placeholder="https://maps.google.com/maps?q=...&output=embed"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-            <p className="text-xs text-gray-400 mt-1">اذهب إلى Google Maps &larr; مشاركة &larr; تضمين الخريطة &larr; انسخ الرابط src من iframe</p>
+        {/* English tab */}
+        {activeTab === "en" && (
+          <div className="space-y-4">
+            <FormField label="Project Name (English)">
+              <input value={form.name?.en} onChange={(e) => f("name.en", e.target.value)} className={inputCls} />
+            </FormField>
+            <FormField label="Description (English)">
+              <TextareaField value={form.description?.en} onChange={(e) => f("description.en", e.target.value)} rows={4} />
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="City (English)">
+                <input value={form.location?.city?.en} onChange={(e) => f("location.city.en", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="Address (English)">
+                <input value={form.location?.address?.en} onChange={(e) => f("location.address.en", e.target.value)} className={inputCls} />
+              </FormField>
+            </div>
           </div>
+        )}
 
-          {/* Developer */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المطوّر العقاري</label>
-            <input value={form.developer?.ar || ""} onChange={(e) => f("developer.ar", e.target.value)}
-              placeholder="اسم الشركة المطورة"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-          </div>
-
-          {/* Amenities */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">المميزات والمرافق</label>
-            <div className="flex flex-wrap gap-2">
-              {["حمام سباحة", "نادي رياضي", "أمن 24 ساعة", "مواقف سيارات", "حديقة", "مدرسة", "مسجد", "مركز تجاري", "منطقة ألعاب", "كهرباء احتياطي"].map((a) => (
-                <button key={a} type="button"
-                  onClick={() => {
+        {/* Details tab */}
+        {activeTab === "details" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="الحالة">
+                <SelectField value={form.status} onChange={(e) => f("status", e.target.value)}>
+                  {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </SelectField>
+              </FormField>
+              <FormField label="السعر الابتدائي (ج)">
+                <input type="number" value={form.startingPrice} onChange={(e) => f("startingPrice", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="إجمالي الوحدات">
+                <input type="number" value={form.totalUnits} onChange={(e) => f("totalUnits", e.target.value)} className={inputCls} />
+              </FormField>
+              <FormField label="المطوّر العقاري">
+                <input value={form.developer?.ar} onChange={(e) => f("developer.ar", e.target.value)} placeholder="اسم الشركة المطورة" className={inputCls} />
+              </FormField>
+            </div>
+            <FormField label="المميزات والمرافق">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {PREDEFINED_AMENITIES.map((a) => (
+                  <button key={a} type="button" onClick={() => {
                     const cur = form.amenities || [];
                     f("amenities", cur.includes(a) ? cur.filter((x) => x !== a) : [...cur, a]);
                   }}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    (form.amenities || []).includes(a)
-                      ? "bg-[#2d5d89] text-white border-[#2d5d89]"
-                      : "border-gray-200 text-gray-600 hover:border-[#2d5d89]"
-                  }`}
-                >{a}</button>
-              ))}
-              {/* Custom amenities not in predefined list */}
-              {(form.amenities || []).filter(a => !["حمام سباحة", "نادي رياضي", "أمن 24 ساعة", "مواقف سيارات", "حديقة", "مدرسة", "مسجد", "مركز تجاري", "منطقة ألعاب", "كهرباء احتياطي"].includes(a)).map((a) => (
-                <button key={a} type="button"
-                  onClick={() => f("amenities", (form.amenities || []).filter((x) => x !== a))}
-                  className="text-xs px-3 py-1.5 rounded-full border bg-[#2d5d89] text-white border-[#2d5d89] flex items-center gap-1">
-                  {a} <X className="w-3 h-3" />
-                </button>
-              ))}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                      (form.amenities || []).includes(a) ? "text-white border-transparent" : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[color:var(--primary)]"
+                    }`}
+                    style={(form.amenities || []).includes(a) ? { background: "var(--primary)" } : {}}>
+                    {a}
+                  </button>
+                ))}
+                {(form.amenities || []).filter((a) => !PREDEFINED_AMENITIES.includes(a)).map((a) => (
+                  <button key={a} type="button" onClick={() => f("amenities", (form.amenities || []).filter((x) => x !== a))}
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full text-white border-transparent"
+                    style={{ background: "var(--primary)" }}>
+                    {a} <FaXmark className="w-2.5 h-2.5" />
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input value={customAmenity} onChange={(e) => setCustomAmenity(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addAmenity(); }}}
+                  placeholder="إضافة ميزة مخصصة..." className={`${inputCls} flex-1`} />
+                <button type="button" onClick={addAmenity}
+                  className="px-3 rounded-xl text-white text-sm font-semibold" style={{ background: "var(--primary)" }}>+</button>
+              </div>
+            </FormField>
+            <div className="flex items-center gap-6">
+              <ToggleField checked={form.featured} onChange={(v) => f("featured", v)} label="مشروع مميز" description="يظهر في أعلى القائمة" />
+              <ToggleField checked={form.published} onChange={(v) => f("published", v)} label="منشور" description="يظهر للزوار" />
             </div>
-            <div className="flex gap-2 mt-2">
-              <input value={customAmenity} onChange={e => setCustomAmenity(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); if (customAmenity.trim() && !(form.amenities||[]).includes(customAmenity.trim())) { f("amenities", [...(form.amenities||[]), customAmenity.trim()]); setCustomAmenity(""); } } }}
-                placeholder="إضافة ميزة مخصصة..."
-                className="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]" />
-              <button type="button" onClick={() => { if (customAmenity.trim() && !(form.amenities||[]).includes(customAmenity.trim())) { f("amenities", [...(form.amenities||[]), customAmenity.trim()]); setCustomAmenity(""); } }}
-                className="px-3 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">+</button>
-            </div>
           </div>
+        )}
 
-          {/* Video URL */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الفيديو (YouTube)</label>
-            <input value={form.videoUrl || ""} onChange={(e) => f("videoUrl", e.target.value)}
-              placeholder="https://youtube.com/watch?v=..."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+        {/* Media tab */}
+        {activeTab === "media" && (
+          <div className="space-y-4">
+            <ImageUpload label="الصورة الرئيسية" value={form.coverImage} onChange={(url) => f("coverImage", url)} />
+            <FormField label="معرض الصور">
+              <div className="flex gap-2 mb-2">
+                <input value={galleryUrl} onChange={(e) => setGalleryUrl(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGalleryUrl(); }}}
+                  placeholder="رابط صورة" className={`${inputCls} flex-1`} />
+                <button type="button" onClick={addGalleryUrl}
+                  className="px-4 rounded-xl text-white text-sm font-semibold" style={{ background: "var(--primary)" }}>إضافة</button>
+              </div>
+              {(form.images || []).length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {form.images.map((url, i) => (
+                    <div key={`${url}-${i}`} className="relative group">
+                      <img src={url} alt="" className="w-full h-20 object-cover rounded-lg" />
+                      <button type="button" onClick={() => f("images", form.images.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 left-1 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center">
+                        <FaXmark className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </FormField>
+            <FormField label="رابط الفيديو (YouTube)">
+              <input value={form.videoUrl} onChange={(e) => f("videoUrl", e.target.value)}
+                placeholder="https://youtube.com/watch?v=..." className={inputCls} />
+            </FormField>
+            <FormField label="رابط تضمين الخريطة" hint="Google Maps → مشاركة → تضمين → src من iframe">
+              <input value={form.mapEmbedUrl} onChange={(e) => f("mapEmbedUrl", e.target.value)}
+                placeholder="https://maps.google.com/maps?q=..." className={inputCls} />
+            </FormField>
           </div>
+        )}
+      </AdminModal>
 
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.featured} onChange={(e) => f("featured", e.target.checked)}
-                className="w-4 h-4 rounded accent-[#2d5d89]" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">مميز</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.published} onChange={(e) => f("published", e.target.checked)}
-                className="w-4 h-4 rounded accent-[#2d5d89]" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">منشور</span>
-            </label>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={() => setModal(false)}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-colors">
-            إلغاء
-          </button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium transition-colors disabled:opacity-50">
-            {saving ? "جاري الحفظ..." : "حفظ"}
-          </button>
-        </div>
-      </Modal>
-
-      <ConfirmModal
-        open={!!deleteId}
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen} onClose={confirmDelete.close}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
-        loading={deleting}
         title="حذف المشروع"
-        message="هل أنت متأكد من حذف هذا المشروع؟ سيتم حذف جميع بياناته."
+        message={`هل تريد حذف مشروع "${confirmDelete.data?.name?.ar ?? ""}"؟`}
+        loading={deleteMutation.isPending}
       />
     </div>
   );
