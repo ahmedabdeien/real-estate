@@ -24,6 +24,7 @@ export const unitsApi = {
   one:    (id) => get(`/units/${id}`),
   create: (d)  => post("/units", d),
   update: (id, d) => put(`/units/${id}`, d),
+  patch:  (id, d) => patch(`/units/${id}`, d),
   remove: (id) => del(`/units/${id}`),
 };
 

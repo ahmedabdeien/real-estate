@@ -1,485 +1,470 @@
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2, Search, Eye, Tag, Clock, Globe, SortAsc, Hash, FileText, X } from "lucide-react";
-import { motion } from "framer-motion";
-import api from "../../api/axios";
-import Modal from "../../Components/UI/Modal";
-import ConfirmModal from "../../Components/UI/ConfirmModal";
-import Pagination from "../../Components/UI/Pagination";
-import EmptyState from "../../Components/UI/EmptyState";
-import LoadingSpinner from "../../Components/UI/LoadingSpinner";
-import Badge, { statusBadge } from "../../Components/UI/Badge";
-import ImageUpload from "../../Components/UI/ImageUpload";
-import HelpCard from "../../Components/UI/HelpCard";
+/**
+ * AdminBlogs — Migrated to TanStack Query + shared UI components
+ * Uses: useBlogs, useCreateBlog, useUpdateBlog, useDeleteBlog
+ *       useForm, useTableState, useDisclosure
+ *       AdminModal, ConfirmDialog, PageHeader, FormField, StatusBadge
+ */
+import { useState } from "react";
+import { z } from "zod";
+import {
+  FaNewspaper, FaPlus, FaPen, FaTrash,
+  FaMagnifyingGlass, FaTag, FaXmark, FaSpinner,
+  FaFileLines, FaStar,
+} from "react-icons/fa6";
+
+import { useBlogs, useCreateBlog, useUpdateBlog, useDeleteBlog } from "../../hooks/queries/useBlogs";
+import { useTableState } from "../../hooks/useTableState";
+import { useDisclosure } from "../../hooks/useDisclosure";
+import { useForm } from "../../hooks/useForm";
+
+import AdminModal from "../../Components/UI/AdminModal";
+import ConfirmDialog from "../../Components/UI/ConfirmDialog";
+import PageHeader, { PrimaryButton } from "../../Components/UI/PageHeader";
+import FormField, { inputCls, SelectField, TextareaField, ToggleField } from "../../Components/UI/FormField";
+import StatusBadge from "../../Components/UI/StatusBadge";
 import { useToast } from "../../context/ToastContext";
 
+// ─── Constants ───────────────────────────────────────────────────────────────
 const CATEGORIES = ["أخبار", "مقالات", "نصائح", "تقارير", "مشاريع", "عروض"];
 
-const emptyBlog = {
-  title: { ar: "", en: "" },
-  content: { ar: "", en: "" },
-  excerpt: { ar: "", en: "" },
-  coverImage: "",
-  coverImageAlt: "",
-  category: "",
-  tags: [],
-  status: "draft",
-  featured: false,
-  metaTitle: "",
-  metaDescription: "",
-  publishAt: "",
+const blogSchema = z.object({
+  titleAr:         z.string().min(3, "العنوان بالعربية مطلوب (3 أحرف على الأقل)"),
+  titleEn:         z.string().optional(),
+  contentAr:       z.string().min(10, "المحتوى بالعربية مطلوب"),
+  contentEn:       z.string().optional(),
+  excerptAr:       z.string().optional(),
+  category:        z.string().min(1, "الفئة مطلوبة"),
+  status:          z.enum(["draft", "published"]),
+  featured:        z.boolean().optional(),
+  coverImage:      z.string().optional(),
+  metaTitle:       z.string().optional(),
+  metaDescription: z.string().optional(),
+});
+
+const emptyValues = {
+  titleAr: "", titleEn: "",
+  contentAr: "", contentEn: "",
+  excerptAr: "", category: "",
+  status: "draft", featured: false,
+  coverImage: "", metaTitle: "", metaDescription: "",
 };
 
 const calcReadingTime = (text = "") =>
-  Math.max(1, Math.ceil((text || "").split(/\s+/).filter(Boolean).length / 200));
+  Math.max(1, Math.ceil(text.split(/\s+/).filter(Boolean).length / 200));
 
-const countWords = (text = "") =>
-  (text || "").split(/\s+/).filter(Boolean).length;
-
+// ─── Main Component ───────────────────────────────────────────────────────────
 export default function AdminBlogs() {
   const toast = useToast();
-  const [blogs, setBlogs] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pages, setPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [activeTab, setActiveTab]     = useState("ar");
+  const [tagInput, setTagInput]       = useState("");
+  const [tags, setTags]               = useState([]);
+  const [statusFilter, setStatusFilter]     = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
-  const [modal, setModal] = useState(false);
-  const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState(emptyBlog);
-  const [saving, setSaving] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [tagInput, setTagInput] = useState("");
-  const [activeTab, setActiveTab] = useState("content");
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/blogs", {
-        params: { page, search, status: statusFilter, category: categoryFilter, sort: sortBy },
-      });
-      setBlogs(res.data.blogs || []);
-      setTotal(res.data.total || 0);
-      setPages(res.data.pages || 1);
-    } catch {
-      toast.error("فشل تحميل المقالات");
-    } finally {
-      setLoading(false);
-    }
+  // Table state
+  const table = useTableState({ defaultPageSize: 10 });
+
+  // Modals
+  const modal         = useDisclosure();
+  const confirmDelete = useDisclosure();
+
+  // Form
+  const form = useForm(blogSchema, emptyValues);
+
+  // Queries
+  const { data, isLoading, isFetching } = useBlogs({
+    page:     table.queryParams.page,
+    limit:    table.queryParams.pageSize,
+    search:   table.queryParams.search,
+    status:   statusFilter || undefined,
+    category: categoryFilter || undefined,
+  });
+
+  const blogs = data?.blogs ?? [];
+  const total = data?.total ?? 0;
+
+  const createMutation = useCreateBlog();
+  const updateMutation = useUpdateBlog();
+  const deleteMutation = useDeleteBlog();
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  const openCreate = () => {
+    form.reset(emptyValues);
+    setTags([]);
+    setActiveTab("ar");
+    modal.open(null);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [page, statusFilter, categoryFilter, sortBy]);
-
-  const openCreate = () => { setEditItem(null); setForm(emptyBlog); setActiveTab("content"); setModal(true); };
-  const openEdit = (b) => {
-    setEditItem(b);
-    setForm({
-      ...emptyBlog,
-      ...b,
-      title: { ar: b.title?.ar ?? "", en: b.title?.en ?? "" },
-      content: { ar: b.content?.ar ?? "", en: b.content?.en ?? "" },
-      excerpt: { ar: b.excerpt?.ar ?? "", en: b.excerpt?.en ?? "" },
-      coverImage: b.coverImage ?? "",
-      coverImageAlt: b.coverImageAlt ?? "",
-      category: b.category ?? "",
-      tags: Array.isArray(b.tags) ? b.tags : [],
-      metaTitle: b.metaTitle ?? "",
-      metaDescription: b.metaDescription ?? "",
-      publishAt: b.publishAt ? String(b.publishAt).slice(0, 16) : "",
+  const openEdit = (blog) => {
+    form.reset({
+      titleAr:         blog.title?.ar ?? "",
+      titleEn:         blog.title?.en ?? "",
+      contentAr:       blog.content?.ar ?? "",
+      contentEn:       blog.content?.en ?? "",
+      excerptAr:       blog.excerpt?.ar ?? "",
+      category:        blog.category ?? "",
+      status:          blog.status ?? "draft",
+      featured:        blog.featured ?? false,
+      coverImage:      blog.coverImage ?? "",
+      metaTitle:       blog.metaTitle ?? "",
+      metaDescription: blog.metaDescription ?? "",
     });
-    setActiveTab("content");
-    setModal(true);
+    setTags(blog.tags ?? []);
+    setActiveTab("ar");
+    modal.open(blog);
   };
 
-  const handleSave = async () => {
-    setSaving(true);
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const payload = {
+      title:           { ar: values.titleAr, en: values.titleEn },
+      content:         { ar: values.contentAr, en: values.contentEn },
+      excerpt:         { ar: values.excerptAr },
+      category:        values.category,
+      status:          values.status,
+      featured:        values.featured,
+      coverImage:      values.coverImage,
+      tags,
+      metaTitle:       values.metaTitle,
+      metaDescription: values.metaDescription,
+    };
+
     try {
-      if (editItem) {
-        await api.put(`/blogs/${editItem._id}`, form);
-        toast.success("تم تحديث المقال");
+      if (modal.data) {
+        await updateMutation.mutateAsync({ id: modal.data._id, data: payload });
+        toast.success("تم تحديث المقال بنجاح");
       } else {
-        await api.post("/blogs", form);
-        toast.success("تم إضافة المقال");
+        await createMutation.mutateAsync(payload);
+        toast.success("تم إنشاء المقال بنجاح");
       }
-      setModal(false);
-      load();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "حدث خطأ");
-    } finally {
-      setSaving(false);
+      modal.close();
+    } catch {
+      toast.error("حدث خطأ، يرجى المحاولة مرة أخرى");
     }
-  };
+  });
 
   const handleDelete = async () => {
-    setDeleting(true);
     try {
-      await api.delete(`/blogs/${deleteId}`);
+      await deleteMutation.mutateAsync(confirmDelete.data._id);
       toast.success("تم حذف المقال");
-      setDeleteId(null);
-      load();
+      confirmDelete.close();
     } catch {
       toast.error("فشل الحذف");
-    } finally {
-      setDeleting(false);
     }
-  };
-
-  const f = (path, value) => {
-    const keys = path.split(".");
-    setForm((prev) => {
-      const next = { ...prev };
-      let obj = next;
-      for (let i = 0; i < keys.length - 1; i++) {
-        obj[keys[i]] = { ...obj[keys[i]] };
-        obj = obj[keys[i]];
-      }
-      obj[keys[keys.length - 1]] = value;
-      return next;
-    });
   };
 
   const addTag = () => {
-    const v = tagInput.trim().replace(/,$/, "");
-    if (!v) return;
-    if (!form.tags.includes(v)) f("tags", [...form.tags, v]);
+    const t = tagInput.trim();
+    if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
     setTagInput("");
   };
-  const removeTag = (t) => f("tags", form.tags.filter((x) => x !== t));
 
-  const onTagKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag();
-    } else if (e.key === "Backspace" && !tagInput && form.tags.length) {
-      removeTag(form.tags[form.tags.length - 1]);
-    }
-  };
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const readingTime = useMemo(() => calcReadingTime(form.content?.ar), [form.content?.ar]);
-  const wordCount = useMemo(() => countWords(form.content?.ar), [form.content?.ar]);
-
-  const blogStats = useMemo(() => ({
-    published: blogs.filter((b) => b.status === "published").length,
-    draft:     blogs.filter((b) => b.status === "draft").length,
-    featured:  blogs.filter((b) => b.featured).length,
-    totalViews:blogs.reduce((acc, b) => acc + (b.views || 0), 0),
-  }), [blogs]);
-
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-5" dir="rtl">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">المقالات والأخبار</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{total} مقال</p>
-        </div>
-        <button onClick={openCreate}
-          className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">إضافة مقال</span>
-          <span className="sm:hidden">إضافة</span>
-        </button>
-      </div>
-
-      {/* Stats */}
-      <div className="flex flex-wrap gap-3">
-        {[
-          { label: "منشور",   value: blogStats.published, color: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-400",  filter: "published" },
-          { label: "مسودة",   value: blogStats.draft,     color: "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400",  filter: "draft" },
-          { label: "مميز",    value: blogStats.featured,  color: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700 text-purple-700 dark:text-purple-400", filter: "" },
-          { label: "مشاهدة", value: blogStats.totalViews.toLocaleString("ar-EG"), color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400",  filter: "" },
-        ].map(({ label, value, color, filter }) => (
-          <button key={label} onClick={() => filter && setStatusFilter(filter)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all hover:opacity-80 ${color} ${filter ? "cursor-pointer" : "cursor-default"}`}>
-            <span className="text-lg font-bold">{value}</span>
-            <span className="text-xs opacity-75">{label}</span>
-          </button>
-        ))}
-      </div>
-
-      <HelpCard
-        title="دليل إدارة المقالات"
-        tips={[
-          "أضف المقال بالعربية والإنجليزية لتحسين ظهوره في محركات البحث",
-          "حالة 'مسودة' تعني أن المقال لن يظهر للزوار حتى تنشره",
-          "فعّل 'مميز' لإظهار المقال في الصفحة الرئيسية",
-          "أضف وسوماً (Tags) لتصنيف المحتوى وتسهيل البحث",
-          "اكتب وصف SEO (150 حرف) لتحسين ظهور المقال في جوجل",
-          "وقت القراءة يحسب تلقائياً من عدد كلمات المحتوى العربي",
+    <div className="flex flex-col h-full" dir="rtl">
+      {/* Header */}
+      <PageHeader
+        title="إدارة المدونة"
+        subtitle="إنشاء وتعديل مقالات الموقع"
+        icon={<FaNewspaper />}
+        loading={isFetching && !isLoading}
+        stats={[
+          { label: "الإجمالي", value: total },
+          { label: "منشور",    value: blogs.filter((b) => b.status === "published").length },
+          { label: "مسودة",    value: blogs.filter((b) => b.status === "draft").length },
         ]}
+        actions={
+          <PrimaryButton icon={<FaPlus />} onClick={openCreate}>
+            مقال جديد
+          </PrimaryButton>
+        }
       />
 
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[160px]">
-          <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()}
-            placeholder="بحث..."
-            className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-        </div>
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-          <option value="">كل الحالات</option>
-          <option value="draft">مسودة</option>
-          <option value="published">منشور</option>
-          <option value="hidden">مخفي</option>
-        </select>
-        <select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-          <option value="">كل التصنيفات</option>
-          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <div className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <SortAsc className="w-4 h-4 text-gray-400" />
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-            className="bg-transparent text-gray-700 dark:text-gray-300 text-sm focus:outline-none">
-            <option value="newest">الأحدث</option>
-            <option value="oldest">الأقدم</option>
-            <option value="views">الأكثر مشاهدة</option>
+      {/* Filters bar */}
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700/60 px-6 py-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+            <input
+              value={table.queryParams.search}
+              onChange={(e) => table.handleSearch(e.target.value)}
+              placeholder="بحث في المقالات..."
+              className={`${inputCls} pr-9 py-2`}
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); table.resetPage(); }}
+            className={`${inputCls} w-auto py-2 text-sm`}
+          >
+            <option value="">كل الحالات</option>
+            <option value="published">منشور</option>
+            <option value="draft">مسودة</option>
+          </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => { setCategoryFilter(e.target.value); table.resetPage(); }}
+            className={`${inputCls} w-auto py-2 text-sm`}
+          >
+            <option value="">كل الفئات</option>
+            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
           </select>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        {loading ? <LoadingSpinner className="h-64" size="lg" /> : blogs.length === 0 ? (
-          <EmptyState icon={FileText} title="لا توجد مقالات" action={
-            <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium">إضافة مقال</button>
-          } />
-        ) : (
-          <div className="divide-y divide-gray-50 dark:divide-gray-700">
-            {blogs.map((b) => {
-              const { label, variant } = statusBadge(b.status);
-              const rt = calcReadingTime(b.content?.ar);
-              return (
-                <motion.div key={b._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  {b.coverImage ? (
-                    <img src={b.coverImage} alt={b.coverImageAlt || ""} className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{b.title?.ar}</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5 truncate hidden sm:block">{b.excerpt?.ar}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <Badge variant={variant}>{label}</Badge>
-                      {b.featured && <Badge variant="warning">مميز</Badge>}
-                      {b.category && (
-                        <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">{b.category}</span>
-                      )}
-                      {Array.isArray(b.tags) && b.tags.slice(0, 2).map((t) => (
-                        <span key={t} className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Hash className="w-2.5 h-2.5" />{t}
-                        </span>
-                      ))}
-                      <span className="text-xs text-gray-400 hidden sm:flex items-center gap-1">
-                        <Eye className="w-3 h-3" />{b.views || 0}
-                      </span>
-                      <span className="text-xs text-gray-400 hidden sm:flex items-center gap-1">
-                        <Clock className="w-3 h-3" />{rt} د قراءة
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => openEdit(b)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setDeleteId(b._id)}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-48">
+            <FaSpinner className="w-6 h-6 animate-spin text-gray-400" />
           </div>
+        ) : blogs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
+            <FaNewspaper className="w-10 h-10 opacity-30" />
+            <p className="text-sm">لا يوجد مقالات بعد</p>
+            <PrimaryButton icon={<FaPlus />} onClick={openCreate}>أضف أول مقال</PrimaryButton>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 overflow-hidden shadow-sm">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    {["المقال", "الفئة", "الكاتب", "مدة القراءة", "الحالة", ""].map((h, i) => (
+                      <th key={i} className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {blogs.map((blog) => (
+                    <tr key={blog._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {blog.coverImage ? (
+                            <img src={blog.coverImage} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                              <FaFileLines className="w-4 h-4 text-gray-400" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-semibold text-gray-900 dark:text-white line-clamp-1">
+                              {blog.title?.ar ?? "—"}
+                            </p>
+                            <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                              {blog.featured && <FaStar className="w-2.5 h-2.5 text-amber-400" />}
+                              {blog.tags?.slice(0, 2).map((t) => (
+                                <span key={t} className="bg-gray-100 dark:bg-gray-700 px-1.5 rounded text-[10px]">{t}</span>
+                              ))}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-xs bg-[color:var(--primary)]/10 text-[color:var(--primary)] px-2 py-1 rounded-lg font-semibold">
+                          {blog.category ?? "—"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                        {blog.author?.name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                        {calcReadingTime(blog.content?.ar ?? "")} دقيقة
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={blog.status} dot />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => openEdit(blog)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                          >
+                            <FaPen className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => confirmDelete.open(blog)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          >
+                            <FaTrash className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {total > table.queryParams.pageSize && (
+              <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
+                <span>عرض {blogs.length} من {total} مقال</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => table.handlePageChange(table.queryParams.page - 1)}
+                    disabled={table.queryParams.page <= 1}
+                    className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >السابق</button>
+                  <span className="px-3 py-1.5 font-semibold">{table.queryParams.page}</span>
+                  <button
+                    onClick={() => table.handlePageChange(table.queryParams.page + 1)}
+                    disabled={blogs.length < table.queryParams.pageSize}
+                    className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >التالي</button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      <Pagination page={page} pages={pages} onPage={setPage} />
-
-      <Modal open={modal} onClose={() => setModal(false)} title={editItem ? "تعديل مقال" : "إضافة مقال"} size="lg">
+      {/* ── Create / Edit Modal ── */}
+      <AdminModal
+        isOpen={modal.isOpen}
+        onClose={modal.close}
+        title={modal.data ? "تعديل المقال" : "إضافة مقال جديد"}
+        icon={<FaNewspaper className="w-4 h-4" />}
+        size="3xl"
+        footer={
+          <>
+            <button
+              onClick={modal.close}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              إلغاء
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60"
+              style={{ background: "var(--primary)" }}
+            >
+              {isPending && <FaSpinner className="w-3.5 h-3.5 animate-spin" />}
+              {modal.data ? "حفظ التغييرات" : "نشر المقال"}
+            </button>
+          </>
+        }
+      >
         {/* Tabs */}
-        <div className="flex border-b border-gray-100 dark:border-gray-700 mb-4 -mt-2">
+        <div className="flex gap-2 mb-5 border-b border-gray-100 dark:border-gray-800 pb-3">
           {[
-            { k: "content", label: "المحتوى" },
-            { k: "settings", label: "الإعدادات" },
-            { k: "seo", label: "SEO" },
+            { key: "ar",   label: "العربية" },
+            { key: "en",   label: "English" },
+            { key: "meta", label: "SEO & إعدادات" },
           ].map((t) => (
-            <button key={t.k} onClick={() => setActiveTab(t.k)} type="button"
-              className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-                activeTab === t.k
-                  ? "text-[#2d5d89] border-b-2 border-[#2d5d89]"
-                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}>
+            <button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === t.key ? "text-white" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+              style={activeTab === t.key ? { background: "var(--primary)" } : {}}
+            >
               {t.label}
             </button>
           ))}
         </div>
 
-        {activeTab === "content" && (
+        {/* Arabic */}
+        {activeTab === "ar" && (
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">العنوان (عربي)</label>
-                <input value={form.title?.ar} onChange={(e) => f("title.ar", e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">العنوان (إنجليزي)</label>
-                <input value={form.title?.en} onChange={(e) => f("title.en", e.target.value)} dir="ltr"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">مقتطف (عربي)</label>
-                <textarea rows={2} value={form.excerpt?.ar} onChange={(e) => f("excerpt.ar", e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">مقتطف (إنجليزي)</label>
-                <textarea rows={2} value={form.excerpt?.en} onChange={(e) => f("excerpt.en", e.target.value)} dir="ltr"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المحتوى (عربي)</label>
-              <textarea rows={6} value={form.content?.ar} onChange={(e) => f("content.ar", e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
-              <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                <span className="flex items-center gap-1"><Hash className="w-3 h-3" /> عدد الكلمات: {wordCount}</span>
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> وقت القراءة: {readingTime} دقيقة</span>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المحتوى (إنجليزي)</label>
-              <textarea rows={5} value={form.content?.en} onChange={(e) => f("content.en", e.target.value)} dir="ltr"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
-            </div>
-          </div>
-        )}
-
-        {activeTab === "settings" && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-                <select value={form.status} onChange={(e) => f("status", e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
+            <FormField label="العنوان بالعربية" error={form.errors.titleAr} required>
+              <input {...form.register("titleAr")} placeholder="عنوان المقال..." className={inputCls} />
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="الفئة" error={form.errors.category} required>
+                <SelectField {...form.register("category")} error={form.errors.category}>
+                  <option value="">اختر الفئة</option>
+                  {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                </SelectField>
+              </FormField>
+              <FormField label="الحالة">
+                <SelectField {...form.register("status")}>
                   <option value="draft">مسودة</option>
                   <option value="published">منشور</option>
-                  <option value="hidden">مخفي</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التصنيف</label>
-                <select value={form.category} onChange={(e) => f("category", e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm">
-                  <option value="">— اختر تصنيفاً —</option>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
+                </SelectField>
+              </FormField>
             </div>
-
-            {form.status === "published" && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">جدولة النشر (اختياري)</label>
-                <input type="datetime-local" value={form.publishAt} onChange={(e) => f("publishAt", e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-                <p className="text-xs text-gray-500 mt-1">اتركه فارغاً للنشر فوراً</p>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                <Tag className="w-3.5 h-3.5" /> الوسوم
-              </label>
-              <div className="flex flex-wrap gap-2 p-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 min-h-[44px]">
-                {form.tags.map((t) => (
-                  <span key={t} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full">
-                    <Hash className="w-3 h-3" />{t}
-                    <button type="button" onClick={() => removeTag(t)} className="hover:text-red-600">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-                <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={onTagKeyDown} onBlur={addTag}
-                  placeholder="اكتب وسماً واضغط Enter أو فاصلة..."
-                  className="flex-1 min-w-[140px] bg-transparent text-sm focus:outline-none text-gray-900 dark:text-white" />
-              </div>
-            </div>
-
-            <ImageUpload
-              label="صورة الغلاف"
-              value={form.coverImage}
-              onChange={(url) => f("coverImage", url)}
-            />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">النص البديل للصورة (Alt)</label>
-              <input value={form.coverImageAlt} onChange={(e) => f("coverImageAlt", e.target.value)}
-                placeholder="وصف الصورة لمحركات البحث وقارئات الشاشة"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-            </div>
-
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.featured} onChange={(e) => f("featured", e.target.checked)}
-                className="w-4 h-4 rounded accent-[#2d5d89]" />
-              <span className="text-sm text-gray-700 dark:text-gray-300">مقال مميز</span>
-            </label>
+            <FormField label="المقتطف">
+              <TextareaField {...form.register("excerptAr")} rows={2} placeholder="ملخص قصير..." />
+            </FormField>
+            <FormField label="المحتوى" error={form.errors.contentAr} required>
+              <TextareaField {...form.register("contentAr")} rows={8} placeholder="اكتب محتوى المقال..." />
+            </FormField>
           </div>
         )}
 
-        {activeTab === "seo" && (
+        {/* English */}
+        {activeTab === "en" && (
           <div className="space-y-4">
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-xl p-3 text-xs text-blue-700 dark:text-blue-300 flex items-start gap-2">
-              <Globe className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>تساعد هذه الحقول على تحسين ظهور المقال في نتائج البحث (Google).</span>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">عنوان SEO (Meta Title)</label>
-              <input value={form.metaTitle} maxLength={70} onChange={(e) => f("metaTitle", e.target.value)}
-                placeholder="عنوان يظهر في نتائج البحث"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
-              <p className={`text-xs mt-1 ${form.metaTitle.length > 60 ? "text-red-500" : "text-gray-500"}`}>
-                {form.metaTitle.length} / 60 حرف
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">وصف SEO (Meta Description)</label>
-              <textarea rows={3} value={form.metaDescription} maxLength={180} onChange={(e) => f("metaDescription", e.target.value)}
-                placeholder="وصف مختصر يظهر تحت العنوان في نتائج البحث"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
-              <p className={`text-xs mt-1 ${form.metaDescription.length > 160 ? "text-red-500" : "text-gray-500"}`}>
-                {form.metaDescription.length} / 160 حرف
-              </p>
-            </div>
+            <FormField label="Title (English)">
+              <input {...form.register("titleEn")} placeholder="Blog title..." className={inputCls} />
+            </FormField>
+            <FormField label="Content (English)">
+              <TextareaField {...form.register("contentEn")} rows={10} placeholder="Blog content..." />
+            </FormField>
           </div>
         )}
 
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={() => setModal(false)}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-colors">
-            إلغاء
-          </button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium transition-colors disabled:opacity-50">
-            {saving ? "جاري الحفظ..." : "حفظ"}
-          </button>
-        </div>
-      </Modal>
+        {/* Meta */}
+        {activeTab === "meta" && (
+          <div className="space-y-4">
+            <FormField label="صورة الغلاف (رابط)">
+              <input {...form.register("coverImage")} placeholder="https://..." className={inputCls} />
+            </FormField>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">الوسوم</label>
+              <div className="flex gap-2">
+                <input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); }}}
+                  placeholder="أضف وسمًا..."
+                  className={`${inputCls} flex-1`}
+                />
+                <button type="button" onClick={addTag}
+                  className="px-3 py-2 rounded-xl text-white text-sm font-semibold" style={{ background: "var(--primary)" }}>
+                  إضافة
+                </button>
+              </div>
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tags.map((t) => (
+                    <span key={t} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 text-xs px-2.5 py-1 rounded-lg font-medium">
+                      <FaTag className="w-2.5 h-2.5 opacity-60" />{t}
+                      <button onClick={() => setTags(tags.filter((x) => x !== t))}><FaXmark className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <FormField label="عنوان SEO">
+              <input {...form.register("metaTitle")} placeholder="عنوان محركات البحث..." className={inputCls} />
+            </FormField>
+            <FormField label="وصف SEO">
+              <TextareaField {...form.register("metaDescription")} rows={3} placeholder="وصف محركات البحث..." />
+            </FormField>
+            <ToggleField
+              checked={form.values.featured}
+              onChange={(v) => form.setValue("featured", v)}
+              label="مقال مميز"
+              description="يظهر في الصفحة الرئيسية"
+            />
+          </div>
+        )}
+      </AdminModal>
 
-      <ConfirmModal open={!!deleteId} onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        onClose={confirmDelete.close}
+        onConfirm={handleDelete}
+        title="حذف المقال"
+        message={`هل تريد حذف مقال "${confirmDelete.data?.title?.ar ?? ""}"؟`}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }
