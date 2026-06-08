@@ -18,7 +18,7 @@ import { useDisclosure } from "../../hooks/useDisclosure";
 import AdminModal from "../../Components/UI/AdminModal";
 import ConfirmDialog from "../../Components/UI/ConfirmDialog";
 import PageHeader, { PrimaryButton, SecondaryButton } from "../../Components/UI/PageHeader";
-import FormField, { inputCls, SelectField, TextareaField, ToggleField } from "../../Components/UI/FormField";
+import FormField, { inputCls, filterInputCls, SelectField, TextareaField, ToggleField } from "../../Components/UI/FormField";
 import StatusBadge from "../../Components/UI/StatusBadge";
 import { useToast } from "../../context/ToastContext";
 import apiClient from "../../api/axios";
@@ -260,7 +260,7 @@ export default function AdminUnits() {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div dir="rtl">
       {/* Header */}
       <PageHeader
         title="الوحدات"
@@ -283,7 +283,7 @@ export default function AdminUnits() {
           <div className="relative">
             <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
             <input value={unitSearch} onChange={(e) => setUnitSearch(e.target.value)}
-              placeholder="رقم الوحدة..." className={`${inputCls} pr-9 py-2 w-36`} />
+              placeholder="رقم الوحدة..." className={`${filterInputCls} pr-9 w-36`} />
             {unitSearch && (
               <button onClick={() => setUnitSearch("")} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">
                 <FaXmark className="w-3 h-3" />
@@ -309,9 +309,9 @@ export default function AdminUnits() {
           </SelectField>
           {/* Price range */}
           <input type="number" value={priceMin} onChange={(e) => setPriceMin(e.target.value)}
-            placeholder="سعر من" className={`${inputCls} w-24 py-2 text-sm`} />
+            placeholder="سعر من" className={`${filterInputCls} w-28`} />
           <input type="number" value={priceMax} onChange={(e) => setPriceMax(e.target.value)}
-            placeholder="سعر إلى" className={`${inputCls} w-24 py-2 text-sm`} />
+            placeholder="سعر إلى" className={`${filterInputCls} w-28`} />
           {/* Favorites toggle */}
           <button onClick={() => setShowFavs((v) => !v)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-semibold transition-colors ${showFavs ? "bg-pink-50 border-pink-200 text-pink-600 dark:bg-pink-900/20" : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-600"}`}>
@@ -358,7 +358,7 @@ export default function AdminUnits() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6 space-y-4">
+      <div className="p-6 space-y-4">
         {/* Bulk actions */}
         {selected.length > 0 && (
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border bg-[color:var(--primary)]/5 border-[color:var(--primary)]/20">

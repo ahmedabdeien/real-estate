@@ -58,6 +58,14 @@ export const inputCls = [
 /** Error className variant */
 export const inputErrorCls = inputCls.replace("border-gray-200 dark:border-gray-600", "border-red-400 dark:border-red-500");
 
+/** Filter bar input — same as inputCls but WITHOUT w-full, for inline compact filters */
+export const filterInputCls = [
+  "px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600",
+  "bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm",
+  "outline-none focus:border-[color:var(--primary)] focus:ring-2 focus:ring-[color:var(--primary)]/20",
+  "transition-all placeholder:text-gray-400",
+].join(" ");
+
 /** Select field */
 export function SelectField({ children, error, ...props }) {
   return (

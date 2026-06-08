@@ -356,7 +356,7 @@ export default function AdminProjects() {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="flex flex-col h-full" dir="rtl">
+    <div dir="rtl">
       {/* Header */}
       <PageHeader
         title="المشاريع"
@@ -429,7 +429,7 @@ export default function AdminProjects() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6 space-y-4">
+      <div className="p-6 space-y-4">
         {/* Bulk actions */}
         {selectedIds.length > 0 && (
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl border bg-[color:var(--primary)]/5 border-[color:var(--primary)]/20">

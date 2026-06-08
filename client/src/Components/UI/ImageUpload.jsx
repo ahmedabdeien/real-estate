@@ -35,7 +35,7 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
     try {
       const data = await uploadToCloudinary(file, setProgress);
       onChange(data.url);
-      toast.success("تم رفع الصورة بنجاح ✓");
+      toast.success("تم رفع الصورة بنجاح");
     } catch (err) {
       toast.error(err.message || "فشل رفع الصورة");
     } finally {
@@ -99,10 +99,11 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
             onChange={(e) => setUrlInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && confirmUrl()}
             placeholder="https://..."
-            className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
+            className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm"
           />
           <button type="button" onClick={confirmUrl}
-            className="px-4 py-2 bg-[#2d5d89] text-white rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+            className="px-4 py-2 text-white rounded-xl text-sm font-medium transition-colors"
+            style={{ background: "var(--primary)" }}>
             إضافة
           </button>
           <button type="button" onClick={() => { setUrlMode(false); setUrlInput(""); }}
@@ -123,19 +124,19 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
             !CLOUD_NAME
               ? "opacity-50 cursor-not-allowed border-gray-200 dark:border-gray-600"
               : isDragging
-              ? "border-[#2d5d89] bg-[#2d5d89]/5 scale-[1.01] cursor-copy"
-              : "border-gray-200 dark:border-gray-600 hover:border-[#2d5d89]/60 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
+              ? "border-[var(--primary)] bg-[var(--primary)]/5 scale-[1.01] cursor-copy"
+              : "border-gray-200 dark:border-gray-600 hover:border-[var(--primary)]/60 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
           }`}
         >
-          <FaImage className={`w-9 h-9 mx-auto mb-2 transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
-          <p className={`text-sm font-medium transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-500 dark:text-gray-400"}`}>
-            {isDragging ? "🎉 أفلت الصورة هنا" : "اسحب صورة أو اضغط للاختيار"}
+          <FaImage className={`w-9 h-9 mx-auto mb-2 transition-colors ${isDragging ? "text-[var(--primary)]" : "text-gray-300 dark:text-gray-600"}`} />
+          <p className={`text-sm font-medium transition-colors ${isDragging ? "text-[var(--primary)]" : "text-gray-500 dark:text-gray-400"}`}>
+            {isDragging ? "أفلت الصورة هنا" : "اسحب صورة أو اضغط للاختيار"}
           </p>
           <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP • يرفع مباشرة على Cloudinary</p>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); setUrlMode(true); }}
-            className="mt-3 text-xs text-[#2d5d89] hover:underline flex items-center gap-1 mx-auto"
+            className="mt-3 text-xs text-[var(--primary)] hover:underline flex items-center gap-1 mx-auto"
           >
             <FaLink className="w-3 h-3" /> أو أدخل رابط URL
           </button>
