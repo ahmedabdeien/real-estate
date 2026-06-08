@@ -55,3 +55,24 @@ export function useDeleteTask() {
     onSuccess:  () => qc.invalidateQueries({ queryKey: [TASKS_KEY] }),
   });
 }
+
+/** Optimistic patch for quick status changes (Kanban DnD + inline select) */
+export function usePatchTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }) => tasksApi.update(id, data),
+    onMutate: async ({ id, data }) => {
+      await qc.cancelQueries({ queryKey: [TASKS_KEY] });
+      const snapshots = qc.getQueriesData({ queryKey: [TASKS_KEY] });
+      qc.setQueriesData({ queryKey: [TASKS_KEY] }, (old) => {
+        if (!old?.tasks) return old;
+        return { ...old, tasks: old.tasks.map((t) => t._id === id ? { ...t, ...data } : t) };
+      });
+      return { snapshots };
+    },
+    onError: (_, __, ctx) => {
+      ctx?.snapshots?.forEach(([key, val]) => qc.setQueryData(key, val));
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: [TASKS_KEY] }),
+  });
+}

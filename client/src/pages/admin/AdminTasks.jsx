@@ -1,34 +1,39 @@
 /**
- * AdminTasks — full task management inside the admin panel.
- * Accessible to: admin, supervisor, manager
+ * AdminTasks — migrated to TanStack Query + shared UI components
+ * Preserves: Kanban DnD, list view, bulk actions, department stats
  */
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, Edit2, CheckCircle2, Clock, AlertCircle,
-  Layers, Flag, User, Building2, Search, X, Filter, Kanban, Activity,
-} from "lucide-react";
+  FaPlus, FaTrash, FaPen, FaCircleCheck, FaClock, FaTriangleExclamation,
+  FaLayerGroup, FaFlag, FaUser, FaMagnifyingGlass, FaXmark, FaBars,
+  FaTableColumns, FaChartBar, FaSpinner,
+} from "react-icons/fa6";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  useDraggable, useDroppable,
 } from "@dnd-kit/core";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import api from "../../api/axios";
+
+import { useTasks, useCreateTask, useUpdateTask, useDeleteTask, usePatchTask } from "../../hooks/queries/useTasks";
+import { useUsers } from "../../hooks/queries/useUsers";
+import { useDisclosure } from "../../hooks/useDisclosure";
+import { useForm } from "../../hooks/useForm";
+
+import AdminModal from "../../Components/UI/AdminModal";
+import ConfirmDialog from "../../Components/UI/ConfirmDialog";
+import PageHeader, { PrimaryButton } from "../../Components/UI/PageHeader";
+import FormField, { inputCls, SelectField, TextareaField } from "../../Components/UI/FormField";
+import StatusBadge from "../../Components/UI/StatusBadge";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import ConfirmModal from "../../Components/UI/ConfirmModal";
-import Modal from "../../Components/UI/Modal";
-import HelpCard from "../../Components/UI/HelpCard";
-import {
-  DEPARTMENTS, STATUS_LABELS, ROLE_LABELS, Countdown,
-} from "../tasks/TasksPage";
+import { DEPARTMENTS, STATUS_LABELS, ROLE_LABELS, Countdown } from "../tasks/TasksPage";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
+// ── Constants ──────────────────────────────────────────────────────────────
 const PRIORITY_LABELS = { low: "منخفض", medium: "متوسط", high: "عالي" };
 const STATUS_COLORS = {
-  pending:     "bg-yellow-100 text-yellow-700",
-  in_progress: "bg-blue-100   text-blue-700",
-  done:        "bg-green-100  text-green-700",
+  pending:     "bg-amber-100 text-amber-700",
+  in_progress: "bg-blue-100  text-blue-700",
+  done:        "bg-green-100 text-green-700",
 };
 const PRIORITY_COLORS = {
   low:    "bg-gray-100   text-gray-500",
@@ -44,15 +49,84 @@ const DEPT_COLORS = {
   warehouse:      "bg-orange-50 text-orange-700",
   purchasing:     "bg-red-50    text-red-600",
 };
+const KANBAN_COLS = [
+  { key: "in_progress", label: "قيد التنفيذ", color: "border-blue-300 bg-blue-50/40" },
+  { key: "pending",     label: "للمراجعة",    color: "border-amber-300 bg-amber-50/40" },
+  { key: "done",        label: "مكتمل",        color: "border-green-300 bg-green-50/40" },
+];
+const PRIORITY_BORDER = { high: "border-r-red-500", medium: "border-r-amber-400", low: "border-r-green-400" };
 
 const emptyForm = {
   title: "", description: "", dueDate: "", priority: "medium",
   assignedTo: [], notes: "", department: "",
 };
 
-// ─── TaskForm (inside Modal) ──────────────────────────────────────────────────
+// ── Kanban Card ──────────────────────────────────────────────────────────
+function DraggableCard({ task, onEdit, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task._id });
+  const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)`, zIndex: 50 } : undefined;
+  const isOverdue = task.status !== "done" && task.dueDate && new Date(task.dueDate) < new Date();
 
-function TaskForm({ form, setForm, users, userRole, userDept }) {
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white dark:bg-gray-900 rounded-xl border-r-4 border border-gray-100 dark:border-gray-700 p-3 shadow-sm cursor-grab active:cursor-grabbing select-none transition-shadow ${isDragging ? "shadow-lg opacity-80" : "hover:shadow-md"} ${PRIORITY_BORDER[task.priority] || "border-r-gray-300"} ${isOverdue ? "ring-1 ring-red-300" : ""}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <p className={`text-sm font-medium leading-snug ${isOverdue ? "text-red-700" : "text-gray-900 dark:text-white"}`}>
+          {task.title}
+        </p>
+        <div className="flex gap-1 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
+          <button onClick={() => onEdit(task)} className="p-1 rounded hover:bg-blue-50 text-blue-500">
+            <FaPen className="w-3 h-3" />
+          </button>
+          <button onClick={() => onDelete(task._id)} className="p-1 rounded hover:bg-red-50 text-red-400">
+            <FaTrash className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${PRIORITY_COLORS[task.priority]}`}>
+          {PRIORITY_LABELS[task.priority]}
+        </span>
+        {isOverdue && <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">متأخرة</span>}
+      </div>
+      {task.assignedTo?.length > 0 && (
+        <div className="flex -space-x-1 space-x-reverse mt-2">
+          {task.assignedTo.slice(0, 3).map((u) => (
+            <div key={u._id} title={u.name}
+              className="w-5 h-5 rounded-full border border-white flex items-center justify-center text-[9px] font-bold text-white"
+              style={{ background: "var(--primary)" }}>
+              {u.name?.[0]?.toUpperCase()}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DroppableColumn({ colKey, label, color, tasks, onEdit, onDelete }) {
+  const { setNodeRef, isOver } = useDroppable({ id: colKey });
+  return (
+    <div className={`flex-1 min-w-[240px] rounded-2xl border-2 ${color} ${isOver ? "ring-2 ring-[color:var(--primary)]/40" : ""} transition-all`}>
+      <div className="px-3 py-2.5 border-b border-current/10">
+        <span className="font-semibold text-sm text-gray-700 dark:text-gray-200">{label}</span>
+        <span className="mr-2 text-xs text-gray-400 bg-white/60 dark:bg-gray-900/40 px-1.5 py-0.5 rounded-full">{tasks.length}</span>
+      </div>
+      <div ref={setNodeRef} className="p-3 space-y-2.5 min-h-[200px]">
+        {tasks.map((t) => <DraggableCard key={t._id} task={t} onEdit={onEdit} onDelete={onDelete} />)}
+        {tasks.length === 0 && <p className="text-xs text-gray-400 text-center py-6">لا توجد مهام هنا</p>}
+      </div>
+    </div>
+  );
+}
+
+// ── Task Form ──────────────────────────────────────────────────────────────
+function TaskForm({ form, setForm, users, userRole }) {
   const f = (k, v) => setForm((p) => ({ ...p, [k]: v }));
   const toggleUser = (id) =>
     setForm((p) => ({
@@ -68,258 +142,130 @@ function TaskForm({ form, setForm, users, userRole, userDept }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">عنوان المهمة *</label>
-          <input value={form.title} onChange={(e) => f("title", e.target.value)}
-            placeholder="عنوان المهمة..."
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">القسم *</label>
-          <select value={form.department} onChange={(e) => f("department", e.target.value)}
-            disabled={userRole === "manager"}
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] disabled:opacity-60">
+      <FormField label="عنوان المهمة" required>
+        <input value={form.title} onChange={(e) => f("title", e.target.value)}
+          placeholder="عنوان المهمة..." className={inputCls} />
+      </FormField>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="القسم" required>
+          <SelectField value={form.department} onChange={(e) => f("department", e.target.value)}
+            disabled={userRole === "manager"}>
             <option value="">— اختر القسم —</option>
-            {Object.entries(DEPARTMENTS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الأولوية</label>
-          <select value={form.priority} onChange={(e) => f("priority", e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
+            {Object.entries(DEPARTMENTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </SelectField>
+        </FormField>
+        <FormField label="الأولوية">
+          <SelectField value={form.priority} onChange={(e) => f("priority", e.target.value)}>
             <option value="low">منخفض</option>
             <option value="medium">متوسط</option>
             <option value="high">عالي</option>
-          </select>
-        </div>
-
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">التاريخ والوقت *</label>
-          <input type="datetime-local" value={form.dueDate} onChange={(e) => f("dueDate", e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-        </div>
-
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوصف</label>
-          <textarea value={form.description} onChange={(e) => f("description", e.target.value)}
-            rows={3} placeholder="وصف المهمة..."
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none" />
-        </div>
-
-        {/* Users */}
-        {deptUsers.length > 0 && (
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              تعيين إلى
-              {form.department && <span className="text-xs text-gray-400 mr-1">({DEPARTMENTS[form.department]})</span>}
-            </label>
-            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-              {deptUsers.map((u) => (
-                <button key={u._id} type="button" onClick={() => toggleUser(u._id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                    form.assignedTo.includes(u._id)
-                      ? "bg-[#2d5d89] text-white border-[#2d5d89]"
-                      : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-[#2d5d89]"
-                  }`}>
-                  {u.name}
-                  <span className="opacity-60">({ROLE_LABELS[u.role] || u.role})</span>
-                </button>
-              ))}
-            </div>
+          </SelectField>
+        </FormField>
+      </div>
+      <FormField label="التاريخ والوقت" required>
+        <input type="datetime-local" value={form.dueDate} onChange={(e) => f("dueDate", e.target.value)} className={inputCls} />
+      </FormField>
+      <FormField label="الوصف">
+        <TextareaField value={form.description} onChange={(e) => f("description", e.target.value)} rows={3} placeholder="وصف المهمة..." />
+      </FormField>
+      {deptUsers.length > 0 && (
+        <FormField label="تعيين إلى">
+          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+            {deptUsers.map((u) => (
+              <button key={u._id} type="button" onClick={() => toggleUser(u._id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                  form.assignedTo.includes(u._id)
+                    ? "text-white border-transparent"
+                    : "bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                }`}
+                style={form.assignedTo.includes(u._id) ? { background: "var(--primary)" } : {}}>
+                {u.name}
+                <span className="opacity-60">({ROLE_LABELS[u.role] || u.role})</span>
+              </button>
+            ))}
           </div>
-        )}
-
-        <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ملاحظات</label>
-          <textarea value={form.notes} onChange={(e) => f("notes", e.target.value)}
-            rows={2} placeholder="ملاحظات..."
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Kanban helpers ───────────────────────────────────────────────────────────
-
-const KANBAN_COLS = [
-  { key: "in_progress", label: "قيد التنفيذ",  color: "border-blue-300 bg-blue-50/40" },
-  { key: "pending",     label: "للمراجعة",      color: "border-yellow-300 bg-yellow-50/40" },
-  { key: "done",        label: "مكتمل",         color: "border-green-300 bg-green-50/40" },
-];
-
-const PRIORITY_BORDER = { high: "border-r-red-500", medium: "border-r-amber-400", low: "border-r-green-400" };
-
-function DraggableCard({ task, onEdit, onDelete }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: task._id });
-  const style = transform ? { transform: `translate(${transform.x}px, ${transform.y}px)`, zIndex: 50 } : undefined;
-  const now = new Date();
-  const isOverdue = task.status !== "done" && task.dueDate && new Date(task.dueDate) < now;
-  const daysAgo = task.createdAt ? Math.floor((now - new Date(task.createdAt)) / (1000 * 60 * 60 * 24)) : null;
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`bg-white rounded-xl border-r-4 border border-gray-100 p-3 shadow-sm cursor-grab active:cursor-grabbing select-none transition-shadow ${isDragging ? "shadow-lg opacity-80" : "hover:shadow-md"} ${PRIORITY_BORDER[task.priority] || "border-r-gray-300"} ${isOverdue ? "ring-1 ring-red-300" : ""}`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <p className={`text-sm font-medium leading-snug ${isOverdue ? "text-red-700" : "text-gray-900"}`}>{task.title}</p>
-        <div className="flex gap-1 shrink-0" onPointerDown={(e) => e.stopPropagation()}>
-          <button onClick={() => onEdit(task)} className="p-1 rounded hover:bg-blue-50 text-blue-500"><Edit2 className="w-3 h-3" /></button>
-          <button onClick={() => onDelete(task._id)} className="p-1 rounded hover:bg-red-50 text-red-400"><Trash2 className="w-3 h-3" /></button>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 mt-2 flex-wrap">
-        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${PRIORITY_COLORS[task.priority]}`}>
-          {PRIORITY_LABELS[task.priority]}
-        </span>
-        {daysAgo !== null && (
-          <span className="text-[10px] text-gray-400">منذ {daysAgo} يوم</span>
-        )}
-        {isOverdue && <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">متأخرة</span>}
-      </div>
-      {task.assignedTo?.length > 0 && (
-        <div className="flex -space-x-1 space-x-reverse mt-2">
-          {task.assignedTo.slice(0, 3).map((u) => (
-            <div key={u._id} title={u.name} className="w-5 h-5 rounded-full bg-[#2d5d89]/10 border border-white flex items-center justify-center text-[9px] font-bold text-[#2d5d89]">
-              {u.name?.[0]?.toUpperCase()}
-            </div>
-          ))}
-        </div>
+        </FormField>
       )}
+      <FormField label="ملاحظات">
+        <TextareaField value={form.notes} onChange={(e) => f("notes", e.target.value)} rows={2} placeholder="ملاحظات..." />
+      </FormField>
     </div>
   );
 }
 
-function DroppableColumn({ colKey, label, color, tasks, onEdit, onDelete }) {
-  const { setNodeRef, isOver } = useDroppable({ id: colKey });
-  return (
-    <div className={`flex-1 min-w-[240px] rounded-2xl border-2 ${color} ${isOver ? "ring-2 ring-[#2d5d89]/40" : ""} transition-all`}>
-      <div className="px-3 py-2.5 border-b border-current/10">
-        <span className="font-semibold text-sm text-gray-700">{label}</span>
-        <span className="mr-2 text-xs text-gray-400 bg-white/60 px-1.5 py-0.5 rounded-full">{tasks.length}</span>
-      </div>
-      <div ref={setNodeRef} className="p-3 space-y-2.5 min-h-[200px]">
-        {tasks.map((t) => (
-          <DraggableCard key={t._id} task={t} onEdit={onEdit} onDelete={onDelete} />
-        ))}
-        {tasks.length === 0 && (
-          <p className="text-xs text-gray-400 text-center py-6">لا توجد مهام هنا</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main AdminTasks ──────────────────────────────────────────────────────────
-
+// ── Main Component ─────────────────────────────────────────────────────────
 export default function AdminTasks() {
-  const { user } = useAuth();
-  const toast = useToast();
+  const { user }  = useAuth();
+  const toast     = useToast();
 
-  const [tasks,      setTasks]      = useState([]);
-  const [users,      setUsers]      = useState([]);
-  const [loading,    setLoading]    = useState(true);
-  const [modal,      setModal]      = useState(false);
-  const [editItem,   setEditItem]   = useState(null);
-  const [form,       setForm]       = useState(emptyForm);
-  const [saving,     setSaving]     = useState(false);
-  const [deleteId,   setDeleteId]   = useState(null);
-  const [deleting,   setDeleting]   = useState(false);
-  const [search,     setSearch]     = useState("");
-  const [deptFilter, setDeptFilter] = useState("all");
+  const [form,         setForm]         = useState(emptyForm);
+  const [editItem,     setEditItem]     = useState(null);
+  const [modalOpen,    setModalOpen]    = useState(false);
+  const [search,       setSearch]       = useState("");
+  const [deptFilter,   setDeptFilter]   = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selected,   setSelected]   = useState(new Set());
-  const [viewMode,   setViewMode]   = useState("list"); // "list" | "kanban"
+  const [selected,     setSelected]     = useState(new Set());
+  const [viewMode,     setViewMode]     = useState("list");
 
+  const confirmDelete = useDisclosure();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const canManage = ["admin", "supervisor", "manager"].includes(user?.role);
   const canSeeAll = ["admin", "supervisor"].includes(user?.role);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [tr, ur] = await Promise.all([
-        api.get("/tasks"),
-        canManage ? api.get("/tasks/users") : Promise.resolve({ data: { users: [] } }),
-      ]);
-      setTasks(tr.data.tasks || []);
-      setUsers(ur.data.users || []);
-    } catch {
-      toast.error("فشل تحميل المهام");
-    } finally {
-      setLoading(false);
-    }
-  }, [canManage]);
+  // Queries
+  const { data: tasksData, isLoading } = useTasks();
+  const { data: usersData }            = useUsers({ limit: 200 }, { enabled: canManage });
 
-  useEffect(() => { loadData(); }, [loadData]);
+  const tasks = tasksData?.tasks ?? [];
+  const users = usersData?.users ?? [];
 
-  // Filters
-  const filtered = tasks.filter((t) => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || t.title.toLowerCase().includes(q) ||
-      t.assignedTo?.some((u) => u.name?.toLowerCase().includes(q));
-    const matchDept   = deptFilter === "all" || t.department === deptFilter;
-    const matchStatus = statusFilter === "all" || t.status === statusFilter;
-    return matchSearch && matchDept && matchStatus;
-  });
+  const createMutation = useCreateTask();
+  const updateMutation = useUpdateTask();
+  const deleteMutation = useDeleteTask();
+  const patchMutation  = usePatchTask();
 
-  // Stats by dept — include completion percentage
-  const deptStats = Object.keys(DEPARTMENTS).reduce((acc, d) => {
-    const total = tasks.filter((t) => t.department === d).length;
-    const done  = tasks.filter((t) => t.department === d && t.status === "done").length;
-    acc[d] = { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  // ── Derived ──
+  const now   = new Date();
+  const total = tasks.length;
+  const completedCount  = tasks.filter((t) => t.status === "done").length;
+  const pendingCount    = tasks.filter((t) => t.status !== "done").length;
+  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
+  const overdueCount    = tasks.filter((t) => t.status !== "done" && t.dueDate && new Date(t.dueDate) < now).length;
+
+  const deptStats = useMemo(() => Object.keys(DEPARTMENTS).reduce((acc, d) => {
+    const tot  = tasks.filter((t) => t.department === d).length;
+    const done = tasks.filter((t) => t.department === d && t.status === "done").length;
+    acc[d] = { total: tot, done, pct: tot ? Math.round((done / tot) * 100) : 0 };
     return acc;
-  }, {});
+  }, {}), [tasks]);
 
-  const toggleSelect = (id) => {
-    setSelected((prev) => {
-      const s = new Set(prev);
-      s.has(id) ? s.delete(id) : s.add(id);
-      return s;
-    });
-  };
+  const filtered = useMemo(() => tasks.filter((t) => {
+    const q = search.toLowerCase();
+    return (
+      (!q || t.title.toLowerCase().includes(q) || t.assignedTo?.some((u) => u.name?.toLowerCase().includes(q))) &&
+      (deptFilter === "all" || t.department === deptFilter) &&
+      (statusFilter === "all" || t.status === statusFilter)
+    );
+  }), [tasks, search, deptFilter, statusFilter]);
 
-  const toggleSelectAll = () => {
-    if (selected.size === filtered.length) setSelected(new Set());
-    else setSelected(new Set(filtered.map((t) => t._id)));
-  };
+  const depts = [...new Set(tasks.map((t) => t.department))].filter(Boolean);
 
-  const bulkStatus = async (status) => {
-    const ids = [...selected];
-    if (ids.length === 0) return;
-    try {
-      await Promise.all(ids.map((id) => api.put(`/tasks/${id}`, { status })));
-      setTasks((p) => p.map((t) => ids.includes(t._id) ? { ...t, status } : t));
-      setSelected(new Set());
-      toast.success(`تم تحديث ${ids.length} مهمة`);
-    } catch {
-      toast.error("فشل التحديث المجمّع");
-    }
-  };
-
+  // ── Handlers ──
   const openCreate = () => {
     setEditItem(null);
     setForm({ ...emptyForm, department: user?.role === "manager" ? (user?.department || "") : "" });
-    setModal(true);
+    setModalOpen(true);
   };
+
   const openEdit = (task) => {
     setEditItem(task);
     setForm({
       ...task,
-      dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : "",
+      dueDate:    task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : "",
       assignedTo: (task.assignedTo || []).map((u) => u._id || u),
     });
-    setModal(true);
+    setModalOpen(true);
   };
 
   const handleSave = async () => {
@@ -327,428 +273,351 @@ export default function AdminTasks() {
       toast.error("يرجى ملء الحقول المطلوبة");
       return;
     }
-    setSaving(true);
     try {
       if (editItem) {
-        const r = await api.put(`/tasks/${editItem._id}`, form);
-        setTasks((p) => p.map((t) => t._id === editItem._id ? r.data.task : t));
+        await updateMutation.mutateAsync({ id: editItem._id, data: form });
         toast.success("تم تحديث المهمة");
       } else {
-        const r = await api.post("/tasks", form);
-        setTasks((p) => [r.data.task, ...p]);
+        await createMutation.mutateAsync(form);
         toast.success("تم إنشاء المهمة");
       }
-      setModal(false);
+      setModalOpen(false);
     } catch (err) {
-      toast.error(err.response?.data?.message || "حدث خطأ");
-    } finally {
-      setSaving(false);
+      toast.error(err?.response?.data?.message || "حدث خطأ");
     }
   };
 
   const handleDelete = async () => {
-    setDeleting(true);
     try {
-      await api.delete(`/tasks/${deleteId}`);
-      setTasks((p) => p.filter((t) => t._id !== deleteId));
-      setDeleteId(null);
+      await deleteMutation.mutateAsync(confirmDelete.data);
       toast.success("تم حذف المهمة");
+      confirmDelete.close();
     } catch {
       toast.error("فشل الحذف");
-    } finally {
-      setDeleting(false);
     }
   };
 
-  const handleStatusChange = async (id, status) => {
-    try {
-      const r = await api.put(`/tasks/${id}`, { status });
-      setTasks((p) => p.map((t) => t._id === id ? r.data.task : t));
-      toast.success("تم تحديث الحالة");
-    } catch {
-      toast.error("فشل التحديث");
-    }
+  const handleStatusChange = (id, status) => {
+    patchMutation.mutate({ id, data: { status } });
   };
 
-  const handleDragEnd = async ({ active, over }) => {
+  const handleDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return;
     const newStatus = over.id;
     const task = tasks.find((t) => t._id === active.id);
     if (!task || task.status === newStatus) return;
-    try {
-      const r = await api.put(`/tasks/${active.id}`, { status: newStatus });
-      setTasks((p) => p.map((t) => t._id === active.id ? r.data.task : t));
-    } catch {
-      toast.error("فشل تحديث الحالة");
-    }
+    patchMutation.mutate({ id: active.id, data: { status: newStatus } });
   };
 
-  const depts = [...new Set(tasks.map((t) => t.department))].filter(Boolean);
+  const toggleSelect    = (id) => setSelected((p) => { const s = new Set(p); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  const toggleSelectAll = () => selected.size === filtered.length ? setSelected(new Set()) : setSelected(new Set(filtered.map((t) => t._id)));
 
-  // Progress summary
-  const now = new Date();
-  const completedCount = tasks.filter((t) => t.status === "done").length;
-  const pendingCount = tasks.filter((t) => t.status !== "done").length;
-  const overdueCount = tasks.filter((t) => t.status !== "done" && t.dueDate && new Date(t.dueDate) < now).length;
+  const bulkStatus = async (status) => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    await Promise.all(ids.map((id) => patchMutation.mutateAsync({ id, data: { status } })));
+    setSelected(new Set());
+    toast.success(`تم تحديث ${ids.length} مهمة`);
+  };
 
-  const inProgressCount = tasks.filter((t) => t.status === "in_progress").length;
-  const totalCount = tasks.length;
-  const donePct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
+  // ── Render ──
   return (
-    <div className="space-y-5" dir="rtl">
-      {/* ── Page header ── */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{canManage ? "إدارة المهام" : "مهامي"}</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{tasks.length} مهمة إجمالي</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* View toggle */}
-          <div className="flex border border-gray-200 rounded-xl overflow-hidden">
-            <button onClick={() => setViewMode("list")} className={`px-3 py-2 text-xs font-medium transition-colors ${viewMode === "list" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:bg-gray-50"}`}>
-              قائمة
-            </button>
-            <button onClick={() => setViewMode("kanban")} className={`px-3 py-2 text-xs font-medium transition-colors ${viewMode === "kanban" ? "bg-[#2d5d89] text-white" : "text-gray-500 hover:bg-gray-50"}`}>
-              كانبان
-            </button>
-          </div>
-          {canManage && (
-            <button onClick={openCreate}
-              className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors">
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">مهمة جديدة</span>
-              <span className="sm:hidden">إضافة</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ── Progress summary bar ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { icon: Layers,       label: "الإجمالي",    value: totalCount,       color: "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300", action: () => setStatusFilter("all") },
-          { icon: Clock,        label: "معلقة",       value: pendingCount,      color: "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400", action: () => setStatusFilter("pending") },
-          { icon: Activity,     label: "قيد التنفيذ", value: inProgressCount,   color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400", action: () => setStatusFilter("in_progress") },
-          { icon: CheckCircle2, label: "مكتملة",      value: completedCount,    color: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-400", action: () => setStatusFilter("done") },
-        ].map(({ icon: Icon, label, value, color, action }) => (
-          <button key={label} onClick={action}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all hover:shadow-sm text-right ${color}`}>
-            <div className="flex-1">
-              <p className="text-2xl font-bold">{value}</p>
-              <p className="text-xs opacity-75 mt-0.5">{label}</p>
+    <div className="flex flex-col h-full" dir="rtl">
+      {/* Header */}
+      <PageHeader
+        title={canManage ? "إدارة المهام" : "مهامي"}
+        subtitle={`${total} مهمة إجمالي`}
+        icon={<FaLayerGroup />}
+        loading={isLoading}
+        actions={
+          <>
+            {/* View toggle */}
+            <div className="flex border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden">
+              {[
+                { key: "list",   icon: <FaBars className="w-3.5 h-3.5" />,         label: "قائمة" },
+                { key: "kanban", icon: <FaTableColumns className="w-3.5 h-3.5" />, label: "كانبان" },
+              ].map((v) => (
+                <button key={v.key} onClick={() => setViewMode(v.key)}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
+                    viewMode === v.key ? "text-white" : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  }`}
+                  style={viewMode === v.key ? { background: "var(--primary)" } : {}}>
+                  {v.icon}{v.label}
+                </button>
+              ))}
             </div>
-            <Icon className="w-6 h-6 opacity-50 flex-shrink-0" />
-          </button>
-        ))}
-      </div>
-      {overdueCount > 0 && (
-        <button onClick={() => setStatusFilter("pending")}
-          className="w-full flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-red-100 transition-colors">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          تنبيه: {overdueCount} مهمة متأخرة عن موعدها — اضغط للمراجعة
-        </button>
-      )}
-
-      <HelpCard
-        title="دليل إدارة المهام"
-        tips={[
-          "اضغط 'مهمة جديدة' لإنشاء مهمة وتعيينها لموظف أو أكثر",
-          "الموظف يرى مهامه فقط — المدير يرى مهام قسمه — الأدمن يرى الكل",
-          "انقر على حالة المهمة في الجدول لتغييرها مباشرة بدون فتح نافذة",
-          "حدد مهام متعددة بمربعات الاختيار لتغيير حالتها دفعة واحدة",
-          "استخدم عرض الكانبان لمتابعة تقدم المهام بصرياً",
-        ]}
+            {canManage && (
+              <PrimaryButton icon={<FaPlus />} onClick={openCreate}>مهمة جديدة</PrimaryButton>
+            )}
+          </>
+        }
       />
 
-      {/* ── Dept stats (admin/supervisor) ── */}
-      {canSeeAll && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-          {Object.entries(DEPARTMENTS).map(([k, v]) => (
-            <button key={k} onClick={() => setDeptFilter(deptFilter === k ? "all" : k)}
-              className={`bg-white dark:bg-gray-800 rounded-xl border p-3 text-center transition-all ${
-                deptFilter === k ? "border-[#2d5d89] ring-2 ring-[#2d5d89]/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
-              }`}>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">{deptStats[k]?.total || 0}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">{v}</p>
-              {deptStats[k]?.total > 0 && (
-                <div className="mt-1.5">
-                  <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full transition-all"
-                      style={{ width: `${deptStats[k].pct}%` }} />
-                  </div>
-                  <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{deptStats[k].pct}%</p>
-                </div>
-              )}
+      <div className="flex-1 overflow-auto p-6 space-y-5">
+        {/* Stats cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { icon: <FaLayerGroup />,  label: "الإجمالي",    value: total,          color: "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300", filter: "all" },
+            { icon: <FaClock />,       label: "معلقة",       value: pendingCount,   color: "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-400", filter: "pending" },
+            { icon: <FaChartBar />,    label: "قيد التنفيذ", value: inProgressCount,color: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400", filter: "in_progress" },
+            { icon: <FaCircleCheck />, label: "مكتملة",      value: completedCount, color: "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-700 dark:text-green-400", filter: "done" },
+          ].map(({ icon, label, value, color, filter }) => (
+            <button key={label} onClick={() => setStatusFilter(filter)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all hover:shadow-sm text-right ${color} ${statusFilter === filter ? "ring-2 ring-[color:var(--primary)]/30" : ""}`}>
+              <div className="flex-1">
+                <p className="text-2xl font-black">{value}</p>
+                <p className="text-xs opacity-70 mt-0.5">{label}</p>
+              </div>
+              <span className="opacity-40 text-lg">{icon}</span>
             </button>
           ))}
         </div>
-      )}
 
-      {/* ── Filters row ── */}
-      <div className="flex flex-wrap gap-2">
-        {/* Search */}
-        <div className="flex-1 min-w-48 relative">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="بحث في المهام..."
-            className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+        {/* Overdue alert */}
+        {overdueCount > 0 && (
+          <button onClick={() => setStatusFilter("pending")}
+            className="w-full flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400 rounded-xl px-4 py-2.5 text-sm font-semibold hover:bg-red-100 transition-colors">
+            <FaTriangleExclamation className="w-4 h-4 flex-shrink-0" />
+            تنبيه: {overdueCount} مهمة متأخرة عن موعدها — اضغط للمراجعة
+          </button>
+        )}
+
+        {/* Dept stats for admin/supervisor */}
+        {canSeeAll && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+            {Object.entries(DEPARTMENTS).map(([k, v]) => (
+              <button key={k} onClick={() => setDeptFilter(deptFilter === k ? "all" : k)}
+                className={`bg-white dark:bg-gray-900 rounded-xl border p-3 text-center transition-all ${
+                  deptFilter === k ? "border-[color:var(--primary)] ring-2 ring-[color:var(--primary)]/20" : "border-gray-100 dark:border-gray-700 hover:border-gray-200"
+                }`}>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{deptStats[k]?.total || 0}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">{v}</p>
+                {deptStats[k]?.total > 0 && (
+                  <div className="mt-1.5">
+                    <div className="h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${deptStats[k].pct}%` }} />
+                    </div>
+                    <p className="text-[10px] text-emerald-600 font-bold mt-0.5">{deptStats[k].pct}%</p>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="flex flex-wrap gap-2">
+          <div className="flex-1 min-w-48 relative">
+            <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث في المهام..."
+              className={`${inputCls} pr-9`} />
+          </div>
+          <SelectField value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-auto">
+            <option value="all">كل الحالات</option>
+            <option value="pending">معلق</option>
+            <option value="in_progress">جارٍ</option>
+            <option value="done">مكتمل</option>
+          </SelectField>
+          {canSeeAll && depts.length > 1 && (
+            <SelectField value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} className="w-auto">
+              <option value="all">كل الأقسام</option>
+              {depts.map((d) => <option key={d} value={d}>{DEPARTMENTS[d] || d}</option>)}
+            </SelectField>
+          )}
         </div>
 
-        {/* Status filter */}
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-          <option value="all">كل الحالات</option>
-          <option value="pending">معلق</option>
-          <option value="in_progress">جارٍ</option>
-          <option value="done">مكتمل</option>
-        </select>
+        {/* Bulk actions */}
+        {canManage && selected.size > 0 && (
+          <div className="rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap border"
+            style={{ background: "var(--primary)/5", borderColor: "var(--primary)/20" }}>
+            <span className="text-sm font-bold" style={{ color: "var(--primary)" }}>تم تحديد {selected.size} مهمة</span>
+            <div className="mr-auto flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-500">تغيير الحالة:</span>
+              {[
+                { s: "pending",     label: "معلق",  cls: "bg-amber-100 hover:bg-amber-200 text-amber-700" },
+                { s: "in_progress", label: "جارٍ",  cls: "bg-blue-100 hover:bg-blue-200 text-blue-700" },
+                { s: "done",        label: "مكتمل", cls: "bg-green-100 hover:bg-green-200 text-green-700" },
+              ].map(({ s, label, cls }) => (
+                <button key={s} onClick={() => bulkStatus(s)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${cls}`}>
+                  {label}
+                </button>
+              ))}
+              <button onClick={() => setSelected(new Set())}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-gray-700">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        )}
 
-        {/* Dept filter (if not already filtering by dept stats) */}
-        {canSeeAll && depts.length > 1 && (
-          <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}
-            className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-            <option value="all">كل الأقسام</option>
-            {depts.map((d) => (
-              <option key={d} value={d}>{DEPARTMENTS[d] || d}</option>
-            ))}
-          </select>
+        {/* Kanban */}
+        {viewMode === "kanban" && !isLoading && (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {KANBAN_COLS.map((col) => (
+                <DroppableColumn key={col.key} colKey={col.key} label={col.label} color={col.color}
+                  tasks={filtered.filter((t) => t.status === col.key)}
+                  onEdit={openEdit} onDelete={(id) => confirmDelete.open(id)} />
+              ))}
+            </div>
+          </DndContext>
+        )}
+
+        {/* List view */}
+        {viewMode === "list" && (
+          isLoading ? (
+            <div className="flex items-center justify-center h-48">
+              <FaSpinner className="w-6 h-6 animate-spin text-gray-300" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 py-16 text-center">
+              <FaCircleCheck className="w-12 h-12 mx-auto text-gray-200 dark:text-gray-600 mb-3" />
+              <p className="text-gray-400">لا توجد مهام</p>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                    <tr className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                      {canManage && (
+                        <th className="text-right px-3 py-3 w-10">
+                          <input type="checkbox"
+                            checked={filtered.length > 0 && selected.size === filtered.length}
+                            onChange={toggleSelectAll} className="rounded cursor-pointer accent-[color:var(--primary)]" />
+                        </th>
+                      )}
+                      {["المهمة", "القسم", "الحالة", "الأولوية", "المكلفون", "الموعد", ""].map((h, i) => (
+                        <th key={i} className="text-right px-4 py-3">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                    <AnimatePresence>
+                      {filtered.map((task) => {
+                        const isOverdue = task.status !== "done" && task.dueDate && new Date(task.dueDate) < now;
+                        return (
+                          <motion.tr key={task._id}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
+                              selected.has(task._id) ? "bg-[color:var(--primary)]/5" :
+                              isOverdue ? "bg-red-50/30 dark:bg-red-900/5" : ""
+                            }`}>
+                            {canManage && (
+                              <td className="px-3 py-3 w-10">
+                                <input type="checkbox" checked={selected.has(task._id)}
+                                  onChange={() => toggleSelect(task._id)} className="rounded cursor-pointer accent-[color:var(--primary)]" />
+                              </td>
+                            )}
+                            <td className="px-4 py-3">
+                              <p className="font-semibold text-gray-900 dark:text-white leading-tight">{task.title}</p>
+                              {task.description && (
+                                <p className="text-xs text-gray-400 truncate max-w-[200px] mt-0.5">{task.description}</p>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-semibold ${DEPT_COLORS[task.department] || "bg-gray-100 text-gray-600"}`}>
+                                {DEPARTMENTS[task.department] || task.department}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <select value={task.status} onChange={(e) => handleStatusChange(task._id, e.target.value)}
+                                className={`text-xs font-semibold px-2 py-1 rounded-lg border-0 cursor-pointer focus:outline-none ${STATUS_COLORS[task.status]}`}>
+                                {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                                  <option key={k} value={k}>{v}</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusBadge status={task.priority} />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex -space-x-1 space-x-reverse">
+                                {(task.assignedTo || []).slice(0, 3).map((u) => (
+                                  <div key={u._id} title={u.name}
+                                    className="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold text-white"
+                                    style={{ background: "var(--primary)" }}>
+                                    {u.name?.[0]?.toUpperCase()}
+                                  </div>
+                                ))}
+                                {task.assignedTo?.length > 3 && (
+                                  <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs text-gray-500">
+                                    +{task.assignedTo.length - 3}
+                                  </div>
+                                )}
+                                {!task.assignedTo?.length && <span className="text-xs text-gray-400">—</span>}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                {new Date(task.dueDate).toLocaleDateString("ar-EG", { month: "short", day: "numeric" })}
+                              </p>
+                              <Countdown dueDate={task.dueDate} compact />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                {canManage && (
+                                  <>
+                                    <button onClick={() => openEdit(task)}
+                                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500 transition-colors">
+                                      <FaPen className="w-3 h-3" />
+                                    </button>
+                                    <button onClick={() => confirmDelete.open(task._id)}
+                                      className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors">
+                                      <FaTrash className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )
         )}
       </div>
 
-      {/* ── Bulk actions ── */}
-      {canManage && selected.size > 0 && (
-        <div className="bg-[#2d5d89]/5 border border-[#2d5d89]/20 rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap">
-          <span className="text-sm font-bold text-[#2d5d89]">
-            تم تحديد {selected.size} مهمة
-          </span>
-          <div className="mr-auto flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-gray-500">تغيير الحالة:</span>
-            <button onClick={() => bulkStatus("pending")}
-              className="px-3 py-1.5 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs font-medium">
-              معلق
-            </button>
-            <button onClick={() => bulkStatus("in_progress")}
-              className="px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium">
-              جارٍ
-            </button>
-            <button onClick={() => bulkStatus("done")}
-              className="px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium">
-              مكتمل
-            </button>
-            <button onClick={() => setSelected(new Set())}
-              className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-medium hover:bg-gray-50">
+      {/* Modal */}
+      <AdminModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editItem ? "تعديل المهمة" : "إضافة مهمة جديدة"}
+        icon={<FaLayerGroup className="w-4 h-4" />}
+        size="xl"
+        footer={
+          <>
+            <button onClick={() => setModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 transition-colors">
               إلغاء
             </button>
-          </div>
-        </div>
-      )}
+            <button onClick={handleSave} disabled={isPending}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: "var(--primary)" }}>
+              {isPending && <FaSpinner className="w-3.5 h-3.5 animate-spin" />}
+              {editItem ? "تحديث المهمة" : "إنشاء المهمة"}
+            </button>
+          </>
+        }
+      >
+        <TaskForm form={form} setForm={setForm} users={users} userRole={user?.role} />
+      </AdminModal>
 
-      {/* ── Kanban Board ── */}
-      {viewMode === "kanban" && !loading && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {KANBAN_COLS.map((col) => (
-              <DroppableColumn
-                key={col.key}
-                colKey={col.key}
-                label={col.label}
-                color={col.color}
-                tasks={filtered.filter((t) => t.status === col.key)}
-                onEdit={openEdit}
-                onDelete={setDeleteId}
-              />
-            ))}
-          </div>
-        </DndContext>
-      )}
-
-      {/* ── Tasks list ── */}
-      {viewMode === "list" && (loading ? (
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl h-20 animate-pulse" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 py-16 text-center">
-          <CheckCircle2 className="w-12 h-12 mx-auto text-gray-200 dark:text-gray-600 mb-3" />
-          <p className="text-gray-400 dark:text-gray-500">لا توجد مهام</p>
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm" dir="rtl">
-              <thead className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-                <tr className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                  {canManage && (
-                    <th className="text-right px-3 py-3 w-10">
-                      <input type="checkbox"
-                        checked={filtered.length > 0 && selected.size === filtered.length}
-                        onChange={toggleSelectAll}
-                        className="rounded accent-[#2d5d89] cursor-pointer" />
-                    </th>
-                  )}
-                  <th className="text-right px-4 py-3">المهمة</th>
-                  <th className="text-right px-4 py-3 hidden sm:table-cell">القسم</th>
-                  <th className="text-right px-4 py-3">الحالة</th>
-                  <th className="text-right px-4 py-3 hidden md:table-cell">الأولوية</th>
-                  <th className="text-right px-4 py-3 hidden lg:table-cell">المكلفون</th>
-                  <th className="text-right px-4 py-3">الموعد</th>
-                  <th className="text-right px-4 py-3 hidden xl:table-cell">تاريخ الإنشاء</th>
-                  <th className="text-right px-4 py-3">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                <AnimatePresence>
-                  {filtered.map((task) => (
-                    <motion.tr key={task._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors ${
-                        selected.has(task._id) ? "bg-blue-50/50 dark:bg-blue-900/10" :
-                        task.status !== "done" && task.dueDate && new Date(task.dueDate) < new Date() ? "bg-red-50/30" : ""
-                      }`}>
-                      {canManage && (
-                        <td className="px-3 py-3 w-10">
-                          <input type="checkbox" checked={selected.has(task._id)}
-                            onChange={() => toggleSelect(task._id)}
-                            className="rounded accent-[#2d5d89] cursor-pointer" />
-                        </td>
-                      )}
-                      {/* Title */}
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900 dark:text-white leading-tight">{task.title}</p>
-                        {task.description && (
-                          <p className="text-xs text-gray-400 truncate max-w-[200px] mt-0.5">{task.description}</p>
-                        )}
-                        {task.createdAt && (
-                          <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-0.5 xl:hidden">
-                            أُنشئت {new Date(task.createdAt).toLocaleDateString("ar-EG", { month: "short", day: "numeric" })}
-                          </p>
-                        )}
-                      </td>
-
-                      {/* Dept */}
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${DEPT_COLORS[task.department] || "bg-gray-100 text-gray-600"}`}>
-                          {DEPARTMENTS[task.department] || task.department}
-                        </span>
-                      </td>
-
-                      {/* Status — clickable dropdown */}
-                      <td className="px-4 py-3">
-                        <select
-                          value={task.status}
-                          onChange={(e) => handleStatusChange(task._id, e.target.value)}
-                          className={`text-xs font-medium px-2 py-1 rounded-lg border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#2d5d89] ${STATUS_COLORS[task.status]}`}>
-                          {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                            <option key={k} value={k}>{v}</option>
-                          ))}
-                        </select>
-                      </td>
-
-                      {/* Priority */}
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 w-fit ${PRIORITY_COLORS[task.priority]}`}>
-                          <Flag className="w-3 h-3" />{PRIORITY_LABELS[task.priority]}
-                        </span>
-                      </td>
-
-                      {/* Assigned */}
-                      <td className="px-4 py-3 hidden lg:table-cell">
-                        <div className="flex -space-x-1 space-x-reverse">
-                          {(task.assignedTo || []).slice(0, 3).map((u) => (
-                            <div key={u._id} title={u.name}
-                              className="w-7 h-7 rounded-full bg-[#2d5d89]/10 border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs font-bold text-[#2d5d89]">
-                              {u.name?.[0]?.toUpperCase()}
-                            </div>
-                          ))}
-                          {task.assignedTo?.length > 3 && (
-                            <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white dark:border-gray-800 flex items-center justify-center text-xs text-gray-500">
-                              +{task.assignedTo.length - 3}
-                            </div>
-                          )}
-                          {!task.assignedTo?.length && <span className="text-xs text-gray-400">—</span>}
-                        </div>
-                      </td>
-
-                      {/* Due date + countdown */}
-                      <td className="px-4 py-3">
-                        <div className="space-y-1">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                            {new Date(task.dueDate).toLocaleDateString("ar-EG", { month: "short", day: "numeric" })}
-                          </p>
-                          <Countdown dueDate={task.dueDate} compact />
-                        </div>
-                      </td>
-
-                      {/* Created at */}
-                      <td className="px-4 py-3 hidden xl:table-cell">
-                        <div className="space-y-0.5">
-                          <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                            {task.createdAt
-                              ? new Date(task.createdAt).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" })
-                              : "—"}
-                          </p>
-                          {task.createdAt && (
-                            <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                              {new Date(task.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          {canManage && (
-                            <button onClick={() => openEdit(task)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500 transition-colors">
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                          {canManage && (
-                            <button onClick={() => setDeleteId(task._id)}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
-
-      {/* ── Create/Edit Modal ── */}
-      <Modal open={modal} onClose={() => setModal(false)}
-        title={editItem ? "تعديل المهمة" : "إضافة مهمة جديدة"}>
-        <TaskForm form={form} setForm={setForm} users={users} userRole={user?.role} userDept={user?.department} />
-        <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={() => setModal(false)}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            إلغاء
-          </button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium transition-colors disabled:opacity-50">
-            {saving ? "جاري الحفظ..." : editItem ? "تحديث" : "إنشاء"}
-          </button>
-        </div>
-      </Modal>
-
-      <ConfirmModal
-        open={!!deleteId}
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        isOpen={confirmDelete.isOpen}
+        onClose={confirmDelete.close}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
-        loading={deleting}
         title="حذف المهمة"
-        message="هل أنت متأكد من حذف هذه المهمة؟"
+        message="هل أنت متأكد من حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء."
+        loading={deleteMutation.isPending}
       />
     </div>
   );
