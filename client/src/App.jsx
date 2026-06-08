@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { lazy, Suspense } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 // Contexts
 import { AuthProvider } from "./context/AuthContext";
@@ -204,6 +205,7 @@ export default function App() {
           </SiteSettingsProvider>
         </ToastProvider>
       </AuthProvider>
+      <Analytics />
     </BrowserRouter>
   );
 }

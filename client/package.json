@@ -19,6 +19,7 @@
     "@handsontable/react": "^16.2.0",
     "@reduxjs/toolkit": "^2.0.1",
     "@studio-freight/lenis": "^1.0.42",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@vitejs/plugin-react-swc": "^3.10.0",
     "antd": "^5.29.3",
