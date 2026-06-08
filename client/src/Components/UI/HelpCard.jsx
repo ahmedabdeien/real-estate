@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { FaCircleQuestion, FaChevronDown, FaChevronUp } from "react-icons/fa6";
 
 export default function HelpCard({ title, tips }) {
   const [open, setOpen] = useState(false);
@@ -9,9 +9,9 @@ export default function HelpCard({ title, tips }) {
         onClick={() => setOpen((p) => !p)}
         className="w-full flex items-center gap-2 px-4 py-3 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 transition-colors"
       >
-        <HelpCircle className="w-4 h-4 flex-shrink-0" />
+        <FaCircleQuestion className="w-4 h-4 flex-shrink-0" />
         <span className="text-sm font-medium">{title}</span>
-        {open ? <ChevronUp className="w-4 h-4 mr-auto" /> : <ChevronDown className="w-4 h-4 mr-auto" />}
+        {open ? <FaChevronUp className="w-4 h-4 mr-auto" /> : <FaChevronDown className="w-4 h-4 mr-auto" />}
       </button>
       {open && (
         <div className="px-4 pb-4 space-y-1.5">

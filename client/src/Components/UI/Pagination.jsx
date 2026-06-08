@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { FaChevronRight, FaChevronLeft } from "react-icons/fa6";
 
 export default function Pagination({ page, pages, onPage }) {
   if (pages <= 1) return null;
@@ -20,7 +20,7 @@ export default function Pagination({ page, pages, onPage }) {
         disabled={page === 1}
         className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600 dark:text-gray-300 transition-colors"
       >
-        <ChevronRight className="w-4 h-4" />
+        <FaChevronRight className="w-4 h-4" />
       </button>
       {unique.map((item, i) =>
         item === "..." ? (
@@ -31,7 +31,7 @@ export default function Pagination({ page, pages, onPage }) {
             onClick={() => onPage(item)}
             className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
               item === page
-                ? "bg-[#2d5d89] text-white"
+                ? "bg-[color:var(--primary)] text-white"
                 : "border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
@@ -44,7 +44,7 @@ export default function Pagination({ page, pages, onPage }) {
         disabled={page === pages}
         className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-gray-600 dark:text-gray-300 transition-colors"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <FaChevronLeft className="w-4 h-4" />
       </button>
     </div>
   );

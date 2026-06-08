@@ -1,6 +1,6 @@
-import { Inbox } from "lucide-react";
+import { FaInbox } from "react-icons/fa6";
 
-export default function EmptyState({ icon: Icon = Inbox, title = "لا توجد بيانات", description, action }) {
+export default function EmptyState({ icon: Icon = FaInbox, title = "لا توجد بيانات", description, action }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">

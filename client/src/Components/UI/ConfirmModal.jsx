@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
+import { FaTriangleExclamation } from "react-icons/fa6";
 
 export default function ConfirmModal({ open, title, message, onConfirm, onCancel, loading }) {
   return (
@@ -21,7 +21,7 @@ export default function ConfirmModal({ open, title, message, onConfirm, onCancel
           >
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-6 h-6 text-red-600" />
+                <FaTriangleExclamation className="w-6 h-6 text-red-600" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title || "تأكيد الحذف"}</h3>

@@ -7,7 +7,7 @@
  *   className {string}   wrapper class
  */
 import { useRef, useState, useCallback } from "react";
-import { Upload, X, ImageIcon, Link2 } from "lucide-react";
+import { FaUpload, FaXmark, FaImage, FaLink } from "react-icons/fa6";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import { useToast } from "../../context/ToastContext";
 
@@ -80,11 +80,11 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
             <button type="button" onClick={() => inputRef.current?.click()}
               className="bg-white text-gray-800 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-100 transition-colors flex items-center gap-1.5">
-              <Upload className="w-3.5 h-3.5" /> تغيير
+              <FaUpload className="w-3.5 h-3.5" /> تغيير
             </button>
             <button type="button" onClick={() => onChange("")}
               className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-600 transition-colors flex items-center gap-1.5">
-              <X className="w-3.5 h-3.5" /> حذف
+              <FaXmark className="w-3.5 h-3.5" /> حذف
             </button>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
           </button>
           <button type="button" onClick={() => { setUrlMode(false); setUrlInput(""); }}
             className="w-10 flex items-center justify-center border border-gray-200 dark:border-gray-600 rounded-xl text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <X className="w-4 h-4" />
+            <FaXmark className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -127,7 +127,7 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
               : "border-gray-200 dark:border-gray-600 hover:border-[#2d5d89]/60 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
           }`}
         >
-          <ImageIcon className={`w-9 h-9 mx-auto mb-2 transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
+          <FaImage className={`w-9 h-9 mx-auto mb-2 transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
           <p className={`text-sm font-medium transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-500 dark:text-gray-400"}`}>
             {isDragging ? "🎉 أفلت الصورة هنا" : "اسحب صورة أو اضغط للاختيار"}
           </p>
@@ -137,7 +137,7 @@ export default function ImageUpload({ value, onChange, label, className = "" }) 
             onClick={(e) => { e.stopPropagation(); setUrlMode(true); }}
             className="mt-3 text-xs text-[#2d5d89] hover:underline flex items-center gap-1 mx-auto"
           >
-            <Link2 className="w-3 h-3" /> أو أدخل رابط URL
+            <FaLink className="w-3 h-3" /> أو أدخل رابط URL
           </button>
         </div>
       )}
