@@ -15,8 +15,8 @@ import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import { useToast } from "../../context/ToastContext";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/Components/UI/card";
-import { Button } from "@/Components/UI/button";
-import { Input } from "@/Components/UI/input";
+import { Button } from "@/Components/UI/Button";
+import { Input } from "@/Components/UI/Input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/Components/UI/tabs";
 import { Avatar, AvatarFallback } from "@/Components/UI/avatar";
 import { Separator } from "@/Components/UI/separator";
