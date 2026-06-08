@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw, Download, Printer, X } from "lucide-react";
+import { Activity, Plus, Pencil, Trash2, LogIn, RefreshCw, Download, Printer, X, Search } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import EmptyState from "../../Components/UI/EmptyState";
@@ -40,6 +40,8 @@ export default function AdminActivity() {
   const [loading, setLoading] = useState(true);
   const [confirmClearAll, setConfirmClearAll] = useState(false);
   const [clearingAll, setClearingAll] = useState(false);
+  const [actionFilter, setActionFilter] = useState("all");
+  const [userSearch, setUserSearch] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -56,6 +58,16 @@ export default function AdminActivity() {
   };
 
   useEffect(() => { load(); }, [page]);
+
+  const filteredActivities = useMemo(() => {
+    let list = activities;
+    if (actionFilter !== "all") list = list.filter((a) => a.action === actionFilter);
+    if (userSearch.trim()) {
+      const q = userSearch.trim().toLowerCase();
+      list = list.filter((a) => a.user?.name?.toLowerCase().includes(q));
+    }
+    return list;
+  }, [activities, actionFilter, userSearch]);
 
   const exportCSV = () => {
     const rows = [
@@ -138,14 +150,60 @@ export default function AdminActivity() {
         ملاحظة: السجل يُحذف تلقائياً بعد ٧ أيام
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Action type chips */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {[
+            { key: "all", label: "الكل" },
+            { key: "create", label: "أضاف" },
+            { key: "update", label: "عدّل" },
+            { key: "delete", label: "حذف" },
+            { key: "login", label: "دخل" },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => { setActionFilter(key); setPage(1); }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                actionFilter === key
+                  ? "bg-[#2d5d89] text-white shadow-sm"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+            >
+              {label}
+              {key !== "all" && (
+                <span className="mr-1 opacity-70">
+                  ({activities.filter((a) => a.action === key).length})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+        {/* User search */}
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+          <input
+            value={userSearch}
+            onChange={(e) => setUserSearch(e.target.value)}
+            placeholder="بحث باسم المستخدم..."
+            className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30"
+          />
+          {userSearch && (
+            <button onClick={() => setUserSearch("")} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
         {loading ? (
           <LoadingSpinner className="h-64" size="lg" />
-        ) : activities.length === 0 ? (
+        ) : filteredActivities.length === 0 ? (
           <EmptyState icon={Activity} title="لا يوجد نشاط بعد" description="ستظهر هنا كل العمليات التي يقوم بها المستخدمون" />
         ) : (
           <div className="divide-y divide-gray-50 dark:divide-gray-700">
-            {activities.map((act) => {
+            {filteredActivities.map((act) => {
               const meta = actionMeta[act.action] || actionMeta.update;
               const Icon = meta.icon;
               return (

@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, Search, User, Phone, MessageSquare, Calendar, X, Building2, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, User, Phone, MessageSquare, Calendar, X, Building2, Pencil, Trash2, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import Modal from "../../Components/UI/Modal";
@@ -44,6 +44,7 @@ export default function AdminClientReg() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [modal, setModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -67,14 +68,45 @@ export default function AdminClientReg() {
   useEffect(() => { load(); }, []);
 
   const filtered = useMemo(() => {
-    if (!search) return leads;
-    const q = search.toLowerCase();
-    return leads.filter(l =>
-      l.name?.toLowerCase().includes(q) ||
-      l.phone?.includes(q) ||
-      l.email?.toLowerCase().includes(q)
-    );
-  }, [leads, search]);
+    let list = leads;
+    if (statusFilter) list = list.filter((l) => l.status === statusFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(l =>
+        l.name?.toLowerCase().includes(q) ||
+        l.phone?.includes(q) ||
+        l.email?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [leads, search, statusFilter]);
+
+  const statusCounts = useMemo(() => {
+    const counts = {};
+    leads.forEach((l) => { counts[l.status] = (counts[l.status] || 0) + 1; });
+    return counts;
+  }, [leads]);
+
+  const exportCSV = () => {
+    const rows = [
+      ["الاسم", "الهاتف", "البريد", "المصدر", "الحالة", "المشروع", "التاريخ"],
+      ...filtered.map((l) => [
+        l.name || "",
+        l.phone || "",
+        l.email || "",
+        SOURCE_OPTIONS.find(s => s.value === (l.registrationSource || l.source))?.label || "",
+        STATUS_LABELS[l.status]?.label || l.status || "",
+        l.interestedProject?.name?.ar || "",
+        new Date(l.createdAt).toLocaleDateString("ar-EG"),
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "clients.csv"; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const openCreate = () => { setEditItem(null); setForm(emptyForm); setModal(true); };
   const openEdit = (l) => {
@@ -132,11 +164,41 @@ export default function AdminClientReg() {
             {filtered.length} عميل{isAdmin && " (كل الموظفين)"}
           </p>
         </div>
-        <button onClick={openCreate}
-          className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
-          <Plus className="w-4 h-4" />
-          تسجيل عميل جديد
+        <div className="flex items-center gap-2">
+          <button onClick={exportCSV}
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <Download className="w-4 h-4" />
+            تصدير CSV
+          </button>
+          <button onClick={openCreate}
+            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+            <Plus className="w-4 h-4" />
+            تسجيل عميل جديد
+          </button>
+        </div>
+      </div>
+
+      {/* Stats chips */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setStatusFilter("")}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!statusFilter ? "bg-[#2d5d89] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+        >
+          الكل ({leads.length})
         </button>
+        {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => (
+          statusCounts[key] ? (
+            <button
+              key={key}
+              onClick={() => setStatusFilter(statusFilter === key ? "" : key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                statusFilter === key ? "ring-2 ring-offset-1 ring-[#2d5d89] " + color : color + " opacity-80 hover:opacity-100"
+              }`}
+            >
+              {label} ({statusCounts[key]})
+            </button>
+          ) : null
+        ))}
       </div>
 
       {/* Search */}
@@ -145,6 +207,11 @@ export default function AdminClientReg() {
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="بحث بالاسم أو الهاتف..."
           className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+        {search && (
+          <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Table */}

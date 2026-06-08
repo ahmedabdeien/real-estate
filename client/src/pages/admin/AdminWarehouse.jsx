@@ -134,6 +134,28 @@ function BalanceTab() {
         </div>
       </div>
 
+      {/* Low stock alert banner */}
+      {lowStockItems.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-red-600 text-sm font-bold">!</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-700">تحذير: {lowStockItems.length} صنف تحت الحد الأدنى للمخزون</p>
+            <div className="flex flex-wrap gap-2 mt-1.5">
+              {lowStockItems.slice(0, 5).map((item) => (
+                <span key={item._id} className="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium">
+                  {item.itemName} ({item.quantity}/{item.minStock})
+                </span>
+              ))}
+              {lowStockItems.length > 5 && (
+                <span className="text-xs text-red-500">+{lowStockItems.length - 5} أخرى</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[180px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
