@@ -11,6 +11,8 @@ import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import { useCms } from "../../hooks/useCms";
 import { useAuth } from "../../context/AuthContext";
+import PageHero from "../../Components/shared/PageHero";
+import SectionHeader from "../../Components/shared/SectionHeader";
 
 const unitTypeAr = {
   apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس",
@@ -97,23 +99,11 @@ export default function UnitsPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden">
-        {cms.hero_image && (
-          <>
-            <img src={cms.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d5c]/80 to-[#2d5d89]/60" />
-          </>
-        )}
-        <div className="relative container mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-block bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4 backdrop-blur">
-              الصرح للتطوير العقاري
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-3">{cms.title_ar}</h1>
-            <p className="text-white/70 text-lg max-w-xl mx-auto">{cms.subtitle_ar}</p>
-          </motion.div>
-        </div>
-      </div>
+      <PageHero
+        title={cms.title_ar}
+        subtitle={cms.subtitle_ar}
+        image={cms.hero_image}
+      />
 
       <div className="container mx-auto px-4 py-10">
         {/* Filters */}
@@ -125,13 +115,13 @@ export default function UnitsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="ابحث برقم الوحدة، النوع، المشروع..."
-                className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+                className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               />
             </div>
             <select
               value={project}
               onChange={(e) => { setProject(e.target.value); setPage(1); }}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             >
               <option value="">كل المشاريع</option>
               {projects.map((p) => (
@@ -141,7 +131,7 @@ export default function UnitsPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             >
               <option value="">الترتيب الافتراضي</option>
               <option value="price_asc">الأرخص</option>
@@ -160,8 +150,8 @@ export default function UnitsPage() {
                   onClick={() => { setStatus(o.value); setPage(1); }}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                     status === o.value
-                      ? "bg-[#2d5d89] text-white"
-                      : "bg-white border border-gray-200 text-gray-600 hover:border-[#2d5d89] hover:text-[#2d5d89]"
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-[var(--primary)] hover:text-[var(--primary)]"
                   }`}
                 >
                   {o.label}
@@ -170,7 +160,7 @@ export default function UnitsPage() {
             </div>
             <button
               type="submit"
-              className="bg-[#2d5d89] hover:bg-[#1e4470] text-white text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
+              className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
             >
               <SlidersHorizontal className="w-4 h-4" />
               بحث
@@ -205,12 +195,12 @@ export default function UnitsPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#2d5d89]/20 to-[#2d5d89]/5 flex items-center justify-center">
-                          <Building2 className="w-12 h-12 text-[#2d5d89]/30" />
+                        <div className="w-full h-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center">
+                          <Building2 className="w-12 h-12 text-[var(--primary)]/30" />
                         </div>
                       )}
                       {/* Type badge */}
-                      <span className="absolute top-3 right-3 bg-[#2d5d89] text-white text-xs px-2 py-1 rounded-lg font-medium">
+                      <span className="absolute top-3 right-3 bg-[var(--primary)] text-white text-xs px-2 py-1 rounded-lg font-medium">
                         {unitTypeAr[unit.type] || unit.type}
                       </span>
                       {/* Status badge */}
@@ -236,8 +226,8 @@ export default function UnitsPage() {
                           title="مقارنة"
                           className={`absolute bottom-3 left-3 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
                             isCompared
-                              ? "bg-[#2d5d89] border-[#2d5d89] text-white"
-                              : "bg-white/80 border-white text-gray-400 hover:text-[#2d5d89]"
+                              ? "bg-[var(--primary)] border-[var(--primary)] text-white"
+                              : "bg-white/80 border-white text-gray-400 hover:text-[var(--primary)]"
                           }`}
                         >
                           {isCompared ? <Check className="w-4 h-4" /> : <GitCompare className="w-3.5 h-3.5" />}
@@ -264,7 +254,7 @@ export default function UnitsPage() {
                           { icon: Layers, value: unit.floor ?? "—", label: "الدور" },
                         ].map(({ icon: Icon, value, label }) => (
                           <div key={label} className="text-center">
-                            <Icon className="w-4 h-4 text-[#2d5d89] mx-auto mb-0.5" />
+                            <Icon className="w-4 h-4 text-[var(--primary)] mx-auto mb-0.5" />
                             <p className="text-xs font-semibold text-gray-800">{value}</p>
                             <p className="text-[10px] text-gray-400">{label}</p>
                           </div>
@@ -284,14 +274,14 @@ export default function UnitsPage() {
                       {/* Price + CTA */}
                       <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-50">
                         <div>
-                          <p className="text-lg font-bold text-[#2d5d89]">
+                          <p className="text-lg font-bold text-[var(--primary)]">
                             {unit.price ? unit.price.toLocaleString("ar-EG") : "—"}
                           </p>
                           <p className="text-xs text-gray-400">جنيه مصري</p>
                         </div>
                         <Link
                           to={`/projects/${unit.project?.slug || unit.project?._id || ""}`}
-                          className="bg-[#2d5d89] text-white text-sm px-4 py-2 rounded-xl hover:bg-[#1e4470] transition-colors flex items-center gap-1"
+                          className="bg-[var(--primary)] text-white text-sm px-4 py-2 rounded-xl hover:bg-[var(--primary-dark)] transition-colors flex items-center gap-1"
                         >
                           التفاصيل
                           <ArrowLeft className="w-3.5 h-3.5" />
@@ -309,12 +299,12 @@ export default function UnitsPage() {
 
       {/* Floating compare bar */}
       {compareIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#2d5d89] text-white rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[var(--primary)] text-white rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-4">
           <span className="text-sm font-medium">تم اختيار {compareIds.length} وحدة</span>
           <button
             onClick={() => setShowCompare(true)}
             disabled={compareIds.length < 2}
-            className="bg-white text-[#2d5d89] text-sm font-bold px-4 py-1.5 rounded-xl hover:bg-gray-100 disabled:opacity-60"
+            className="bg-white text-[var(--primary)] text-sm font-bold px-4 py-1.5 rounded-xl hover:bg-gray-100 disabled:opacity-60"
           >
             مقارنة
           </button>
@@ -346,7 +336,7 @@ export default function UnitsPage() {
                   <tr className="border-b">
                     <th className="py-3 px-4 text-gray-500 font-medium w-36">المواصفة</th>
                     {compareUnits.map((u) => (
-                      <th key={u._id} className="py-3 px-4 font-bold text-[#2d5d89]">
+                      <th key={u._id} className="py-3 px-4 font-bold text-[var(--primary)]">
                         {u.unitNumber}
                         <button
                           onClick={() => setCompareIds((p) => p.filter((i) => i !== u._id))}

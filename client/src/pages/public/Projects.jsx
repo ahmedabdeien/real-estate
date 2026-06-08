@@ -9,6 +9,8 @@ import EmptyState from "../../Components/UI/EmptyState";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useCms } from "../../hooks/useCms";
 import { useAuth } from "../../context/AuthContext";
+import PageHero from "../../Components/shared/PageHero";
+import SectionHeader from "../../Components/shared/SectionHeader";
 
 const statusOptions = [
   { value: "", label: "كل المشاريع" },
@@ -30,8 +32,8 @@ function ProjectCard({ p, view = "grid" }) {
           {p.coverImage ? (
             <img src={p.coverImage} alt={p.name?.ar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2d5d89]/20 to-[#1a3d5c]/30">
-              <Building2 className="w-16 h-16 text-[#2d5d89]/30" />
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary-dark)]/30">
+              <Building2 className="w-16 h-16 text-[var(--primary)]/30" />
             </div>
           )}
           <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -54,12 +56,12 @@ function ProjectCard({ p, view = "grid" }) {
           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             <div>
               {p.startingPrice > 0 && (
-                <p className="text-[#2d5d89] font-bold">{p.startingPrice.toLocaleString("ar-EG")} ج.م</p>
+                <p className="text-[var(--primary)] font-bold">{p.startingPrice.toLocaleString("ar-EG")} ج.م</p>
               )}
               {p.totalUnits > 0 && <p className="text-gray-400 text-xs mt-0.5">{p.totalUnits} وحدة</p>}
             </div>
             <Link to={`/projects/${p.slug}`}
-              className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#1e4470] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+              className="flex items-center gap-1.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
               عرض التفاصيل <ArrowLeft className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -77,8 +79,8 @@ function ProjectCard({ p, view = "grid" }) {
         {p.coverImage ? (
           <img src={p.coverImage} alt={p.name?.ar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2d5d89]/20 to-[#1a3d5c]/30">
-            <Building2 className="w-16 h-16 text-[#2d5d89]/30" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary-dark)]/30">
+            <Building2 className="w-16 h-16 text-[var(--primary)]/30" />
           </div>
         )}
         <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -104,12 +106,12 @@ function ProjectCard({ p, view = "grid" }) {
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div>
             {p.startingPrice > 0 && (
-              <p className="text-[#2d5d89] font-bold">{p.startingPrice.toLocaleString("ar-EG")} ج.م</p>
+              <p className="text-[var(--primary)] font-bold">{p.startingPrice.toLocaleString("ar-EG")} ج.م</p>
             )}
             {p.totalUnits > 0 && <p className="text-gray-400 text-xs mt-0.5">{p.totalUnits} وحدة</p>}
           </div>
           <Link to={`/projects/${p.slug}`}
-            className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#1e4470] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
+            className="flex items-center gap-1.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors">
             عرض التفاصيل <ArrowLeft className="w-3.5 h-3.5" />
           </Link>
         </div>
@@ -182,16 +184,11 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
       {/* Hero Banner */}
-      <div
-        className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16 relative"
-        style={cmsPage.hero_image ? { backgroundImage: `url('${cmsPage.hero_image}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
-      >
-        {cmsPage.hero_image && <div className="absolute inset-0 bg-[#1a3d5c]/70" />}
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-4xl font-black text-white mb-3">{cmsPage.title_ar}</h1>
-          <p className="text-white/70 text-lg">{cmsPage.subtitle_ar}</p>
-        </div>
-      </div>
+      <PageHero
+        title={cmsPage.title_ar}
+        subtitle={cmsPage.subtitle_ar}
+        image={cmsPage.hero_image}
+      />
 
       <div className="container mx-auto px-4 py-10">
         {/* Filters */}
@@ -202,7 +199,7 @@ export default function ProjectsPage() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="ابحث عن مشروع..."
-              className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -214,8 +211,8 @@ export default function ProjectsPage() {
                   onClick={() => { setStatus(o.value); setPage(1); }}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                     status === o.value
-                      ? "bg-[#2d5d89] text-white"
-                      : "bg-white border border-gray-200 text-gray-600 hover:border-[#2d5d89] hover:text-[#2d5d89]"
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-[var(--primary)] hover:text-[var(--primary)]"
                   }`}
                 >
                   {o.label} {count > 0 && <span className="opacity-70">({count})</span>}
@@ -226,14 +223,14 @@ export default function ProjectsPage() {
           <div className="inline-flex rounded-xl border border-gray-200 overflow-hidden mr-auto">
             <button
               onClick={() => setView("grid")}
-              className={`px-3 py-2.5 text-sm ${view === "grid" ? "bg-[#2d5d89] text-white" : "bg-white text-gray-700"}`}
+              className={`px-3 py-2.5 text-sm ${view === "grid" ? "bg-[var(--primary)] text-white" : "bg-white text-gray-700"}`}
               title="عرض بطاقات"
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
             <button
               onClick={() => setView("list")}
-              className={`px-3 py-2.5 text-sm ${view === "list" ? "bg-[#2d5d89] text-white" : "bg-white text-gray-700"}`}
+              className={`px-3 py-2.5 text-sm ${view === "list" ? "bg-[var(--primary)] text-white" : "bg-white text-gray-700"}`}
               title="عرض قائمة"
             >
               <List className="w-4 h-4" />
@@ -274,7 +271,7 @@ export default function ProjectsPage() {
       {/* Admin floating manage button */}
       {user && ["admin", "supervisor"].includes(user.role) && (
         <a href="/admin/projects"
-          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-full shadow-lg hover:bg-[#245079] transition-all text-sm font-medium"
+          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-full shadow-lg hover:bg-[var(--primary-dark)] transition-all text-sm font-medium"
           title="إدارة المشاريع">
           <Settings className="w-4 h-4" />
           إدارة المشاريع

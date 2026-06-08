@@ -1,3 +1,7 @@
+// ╔═══════════════════════════════════════════════════════════╗
+// ║   الصرح للتطوير العقاري — Global Styles & Design System  ║
+// ╚═══════════════════════════════════════════════════════════╝
+
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap');
 
 @tailwind base;
@@ -6,267 +10,419 @@
 
 @import 'styles/variables';
 
-
-/* ===== CSS Design Tokens ===== */
+// ──────────────────────────────────────────────────────────────
+// 1. CSS Design Tokens (Brand Source of Truth)
+//    Note: SiteSettingsContext overrides --primary / --accent
+//    at runtime from the admin panel — do NOT hardcode those.
+// ──────────────────────────────────────────────────────────────
 :root {
-  --primary:          #{$primary};
-  --primary-light:    #{$primary-light};
-  --primary-dark:     #{$primary-dark};
-  --accent:           #{$accent};
-  --accent-light:     #{$accent-light};
-  --accent-dark:      #{$accent-dark};
-  --secondary:        #{$secondary};
-  --background:       #{$background};
-  --foreground:       #{$foreground};
-  --card:             #ffffff;
-  --card-foreground:  #{$foreground};
-  --border:           rgba(138,105,36,0.15);
-  --input:            #e8e0d0;
-  --ring:             #{$primary};
-  --muted:            #f2ece0;
-  --muted-foreground: #6b5e3e;
-  --popover:          #ffffff;
+  // Brand colors (defaults — overridden by SiteSettingsContext)
+  --primary:           #{$gold};
+  --primary-light:     #{$gold-light};
+  --primary-dark:      #{$gold-dark};
+  --primary-pale:      #{$gold-pale};
+  --primary-rgb:       138, 105, 36;
+
+  --secondary:         #{$navy};
+  --secondary-mid:     #{$navy-mid};
+  --secondary-light:   #{$navy-light};
+  --secondary-dark:    #0a1a26;
+  --secondary-rgb:     18, 40, 60;
+
+  --accent:            #{$gold-light};
+  --accent-dark:       #c4983a;
+  --accent-rgb:        223, 186, 107;
+
+  // Neutrals
+  --background:        #{$background};
+  --foreground:        #{$foreground};
+  --card:              #ffffff;
+  --card-foreground:   #{$foreground};
+  --border:            rgba(138, 105, 36, 0.12);
+  --border-strong:     rgba(138, 105, 36, 0.25);
+  --input:             #ede8df;
+  --ring:              #{$gold};
+  --muted:             #f2ece0;
+  --muted-foreground:  #7a6a4a;
+
+  // Semantic
+  --destructive:       #ef4444;
+  --success:           #22c55e;
+  --warning:           #f59e0b;
+  --info:              #3b82f6;
+
+  // Typography
+  --heading-font:      #{$heading-font};
+  --body-font:         #{$body-font};
+
+  // Radius
+  --radius:            0.75rem;
+  --radius-sm:         0.5rem;
+  --radius-lg:         1rem;
+  --radius-xl:         1.25rem;
+  --radius-2xl:        1.5rem;
+
+  // Glass
+  --glass-bg:          rgba(255, 255, 255, 0.65);
+  --glass-border:      rgba(255, 255, 255, 0.35);
+  --glass-blur:        16px;
+  --glass-dark-bg:     rgba(18, 40, 60, 0.75);
+  --glass-gold-bg:     rgba(138, 105, 36, 0.12);
+
+  // Shadows
+  --shadow-sm:         0 2px 8px rgba(18, 40, 60, 0.06);
+  --shadow-md:         0 4px 20px rgba(18, 40, 60, 0.10);
+  --shadow-lg:         0 8px 40px rgba(18, 40, 60, 0.15);
+  --shadow-gold:       0 4px 20px rgba(138, 105, 36, 0.28);
+  --shadow-xl:         0 20px 60px rgba(18, 40, 60, 0.20);
+
+  // Transitions
+  --transition:        all 0.25s ease;
+  --transition-fast:   all 0.15s ease;
+  --transition-slow:   all 0.4s ease;
+
+  // shadcn/ui compat (mapped to brand tokens)
+  --popover:           #ffffff;
   --popover-foreground: #{$foreground};
-  --destructive:      #ef4444;
-  --destructive-foreground: #ffffff;
+  --primary-foreground: #ffffff;
   --secondary-foreground: #ffffff;
-  --primary-foreground: #ffffff;
-  --heading-font:     #{$heading-font};
-  --body-font:        #{$body-font};
-
-  /* Glass effect variables */
-  --glass-bg:         rgba(255, 255, 255, 0.65);
-  --glass-border:     rgba(255, 255, 255, 0.35);
-  --glass-blur:       16px;
-  --glass-dark-bg:    rgba(18, 40, 60, 0.75);
-  --glass-gold-bg:    rgba(138, 105, 36, 0.15);
-}
-
-.dark {
-  --background:       #0a1a26;
-  --foreground:       #f8f4ea;
-  --card:             #12283C;
-  --card-foreground:  #f8f4ea;
-  --border:           rgba(223, 186, 107, 0.15);
-  --input:            #1e3a5c;
-  --muted:            #1e3a5c;
-  --muted-foreground: #94a3b8;
-  --popover:          #12283C;
-  --popover-foreground: #f8f4ea;
-  --destructive:      #ef4444;
   --destructive-foreground: #ffffff;
-  --secondary-foreground: #f8f4ea;
-  --primary-foreground: #ffffff;
-  --glass-bg:         rgba(18, 40, 60, 0.75);
-  --glass-border:     rgba(223, 186, 107, 0.2);
+  --sidebar:           #ffffff;
+  --sidebar-foreground: #{$foreground};
+  --sidebar-primary:   #{$gold};
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:    #{$gold-pale};
+  --sidebar-accent-foreground: #{$foreground};
+  --sidebar-border:    rgba(138, 105, 36, 0.12);
+  --sidebar-ring:      #{$gold};
 }
 
-/* ===== Base ===== */
+// Dark mode
+.dark {
+  --background:        #0a1a26;
+  --foreground:        #f8f4ea;
+  --card:              #12283C;
+  --card-foreground:   #f8f4ea;
+  --border:            rgba(223, 186, 107, 0.12);
+  --border-strong:     rgba(223, 186, 107, 0.25);
+  --input:             #1e3a5c;
+  --muted:             #1e3a5c;
+  --muted-foreground:  #94a3b8;
+  --glass-bg:          rgba(18, 40, 60, 0.75);
+  --glass-border:      rgba(223, 186, 107, 0.2);
+  --popover:           #12283C;
+  --popover-foreground: #f8f4ea;
+  --secondary-foreground: #f8f4ea;
+  --sidebar:           #0f2030;
+  --sidebar-foreground: #f8f4ea;
+  --sidebar-border:    rgba(223, 186, 107, 0.1);
+}
+
+// ──────────────────────────────────────────────────────────────
+// 2. Base Styles
+// ──────────────────────────────────────────────────────────────
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
 body {
-  @apply bg-[var(--background)] text-[var(--foreground)] antialiased;
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--body-font);
-  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--heading-font);
-  @apply tracking-tight font-bold;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 ::selection {
-  background: rgba(138, 105, 36, 0.25);
+  background: rgba(138, 105, 36, 0.22);
   color: #6b5219;
 }
 
-/* ===== Glass Components ===== */
+// ──────────────────────────────────────────────────────────────
+// 3. Component Library (@layer components)
+// ──────────────────────────────────────────────────────────────
 @layer components {
 
-  /* بطاقة زجاجية فاتحة */
+  // ── Buttons ─────────────────────────────────────────────────
+
+  // الزر الرئيسي الذهبي
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer select-none active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed;
+    background: linear-gradient(135deg, var(--primary), var(--accent-dark));
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(var(--primary-rgb), 0.35);
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(var(--primary-rgb), 0.45);
+    }
+    &:active:not(:disabled) { transform: translateY(0); }
+  }
+
+  // الزر الثانوي الكحلي
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer select-none active:scale-[0.97];
+    background: var(--secondary);
+    color: var(--accent);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    &:hover {
+      background: var(--secondary-mid);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(var(--secondary-rgb), 0.35);
+    }
+  }
+
+  // الزر المُحدَّد (outline)
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer select-none;
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    &:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+  }
+
+  // الزر الشفاف (للهيدر الداكن)
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 cursor-pointer;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(8px);
+    &:hover {
+      background: rgba(255,255,255,0.2);
+    }
+  }
+
+  // Alias (backward compat)
+  .btn-gold { @extend .btn-primary; }
+  .btn-navy { @extend .btn-secondary; }
+  .btn-outline-gold { @extend .btn-outline; }
+
+  // ── Cards ────────────────────────────────────────────────────
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+  }
+
+  .card-hover {
+    @extend .card;
+    &:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+  }
+
+  .project-card {
+    @extend .card-hover;
+    overflow: hidden;
+  }
+
+  // ── Glass Effects ────────────────────────────────────────────
+
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px rgba(18, 40, 60, 0.1);
+    box-shadow: var(--shadow-md);
   }
 
-  /* بطاقة زجاجية ذهبية */
   .glass-gold {
-    background: rgba(138, 105, 36, 0.12);
+    background: var(--glass-gold-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(223, 186, 107, 0.3);
-    box-shadow: 0 8px 32px rgba(138, 105, 36, 0.15);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    box-shadow: 0 8px 32px rgba(var(--primary-rgb), 0.15);
   }
 
-  /* بطاقة زجاجية داكنة */
   .glass-dark {
     background: var(--glass-dark-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(223, 186, 107, 0.15);
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--accent-rgb), 0.15);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
   }
 
-  /* بطاقة زجاجية بيضاء ناصعة */
   .glass-white {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255,255,255,0.88);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 4px 24px rgba(18, 40, 60, 0.08);
+    border: 1px solid rgba(255,255,255,0.65);
+    box-shadow: var(--shadow-md);
   }
 
-  /* زر ذهبي متميز */
-  .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer select-none;
-    background: linear-gradient(135deg, #8A6924, #c4983a);
-    color: white;
-    border: 1px solid rgba(223, 186, 107, 0.3);
-    box-shadow: 0 4px 20px rgba(138, 105, 36, 0.35);
-    &:hover {
-      background: linear-gradient(135deg, #c4983a, #8A6924);
-      box-shadow: 0 8px 30px rgba(138, 105, 36, 0.5);
-      transform: translateY(-1px);
-    }
-    &:active { transform: translateY(0); }
-  }
+  // ── Sections ────────────────────────────────────────────────
 
-  /* زر كحلي متميز */
-  .btn-navy {
-    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 font-bold text-sm tracking-wide transition-all duration-300 cursor-pointer select-none;
-    background: #12283C;
-    color: #DFBA6B;
-    border: 1px solid rgba(223, 186, 107, 0.2);
-    &:hover {
-      background: #1a3a58;
-      box-shadow: 0 8px 24px rgba(18, 40, 60, 0.4);
-      transform: translateY(-1px);
-    }
-  }
-
-  /* زر شفاف بإطار ذهبي */
-  .btn-outline-gold {
-    @apply inline-flex items-center justify-center gap-2 px-8 py-3.5 font-bold text-sm tracking-wide transition-all duration-300;
-    background: transparent;
-    color: #8A6924;
-    border: 2px solid #8A6924;
-    &:hover {
-      background: #8A6924;
-      color: white;
-    }
-  }
-
-  /* قسم العنوان */
+  // Badge فوق العنوان (مثال: "مشاريعنا")
   .section-badge {
     @apply inline-block text-xs font-black tracking-[0.35em] uppercase mb-3;
-    color: #8A6924;
+    color: var(--primary);
   }
 
-  /* بطاقة المشروع */
-  .project-card {
-    @apply relative overflow-hidden transition-all duration-500;
-    background: white;
-    border: 1px solid rgba(138, 105, 36, 0.1);
-    &:hover {
-      border-color: rgba(138, 105, 36, 0.3);
-      box-shadow: 0 20px 50px rgba(138, 105, 36, 0.15);
-      transform: translateY(-4px);
-    }
+  // عنوان القسم
+  .section-title {
+    @apply text-3xl md:text-4xl font-black text-gray-900 dark:text-white mt-2 mb-4 leading-tight;
   }
 
-  /* شريط الحالة */
+  // وصف القسم
+  .section-desc {
+    @apply text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed;
+  }
+
+  // خط ذهبي ديكوري
+  .gold-line {
+    @apply block h-0.5 w-14;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+  }
+
+  // ── Hero ─────────────────────────────────────────────────────
+
+  .page-hero {
+    @apply relative py-20 overflow-hidden;
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-mid) 50%, var(--secondary-light) 100%);
+  }
+
+  .page-hero-overlay {
+    @apply absolute inset-0;
+    background: linear-gradient(135deg,
+      rgba(var(--secondary-rgb), 0.85) 0%,
+      rgba(var(--secondary-rgb), 0.55) 100%
+    );
+  }
+
+  // ── Badges/Status ────────────────────────────────────────────
+
   .badge-available {
-    @apply px-3 py-1 text-[10px] font-black tracking-widest;
-    background: #8A6924;
-    color: white;
+    @apply px-3 py-1 text-[10px] font-black tracking-widest rounded-full;
+    background: var(--primary);
+    color: #fff;
   }
   .badge-sold {
-    @apply px-3 py-1 text-[10px] font-black tracking-widest;
+    @apply px-3 py-1 text-[10px] font-black tracking-widest rounded-full;
     background: #dc2626;
-    color: white;
+    color: #fff;
+  }
+  .badge-coming {
+    @apply px-3 py-1 text-[10px] font-black tracking-widest rounded-full;
+    background: #f59e0b;
+    color: #fff;
   }
 
-  /* قسم العنوان الذهبي */
-  .gold-line {
-    @apply block w-12 h-0.5;
-    background: linear-gradient(to right, #8A6924, #DFBA6B);
-  }
+  // ── Dividers ─────────────────────────────────────────────────
 
-  /* خط فاصل ذهبي */
   .divider-gold {
-    @apply relative my-6;
+    @apply relative my-8;
     &::before {
       content: '';
       @apply absolute inset-x-0 top-1/2 h-px;
-      background: linear-gradient(to right, transparent, rgba(138,105,36,0.3), transparent);
+      background: linear-gradient(to right, transparent, rgba(var(--primary-rgb), 0.3), transparent);
     }
+  }
+
+  // ── Text Effects ─────────────────────────────────────────────
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-navy {
+    background: linear-gradient(135deg, var(--secondary), var(--secondary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 30px rgba(var(--accent-rgb), 0.5);
+  }
+
+  // ── Forms ────────────────────────────────────────────────────
+
+  .input-base {
+    @apply w-full px-4 py-3 rounded-xl border text-sm transition-all outline-none;
+    background: var(--card);
+    border-color: var(--border);
+    color: var(--foreground);
+    &:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+    }
+    &::placeholder { color: var(--muted-foreground); }
+  }
+
+  // ── Admin helpers ────────────────────────────────────────────
+
+  .admin-page-title {
+    @apply text-xl font-bold text-gray-900 dark:text-white;
+  }
+
+  .admin-section-card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm;
   }
 }
 
-/* ===== Premium Button ===== */
-.btn-premium {
-  @apply px-8 py-4 font-black transition-all duration-300 inline-flex items-center justify-center gap-3 active:scale-[0.97] relative overflow-hidden;
-  &:hover { box-shadow: 0 16px 32px -8px rgba(138, 105, 36, 0.4); }
+// ──────────────────────────────────────────────────────────────
+// 4. Utility Classes
+// ──────────────────────────────────────────────────────────────
+
+// Hover lift animation
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-xl);
+  }
 }
 
-/* ===== Utilities ===== */
-.noneScroll {
+// Hide scrollbar
+.noneScroll, .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
   &::-webkit-scrollbar { display: none; }
 }
 
-/* Thin scrollbar for sidebar */
+// Thin scrollbar (sidebars, textareas)
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: #cbd5e1 transparent;
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 2px;
+    &:hover { background: #94a3b8; }
   }
-  &::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 }
 
-/* ===== Leaflet تعديلات ===== */
-.leaflet-popup-content-wrapper {
-  border-radius: 4px !important;
-  padding: 0 !important;
-  overflow: hidden;
-}
-.leaflet-popup-content {
-  margin: 0 !important;
-  padding: 12px !important;
-}
-.leaflet-container a.leaflet-popup-close-button {
-  color: #12283C !important;
-  font-weight: 900 !important;
-}
-
-.bg-img-createPage {
-  background-image: url("../src/assets/images/pattern.svg");
-  background-size: auto;
-  background-position: center top;
-}
-
-.text-glow {
-  text-shadow: 0 0 30px rgba(223, 186, 107, 0.5);
-}
-
-.text-glow-gold {
-  text-shadow: 0 2px 20px rgba(138, 105, 36, 0.4);
-}
-
-/* ===== Shimmer Skeleton ===== */
+// Loading skeleton
 .skeleton {
   background: linear-gradient(90deg, #f2ece0 25%, #e8e0d0 50%, #f2ece0 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+  border-radius: var(--radius);
 }
+
+// ──────────────────────────────────────────────────────────────
+// 5. Animations
+// ──────────────────────────────────────────────────────────────
 
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
@@ -278,150 +434,48 @@ h1, h2, h3, h4, h5, h6 {
   50%       { transform: translateY(-10px); }
 }
 
-/* ===== Page Loading ===== */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-float      { animation: float 3s ease-in-out infinite; }
+.animate-fade-up    { animation: fadeUp 0.5s ease forwards; }
+.animate-scale-in   { animation: scaleIn 0.3s ease forwards; }
+
+// ──────────────────────────────────────────────────────────────
+// 6. Page Loading Screen
+// ──────────────────────────────────────────────────────────────
+
 .loading-screen {
   @apply fixed inset-0 flex flex-col justify-center items-center z-[1000];
-  background: linear-gradient(135deg, #12283C, #1e3a5c);
+  background: linear-gradient(135deg, var(--secondary), var(--secondary-mid));
 }
 
 .spinner {
-  @apply w-12 h-12 border-4 border-t-transparent rounded-full animate-spin;
-  border-color: rgba(223, 186, 107, 0.3);
-  border-top-color: #DFBA6B;
+  @apply w-12 h-12 border-4 rounded-full animate-spin;
+  border-color: rgba(var(--accent-rgb), 0.2);
+  border-top-color: var(--accent);
 }
 
-/* ===== Hero Parallax ===== */
-.hero-bg {
-  will-change: transform;
-  transform: translateZ(0);
-}
+// ──────────────────────────────────────────────────────────────
+// 7. Third-party Overrides
+// ──────────────────────────────────────────────────────────────
 
-/* ===== Gold Gradient Text ===== */
-.text-gradient-gold {
-  background: linear-gradient(135deg, #8A6924, #DFBA6B, #8A6924);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+// Leaflet Map
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-lg) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg) !important;
 }
-
-/* ===== Hover Lift ===== */
-.hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  &:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 40px rgba(18, 40, 60, 0.15);
-  }
-}
-
-/* ===== Design System Utilities (Odoo-inspired) ===== */
-.ds-page {
-  background: #faf8f4;
-  min-height: 100vh;
-}
-
-.ds-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-}
-
-.ds-input {
-  border: 1.5px solid #d1d5db;
-  background: white;
-  padding: 10px 14px;
-  font-size: 14px;
-  width: 100%;
-  outline: none;
-  transition: border-color 0.15s;
-  color: #12283C;
-  font-family: inherit;
-  &:focus {
-    border-color: #8A6924;
-  }
-  &::placeholder {
-    color: #9ca3af;
-  }
-}
-
-@layer base {
-  .theme {
-    --font-heading:          var(--font-sans);
-    --font-sans:          'Geist Variable', sans-serif;
-  }
-  :root {
-    --background:          oklch(1 0 0);
-    --foreground:          oklch(0.145 0 0);
-    --card:          oklch(1 0 0);
-    --card-foreground:          oklch(0.145 0 0);
-    --popover:          oklch(1 0 0);
-    --popover-foreground:          oklch(0.145 0 0);
-    --primary:          oklch(0.205 0 0);
-    --primary-foreground:          oklch(0.985 0 0);
-    --secondary:          oklch(0.97 0 0);
-    --secondary-foreground:          oklch(0.205 0 0);
-    --muted:          oklch(0.97 0 0);
-    --muted-foreground:          oklch(0.556 0 0);
-    --accent:          oklch(0.97 0 0);
-    --accent-foreground:          oklch(0.205 0 0);
-    --destructive:          oklch(0.577 0.245 27.325);
-    --border:          oklch(0.922 0 0);
-    --input:          oklch(0.922 0 0);
-    --ring:          oklch(0.708 0 0);
-    --chart-1:          oklch(0.87 0 0);
-    --chart-2:          oklch(0.556 0 0);
-    --chart-3:          oklch(0.439 0 0);
-    --chart-4:          oklch(0.371 0 0);
-    --chart-5:          oklch(0.269 0 0);
-    --radius:          0.625rem;
-    --sidebar:          oklch(0.985 0 0);
-    --sidebar-foreground:          oklch(0.145 0 0);
-    --sidebar-primary:          oklch(0.205 0 0);
-    --sidebar-primary-foreground:          oklch(0.985 0 0);
-    --sidebar-accent:          oklch(0.97 0 0);
-    --sidebar-accent-foreground:          oklch(0.205 0 0);
-    --sidebar-border:          oklch(0.922 0 0);
-    --sidebar-ring:          oklch(0.708 0 0);
-  }
-  .dark {
-    --background:          oklch(0.145 0 0);
-    --foreground:          oklch(0.985 0 0);
-    --card:          oklch(0.205 0 0);
-    --card-foreground:          oklch(0.985 0 0);
-    --popover:          oklch(0.205 0 0);
-    --popover-foreground:          oklch(0.985 0 0);
-    --primary:          oklch(0.922 0 0);
-    --primary-foreground:          oklch(0.205 0 0);
-    --secondary:          oklch(0.269 0 0);
-    --secondary-foreground:          oklch(0.985 0 0);
-    --muted:          oklch(0.269 0 0);
-    --muted-foreground:          oklch(0.708 0 0);
-    --accent:          oklch(0.269 0 0);
-    --accent-foreground:          oklch(0.985 0 0);
-    --destructive:          oklch(0.704 0.191 22.216);
-    --border:          oklch(1 0 0 / 10%);
-    --input:          oklch(1 0 0 / 15%);
-    --ring:          oklch(0.556 0 0);
-    --chart-1:          oklch(0.87 0 0);
-    --chart-2:          oklch(0.556 0 0);
-    --chart-3:          oklch(0.439 0 0);
-    --chart-4:          oklch(0.371 0 0);
-    --chart-5:          oklch(0.269 0 0);
-    --sidebar:          oklch(0.205 0 0);
-    --sidebar-foreground:          oklch(0.985 0 0);
-    --sidebar-primary:          oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground:          oklch(0.985 0 0);
-    --sidebar-accent:          oklch(0.269 0 0);
-    --sidebar-accent-foreground:          oklch(0.985 0 0);
-    --sidebar-border:          oklch(1 0 0 / 10%);
-    --sidebar-ring:          oklch(0.556 0 0);
-  }
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
-  }
+.leaflet-popup-content { margin: 0 !important; padding: 12px !important; }
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--secondary) !important;
+  font-weight: 900 !important;
 }

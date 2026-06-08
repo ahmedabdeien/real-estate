@@ -62,7 +62,7 @@ function HeroSearch() {
     <div ref={boxRef} className="relative w-full max-w-2xl mx-auto" dir="rtl">
       <form onSubmit={handleSubmit} className="relative">
         <div className="flex items-center bg-white/95 backdrop-blur rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
-          <button type="submit" className="flex-shrink-0 px-5 py-4 text-[#2d5d89]">
+          <button type="submit" className="flex-shrink-0 px-5 py-4 text-[var(--primary)]">
             <Search className="w-5 h-5" />
           </button>
           <input
@@ -75,7 +75,7 @@ function HeroSearch() {
           />
           {searching && (
             <div className="px-4">
-              <div className="w-4 h-4 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
             </div>
           )}
           {query && !searching && (
@@ -101,8 +101,8 @@ function HeroSearch() {
                 {r.img ? (
                   <img src={r.img} alt="" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-[#2d5d89]/10 flex-shrink-0 flex items-center justify-center">
-                    <Search className="w-4 h-4 text-[#2d5d89]" />
+                  <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex-shrink-0 flex items-center justify-center">
+                    <Search className="w-4 h-4 text-[var(--primary)]" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -117,7 +117,7 @@ function HeroSearch() {
             {results.some((r) => r.type === "unit") && (
               <Link
                 to={`/units?search=${encodeURIComponent(query)}`}
-                className="block w-full text-center text-xs text-[#2d5d89] py-2 border-t hover:bg-gray-50 font-medium"
+                className="block w-full text-center text-xs text-[var(--primary)] py-2 border-t hover:bg-gray-50 font-medium"
                 onClick={() => setOpen(false)}
               >
                 عرض كل نتائج الوحدات ←
@@ -145,7 +145,7 @@ function StatItem({ icon: Icon, value, label }) {
       className="text-center"
     >
       <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-3">
-        <Icon className="w-7 h-7 text-[#f59e0b]" />
+        <Icon className="w-7 h-7 text-[var(--accent)]" />
       </div>
       <p className="text-3xl sm:text-4xl font-black text-white mb-1">{value}</p>
       <p className="text-white/70 text-sm">{label}</p>
@@ -166,7 +166,7 @@ function ProjectCard({ project }) {
         {project.coverImage ? (
           <img src={project.coverImage} alt={project.name?.ar} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2d5d89] to-[#1a3d5c]">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--secondary-mid)] to-[var(--secondary)]">
             <Building2 className="w-16 h-16 text-white/30" />
           </div>
         )}
@@ -188,11 +188,11 @@ function ProjectCard({ project }) {
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div>
             {project.startingPrice > 0 && (
-              <p className="text-[#2d5d89] font-bold text-sm">من {project.startingPrice.toLocaleString()} ج</p>
+              <p className="text-[var(--primary)] font-bold text-sm">من {project.startingPrice.toLocaleString()} ج</p>
             )}
           </div>
           <Link to={`/projects/${project.slug}`}
-            className="flex items-center gap-1 text-[#2d5d89] hover:text-[#245079] text-sm font-semibold transition-colors group">
+            className="flex items-center gap-1 text-[var(--primary)] hover:text-[#245079] text-sm font-semibold transition-colors group">
             <span>التفاصيل</span>
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           </Link>
@@ -243,11 +243,12 @@ export default function HomePage() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[#2d5d89]">
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+        style={{ background: "linear-gradient(135deg, var(--secondary) 0%, var(--secondary-mid) 55%, var(--secondary-light) 100%)" }}>
         {heroCms.background_image && (
           <div className="absolute inset-0">
             <img src={heroCms.background_image} alt="" className="w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0f2336]/90 to-[#0f2336]/40" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(var(--secondary-rgb),0.9) 0%, rgba(var(--secondary-rgb),0.4) 100%)" }} />
           </div>
         )}
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto w-full" dir="rtl">
@@ -256,7 +257,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span className="inline-block bg-[#f59e0b]/20 text-[#f59e0b] text-sm font-semibold px-4 py-1.5 rounded-full mb-6 backdrop-blur">
+            <span className="inline-block bg-[var(--accent)]/20 text-[var(--accent)] text-sm font-semibold px-4 py-1.5 rounded-full mb-6 backdrop-blur">
               الصرح للتطوير العقاري — مستقبلك يبدأ هنا
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white mb-4 sm:mb-6 leading-tight">
@@ -273,7 +274,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/projects"
-                className="bg-[#f59e0b] hover:bg-[#d97706] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:shadow-xl hover:shadow-[#f59e0b]/20 hover:-translate-y-0.5">
+                className="bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:shadow-xl hover:shadow-amber-500/20 hover:-translate-y-0.5">
                 {heroCms.cta_text_ar}
               </Link>
               <Link to="/contact"
@@ -286,7 +287,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats */}
-      <section className="bg-[#2d5d89] py-16">
+      <section className="bg-[var(--primary)] py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8" dir="rtl">
             <StatItem icon={Building2} value={statsCms.projects_count}   label={statsCms.projects_label} />
@@ -307,7 +308,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <span className="text-[#2d5d89] font-semibold text-sm uppercase tracking-widest">خدماتنا</span>
+              <span className="text-[var(--primary)] font-semibold text-sm uppercase tracking-widest">خدماتنا</span>
               <h2 className="text-3xl md:text-4xl font-black text-gray-900 mt-2 mb-4">
                 {servicesCms?.services_title || "ما نقدمه لك"}
               </h2>
@@ -330,11 +331,11 @@ export default function HomePage() {
                     transition={{ delay: (n - 1) * 0.1 }}
                     className="bg-[#f8fafc] rounded-2xl p-6 text-center hover:shadow-lg transition-shadow border border-gray-100"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
                       {icon ? (
                         <span className="text-2xl">{icon}</span>
                       ) : (
-                        <Building2 className="w-7 h-7 text-[#2d5d89]" />
+                        <Building2 className="w-7 h-7 text-[var(--primary)]" />
                       )}
                     </div>
                     <h3 className="font-bold text-gray-900 mb-2 text-base">{title}</h3>
@@ -356,7 +357,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="text-[#2d5d89] font-semibold text-sm uppercase tracking-widest">مشاريعنا</span>
+            <span className="text-[var(--primary)] font-semibold text-sm uppercase tracking-widest">مشاريعنا</span>
             <h2 className="text-3xl md:text-4xl font-black text-gray-900 mt-2 mb-4">المشاريع المميزة</h2>
             <p className="text-gray-500 max-w-xl mx-auto">اكتشف مشاريعنا المتميزة التي تجمع بين الجودة والتصميم الفريد والموقع الاستراتيجي</p>
           </motion.div>
@@ -371,7 +372,7 @@ export default function HomePage() {
 
           <div className="text-center mt-10">
             <Link to="/projects"
-              className="inline-flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-7 py-3.5 rounded-2xl font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2d5d89]/20">
+              className="inline-flex items-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-7 py-3.5 rounded-2xl font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[var(--primary)]/20">
               كل المشاريع
               <ArrowLeft className="w-5 h-5" />
             </Link>

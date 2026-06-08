@@ -7,6 +7,8 @@ import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
 import EmptyState from "../../Components/UI/EmptyState";
 import { useCms } from "../../hooks/useCms";
+import PageHero from "../../Components/shared/PageHero";
+import SectionHeader from "../../Components/shared/SectionHeader";
 
 export default function BlogPage() {
   const { data: cms } = useCms("blog_page", {
@@ -48,23 +50,11 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden">
-        {cms.hero_image && (
-          <>
-            <img src={cms.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d5c]/80 to-[#2d5d89]/60" />
-          </>
-        )}
-        <div className="relative container mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-block bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4 backdrop-blur">
-              الصرح للتطوير العقاري
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-3">{cms.title_ar}</h1>
-            <p className="text-white/70 text-lg max-w-xl mx-auto">{cms.subtitle_ar}</p>
-          </motion.div>
-        </div>
-      </div>
+      <PageHero
+        title={cms.title_ar}
+        subtitle={cms.subtitle_ar}
+        image={cms.hero_image}
+      />
 
       <div className="container mx-auto px-4 py-10">
         <div className="flex gap-3 mb-8">
@@ -72,7 +62,7 @@ export default function BlogPage() {
             <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
             <input value={search} onChange={handleSearchChange} onKeyDown={(e) => { if (e.key === "Enter") { clearTimeout(timerRef.current); setPage(1); load(search, 1); } }}
               placeholder="ابحث عن مقال..."
-              className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-64" />
+              className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64" />
           </div>
         </div>
 
@@ -88,7 +78,7 @@ export default function BlogPage() {
                     {b.coverImage ? (
                       <img src={b.coverImage} alt={b.title?.ar} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2d5d89] to-[#1a3d5c]">
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(to bottom right, var(--primary), var(--primary-dark))" }}>
                         <FileText className="w-12 h-12 text-white/30" />
                       </div>
                     )}
@@ -104,14 +94,14 @@ export default function BlogPage() {
                         {b.views}
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-[#2d5d89] transition-colors">
+                    <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
                       {b.title?.ar}
                     </h3>
                     {b.excerpt?.ar && (
                       <p className="text-gray-500 text-sm line-clamp-2 mb-4">{b.excerpt.ar}</p>
                     )}
                     <Link to={`/blog/${b.slug}`}
-                      className="text-[#2d5d89] font-semibold text-sm hover:underline">
+                      className="text-[var(--primary)] font-semibold text-sm hover:underline">
                       اقرأ المزيد ←
                     </Link>
                   </div>

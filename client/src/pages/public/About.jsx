@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Building2, Users, Award, Target, Eye } from "lucide-react";
 import { useCms } from "../../hooks/useCms";
+import PageHero from "../../Components/shared/PageHero";
+import SectionHeader from "../../Components/shared/SectionHeader";
 
 export default function AboutPage() {
   useEffect(() => { document.title = "عن الشركة | الصرح للتطوير العقاري"; }, []);
@@ -28,32 +30,19 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen" dir="rtl">
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-20 overflow-hidden">
-        {hero.hero_image && (
-          <>
-            <img src={hero.hero_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d5c]/80 to-[#2d5d89]/60" />
-          </>
-        )}
-        <div className="relative container mx-auto px-4 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-block bg-white/10 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full mb-4 backdrop-blur">
-              الصرح للتطوير العقاري
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
-              {hero.title_ar || content.title_ar}
-            </h1>
-            <p className="text-white/70 text-lg max-w-xl mx-auto">{hero.subtitle_ar}</p>
-          </motion.div>
-        </div>
-      </div>
+      <PageHero
+        title={hero.title_ar || content.title_ar}
+        subtitle={hero.subtitle_ar}
+        badge="الصرح للتطوير العقاري"
+        image={hero.hero_image}
+      />
 
       {/* Story */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <span className="text-[#2d5d89] font-semibold text-sm uppercase tracking-widest">قصتنا</span>
+              <span className="text-[var(--primary)] font-semibold text-sm uppercase tracking-widest">قصتنا</span>
               <h2 className="text-3xl font-black text-gray-900 mt-2 mb-5">
                 {content.founded_year ? `منذ عام ${content.founded_year}` : "رواد في عالم العقارات"}
               </h2>
@@ -68,7 +57,7 @@ export default function AboutPage() {
                   { label: "سنة خبرة", value: stats.years_experience },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-[#f8fafc] rounded-xl p-4">
-                    <p className="text-3xl font-black text-[#2d5d89]">{value}</p>
+                    <p className="text-3xl font-black text-[var(--primary)]">{value}</p>
                     <p className="text-gray-500 text-sm">{label}</p>
                   </div>
                 ))}
@@ -78,7 +67,7 @@ export default function AboutPage() {
               {content.image ? (
                 <img src={content.image} alt="الصرح للتطوير العقاري" className="rounded-2xl w-full h-80 object-cover shadow-xl" />
               ) : (
-                <div className="rounded-2xl w-full h-80 bg-gradient-to-br from-[#2d5d89] to-[#1a3d5c] flex items-center justify-center shadow-xl">
+                <div className="rounded-2xl w-full h-80 flex items-center justify-center shadow-xl" style={{ background: "linear-gradient(to bottom right, var(--primary), var(--primary-dark))" }}>
                   <Building2 className="w-24 h-24 text-white/30" />
                 </div>
               )}
@@ -93,8 +82,8 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center mb-5">
-                <Eye className="w-6 h-6 text-[#2d5d89]" />
+              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-5">
+                <Eye className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-3">رؤيتنا</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -104,8 +93,8 @@ export default function AboutPage() {
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: 0.1 }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 rounded-2xl bg-[#f59e0b]/10 flex items-center justify-center mb-5">
-                <Target className="w-6 h-6 text-[#f59e0b]" />
+              <div className="w-12 h-12 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mb-5">
+                <Target className="w-6 h-6 text-[var(--accent)]" />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-3">رسالتنا</h3>
               <p className="text-gray-600 leading-relaxed">
@@ -117,7 +106,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="py-16 bg-[#2d5d89]">
+      <section className="py-16" style={{ background: "var(--primary)" }}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-black text-white">قيمنا الأساسية</h2>

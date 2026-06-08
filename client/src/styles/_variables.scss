@@ -1,15 +1,25 @@
-// ===== ألوان الصرح للعقارات =====
-$primary:       #8A6924;   // ذهبي غامق
-$primary-light: #DFBA6B;   // ذهبي فاتح
-$primary-dark:  #6b5219;   // ذهبي داكن
+// ╔══════════════════════════════════════════════╗
+// ║   الصرح للتطوير العقاري — Design Tokens      ║
+// ╚══════════════════════════════════════════════╝
 
-$accent:        #DFBA6B;   // ذهبي فاتح
-$accent-light:  #f5e9c8;
-$accent-dark:   #c4983a;
+// ─── Brand Palette ──────────────────────────────
+$gold:          #8A6924;   // ذهبي رئيسي
+$gold-light:    #DFBA6B;   // ذهبي فاتح
+$gold-dark:     #6b5219;   // ذهبي داكن
+$gold-pale:     #f5e9c8;   // ذهبي شاحب (خلفيات)
+$navy:          #12283C;   // كحلي داكن
+$navy-mid:      #1a3d5c;   // كحلي متوسط
+$navy-light:    #2d5d89;   // أزرق
 
-$secondary:     #12283C;   // كحلي داكن
-$background:    #faf8f4;   // خلفية دافئة
-$foreground:    #1a1509;   // نص داكن
+// ─── Semantic Aliases ───────────────────────────
+$primary:       $gold;
+$primary-light: $gold-light;
+$primary-dark:  $gold-dark;
+$accent:        $gold-light;
+$secondary:     $navy;
+$background:    #faf8f4;
+$foreground:    #1a1509;
 
-$heading-font: 'Cairo', 'Montserrat', 'Inter', sans-serif;
-$body-font:    'Cairo', 'Inter', sans-serif;
+// ─── Typography ─────────────────────────────────
+$heading-font:  'Cairo', 'Tajawal', sans-serif;
+$body-font:     'Cairo', 'Tajawal', sans-serif;

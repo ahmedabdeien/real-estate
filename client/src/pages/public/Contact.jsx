@@ -5,6 +5,8 @@ import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useCms } from "../../hooks/useCms";
+import PageHero from "../../Components/shared/PageHero";
+import SectionHeader from "../../Components/shared/SectionHeader";
 
 export default function ContactPage() {
   const { user } = useAuth();
@@ -73,12 +75,10 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl font-black text-white mb-3">تواصل معنا</h1>
-          <p className="text-white/70 text-lg">نحن هنا لمساعدتك في رحلتك العقارية</p>
-        </div>
-      </div>
+      <PageHero
+        title="تواصل معنا"
+        subtitle="نحن هنا لمساعدتك في رحلتك العقارية"
+      />
 
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -93,13 +93,13 @@ export default function ContactPage() {
                 { icon: Clock,   title: "أوقات العمل",           value: hours },
               ].map(({ icon: Icon, title, value, href }) => (
                 <div key={title} className="flex items-start gap-4 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 mb-3">
-                  <div className="w-11 h-11 rounded-xl bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-[#2d5d89]" />
+                  <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-5 h-5 text-[var(--primary)]" />
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{title}</p>
                     {href ? (
-                      <a href={href} className="font-semibold text-gray-900 hover:text-[#2d5d89] transition-colors">{value}</a>
+                      <a href={href} className="font-semibold text-gray-900 hover:text-[var(--primary)] transition-colors">{value}</a>
                     ) : (
                       <p className="font-semibold text-gray-900">{value}</p>
                     )}
@@ -134,7 +134,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">تم إرسال رسالتك!</h3>
                 <p className="text-gray-500">سيتواصل معك فريقنا في أقرب وقت ممكن</p>
-                <button onClick={() => setSent(false)} className="mt-6 text-[#2d5d89] text-sm font-semibold hover:underline">
+                <button onClick={() => setSent(false)} className="mt-6 text-[var(--primary)] text-sm font-semibold hover:underline">
                   إرسال رسالة أخرى
                 </button>
               </div>
@@ -147,30 +147,30 @@ export default function ContactPage() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">الاسم الكامل *</label>
                     <input value={form.name} onChange={(e) => f("name", e.target.value)} required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">رقم الهاتف *</label>
                     <input value={form.phone} onChange={(e) => f("phone", e.target.value)} required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">البريد الإلكتروني</label>
                   <input type="email" value={form.email} onChange={(e) => f("email", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm" />
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm" />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">رسالتك</label>
                   <textarea rows={5} value={form.message} onChange={(e) => f("message", e.target.value)}
                     placeholder="أخبرنا عن احتياجاتك العقارية..."
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm resize-none" />
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm resize-none" />
                 </div>
 
                 <button type="submit" disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white py-4 rounded-xl font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50 text-sm">
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-4 rounded-xl font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50 text-sm">
                   <Send className="w-4 h-4" />
                   {loading ? "جاري الإرسال..." : "إرسال الرسالة"}
                 </button>
@@ -192,8 +192,8 @@ export default function ContactPage() {
                   viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-[#2d5d89]" />
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <h3 className="font-bold text-gray-900">{br.name || `فرع ${i + 1}`}</h3>
                   </div>
@@ -207,7 +207,7 @@ export default function ContactPage() {
                     {br.phone && (
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a href={`tel:${br.phone}`} className="hover:text-[#2d5d89] transition-colors">{br.phone}</a>
+                        <a href={`tel:${br.phone}`} className="hover:text-[var(--primary)] transition-colors">{br.phone}</a>
                       </div>
                     )}
                     {br.hours && (
@@ -219,7 +219,7 @@ export default function ContactPage() {
                   </div>
                   {br.map_link && (
                     <a href={br.map_link} target="_blank" rel="noreferrer"
-                      className="mt-4 flex items-center justify-center gap-2 bg-[#2d5d89]/10 hover:bg-[#2d5d89] text-[#2d5d89] hover:text-white py-2.5 rounded-xl text-sm font-semibold transition-all">
+                      className="mt-4 flex items-center justify-center gap-2 bg-[var(--primary)]/10 hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white py-2.5 rounded-xl text-sm font-semibold transition-all">
                       <Navigation className="w-4 h-4" />
                       عرض على الخريطة
                     </a>
