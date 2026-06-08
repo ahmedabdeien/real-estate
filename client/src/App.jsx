@@ -58,6 +58,7 @@ const AdminPurchasing = lazy(() => import("./pages/admin/AdminPurchasing"));
 const AdminLegal = lazy(() => import("./pages/admin/AdminLegal"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminWhatsApp = lazy(() => import("./pages/admin/AdminWhatsApp"));
+const AdminProfile  = lazy(() => import("./pages/admin/AdminProfile"));
 
 // Tasks
 const TasksPage = lazy(() => import("./pages/tasks/TasksPage"));
@@ -189,7 +190,7 @@ export default function App() {
                 <Route path="accounting-records" element={<PageGuard pageKey="accounting-records"><AdminAccountingRecords /></PageGuard>} />
                 <Route path="accounting-beni-suef" element={<PageGuard pageKey="accounting-beni-suef"><AdminAccountingBeniSuef /></PageGuard>} />
                 <Route path="accounting-records-beni-suef" element={<PageGuard pageKey="accounting-records-beni-suef"><AdminAccountingRecordsBeniSuef /></PageGuard>} />
-                <Route path="profile"       element={<PageGuard pageKey="profile"><StaffProfile /></PageGuard>} />
+                <Route path="profile"       element={<AdminProfile />} />
                 <Route path="changelog"     element={<PageGuard pageKey="changelog"><AdminChangelog /></PageGuard>} />
                 <Route path="notifications" element={<PageGuard pageKey="notifications"><AdminNotifications /></PageGuard>} />
                 <Route path="warehouse"     element={<PageGuard pageKey="warehouse"><AdminWarehouse /></PageGuard>} />
