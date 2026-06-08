@@ -1,44 +1,36 @@
+import { cn } from "@/lib/utils";
+
 const variants = {
-  success: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  error: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  warning: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  info: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  gray: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
-  primary: "bg-primary/10 text-primary",
+  default:     "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+  primary:     "bg-[#2d5d89]/10 text-[#2d5d89] dark:bg-[#2d5d89]/20",
+  success:     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  warning:     "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  danger:      "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+  info:        "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  outline:     "border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400",
 };
 
-export default function Badge({ children, variant = "gray", className = "" }) {
+export default function Badge({ children, variant = "default", className }) {
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${variants[variant]} ${className}`}>
+    <span className={cn(
+      "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
+      variants[variant] || variants.default,
+      className
+    )}>
       {children}
     </span>
   );
 }
 
-export const statusBadge = (status) => {
+export function statusBadge(status) {
   const map = {
-    available: { label: "متاح", variant: "success" },
-    sold: { label: "مباع", variant: "error" },
-    reserved: { label: "محجوز", variant: "warning" },
-    under_construction: { label: "قيد الإنشاء", variant: "info" },
-    ready: { label: "جاهز", variant: "success" },
-    sold_out: { label: "نفذت الوحدات", variant: "error" },
-    coming_soon: { label: "قريباً", variant: "gray" },
-    new: { label: "جديد", variant: "info" },
-    contacted: { label: "تم التواصل", variant: "primary" },
-    interested: { label: "مهتم", variant: "success" },
-    not_interested: { label: "غير مهتم", variant: "gray" },
-    converted: { label: "تم التحويل", variant: "success" },
-    lost: { label: "خسارة", variant: "error" },
-    draft: { label: "مسودة", variant: "gray" },
-    published: { label: "منشور", variant: "success" },
-    hidden: { label: "مخفي", variant: "warning" },
-    admin:      { label: "مدير عام",   variant: "primary" },
-    supervisor: { label: "مشرف عام",  variant: "error" },
-    manager:    { label: "مدير قسم",  variant: "warning" },
-    employee:   { label: "موظف",      variant: "info" },
-    sales:      { label: "مبيعات",    variant: "success" },
-    viewer:     { label: "مشاهد",     variant: "gray" },
+    available:   { label: "متاح",     variant: "success" },
+    sold:        { label: "مباع",      variant: "danger" },
+    reserved:    { label: "محجوز",     variant: "warning" },
+    coming_soon: { label: "قريباً",    variant: "info" },
+    active:      { label: "نشط",      variant: "success" },
+    inactive:    { label: "غير نشط",  variant: "default" },
+    featured:    { label: "مميز",     variant: "primary" },
   };
-  return map[status] || { label: status, variant: "gray" };
-};
+  return map[status] || { label: status || "—", variant: "default" };
+}

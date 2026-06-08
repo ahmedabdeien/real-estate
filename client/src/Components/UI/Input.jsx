@@ -1,90 +1,23 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import * as React from "react"
+import { Input as InputPrimitive } from "@base-ui/react/input"
 
-const Input = ({
-    label,
-    id,
-    type = 'text',
-    placeholder,
-    value,
-    onChange,
-    error,
-    required = false,
-    className = '',
-    min,
-    max,
-    ...props
-}) => {
-    const baseStyles = "w-full p-3 border-gray-200 border-[1px] rounded-none dark:bg-gray-800/30 dark:border-gray-500 dark:placeholder:text-gray-300 focus:transition-shadow focus:duration-300 focus:ring-0 focus:border-primary-600 focus:shadow-[0_0px_0px_1px] focus:shadow-primary-600 dark:focus:border-gray-700 outline-none";
+import { cn } from "@/lib/utils"
 
-    const errorStyles = error ? "border-red-500 focus:shadow-red-500 focus:border-red-500" : "";
+function Input({
+  className,
+  type,
+  ...props
+}) {
+  return (
+    <InputPrimitive
+      type={type}
+      data-slot="input"
+      className={cn(
+        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        className
+      )}
+      {...props} />
+  );
+}
 
-    if (type === 'textarea') {
-        return (
-            <div className={`w-full space-y-1 ${className}`}>
-                {label && (
-                    <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                        {label} {required && <span className="text-red-500">*</span>}
-                    </label>
-                )}
-                <textarea
-                    id={id}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    required={required}
-                    className={`${baseStyles} ${errorStyles} min-h-[100px]`}
-                    {...props}
-                />
-                {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-            </div>
-        );
-    }
-
-    return (
-        <div className={`w-full space-y-1 ${className}`}>
-            {label && (
-                <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    {label} {required && <span className="text-red-500">*</span>}
-                </label>
-            )}
-            <div className="relative">
-                <input
-                    id={id}
-                    type={type}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    required={required}
-                    min={min}
-                    max={max}
-                    className={`${baseStyles} ${errorStyles} ${props.suffix ? 'pe-10' : ''}`}
-                    {...props}
-                />
-                {props.suffix && (
-                    <div className="absolute inset-y-0 end-0 flex items-center pe-3">
-                        {props.suffix}
-                    </div>
-                )}
-            </div>
-            {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-        </div>
-    );
-};
-
-Input.propTypes = {
-    label: PropTypes.string,
-    id: PropTypes.string,
-    type: PropTypes.string,
-    placeholder: PropTypes.string,
-    value: PropTypes.any,
-    onChange: PropTypes.func.isRequired,
-    error: PropTypes.string,
-    required: PropTypes.bool,
-    className: PropTypes.string,
-    min: PropTypes.number,
-    max: PropTypes.number,
-    suffix: PropTypes.node,
-};
-
-export default Input;
+export { Input }

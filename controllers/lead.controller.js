@@ -58,12 +58,13 @@ export const createLead = async (req, res) => {
       const User = (await import("../models/user.model.js")).default;
       const Notification = (await import("../models/notification.model.js")).default;
       const admins = await User.find({ role: { $in: ["admin", "supervisor"] } }).select("_id");
+      const isCareerApp = !!lead.career;
       const notifications = admins.map(a => ({
         userId: a._id,
-        type: "new_lead",
-        title: "عميل محتمل جديد",
+        type: isCareerApp ? "new_job_application" : "new_lead",
+        title: isCareerApp ? "تقديم وظيفة جديد" : "عميل محتمل جديد",
         body: `${lead.name || "عميل جديد"} — ${lead.phone || ""}`,
-        link: "/admin/leads",
+        link: isCareerApp ? "/admin/careers" : "/admin/leads",
       }));
       if (notifications.length > 0) await Notification.insertMany(notifications);
     } catch (_) {}

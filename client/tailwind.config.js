@@ -10,6 +10,28 @@ export default {
   theme: {
     extend: {
       colors: {
+        // ===== shadcn/ui CSS variable colors =====
+        border:      "var(--border)",
+        input:       "var(--input)",
+        ring:        "var(--ring)",
+        background:  "var(--background)",
+        foreground:  "var(--foreground)",
+        card: {
+          DEFAULT:    "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT:    "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        muted: {
+          DEFAULT:    "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        destructive: {
+          DEFAULT:    "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
         // ===== ألوان الصرح للعقارات =====
         primary: {
           DEFAULT: '#8A6924',
