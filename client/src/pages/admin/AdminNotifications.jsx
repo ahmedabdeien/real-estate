@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Check, CheckCheck, Trash2, X } from "lucide-react";
+import { Bell, Briefcase, Check, CheckCheck, CheckSquare, ClipboardList, RefreshCw, Trash2, Users, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
@@ -10,11 +11,21 @@ import { useToast } from "../../context/ToastContext";
 const PAGE_SIZE = 20;
 
 const FILTERS = [
-  { value: "all", label: "الكل" },
-  { value: "unread", label: "غير المقروءة" },
-  { value: "task_assigned", label: "مهام مسندة" },
-  { value: "task_updated", label: "مهام محدثة" },
+  { value: "all",                label: "الكل" },
+  { value: "unread",             label: "غير المقروءة" },
+  { value: "new_lead",           label: "عملاء جدد" },
+  { value: "new_job_application",label: "وظائف" },
+  { value: "task_assigned",      label: "مهام مسندة" },
+  { value: "task_updated",       label: "مهام محدثة" },
 ];
+
+const TYPE_ICON = {
+  new_lead:            { Icon: Users,        bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600" },
+  new_job_application: { Icon: Briefcase,    bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-600" },
+  task_assigned:       { Icon: ClipboardList,bg: "bg-purple-100 dark:bg-purple-900/30",text: "text-purple-600" },
+  task_updated:        { Icon: CheckSquare,  bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-600" },
+  default:             { Icon: Bell,         bg: "bg-gray-100 dark:bg-gray-700",       text: "text-gray-500" },
+};
 
 const formatDate = (d) => {
   try {
@@ -27,6 +38,7 @@ const formatDate = (d) => {
 
 export default function AdminNotifications() {
   const toast = useToast();
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -95,7 +107,18 @@ export default function AdminNotifications() {
     }
   };
 
+  const handleNotificationClick = async (n) => {
+    if (!n.read) await markRead(n._id);
+    if (n.link) navigate(n.link);
+  };
+
   const unreadCount = items.filter((n) => !n.read).length;
+
+  const typeCounts = useMemo(() => {
+    const counts = {};
+    items.forEach((n) => { counts[n.type] = (counts[n.type] || 0) + 1; });
+    return counts;
+  }, [items]);
 
   return (
     <div className="space-y-5">
@@ -106,7 +129,14 @@ export default function AdminNotifications() {
             {items.length} إشعار · {unreadCount} غير مقروء
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={load}
+            className="flex items-center gap-2 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            تحديث
+          </button>
           <button
             onClick={markAllRead}
             disabled={unreadCount === 0}
@@ -128,19 +158,31 @@ export default function AdminNotifications() {
 
       {/* Filter tabs */}
       <div className="flex gap-2 flex-wrap">
-        {FILTERS.map((ft) => (
-          <button
-            key={ft.value}
-            onClick={() => setFilter(ft.value)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              filter === ft.value
-                ? "bg-[#2d5d89] text-white"
-                : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
-            }`}
-          >
-            {ft.label}
-          </button>
-        ))}
+        {FILTERS.map((ft) => {
+          const count = ft.value === "all" ? items.length
+            : ft.value === "unread" ? unreadCount
+            : (typeCounts[ft.value] || 0);
+          return (
+            <button
+              key={ft.value}
+              onClick={() => setFilter(ft.value)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                filter === ft.value
+                  ? "bg-[#2d5d89] text-white"
+                  : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              {ft.label}
+              {count > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
+                  filter === ft.value ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                }`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -150,50 +192,59 @@ export default function AdminNotifications() {
           <EmptyState icon={Bell} title="لا توجد إشعارات" description="ستظهر إشعاراتك هنا" />
         ) : (
           <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-            {pageItems.map((n) => (
-              <motion.li
-                key={n._id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={`p-4 flex items-start gap-3 ${!n.read ? "bg-blue-50/40 dark:bg-blue-900/10" : ""}`}
-              >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  !n.read ? "bg-[#2d5d89] text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-500"
-                }`}>
-                  <Bell className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-medium text-gray-900 dark:text-white text-sm">{n.title}</p>
-                    <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(n.createdAt)}</span>
+            {pageItems.map((n) => {
+              const { Icon, bg, text } = TYPE_ICON[n.type] || TYPE_ICON.default;
+              return (
+                <motion.li
+                  key={n._id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className={`p-4 flex items-start gap-3 transition-colors ${
+                    !n.read ? "bg-blue-50/40 dark:bg-blue-900/10" : ""
+                  } ${n.link ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50" : ""}`}
+                  onClick={() => n.link && handleNotificationClick(n)}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    !n.read ? `bg-[#2d5d89] text-white` : `${bg} ${text}`
+                  }`}>
+                    <Icon className="w-5 h-5" />
                   </div>
-                  {n.body && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{n.body}</p>}
-                  {n.link && (
-                    <a href={n.link} className="text-xs text-[#2d5d89] hover:underline mt-1 inline-block">
-                      فتح الرابط
-                    </a>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {!n.read && (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">{n.title}</p>
+                        {!n.read && (
+                          <span className="w-2 h-2 rounded-full bg-[#2d5d89] flex-shrink-0" />
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(n.createdAt)}</span>
+                    </div>
+                    {n.body && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{n.body}</p>}
+                    {n.link && (
+                      <span className="text-xs text-[#2d5d89] mt-1 inline-block">اضغط للفتح ←</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {!n.read && (
+                      <button
+                        onClick={() => markRead(n._id)}
+                        title="تحديد كمقروء"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
-                      onClick={() => markRead(n._id)}
-                      title="تحديد كمقروء"
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+                      onClick={() => deleteOne(n._id)}
+                      title="حذف الإشعار"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-600 transition-colors"
                     >
-                      <Check className="w-4 h-4" />
+                      <X className="w-4 h-4" />
                     </button>
-                  )}
-                  <button
-                    onClick={() => deleteOne(n._id)}
-                    title="حذف الإشعار"
-                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.li>
-            ))}
+                  </div>
+                </motion.li>
+              );
+            })}
           </ul>
         )}
       </div>

@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import {
   Plus, Pencil, Trash2, Search, Phone, Mail, MessageCircle, Bell,
   LayoutList, Columns, Download, CheckSquare, Globe, MessageSquare,
-  PhoneCall, Users, Share2, Megaphone, AlertCircle
+  PhoneCall, Users, Share2, Megaphone, AlertCircle, Eye, Calendar,
+  FileText, MapPin, ExternalLink
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -20,6 +21,7 @@ import HelpCard from "../../Components/UI/HelpCard";
 import InlineAiChat from "../../Components/UI/InlineAiChat";
 import { useToast } from "../../context/ToastContext";
 import { TrendingUp } from "lucide-react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 
 const leadStatuses = ["new", "contacted", "interested", "not_interested", "converted", "lost"];
 const sources = ["website", "whatsapp", "phone", "referral", "campaign", "other"];
@@ -160,6 +162,11 @@ export default function AdminLeads() {
   const [bulkStatus, setBulkStatus] = useState("");
   const [activeId, setActiveId] = useState(null);
   const [statusCounts, setStatusCounts] = useState({});
+  const [drawerLead, setDrawerLead] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const openDrawer = (lead) => { setDrawerLead(lead); setDrawerOpen(true); };
+  const closeDrawer = () => setDrawerOpen(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -504,8 +511,9 @@ export default function AdminLeads() {
                     const isOverdue = l.followUpDate && new Date(l.followUpDate) < new Date();
                     return (
                       <motion.tr key={l._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                        className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${selected.has(l._id) ? "bg-blue-50/50 dark:bg-blue-900/10" : ""}`}>
-                        <td className="px-4 py-4">
+                        onClick={() => openDrawer(l)}
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${selected.has(l._id) ? "bg-blue-50/50 dark:bg-blue-900/10" : ""}`}>
+                        <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" checked={selected.has(l._id)} onChange={() => toggleSelect(l._id)}
                             className="rounded border-gray-300 text-[#2d5d89] focus:ring-[#2d5d89]" />
                         </td>
@@ -552,7 +560,7 @@ export default function AdminLeads() {
                             {sourceAr[l.source] || l.source}
                           </span>
                         </td>
-                        <td className="px-4 sm:px-6 py-4">
+                        <td className="px-4 sm:px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <select value={l.status} onChange={(e) => quickStatus(l._id, e.target.value)}
                             onClick={(e) => e.stopPropagation()}
                             className="text-xs border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#2d5d89] cursor-pointer">
@@ -562,8 +570,12 @@ export default function AdminLeads() {
                         <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-xs text-gray-400">
                           {new Date(l.createdAt).toLocaleDateString("ar-EG")}
                         </td>
-                        <td className="px-4 sm:px-6 py-4">
+                        <td className="px-4 sm:px-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1">
+                            <button onClick={() => openDrawer(l)} title="عرض التفاصيل"
+                              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2d5d89]/10 text-[#2d5d89] transition-colors">
+                              <Eye className="w-4 h-4" />
+                            </button>
                             <button onClick={() => sendWhatsApp(l)} title="إرسال واتساب"
                               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 transition-colors">
                               <MessageCircle className="w-4 h-4" />
@@ -683,6 +695,153 @@ export default function AdminLeads() {
       <ConfirmModal open={!!deleteId} onConfirm={handleDelete} onCancel={() => setDeleteId(null)} loading={deleting} />
 
       <InlineAiChat context="sales" pageData={{ totalLeads: leads.length }} />
+
+      {/* Lead Details Drawer */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="right">
+        <DrawerContent className="h-full max-w-md w-full mr-0 ml-auto rounded-r-none rounded-l-2xl flex flex-col">
+          {drawerLead && (
+            <>
+              <DrawerHeader className="border-b border-gray-100 dark:border-gray-700 px-6 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <DrawerTitle className="text-xl font-bold text-gray-900 dark:text-white">{drawerLead.name}</DrawerTitle>
+                    <p className="text-sm text-gray-500 mt-0.5">{sourceAr[drawerLead.source] || drawerLead.source}</p>
+                  </div>
+                  <DrawerClose className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 transition-colors">
+                    ✕
+                  </DrawerClose>
+                </div>
+              </DrawerHeader>
+
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
+                {/* Status badge */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <select
+                    value={drawerLead.status}
+                    onChange={async (e) => {
+                      await quickStatus(drawerLead._id, e.target.value);
+                      setDrawerLead((prev) => ({ ...prev, status: e.target.value }));
+                    }}
+                    className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+                  >
+                    {leadStatuses.map((s) => <option key={s} value={s}>{statusAr[s]}</option>)}
+                  </select>
+                  <span className="text-xs text-gray-400">
+                    {new Date(drawerLead.createdAt).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })}
+                  </span>
+                </div>
+
+                {/* Contact info */}
+                <div className="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-4 space-y-3">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">بيانات التواصل</h3>
+                  {drawerLead.phone && (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm font-mono text-gray-700 dark:text-gray-300">{drawerLead.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <a href={`tel:${drawerLead.phone}`} title="اتصال"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 hover:bg-blue-100 transition-colors">
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                        <a href={`https://wa.me/${drawerLead.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" title="واتساب"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 hover:bg-green-100 transition-colors">
+                          <MessageCircle className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  {drawerLead.email && (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{drawerLead.email}</span>
+                      </div>
+                      <a href={`mailto:${drawerLead.email}`} title="إرسال بريد"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30 text-purple-600 hover:bg-purple-100 transition-colors">
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                {/* Project & follow-up */}
+                <div className="space-y-3">
+                  {drawerLead.interestedProject?.name?.ar && (
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-4 h-4 text-[#2d5d89] mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">المشروع المهتم به</p>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{drawerLead.interestedProject.name.ar}</p>
+                      </div>
+                    </div>
+                  )}
+                  {drawerLead.followUpDate && (
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs text-gray-400">موعد المتابعة</p>
+                        <p className={`text-sm font-medium ${new Date(drawerLead.followUpDate) < new Date() ? "text-red-600" : "text-gray-800 dark:text-gray-200"}`}>
+                          {new Date(drawerLead.followUpDate).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })}
+                          {new Date(drawerLead.followUpDate) < new Date() && " · متأخر"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Message */}
+                {drawerLead.message && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="w-4 h-4 text-gray-400" />
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">الرسالة</h3>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/40 rounded-xl px-4 py-3 leading-relaxed">
+                      {drawerLead.message}
+                    </p>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {drawerLead.notes && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-400" />
+                      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">ملاحظات</h3>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/40 rounded-xl px-4 py-3 leading-relaxed">
+                      {drawerLead.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <DrawerFooter className="border-t border-gray-100 dark:border-gray-700 px-6 py-4 flex gap-2">
+                <button
+                  onClick={() => { closeDrawer(); sendWhatsApp(drawerLead); }}
+                  className="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" /> واتساب
+                </button>
+                <button
+                  onClick={() => { closeDrawer(); openEdit(drawerLead); }}
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                >
+                  <Pencil className="w-4 h-4" /> تعديل
+                </button>
+                <button
+                  onClick={() => { closeDrawer(); setDeleteId(drawerLead._id); }}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 transition-colors flex-shrink-0"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </DrawerFooter>
+            </>
+          )}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }

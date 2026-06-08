@@ -2370,7 +2370,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               try {
                 const res = await api.post(`/accounting/${ledgerId}/sheets/${sheet._id}/rows`, { cells: data });
                 setRows((prev) => [...prev, res.data.row]);
-              } catch { throw new Error("فشل الإضافة"); }
+              } catch { toast.error("فشل الإضافة"); }
               finally { setSaving(false); }
             }}
           />
