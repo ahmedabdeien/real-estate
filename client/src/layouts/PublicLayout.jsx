@@ -3,6 +3,7 @@ import Header from "../Components/layout/Header";
 import Footer from "../Components/layout/Footer";
 import SiteMeta from "../Components/SiteMeta";
 import FloatingSocial from "../Components/public/FloatingSocial";
+import PopupAnnouncement from "../Components/public/PopupAnnouncement";
 
 export default function PublicLayout() {
   return (
@@ -14,6 +15,7 @@ export default function PublicLayout() {
       </main>
       <Footer />
       <FloatingSocial />
+      <PopupAnnouncement />
     </div>
   );
 }

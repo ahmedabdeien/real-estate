@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Save, Eye, Image as ImageIcon, AlignLeft, Type, Megaphone, Bell, Copy, RotateCcw, ExternalLink } from "lucide-react";
+import { Save, Eye, Image as ImageIcon, AlignLeft, Type, Megaphone, Bell, Copy, RotateCcw, ExternalLink, Palette, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
 import HelpCard from "../../Components/UI/HelpCard";
 import { useToast } from "../../context/ToastContext";
+import { useSiteSettings } from "../../context/SiteSettingsContext";
 
 // Sections organized into logical groups
 const GROUPS = [
@@ -190,17 +191,16 @@ const GROUPS = [
       },
       {
         key: "theme",
-        label: "الألوان والأزرار",
+        label: "الألوان والثيم",
+        icon: Palette,
         fields: [
-          { key: "primary_color",     label: "اللون الرئيسي (hex مثال: #2d5d89)", type: "text", hint: "اللون الرئيسي للموقع بصيغة HEX مثال: #2d5d89" },
-          { key: "secondary_color",   label: "اللون الثانوي (hex مثال: #f59e0b)", type: "text" },
-          { key: "accent_color",      label: "لون التمييز",                       type: "text" },
-          { key: "font_family",       label: "نوع الخط",                          type: "text" },
-          { key: "show_whatsapp_btn", label: "إظهار زر واتساب العائم",            type: "text" },
-          { key: "cta_text",          label: "نص زر الدعوة للإجراء (الرئيسية)",   type: "text" },
-          { key: "cta_secondary",     label: "نص الزر الثانوي (تواصل معنا)",      type: "text" },
-          { key: "nav_logo_text",     label: "اسم الشركة في القائمة العلوية",     type: "text" },
-          { key: "whatsapp_number",   label: "رقم واتساب (للزر العائم)",          type: "text", hint: "رقم الواتساب بصيغة دولية مثال: 201234567890" },
+          { key: "primary_color",     label: "اللون الرئيسي",    type: "color", hint: "اللون الرئيسي للموقع — يؤثر على الهيدر والأزرار والروابط" },
+          { key: "secondary_color",   label: "اللون الثانوي",    type: "color", hint: "اللون الثانوي — يُستخدم في خلفيات الـ gradient" },
+          { key: "accent_color",      label: "لون التمييز",      type: "color", hint: "لون الأزرار البارزة والتمييز — عادةً لون ذهبي أو برتقالي" },
+          { key: "font_family",       label: "نوع الخط",         type: "text", hint: "مثال: Tajawal أو Cairo" },
+          { key: "show_whatsapp_btn", label: "إظهار زر واتساب العائم", type: "toggle" },
+          { key: "nav_logo_text",     label: "اسم الشركة في الهيدر", type: "text" },
+          { key: "whatsapp_number",   label: "رقم واتساب (للزر العائم)", type: "text", hint: "مثال: 201234567890 — بدون + وبصيغة دولية" },
         ],
       },
       {
@@ -208,11 +208,11 @@ const GROUPS = [
         label: "إعلان منبثق",
         icon: Bell,
         fields: [
-          { key: "popup_enabled",     label: "تفعيل الإعلان",  type: "text" },
+          { key: "popup_enabled",     label: "تفعيل الإعلان المنبثق", type: "toggle", hint: "عند التفعيل سيظهر للزوار الجدد تلقائياً بعد 1.2 ثانية" },
           { key: "popup_title",       label: "عنوان الإعلان",  type: "text" },
           { key: "popup_message",     label: "نص الإعلان",     type: "textarea" },
-          { key: "popup_button_text", label: "نص الزر",        type: "text" },
-          { key: "popup_button_link", label: "رابط الزر",      type: "text" },
+          { key: "popup_button_text", label: "نص الزر",        type: "text", hint: "اتركه فارغاً لإخفاء الزر" },
+          { key: "popup_button_link", label: "رابط الزر",      type: "text", hint: "رابط داخلي مثال: /projects أو رابط خارجي مثال: https://..." },
         ],
       },
     ],
@@ -222,7 +222,7 @@ const GROUPS = [
 // Flat list for lookup
 const sections = GROUPS.flatMap((g) => g.sections);
 
-const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon };
+const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon, color: Palette, toggle: ToggleRight };
 
 // Section → public URL mapping for preview
 const SECTION_URLS = {
@@ -245,6 +245,7 @@ const SECTION_URLS = {
 
 export default function AdminContent() {
   const toast = useToast();
+  const { refreshTheme } = useSiteSettings();
   const [activeSection, setActiveSection] = useState(sections[0].key);
   const [sectionSearch, setSectionSearch] = useState("");
   const [lastSaved, setLastSaved] = useState(null);
@@ -282,6 +283,8 @@ export default function AdminContent() {
       toast.success("تم حفظ المحتوى — سيظهر التغيير فوراً على الموقع");
       setLastSaved(new Date());
       setIsDirty(false);
+      // If saving theme, refresh CSS variables instantly
+      if (activeSection === "theme") refreshTheme?.();
     } catch {
       toast.error("فشل الحفظ — تحقق من اتصال الشبكة");
     } finally {
@@ -434,6 +437,46 @@ export default function AdminContent() {
             <LoadingSpinner className="h-32" />
           ) : (
             <div className="space-y-5">
+              {/* Theme live preview */}
+              {activeSection === "theme" && (data.primary_color || data.accent_color) && (
+                <div className="p-4 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                  <p className="text-xs font-semibold text-gray-500 mb-3">معاينة مباشرة للألوان</p>
+                  <div className="flex flex-wrap gap-3 items-center">
+                    {[
+                      { label: "الرئيسي", key: "primary_color", fallback: "#2d5d89" },
+                      { label: "الثانوي",  key: "secondary_color", fallback: "#1a3d5c" },
+                      { label: "التمييز",  key: "accent_color", fallback: "#f59e0b" },
+                    ].map(({ label, key, fallback }) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg shadow border border-white/20"
+                          style={{ background: data[key] || fallback }} />
+                        <span className="text-xs text-gray-600 dark:text-gray-300">{label}</span>
+                        <code className="text-[10px] text-gray-400 font-mono">{data[key] || fallback}</code>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-2">⚠️ احفظ لتطبيق الألوان على الموقع فوراً</p>
+                </div>
+              )}
+
+              {/* Popup announcement preview */}
+              {activeSection === "popup_announcement" && (data.popup_enabled === "true") && data.popup_title && (
+                <div className="p-4 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+                  <p className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
+                    <Bell className="w-3.5 h-3.5" /> معاينة الإعلان المنبثق
+                  </p>
+                  <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 max-w-xs">
+                    <p className="font-bold text-sm text-gray-900 dark:text-white mb-1">{data.popup_title}</p>
+                    {data.popup_message && <p className="text-xs text-gray-500 leading-relaxed">{data.popup_message}</p>}
+                    {data.popup_button_text && (
+                      <div className="mt-2">
+                        <span className="text-xs px-3 py-1 rounded-lg bg-[#2d5d89] text-white font-medium">{data.popup_button_text}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {currentSection?.fields.map((field) => {
                 const FieldIcon = typeIcon[field.type] || Type;
                 return (
@@ -448,6 +491,54 @@ export default function AdminContent() {
                         value={data[field.key] || ""}
                         onChange={(url) => { setData({ ...data, [field.key]: url }); setIsDirty(true); }}
                       />
+                    ) : field.type === "toggle" ? (
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const cur = data[field.key] === "true" || data[field.key] === true;
+                            setData({ ...data, [field.key]: cur ? "false" : "true" });
+                            setIsDirty(true);
+                          }}
+                          className={`relative inline-flex h-7 w-13 w-12 items-center rounded-full transition-colors focus:outline-none ${
+                            data[field.key] === "true" || data[field.key] === true ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+                          }`}
+                          style={{ minWidth: "3rem" }}
+                        >
+                          <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                            data[field.key] === "true" || data[field.key] === true ? "translate-x-6" : "translate-x-1"
+                          }`} />
+                        </button>
+                        <span className={`text-sm font-medium ${data[field.key] === "true" || data[field.key] === true ? "text-green-600" : "text-gray-400"}`}>
+                          {data[field.key] === "true" || data[field.key] === true ? "مفعّل ✓" : "معطّل"}
+                        </span>
+                      </div>
+                    ) : field.type === "color" ? (
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                          <input
+                            type="color"
+                            value={(data[field.key] || "#2d5d89").replace(/[^#0-9a-fA-F]/g, "").slice(0, 7) || "#2d5d89"}
+                            onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
+                            className="w-12 h-10 rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer p-0.5 bg-white dark:bg-gray-700"
+                            title="اختر اللون"
+                          />
+                        </div>
+                        <input type="text" value={data[field.key] || ""}
+                          onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
+                          placeholder="#2d5d89"
+                          className={inputClass + " font-mono flex-1 uppercase"}
+                          maxLength={7}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(data[field.key] || "")}
+                          title="نسخ"
+                          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-[#2d5d89] hover:border-[#2d5d89] transition-colors"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     ) : field.type === "textarea" ? (
                       <>
                         <textarea rows={3} value={data[field.key] || ""}

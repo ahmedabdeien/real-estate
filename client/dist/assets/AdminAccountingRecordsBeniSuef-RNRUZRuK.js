@@ -1,1 +1,0 @@
-import{j as r}from"./react-vendor-CQxFvlPW.js";import o from"./AdminAccountingRecords-CbxrqeTN.js";import"./index-DtZCvkIc.js";import"./router-CjJ_MBYl.js";import"./framer-R0Lcz59e.js";import"./lucide-CohORbsU.js";import"./recharts-DJr8eMCG.js";import"./HelpCard-Cgxg1cgi.js";function u(){return r.jsx(o,{branch:"بني سويف",branchLabel:"فرع بني سويف"})}export{u as default};

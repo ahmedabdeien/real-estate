@@ -223,6 +223,14 @@ export default function HomePage() {
     years_label: "سنة خبرة",
   });
   const { data: servicesCms } = useCms("home_services");
+  const { data: ctaCms } = useCms("home_cta", {
+    cta_title:       "هل أنت مستعد لبدء رحلتك العقارية؟",
+    cta_subtitle:    "فريقنا المتخصص جاهز لمساعدتك في اختيار العقار المثالي",
+    cta_button_text: "احجز استشارة مجانية",
+    cta_button_link: "/contact",
+    cta_phone:       "",
+    cta_image:       "",
+  });
 
   useEffect(() => { document.title = "الصرح للتطوير العقاري - الرئيسية"; }, []);
 
@@ -372,21 +380,32 @@ export default function HomePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="bg-gradient-to-r from-[#2d5d89] to-[#1a3d5c] py-16" dir="rtl">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative py-16 overflow-hidden" dir="rtl"
+        style={{ background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)" }}>
+        {ctaCms.cta_image && (
+          <div className="absolute inset-0 opacity-10">
+            <img src={ctaCms.cta_image} alt="" className="w-full h-full object-cover" />
+          </div>
+        )}
+        <div className="relative container mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">هل أنت مستعد لبدء رحلتك العقارية؟</h2>
-            <p className="text-white/70 text-lg mb-8">فريقنا المتخصص جاهز لمساعدتك في اختيار العقار المثالي</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">{ctaCms.cta_title}</h2>
+            {ctaCms.cta_subtitle && (
+              <p className="text-white/70 text-lg mb-8 max-w-2xl mx-auto">{ctaCms.cta_subtitle}</p>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/contact"
-                className="bg-[#f59e0b] hover:bg-[#d97706] text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-0.5">
-                احجز استشارة مجانية
+              <Link to={ctaCms.cta_button_link || "/contact"}
+                className="text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
+                style={{ background: "var(--accent)" }}>
+                {ctaCms.cta_button_text}
               </Link>
-              <a href="tel:+201234567890"
-                className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-2xl font-bold text-lg transition-colors">
-                <Phone className="w-5 h-5" />
-                اتصل الآن
-              </a>
+              {ctaCms.cta_phone && (
+                <a href={`tel:+${ctaCms.cta_phone}`}
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-2xl font-bold text-lg transition-colors">
+                  <Phone className="w-5 h-5" />
+                  اتصل الآن
+                </a>
+              )}
             </div>
           </motion.div>
         </div>
