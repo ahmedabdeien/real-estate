@@ -100,18 +100,26 @@ export default function AdminUsers() {
   }, []);
 
   const [staffSearch, setStaffSearch] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
 
   const staff = users.filter((u) => STAFF_ROLES.includes(u.role));
   const viewers = users.filter((u) => VIEWER_ROLES.includes(u.role));
   const onlineCount = staff.filter((u) => isOnline(u.lastSeen)).length;
 
-  const filteredStaff = staffSearch.trim()
-    ? staff.filter((u) =>
-        u.name?.toLowerCase().includes(staffSearch.toLowerCase()) ||
-        u.email?.toLowerCase().includes(staffSearch.toLowerCase()) ||
-        u.phone?.includes(staffSearch)
-      )
-    : staff;
+  const roleCounts = staff.reduce((acc, u) => { acc[u.role] = (acc[u.role] || 0) + 1; return acc; }, {});
+  const ROLE_LABELS = { admin: "أدمن", supervisor: "مشرف", manager: "مدير", employee: "موظف", sales: "مبيعات" };
+
+  const filteredStaff = staff.filter((u) => {
+    if (deptFilter && u.department !== deptFilter) return false;
+    if (roleFilter === "online" && !isOnline(u.lastSeen)) return false;
+    if (roleFilter && roleFilter !== "online" && u.role !== roleFilter) return false;
+    if (staffSearch.trim()) {
+      const q = staffSearch.toLowerCase();
+      return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.phone?.includes(q);
+    }
+    return true;
+  });
 
   const exportUsersCSV = () => {
     const rows = filteredStaff.map((u) => [
@@ -209,24 +217,46 @@ export default function AdminUsers() {
         </div>
       </div>
 
-      {/* Staff stats */}
+      {/* Staff stats + filters */}
       {tab === "staff" && (
-        <div className="flex flex-wrap gap-3">
-          <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl px-4 py-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{onlineCount}</span>
-            <span className="text-xs text-emerald-600 dark:text-emerald-500">متصل الآن</span>
+        <div className="space-y-3">
+          {/* Role stats chips */}
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setRoleFilter("")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${!roleFilter ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100"}`}>
+              <Users className="w-3 h-3" /> الكل ({staff.length})
+            </button>
+            <button onClick={() => setRoleFilter(roleFilter === "online" ? "" : "online")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${roleFilter === "online" ? "bg-emerald-600 text-white border-emerald-600" : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"}`}>
+              <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              متصل ({onlineCount})
+            </button>
+            {Object.entries(roleCounts).map(([role, cnt]) => (
+              <button key={role} onClick={() => setRoleFilter(roleFilter === role ? "" : role)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${roleFilter === role ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>
+                {ROLE_LABELS[role] || role} ({cnt})
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5">
-            <Users className="w-4 h-4 text-[#2d5d89]" />
-            <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{staff.length}</span>
-            <span className="text-xs text-gray-500">موظف</span>
-          </div>
-          <div className="relative mr-auto">
-            <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-            <input value={staffSearch} onChange={(e) => setStaffSearch(e.target.value)}
-              placeholder="بحث بالاسم أو البريد..."
-              className="pr-9 pl-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-52" />
+          {/* Search + dept filter */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative">
+              <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+              <input value={staffSearch} onChange={(e) => setStaffSearch(e.target.value)}
+                placeholder="بحث بالاسم أو البريد..."
+                className="pr-9 pl-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] w-52" />
+            </div>
+            <select value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}
+              className="border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30">
+              <option value="">كل الأقسام</option>
+              {Object.entries(DEPARTMENTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+            {(staffSearch || deptFilter || roleFilter) && (
+              <button onClick={() => { setStaffSearch(""); setDeptFilter(""); setRoleFilter(""); }}
+                className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 px-2 py-2 rounded-lg hover:bg-red-50 transition-colors">
+                <span>×</span> مسح الفلاتر
+              </button>
+            )}
           </div>
         </div>
       )}

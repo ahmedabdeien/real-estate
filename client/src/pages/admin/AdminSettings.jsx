@@ -210,7 +210,7 @@ export default function AdminSettings() {
           "النسخ الاحتياطي يُنصح بعمله قبل أي تعديلات كبيرة",
         ]}
       />
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إعدادات الموقع</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">تحكم في كل إعدادات الموقع بدون كود</p>
@@ -221,6 +221,55 @@ export default function AdminSettings() {
           {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
         </button>
       </div>
+
+      {/* Quick summary bar */}
+      {!loading && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Company logo preview */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3">
+            {values.company_logo ? (
+              <img src={values.company_logo} alt="logo" className="w-10 h-10 object-contain rounded-lg" />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-gray-400" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{values.company_name_ar || "—"}</p>
+              <p className="text-[10px] text-gray-400">اسم الشركة</p>
+            </div>
+          </div>
+          {/* BIMI Logo */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3">
+            <img src="/logo_bimi.svg" alt="BIMI" className="w-10 h-10 object-contain rounded-lg" />
+            <div>
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">BIMI Logo</p>
+              <p className="text-[10px] text-gray-400">للبريد الإلكتروني</p>
+            </div>
+          </div>
+          {/* Colors preview */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3">
+            <div className="flex gap-1">
+              <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: values.primary_color || "#2d5d89" }} />
+              <div className="w-5 h-5 rounded-full border border-gray-200" style={{ backgroundColor: values.accent_color || "#f59e0b" }} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">الألوان</p>
+              <p className="text-[10px] text-gray-400 font-mono">{values.primary_color || "#2d5d89"}</p>
+            </div>
+          </div>
+          {/* Contact */}
+          <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+              <Mail className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{values.company_email || "—"}</p>
+              <p className="text-[10px] text-gray-400">البريد الإلكتروني</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sticky Save All button */}
       {!loading && (

@@ -246,6 +246,9 @@ const SECTION_URLS = {
 export default function AdminContent() {
   const toast = useToast();
   const [activeSection, setActiveSection] = useState(sections[0].key);
+  const [sectionSearch, setSectionSearch] = useState("");
+  const [lastSaved, setLastSaved] = useState(null);
+  const [isDirty, setIsDirty] = useState(false);
 
   const copyToClipboard = (val) => {
     if (!val) return;
@@ -270,19 +273,40 @@ export default function AdminContent() {
     }
   };
 
-  useEffect(() => { loadSection(activeSection); }, [activeSection]);
+  useEffect(() => { loadSection(activeSection); setIsDirty(false); }, [activeSection]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
       await api.put(`/content/${activeSection}`, data);
       toast.success("تم حفظ المحتوى — سيظهر التغيير فوراً على الموقع");
+      setLastSaved(new Date());
+      setIsDirty(false);
     } catch {
       toast.error("فشل الحفظ — تحقق من اتصال الشبكة");
     } finally {
       setSaving(false);
     }
   };
+
+  // Completion: count non-empty text fields
+  const getCompletion = (sectionKey) => {
+    const sec = sections.find((s) => s.key === sectionKey);
+    if (!sec) return null;
+    const textFields = sec.fields.filter((f) => f.type !== "image");
+    if (!textFields.length) return null;
+    // Only valid for current active section where we have data
+    if (sectionKey !== activeSection) return null;
+    const filled = textFields.filter((f) => data[f.key]?.toString().trim()).length;
+    return { filled, total: textFields.length };
+  };
+
+  const filteredGroups = sectionSearch.trim()
+    ? GROUPS.map((g) => ({
+        ...g,
+        sections: g.sections.filter((s) => s.label.includes(sectionSearch.trim())),
+      })).filter((g) => g.sections.length > 0)
+    : GROUPS;
 
   const handleReset = () => {
     if (!window.confirm("هل تريد إعادة تعيين هذا القسم وتحميل البيانات المحفوظة من السيرفر؟")) return;
@@ -310,14 +334,24 @@ export default function AdminContent() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة المحتوى</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">تحكم في محتوى الموقع بالكامل بدون كود — التغييرات فورية</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {isDirty && (
+            <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-full font-medium animate-pulse">
+              • تغييرات غير محفوظة
+            </span>
+          )}
+          {lastSaved && !isDirty && (
+            <span className="text-xs text-gray-400">
+              آخر حفظ: {lastSaved.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
           <a href="/" target="_blank"
             className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-3 sm:px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <Eye className="w-4 h-4" />
             <span className="hidden sm:inline">معاينة الموقع</span>
           </a>
           <button onClick={handleSave} disabled={saving}
-            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
+            className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${isDirty ? "bg-amber-500 hover:bg-amber-600" : "bg-[#2d5d89] hover:bg-[#245079]"} text-white`}>
             <Save className="w-4 h-4" />
             {saving ? "جاري..." : "حفظ"}
           </button>
@@ -327,23 +361,40 @@ export default function AdminContent() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* Section Tabs — Grouped */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 h-fit">
+          {/* Section search */}
+          <div className="relative mb-2 hidden lg:block">
+            <input
+              value={sectionSearch}
+              onChange={(e) => setSectionSearch(e.target.value)}
+              placeholder="بحث في الأقسام..."
+              className="w-full pr-3 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 text-gray-700 dark:text-gray-300"
+            />
+          </div>
           <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
-            {GROUPS.map((group) => (
+            {filteredGroups.map((group) => (
               <div key={group.label} className="flex lg:flex-col gap-1 flex-shrink-0 lg:flex-shrink-0">
                 {/* Group header */}
                 <div className="hidden lg:block px-3 pt-3 pb-1">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{group.label}</p>
                 </div>
-                {group.sections.map((s) => (
-                  <button key={s.key} onClick={() => setActiveSection(s.key)}
-                    className={`flex-shrink-0 lg:flex-shrink text-right px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap ${
-                      activeSection === s.key
-                        ? "bg-[#2d5d89] text-white"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    }`}>
-                    {s.label}
-                  </button>
-                ))}
+                {group.sections.map((s) => {
+                  const comp = activeSection === s.key ? getCompletion(s.key) : null;
+                  return (
+                    <button key={s.key} onClick={() => setActiveSection(s.key)}
+                      className={`flex-shrink-0 lg:flex-shrink text-right px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap flex items-center justify-between gap-2 ${
+                        activeSection === s.key
+                          ? "bg-[#2d5d89] text-white"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}>
+                      <span>{s.label}</span>
+                      {comp && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-mono ${comp.filled === comp.total ? "bg-white/20" : "bg-white/10"}`}>
+                          {comp.filled}/{comp.total}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
                 <div className="hidden lg:block h-px bg-gray-100 dark:bg-gray-700 my-1" />
               </div>
             ))}
@@ -395,13 +446,14 @@ export default function AdminContent() {
                     {field.type === "image" ? (
                       <ImageUpload
                         value={data[field.key] || ""}
-                        onChange={(url) => setData({ ...data, [field.key]: url })}
+                        onChange={(url) => { setData({ ...data, [field.key]: url }); setIsDirty(true); }}
                       />
                     ) : field.type === "textarea" ? (
                       <>
                         <textarea rows={3} value={data[field.key] || ""}
                           onChange={(e) => {
                             setData({ ...data, [field.key]: e.target.value });
+                            setIsDirty(true);
                             e.target.style.height = "auto";
                             e.target.style.height = `${e.target.scrollHeight}px`;
                           }}
@@ -412,7 +464,7 @@ export default function AdminContent() {
                     ) : (
                       <div className="flex items-center gap-1.5">
                         <input type="text" value={data[field.key] || ""}
-                          onChange={(e) => setData({ ...data, [field.key]: e.target.value })}
+                          onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
                           className={inputClass} />
                         <button
                           type="button"

@@ -129,6 +129,8 @@ export default function AdminWhatsApp() {
   const [bulkPhones, setBulkPhones] = useState("");
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkResult, setBulkResult] = useState(null);
+  const [bulkDelay, setBulkDelay] = useState(2);
+  const [bulkProgress, setBulkProgress] = useState(null); // { sent, total }
 
   // ── SSE connection ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -226,6 +228,34 @@ export default function AdminWhatsApp() {
           {info.label}
         </span>
       </div>
+
+      {/* Quick stats */}
+      {auto && (
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            {
+              label: "استفسار جديد",
+              enabled: auto.newLead?.enabled,
+              desc: auto.newLead?.enabled ? (auto.newLead?.notifyAdmin && auto.newLead?.welcomeClient ? "أدمن + عميل" : auto.newLead?.notifyAdmin ? "إشعار أدمن" : "ترحيب عميل") : "معطّل",
+            },
+            {
+              label: "تأكيد الحجز",
+              enabled: auto.booking?.enabled,
+              desc: auto.booking?.enabled ? (auto.booking?.notifyClient ? "إشعار عميل" : "إشعار أدمن") : "معطّل",
+            },
+            {
+              label: "تذكير الأقساط",
+              enabled: auto.reminder?.enabled,
+              desc: auto.reminder?.enabled ? `${auto.reminder?.daysBefore || 3} أيام مسبقاً` : "معطّل",
+            },
+          ].map((item) => (
+            <div key={item.label} className={`rounded-xl border p-3 text-center ${item.enabled ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800" : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"}`}>
+              <div className={`text-xs font-semibold mb-0.5 ${item.enabled ? "text-green-700 dark:text-green-400" : "text-gray-500"}`}>{item.label}</div>
+              <div className={`text-[10px] ${item.enabled ? "text-green-600" : "text-gray-400"}`}>{item.desc}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
@@ -451,21 +481,59 @@ export default function AdminWhatsApp() {
               <p className="text-xs text-gray-400 mt-1">{bulkMsg.length} حرف</p>
             </div>
 
+            {/* Delay setting */}
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+              <Clock className="w-4 h-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">التأخير بين كل رسالة</span>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setBulkDelay((d) => Math.max(1, d - 1))}
+                  className="w-7 h-7 rounded-lg bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 text-gray-700 dark:text-white font-bold text-sm hover:bg-gray-100 transition-colors flex items-center justify-center">−</button>
+                <span className="text-sm font-bold text-gray-900 dark:text-white w-12 text-center">{bulkDelay} ث</span>
+                <button onClick={() => setBulkDelay((d) => Math.min(30, d + 1))}
+                  className="w-7 h-7 rounded-lg bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 text-gray-700 dark:text-white font-bold text-sm hover:bg-gray-100 transition-colors flex items-center justify-center">+</button>
+              </div>
+            </div>
+
+            {/* Estimated time */}
+            {(() => {
+              const cnt = bulkPhones.split(/[\n,،]+/).filter((p) => p.trim()).length;
+              if (!cnt) return null;
+              const mins = Math.ceil((cnt * bulkDelay) / 60);
+              return (
+                <div className="text-xs text-center text-gray-500">
+                  وقت الإرسال المتوقع: ~{mins < 1 ? `${cnt * bulkDelay} ث` : `${mins} دقيقة`} لـ {cnt} رسالة
+                </div>
+              );
+            })()}
+
             {/* Warning */}
             <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-400">
-                الإرسال الجماعي قد يستغرق بعض الوقت. يوجد تأخير 2.5 ثانية بين كل رسالة لتجنب الحظر.
+                الإرسال الجماعي يتم على التوالي بتأخير {bulkDelay} ثانية بين كل رسالة لتجنب الحظر.
                 يجب أن يكون الواتساب متصلاً.
               </p>
             </div>
+
+            {bulkSending && bulkProgress && (
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>جارٍ الإرسال...</span>
+                  <span>{bulkProgress.sent} / {bulkProgress.total}</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500 rounded-full transition-all duration-300"
+                    style={{ width: `${(bulkProgress.sent / bulkProgress.total) * 100}%` }} />
+                </div>
+              </div>
+            )}
 
             <button onClick={handleBulk} disabled={bulkSending || status !== "connected"}
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
               {bulkSending ? (
                 <><Loader className="w-4 h-4 animate-spin" /> جارٍ الإرسال...</>
               ) : (
-                <><Send className="w-4 h-4" /> إرسال للجميع</>
+                <><Send className="w-4 h-4" /> إرسال للجميع ({bulkPhones.split(/[\n,،]+/).filter(p=>p.trim()).length || 0} رسالة)</>
               )}
             </button>
 
