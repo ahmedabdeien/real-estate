@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, Navigate, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
-  Building2, LogOut, User, CheckSquare, Menu, X, Calculator,
-  Bell, Home, TrendingUp, FileText, Layers,
-} from "lucide-react";
+  FaBuilding, FaRightFromBracket, FaUser, FaSquareCheck, FaBars, FaXmark, FaCalculator,
+  FaBell, FaHouseChimney, FaChartLine, FaFileLines, FaLayerGroup,
+} from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { PageLoader } from "../Components/UI/LoadingSpinner";
@@ -80,11 +80,11 @@ function NotificationPanel({ onClose, onChange }) {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <h3 className="font-bold text-gray-900 text-sm">الإشعارات</h3>
         <div className="flex items-center gap-2">
-          <button onClick={markAllRead} className="text-xs text-[#2d5d89] hover:underline font-medium">
+          <button onClick={markAllRead} className="text-xs text-[var(--primary)] hover:underline font-medium">
             تحديد الكل كمقروء
           </button>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X className="w-4 h-4" />
+            <FaXmark className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -104,7 +104,7 @@ function NotificationPanel({ onClose, onChange }) {
               }`}
             >
               {!n.read && (
-                <span className="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full bg-[#2d5d89]" />
+                <span className="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full bg-[var(--primary)]" />
               )}
               <div className={`flex-1 min-w-0 ${n.read ? "pr-5" : ""}`}>
                 <p className="text-sm font-semibold text-gray-900 leading-snug">{typeof n.title === "object" ? (n.title?.ar ?? n.title?.en ?? "—") : (n.title ?? "—")}</p>
@@ -168,21 +168,21 @@ export default function StaffLayout() {
   };
 
   const navLinks = [
-    { to: "/staff/tasks",   label: "مهامي",        icon: CheckSquare },
-    { to: "/staff/profile", label: "الملف الشخصي", icon: User },
+    { to: "/staff/tasks",   label: "مهامي",        icon: FaSquareCheck },
+    { to: "/staff/profile", label: "الملف الشخصي", icon: FaUser },
     ...(user?.department === "accounts"
-      ? [{ to: "/staff/accounting", label: "الحسابات", icon: Calculator }]
+      ? [{ to: "/staff/accounting", label: "الحسابات", icon: FaCalculator }]
       : []),
     ...(user?.role === "sales"
       ? [
-          { to: "/staff/projects", label: "المشاريع", icon: Home },
-          { to: "/staff/units",    label: "الوحدات",  icon: Layers },
-          { to: "/staff/leads",    label: "العملاء",  icon: TrendingUp },
-          { to: "/staff/blogs",    label: "المقالات", icon: FileText },
+          { to: "/staff/projects", label: "المشاريع", icon: FaHouseChimney },
+          { to: "/staff/units",    label: "الوحدات",  icon: FaLayerGroup },
+          { to: "/staff/leads",    label: "العملاء",  icon: FaChartLine },
+          { to: "/staff/blogs",    label: "المقالات", icon: FaFileLines },
         ]
       : []),
     ...(["manager", "supervisor"].includes(user?.role)
-      ? [{ to: "/admin/tasks", label: "إدارة المهام", icon: CheckSquare }]
+      ? [{ to: "/admin/tasks", label: "إدارة المهام", icon: FaSquareCheck }]
       : []),
   ];
 
@@ -193,8 +193,8 @@ export default function StaffLayout() {
         <div className={`${fullWidth ? "max-w-none" : "max-w-5xl"} mx-auto px-4 h-16 flex items-center justify-between gap-4`}>
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#2d5d89] flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center flex-shrink-0">
+              <FaBuilding className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-gray-900 text-sm leading-tight hidden sm:block">
               الصرح للتطوير العقاري
@@ -210,7 +210,7 @@ export default function StaffLayout() {
                 className={({ isActive }) =>
                   `flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-[#2d5d89] text-white"
+                      ? "bg-[var(--primary)] text-white"
                       : "text-gray-600 hover:bg-gray-100"
                   }`
                 }
@@ -230,7 +230,7 @@ export default function StaffLayout() {
                 className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-600 transition-colors relative"
                 title="الإشعارات"
               >
-                <Bell className="w-4 h-4" />
+                <FaBell className="w-4 h-4" />
                 {unread > 0 && (
                   <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
                     {unread > 99 ? "99+" : unread}
@@ -243,7 +243,7 @@ export default function StaffLayout() {
             </div>
 
             <div className="hidden sm:flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-bold text-sm">
                 {user?.name?.[0]?.toUpperCase()}
               </div>
               <div className="text-right leading-tight">
@@ -257,7 +257,7 @@ export default function StaffLayout() {
               title="تسجيل الخروج"
               className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <FaRightFromBracket className="w-4 h-4" />
             </button>
 
             {/* Hamburger (mobile) */}
@@ -265,7 +265,7 @@ export default function StaffLayout() {
               onClick={() => setMenuOpen((p) => !p)}
               className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-600 transition-colors"
             >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {menuOpen ? <FaXmark className="w-5 h-5" /> : <FaBars className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -274,7 +274,7 @@ export default function StaffLayout() {
         {menuOpen && (
           <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
             <div className="flex items-center gap-3 px-3 py-2 mb-2">
-              <div className="w-9 h-9 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-bold text-sm">
+              <div className="w-9 h-9 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-bold text-sm">
                 {user?.name?.[0]?.toUpperCase()}
               </div>
               <div>
@@ -290,7 +290,7 @@ export default function StaffLayout() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-[#2d5d89] text-white"
+                      ? "bg-[var(--primary)] text-white"
                       : "text-gray-600 hover:bg-gray-100"
                   }`
                 }

@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Printer, FileText, BarChart3, Columns } from "lucide-react";
+import { FaChartBar, FaDownload, FaPrint, FaFilter, FaCalendar } from 'react-icons/fa6';
+
 
 function formatCell(val, type) {
   if (val === undefined || val === null || val === "") return "";
@@ -99,14 +100,14 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
     w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>${reportTitle}</title>
       <style>
         body { font-family: 'Segoe UI', sans-serif; direction: rtl; padding: 24px; font-size: 12px; }
-        .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; border-bottom:2px solid #2d5d89; padding-bottom:12px; }
-        h1 { color:#2d5d89; font-size:16px; margin:0; }
+        .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; border-bottom:2px solid var(--primary); padding-bottom:12px; }
+        h1 { color:var(--primary); font-size:16px; margin:0; }
         .meta { color:#64748b; font-size:11px; }
         table { width:100%; border-collapse:collapse; }
-        th { background:#2d5d89; color:white; padding:8px 12px; text-align:right; font-size:11px; }
+        th { background:var(--primary); color:white; padding:8px 12px; text-align:right; font-size:11px; }
         td { padding:6px 12px; border-bottom:1px solid #e5e7eb; font-size:11px; text-align:right; }
         tr:nth-child(even) td { background:#f8fafc; }
-        .total-row td { font-weight:bold; background:#dbeafe; border-top:2px solid #2d5d89; color:#2d5d89; }
+        .total-row td { font-weight:bold; background:#dbeafe; border-top:2px solid var(--primary); color:var(--primary); }
         @media print { button { display:none; } }
       </style>
     </head><body>
@@ -123,7 +124,7 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
   return (
     <div className="p-5 space-y-5 overflow-auto h-full" dir="rtl">
       <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
-        <FileText className="w-5 h-5 text-[#2d5d89]" /> إنشاء تقرير
+        <FaFileLines className="w-5 h-5 text-[var(--primary)]" /> إنشاء تقرير
       </h3>
 
       {/* Controls */}
@@ -135,7 +136,7 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
             {REPORT_TYPES.map(({ id, label, icon: Icon }) => (
               <button key={id} onClick={() => setType(id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                  type === id ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-600 border-gray-200 hover:border-[#2d5d89]/40"
+                  type === id ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "bg-white text-gray-600 border-gray-200 hover:border-[var(--primary)]/40"
                 }`}>
                 <Icon className="w-3.5 h-3.5" /> {label}
               </button>
@@ -149,25 +150,25 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1 block">من تاريخ</label>
               <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#2d5d89]" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]" />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 mb-1 block">إلى تاريخ</label>
               <input type="date" value={to} onChange={e => setTo(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#2d5d89]" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary)]" />
             </div>
           </div>
         )}
 
         <div className="flex gap-2">
           <button onClick={() => setGenerated(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079] transition-colors">
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[#245079] transition-colors">
             <BarChart3 className="w-4 h-4" /> إنشاء التقرير
           </button>
           {generated && (
             <button onClick={handlePrint}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors">
-              <Printer className="w-4 h-4" /> طباعة
+              <FaPrint className="w-4 h-4" /> طباعة
             </button>
           )}
         </div>
@@ -184,7 +185,7 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
             {type === "monthly" ? (
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-[#2d5d89] text-white">
+                  <tr className="bg-[var(--primary)] text-white">
                     <th className="px-4 py-2.5 text-right font-semibold">الشهر</th>
                     {currencyCols.map(c => <th key={c.key} className="px-4 py-2.5 text-right font-semibold">{c.label}</th>)}
                   </tr>
@@ -203,7 +204,7 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
             ) : (
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-[#2d5d89] text-white">
+                  <tr className="bg-[var(--primary)] text-white">
                     {(type === "columns" ? currencyCols : cols).map(c => (
                       <th key={c.key} className="px-4 py-2.5 text-right font-semibold whitespace-nowrap">{c.label}</th>
                     ))}
@@ -220,7 +221,7 @@ export default function ReportsPanel({ rows, cols, sheetName, ledgerName }) {
                     </tr>
                   ))}
                   {/* Totals */}
-                  <tr className="bg-blue-50 font-bold text-[#2d5d89]">
+                  <tr className="bg-blue-50 font-bold text-[var(--primary)]">
                     {(type === "columns" ? currencyCols : cols).map((c, idx) => (
                       <td key={c.key} className="px-4 py-2.5 whitespace-nowrap">
                         {idx === 0 && type !== "columns" ? "الإجمالي" :

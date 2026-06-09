@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
-import { Save, Eye, Image as ImageIcon, AlignLeft, Type, Megaphone, Bell, Copy, RotateCcw, ExternalLink, Palette, ToggleLeft, ToggleRight, RefreshCw } from "lucide-react";
+import {
+  FaEye, FaFloppyDisk, FaArrowsRotate, FaArrowUpRightFromSquare,
+  FaBell, FaPalette, FaCopy, FaCheck,
+} from "react-icons/fa6";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ImageUpload from "../../Components/UI/ImageUpload";
 import HelpCard from "../../Components/UI/HelpCard";
 import { useToast } from "../../context/ToastContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
+import PageHeader, { PrimaryButton, SecondaryButton } from "../../Components/UI/PageHeader";
+import FormField, { inputCls, TextareaField, ToggleField } from "../../Components/UI/FormField";
 
-// Sections organized into logical groups
+// ── Section groups ─────────────────────────────────────────────────────────────
 const GROUPS = [
   {
     label: "الصفحة الرئيسية",
@@ -28,13 +33,13 @@ const GROUPS = [
         key: "stats",
         label: "الإحصائيات",
         fields: [
-          { key: "projects_count",   label: "عدد المشاريع (مثال: +50)",   type: "text" },
-          { key: "projects_label",   label: "تسمية المشاريع (مثال: مشروع)", type: "text" },
-          { key: "units_count",      label: "عدد الوحدات (مثال: +2000)",  type: "text" },
-          { key: "units_label",      label: "تسمية الوحدات (مثال: وحدة)",  type: "text" },
-          { key: "clients_count",    label: "عدد العملاء (مثال: +5000)",  type: "text" },
-          { key: "clients_label",    label: "تسمية العملاء (مثال: عميل)", type: "text" },
-          { key: "years_experience", label: "سنوات الخبرة (مثال: +15)",   type: "text" },
+          { key: "projects_count",   label: "عدد المشاريع (مثال: +50)",      type: "text" },
+          { key: "projects_label",   label: "تسمية المشاريع (مثال: مشروع)",   type: "text" },
+          { key: "units_count",      label: "عدد الوحدات (مثال: +2000)",     type: "text" },
+          { key: "units_label",      label: "تسمية الوحدات (مثال: وحدة)",     type: "text" },
+          { key: "clients_count",    label: "عدد العملاء (مثال: +5000)",     type: "text" },
+          { key: "clients_label",    label: "تسمية العملاء (مثال: عميل)",     type: "text" },
+          { key: "years_experience", label: "سنوات الخبرة (مثال: +15)",      type: "text" },
           { key: "years_label",      label: "تسمية الخبرة (مثال: سنة خبرة)", type: "text" },
         ],
       },
@@ -61,7 +66,6 @@ const GROUPS = [
       {
         key: "home_cta",
         label: "قسم الدعوة للتواصل",
-        icon: Megaphone,
         fields: [
           { key: "cta_title",       label: "عنوان القسم",          type: "text" },
           { key: "cta_subtitle",    label: "وصف القسم",            type: "textarea" },
@@ -192,7 +196,6 @@ const GROUPS = [
       {
         key: "theme",
         label: "الألوان والثيم",
-        icon: Palette,
         fields: [
           { key: "primary_color",     label: "اللون الرئيسي",    type: "color", hint: "اللون الرئيسي للموقع — يؤثر على الهيدر والأزرار والروابط" },
           { key: "secondary_color",   label: "اللون الثانوي",    type: "color", hint: "اللون الثانوي — يُستخدم في خلفيات الـ gradient" },
@@ -206,7 +209,6 @@ const GROUPS = [
       {
         key: "popup_announcement",
         label: "إعلان منبثق",
-        icon: Bell,
         fields: [
           { key: "popup_enabled",     label: "تفعيل الإعلان المنبثق", type: "toggle", hint: "عند التفعيل سيظهر للزوار الجدد تلقائياً بعد 1.2 ثانية" },
           { key: "popup_title",       label: "عنوان الإعلان",  type: "text" },
@@ -221,8 +223,6 @@ const GROUPS = [
 
 // Flat list for lookup
 const sections = GROUPS.flatMap((g) => g.sections);
-
-const typeIcon = { text: Type, textarea: AlignLeft, image: ImageIcon, color: Palette, toggle: ToggleRight };
 
 // Section → public URL mapping for preview
 const SECTION_URLS = {
@@ -243,6 +243,31 @@ const SECTION_URLS = {
   popup_announcement: "/",
 };
 
+// ── Copy button ────────────────────────────────────────────────────────────────
+function CopyBtn({ value }) {
+  const [copied, setCopied] = useState(false);
+  const toast = useToast();
+
+  const handleCopy = () => {
+    if (!value) return;
+    navigator.clipboard.writeText(String(value))
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); toast.success("تم النسخ"); })
+      .catch(() => toast.error("فشل النسخ"));
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      title="نسخ"
+      className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-[color:var(--primary)] hover:border-[color:var(--primary)] transition-colors"
+    >
+      {copied ? <FaCheck className="w-3.5 h-3.5 text-green-500" /> : <FaCopy className="w-3.5 h-3.5" />}
+    </button>
+  );
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────────
 export default function AdminContent() {
   const toast = useToast();
   const { refreshTheme } = useSiteSettings();
@@ -250,14 +275,6 @@ export default function AdminContent() {
   const [sectionSearch, setSectionSearch] = useState("");
   const [lastSaved, setLastSaved] = useState(null);
   const [isDirty, setIsDirty] = useState(false);
-
-  const copyToClipboard = (val) => {
-    if (!val) return;
-    navigator.clipboard.writeText(String(val))
-      .then(() => toast.success("تم النسخ"))
-      .catch(() => toast.error("فشل النسخ"));
-  };
-
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -283,7 +300,6 @@ export default function AdminContent() {
       toast.success("تم حفظ المحتوى — سيظهر التغيير فوراً على الموقع");
       setLastSaved(new Date());
       setIsDirty(false);
-      // If saving theme, refresh CSS variables instantly
       if (activeSection === "theme") refreshTheme?.();
     } catch {
       toast.error("فشل الحفظ — تحقق من اتصال الشبكة");
@@ -292,14 +308,17 @@ export default function AdminContent() {
     }
   };
 
-  // Completion: count non-empty text fields
+  const handleReset = () => {
+    if (!window.confirm("هل تريد إعادة تعيين هذا القسم وتحميل البيانات المحفوظة من السيرفر؟")) return;
+    loadSection(activeSection);
+    toast.success("تم إعادة تحميل البيانات");
+  };
+
   const getCompletion = (sectionKey) => {
     const sec = sections.find((s) => s.key === sectionKey);
-    if (!sec) return null;
+    if (!sec || sectionKey !== activeSection) return null;
     const textFields = sec.fields.filter((f) => f.type !== "image");
     if (!textFields.length) return null;
-    // Only valid for current active section where we have data
-    if (sectionKey !== activeSection) return null;
     const filled = textFields.filter((f) => data[f.key]?.toString().trim()).length;
     return { filled, total: textFields.length };
   };
@@ -311,14 +330,8 @@ export default function AdminContent() {
       })).filter((g) => g.sections.length > 0)
     : GROUPS;
 
-  const handleReset = () => {
-    if (!window.confirm("هل تريد إعادة تعيين هذا القسم وتحميل البيانات المحفوظة من السيرفر؟")) return;
-    loadSection(activeSection);
-    toast.success("تم إعادة تحميل البيانات");
-  };
-
   const currentSection = sections.find((s) => s.key === activeSection);
-  const inputClass = "w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm";
+  const isToggleOn = (val) => val === "true" || val === true;
 
   return (
     <div className="space-y-5">
@@ -332,63 +345,71 @@ export default function AdminContent() {
           "لون التمييز يؤثر على الأزرار والروابط في الموقع",
         ]}
       />
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة المحتوى</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">تحكم في محتوى الموقع بالكامل بدون كود — التغييرات فورية</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {isDirty && (
-            <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-full font-medium animate-pulse">
-              • تغييرات غير محفوظة
-            </span>
-          )}
-          {lastSaved && !isDirty && (
-            <span className="text-xs text-gray-400">
-              آخر حفظ: {lastSaved.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          )}
-          <a href="/" target="_blank"
-            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-3 sm:px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Eye className="w-4 h-4" />
-            <span className="hidden sm:inline">معاينة الموقع</span>
-          </a>
-          <button onClick={handleSave} disabled={saving}
-            className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 ${isDirty ? "bg-amber-500 hover:bg-amber-600" : "bg-[#2d5d89] hover:bg-[#245079]"} text-white`}>
-            <Save className="w-4 h-4" />
-            {saving ? "جاري..." : "حفظ"}
-          </button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Section Tabs — Grouped */}
+      <PageHeader
+        title="إدارة المحتوى"
+        subtitle="تحكم في محتوى الموقع بالكامل بدون كود — التغييرات فورية"
+        icon={<FaPalette />}
+        actions={
+          <>
+            {isDirty && (
+              <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-2.5 py-1 rounded-full font-medium animate-pulse">
+                تغييرات غير محفوظة
+              </span>
+            )}
+            {lastSaved && !isDirty && (
+              <span className="text-xs text-gray-400">
+                آخر حفظ: {lastSaved.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
+            <SecondaryButton
+              icon={<FaEye className="w-4 h-4" />}
+              onClick={() => window.open("/", "_blank")}
+            >
+              <span className="hidden sm:inline">معاينة الموقع</span>
+            </SecondaryButton>
+            <PrimaryButton
+              icon={<FaFloppyDisk className="w-4 h-4" />}
+              onClick={handleSave}
+              loading={saving}
+              style={{ background: isDirty ? "#f59e0b" : "var(--primary)" }}
+            >
+              {saving ? "جاري..." : "حفظ"}
+            </PrimaryButton>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 px-6 pb-6">
+        {/* Section sidebar */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 h-fit">
-          {/* Section search */}
           <div className="relative mb-2 hidden lg:block">
             <input
               value={sectionSearch}
               onChange={(e) => setSectionSearch(e.target.value)}
               placeholder="بحث في الأقسام..."
-              className="w-full pr-3 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 text-gray-700 dark:text-gray-300"
+              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--primary)]/30 text-gray-700 dark:text-gray-300"
             />
           </div>
           <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
             {filteredGroups.map((group) => (
               <div key={group.label} className="flex lg:flex-col gap-1 flex-shrink-0 lg:flex-shrink-0">
-                {/* Group header */}
                 <div className="hidden lg:block px-3 pt-3 pb-1">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{group.label}</p>
                 </div>
                 {group.sections.map((s) => {
                   const comp = activeSection === s.key ? getCompletion(s.key) : null;
                   return (
-                    <button key={s.key} onClick={() => setActiveSection(s.key)}
+                    <button
+                      key={s.key}
+                      onClick={() => setActiveSection(s.key)}
                       className={`flex-shrink-0 lg:flex-shrink text-right px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium transition-colors whitespace-nowrap flex items-center justify-between gap-2 ${
                         activeSection === s.key
-                          ? "bg-[#2d5d89] text-white"
+                          ? "text-white"
                           : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                      }`}>
+                      }`}
+                      style={activeSection === s.key ? { background: "var(--primary)" } : {}}
+                    >
                       <span>{s.label}</span>
                       {comp && (
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-mono ${comp.filled === comp.total ? "bg-white/20" : "bg-white/10"}`}>
@@ -404,7 +425,7 @@ export default function AdminContent() {
           </div>
         </div>
 
-        {/* Fields */}
+        {/* Fields panel */}
         <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-100 dark:border-gray-700 flex-wrap gap-2">
             <h2 className="font-bold text-gray-900 dark:text-white">{currentSection?.label}</h2>
@@ -419,7 +440,7 @@ export default function AdminContent() {
                   rel="noreferrer"
                   className="flex items-center gap-1.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-700 hover:bg-blue-100 transition-colors"
                 >
-                  <ExternalLink className="w-3 h-3" />
+                  <FaArrowUpRightFromSquare className="w-3 h-3" />
                   معاينة
                 </a>
               )}
@@ -427,7 +448,7 @@ export default function AdminContent() {
                 onClick={handleReset}
                 className="flex items-center gap-1.5 text-xs bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
-                <RotateCcw className="w-3 h-3" />
+                <FaArrowsRotate className="w-3 h-3" />
                 إعادة تعيين
               </button>
             </div>
@@ -443,7 +464,7 @@ export default function AdminContent() {
                   <p className="text-xs font-semibold text-gray-500 mb-3">معاينة مباشرة للألوان</p>
                   <div className="flex flex-wrap gap-3 items-center">
                     {[
-                      { label: "الرئيسي", key: "primary_color", fallback: "#2d5d89" },
+                      { label: "الرئيسي", key: "primary_color", fallback: "var(--primary)" },
                       { label: "الثانوي",  key: "secondary_color", fallback: "#1a3d5c" },
                       { label: "التمييز",  key: "accent_color", fallback: "#f59e0b" },
                     ].map(({ label, key, fallback }) => (
@@ -455,129 +476,100 @@ export default function AdminContent() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-2">⚠️ احفظ لتطبيق الألوان على الموقع فوراً</p>
+                  <p className="text-[10px] text-gray-400 mt-2">احفظ لتطبيق الألوان على الموقع فوراً</p>
                 </div>
               )}
 
-              {/* Popup announcement preview */}
-              {activeSection === "popup_announcement" && (data.popup_enabled === "true") && data.popup_title && (
+              {/* Popup preview */}
+              {activeSection === "popup_announcement" && isToggleOn(data.popup_enabled) && data.popup_title && (
                 <div className="p-4 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
                   <p className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
-                    <Bell className="w-3.5 h-3.5" /> معاينة الإعلان المنبثق
+                    <FaBell className="w-3.5 h-3.5" /> معاينة الإعلان المنبثق
                   </p>
                   <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 max-w-xs">
                     <p className="font-bold text-sm text-gray-900 dark:text-white mb-1">{data.popup_title}</p>
                     {data.popup_message && <p className="text-xs text-gray-500 leading-relaxed">{data.popup_message}</p>}
                     {data.popup_button_text && (
                       <div className="mt-2">
-                        <span className="text-xs px-3 py-1 rounded-lg bg-[#2d5d89] text-white font-medium">{data.popup_button_text}</span>
+                        <span className="text-xs px-3 py-1 rounded-lg text-white font-medium" style={{ background: "var(--primary)" }}>
+                          {data.popup_button_text}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {currentSection?.fields.map((field) => {
-                const FieldIcon = typeIcon[field.type] || Type;
-                return (
-                  <div key={field.key}>
-                    <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      <FieldIcon className="w-3.5 h-3.5 text-gray-400" />
-                      {field.label}
-                    </label>
-
-                    {field.type === "image" ? (
-                      <ImageUpload
-                        value={data[field.key] || ""}
-                        onChange={(url) => { setData({ ...data, [field.key]: url }); setIsDirty(true); }}
+              {currentSection?.fields.map((field) => (
+                <FormField key={field.key} label={field.label} hint={field.hint}>
+                  {field.type === "image" ? (
+                    <ImageUpload
+                      value={data[field.key] || ""}
+                      onChange={(url) => { setData({ ...data, [field.key]: url }); setIsDirty(true); }}
+                    />
+                  ) : field.type === "toggle" ? (
+                    <ToggleField
+                      checked={isToggleOn(data[field.key])}
+                      onChange={(val) => { setData({ ...data, [field.key]: val ? "true" : "false" }); setIsDirty(true); }}
+                      label={isToggleOn(data[field.key]) ? "مفعّل" : "معطّل"}
+                    />
+                  ) : field.type === "color" ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={(data[field.key] || "var(--primary)").replace(/[^#0-9a-fA-F]/g, "").slice(0, 7) || "var(--primary)"}
+                        onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
+                        className="w-12 h-10 rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer p-0.5 bg-white dark:bg-gray-700"
+                        title="اختر اللون"
                       />
-                    ) : field.type === "toggle" ? (
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const cur = data[field.key] === "true" || data[field.key] === true;
-                            setData({ ...data, [field.key]: cur ? "false" : "true" });
-                            setIsDirty(true);
-                          }}
-                          className={`relative inline-flex h-7 w-13 w-12 items-center rounded-full transition-colors focus:outline-none ${
-                            data[field.key] === "true" || data[field.key] === true ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
-                          }`}
-                          style={{ minWidth: "3rem" }}
-                        >
-                          <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                            data[field.key] === "true" || data[field.key] === true ? "translate-x-6" : "translate-x-1"
-                          }`} />
-                        </button>
-                        <span className={`text-sm font-medium ${data[field.key] === "true" || data[field.key] === true ? "text-green-600" : "text-gray-400"}`}>
-                          {data[field.key] === "true" || data[field.key] === true ? "مفعّل ✓" : "معطّل"}
-                        </span>
-                      </div>
-                    ) : field.type === "color" ? (
-                      <div className="flex items-center gap-2">
-                        <div className="relative">
-                          <input
-                            type="color"
-                            value={(data[field.key] || "#2d5d89").replace(/[^#0-9a-fA-F]/g, "").slice(0, 7) || "#2d5d89"}
-                            onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
-                            className="w-12 h-10 rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer p-0.5 bg-white dark:bg-gray-700"
-                            title="اختر اللون"
-                          />
-                        </div>
-                        <input type="text" value={data[field.key] || ""}
-                          onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
-                          placeholder="#2d5d89"
-                          className={inputClass + " font-mono flex-1 uppercase"}
-                          maxLength={7}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(data[field.key] || "")}
-                          title="نسخ"
-                          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-[#2d5d89] hover:border-[#2d5d89] transition-colors"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : field.type === "textarea" ? (
-                      <>
-                        <textarea rows={3} value={data[field.key] || ""}
-                          onChange={(e) => {
-                            setData({ ...data, [field.key]: e.target.value });
-                            setIsDirty(true);
-                            e.target.style.height = "auto";
-                            e.target.style.height = `${e.target.scrollHeight}px`;
-                          }}
-                          onFocus={(e) => { e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }}
-                          className={inputClass + " resize-none overflow-hidden"} />
-                        <p className="text-xs text-gray-400 mt-1 text-left">{(data[field.key] || "").length} حرف</p>
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <input type="text" value={data[field.key] || ""}
-                          onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
-                          className={inputClass} />
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(data[field.key] || "")}
-                          title="نسخ"
-                          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-600 text-gray-400 hover:text-[#2d5d89] hover:border-[#2d5d89] transition-colors"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                    {field.hint && <p className="text-xs text-gray-400 mt-1">{field.hint}</p>}
-                  </div>
-                );
-              })}
+                      <input
+                        type="text"
+                        value={data[field.key] || ""}
+                        onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
+                        placeholder="var(--primary)"
+                        className={inputCls + " font-mono flex-1 uppercase"}
+                        maxLength={7}
+                      />
+                      <CopyBtn value={data[field.key] || ""} />
+                    </div>
+                  ) : field.type === "textarea" ? (
+                    <>
+                      <TextareaField
+                        value={data[field.key] || ""}
+                        rows={3}
+                        onChange={(e) => {
+                          setData({ ...data, [field.key]: e.target.value });
+                          setIsDirty(true);
+                          e.target.style.height = "auto";
+                          e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
+                        onFocus={(e) => { e.target.style.height = "auto"; e.target.style.height = `${e.target.scrollHeight}px`; }}
+                        style={{ overflow: "hidden" }}
+                      />
+                      <p className="text-xs text-gray-400 mt-1 text-left">{(data[field.key] || "").length} حرف</p>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={data[field.key] || ""}
+                        onChange={(e) => { setData({ ...data, [field.key]: e.target.value }); setIsDirty(true); }}
+                        className={inputCls}
+                      />
+                      <CopyBtn value={data[field.key] || ""} />
+                    </div>
+                  )}
+                </FormField>
+              ))}
 
               <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50">
-                  <Save className="w-4 h-4" />
+                <PrimaryButton
+                  icon={<FaFloppyDisk className="w-4 h-4" />}
+                  onClick={handleSave}
+                  loading={saving}
+                >
                   {saving ? "جاري الحفظ..." : "حفظ هذا القسم"}
-                </button>
+                </PrimaryButton>
               </div>
             </div>
           )}

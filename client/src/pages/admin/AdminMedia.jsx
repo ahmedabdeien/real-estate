@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
-  Trash2, Upload, Image as ImageIcon, Copy, Check,
-  CloudUpload, AlertCircle, Cloud, HardDrive, Wifi, Zap,
-  Search, Grid2X2, LayoutGrid, Rows3, ChevronRight, ChevronLeft,
-  FolderPlus, Folder, X, Pencil, MoveRight, CheckSquare,
-} from "lucide-react";
+  FaTrash, FaUpload, FaImage, FaCopy, FaCheck,
+  FaCloudArrowUp, FaCircleExclamation, FaCloud, FaHardDrive, FaWifi, FaBolt,
+  FaMagnifyingGlass, FaTableCellsLarge, FaTableList, FaChevronRight, FaChevronLeft,
+  FaFolderPlus, FaFolder, FaXmark, FaPen, FaArrowRight, FaSquareCheck,
+} from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadToCloudinary, getCloudinaryThumb } from "../../lib/cloudinary";
 import api from "../../api/axios";
@@ -67,7 +67,7 @@ function UploadItem({ file, queueId, onDone, onError }) {
 function SetupBanner() {
   return (
     <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl">
-      <AlertCircle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+      <FaCircleExclamation className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
       <div className="text-sm">
         <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">إعداد Cloudinary مطلوب</p>
         <ol className="text-amber-700 dark:text-amber-400 space-y-1 list-decimal list-inside">
@@ -126,7 +126,7 @@ function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
       <div className="relative w-full h-full flex items-center justify-center gap-4 p-4" onClick={(e) => e.stopPropagation()}>
         {/* Close */}
         <button onClick={onClose} className="absolute top-4 left-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition">
-          <X className="w-5 h-5" />
+          <FaXmark className="w-5 h-5" />
         </button>
 
         {/* Prev */}
@@ -135,7 +135,7 @@ function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
           disabled={index === 0}
           className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white disabled:opacity-30 transition shrink-0"
         >
-          <ChevronRight className="w-5 h-5" />
+          <FaChevronRight className="w-5 h-5" />
         </button>
 
         {/* Image */}
@@ -153,7 +153,7 @@ function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
           disabled={index === items.length - 1}
           className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white disabled:opacity-30 transition shrink-0"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <FaChevronLeft className="w-5 h-5" />
         </button>
 
         {/* Details panel */}
@@ -168,15 +168,15 @@ function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
                   value={nameVal}
                   onChange={(e) => setNameVal(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") setEditingName(false); }}
-                  className="flex-1 text-sm border border-[#2d5d89] rounded-lg px-2 py-1 outline-none"
+                  className="flex-1 text-sm border border-[var(--primary)] rounded-lg px-2 py-1 outline-none"
                 />
-                <button onClick={saveRename} className="text-[#2d5d89]"><Check className="w-4 h-4" /></button>
+                <button onClick={saveRename} className="text-[var(--primary)]"><FaCheck className="w-4 h-4" /></button>
               </div>
             ) : (
               <div className="flex items-center gap-1 group">
                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex-1 truncate">{item.name}</p>
-                <button onClick={() => setEditingName(true)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[#2d5d89] transition">
-                  <Pencil className="w-3.5 h-3.5" />
+                <button onClick={() => setEditingName(true)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-[var(--primary)] transition">
+                  <FaPen className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -211,8 +211,8 @@ function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
             <p className="text-xs text-gray-400 mb-1">الرابط</p>
             <div className="flex gap-1">
               <input readOnly value={item.url} className="flex-1 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 truncate outline-none" />
-              <button onClick={copyUrl} className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${copied ? "bg-green-100 text-green-600" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-[#2d5d89]/10 hover:text-[#2d5d89]"}`}>
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <button onClick={copyUrl} className={`px-2 py-1.5 rounded-lg text-xs font-medium transition ${copied ? "bg-green-100 text-green-600" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"}`}>
+                {copied ? <FaCheck className="w-3.5 h-3.5" /> : <FaCopy className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>
@@ -222,7 +222,7 @@ function Lightbox({ items, index, onClose, onNavigate, onDelete, onRename }) {
             onClick={() => { onDelete(item._id); onClose(); }}
             className="mt-auto w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl py-2.5 text-sm font-medium transition"
           >
-            <Trash2 className="w-4 h-4" />
+            <FaTrash className="w-4 h-4" />
             حذف الصورة
           </button>
         </div>
@@ -464,7 +464,7 @@ export default function AdminMedia() {
           onClick={() => setActiveFolder("all")}
           className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
             activeFolder === "all"
-              ? "bg-[#2d5d89] text-white"
+              ? "bg-[var(--primary)] text-white"
               : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
           }`}
         >
@@ -484,12 +484,12 @@ export default function AdminMedia() {
             onClick={() => setActiveFolder(f.name)}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition ${
               activeFolder === f.name
-                ? "bg-[#2d5d89] text-white"
+                ? "bg-[var(--primary)] text-white"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             }`}
           >
             <div className="flex items-center gap-2">
-              <Folder className="w-4 h-4" />
+              <FaFolder className="w-4 h-4" />
               <span className="truncate max-w-[100px]">{f.name}</span>
             </div>
             <span className={`text-xs rounded-full px-2 py-0.5 ${activeFolder === f.name ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"}`}>
@@ -501,9 +501,9 @@ export default function AdminMedia() {
         {/* New folder */}
         <button
           onClick={createFolder}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-[#2d5d89] hover:bg-[#2d5d89]/10 transition mt-2 border-2 border-dashed border-[#2d5d89]/30"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 transition mt-2 border-2 border-dashed border-[var(--primary)]/30"
         >
-          <FolderPlus className="w-4 h-4" />
+          <FaFolderPlus className="w-4 h-4" />
           مجلد جديد
         </button>
       </aside>
@@ -522,12 +522,12 @@ export default function AdminMedia() {
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="بحث بالاسم..."
-              className="pr-9 pl-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm outline-none focus:border-[#2d5d89] w-48 transition"
+              className="pr-9 pl-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm outline-none focus:border-[var(--primary)] w-48 transition"
             />
           </div>
 
@@ -535,7 +535,7 @@ export default function AdminMedia() {
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 outline-none focus:border-[#2d5d89]"
+            className="text-sm border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 outline-none focus:border-[var(--primary)]"
           >
             <option value="newest">الأحدث</option>
             <option value="oldest">الأقدم</option>
@@ -549,7 +549,7 @@ export default function AdminMedia() {
               <button
                 key={size}
                 onClick={() => setViewSize(size)}
-                className={`w-8 h-8 flex items-center justify-center rounded-lg transition ${viewSize === size ? "bg-white dark:bg-gray-700 shadow text-[#2d5d89]" : "text-gray-400 hover:text-gray-600"}`}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition ${viewSize === size ? "bg-white dark:bg-gray-700 shadow text-[var(--primary)]" : "text-gray-400 hover:text-gray-600"}`}
               >
                 <Icon className="w-4 h-4" />
               </button>
@@ -560,9 +560,9 @@ export default function AdminMedia() {
           <button
             onClick={() => inputRef.current?.click()}
             disabled={!CLOUD_NAME}
-            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-40 text-white px-4 py-2 rounded-xl font-semibold text-sm transition-colors"
+            className="flex items-center gap-2 bg-[var(--primary)] hover:bg-[#245079] disabled:opacity-40 text-white px-4 py-2 rounded-xl font-semibold text-sm transition-colors"
           >
-            <Upload className="w-4 h-4" />
+            <FaUpload className="w-4 h-4" />
             رفع صور
           </button>
           <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={onFileInput} />
@@ -570,23 +570,23 @@ export default function AdminMedia() {
           {/* Bulk actions */}
           {selected.size > 0 && (
             <div className="flex items-center gap-2 pr-3 border-r border-gray-200 dark:border-gray-700">
-              <span className="text-sm font-medium text-[#2d5d89]">{selected.size} محدد</span>
+              <span className="text-sm font-medium text-[var(--primary)]">{selected.size} محدد</span>
               <button
                 onClick={() => setShowMoveModal(true)}
                 className="flex items-center gap-1.5 text-sm bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-xl transition"
               >
-                <MoveRight className="w-4 h-4" />
+                <FaArrowRight className="w-4 h-4" />
                 نقل
               </button>
               <button
                 onClick={() => setShowBulkDelete(true)}
                 className="flex items-center gap-1.5 text-sm bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl transition"
               >
-                <Trash2 className="w-4 h-4" />
+                <FaTrash className="w-4 h-4" />
                 حذف ({selected.size})
               </button>
               <button onClick={() => setSelected(new Set())} className="text-gray-400 hover:text-gray-600">
-                <X className="w-4 h-4" />
+                <FaXmark className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -612,12 +612,12 @@ export default function AdminMedia() {
             className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 select-none ${
               !CLOUD_NAME ? "opacity-50 cursor-not-allowed" :
               isDragging
-                ? "border-[#2d5d89] bg-[#2d5d89]/5 scale-[1.01] shadow-lg cursor-copy"
-                : "border-gray-200 dark:border-gray-700 hover:border-[#2d5d89]/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
+                ? "border-[var(--primary)] bg-[var(--primary)]/5 scale-[1.01] shadow-lg cursor-copy"
+                : "border-gray-200 dark:border-gray-700 hover:border-[var(--primary)]/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
             }`}
           >
-            <CloudUpload className={`w-10 h-10 mx-auto mb-3 transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-300 dark:text-gray-600"}`} />
-            <p className={`font-bold text-base transition-colors ${isDragging ? "text-[#2d5d89]" : "text-gray-500 dark:text-gray-400"}`}>
+            <FaCloudArrowUp className={`w-10 h-10 mx-auto mb-3 transition-colors ${isDragging ? "text-[var(--primary)]" : "text-gray-300 dark:text-gray-600"}`} />
+            <p className={`font-bold text-base transition-colors ${isDragging ? "text-[var(--primary)]" : "text-gray-500 dark:text-gray-400"}`}>
               {isDragging ? "أفلت الصور هنا!" : "اسحب وأفلت الصور هنا"}
             </p>
             <p className="text-xs text-gray-400 mt-1.5">أو اضغط هنا • PNG, JPG, WEBP, GIF • الحد الأقصى 10MB</p>
@@ -656,8 +656,8 @@ export default function AdminMedia() {
                         initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
                         className={`group relative bg-white dark:bg-gray-800 rounded-2xl overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
                           isSelected
-                            ? "border-[#2d5d89] shadow-lg shadow-[#2d5d89]/20"
-                            : "border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-[#2d5d89]/30"
+                            ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/20"
+                            : "border-gray-100 dark:border-gray-700 hover:shadow-lg hover:border-[var(--primary)]/30"
                         }`}
                         onClick={(e) => {
                           if (e.target.closest(".cb-btn")) return;
@@ -670,8 +670,8 @@ export default function AdminMedia() {
                           className={`cb-btn absolute top-2 right-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
                           onClick={(e) => { e.stopPropagation(); toggleSelect(item._id, e); }}
                         >
-                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${isSelected ? "bg-[#2d5d89] border-[#2d5d89]" : "bg-white/80 border-gray-300"}`}>
-                            {isSelected && <Check className="w-3 h-3 text-white" />}
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${isSelected ? "bg-[var(--primary)] border-[var(--primary)]" : "bg-white/80 border-gray-300"}`}>
+                            {isSelected && <FaCheck className="w-3 h-3 text-white" />}
                           </div>
                         </div>
 
@@ -696,7 +696,7 @@ export default function AdminMedia() {
                             onClick={(e) => { e.stopPropagation(); setDeleteId(item._id); }}
                             className="w-8 h-8 bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center text-white"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <FaTrash className="w-3.5 h-3.5" />
                           </button>
                         </div>
 
@@ -766,7 +766,7 @@ export default function AdminMedia() {
               <select
                 value={moveTarget}
                 onChange={(e) => setMoveTarget(e.target.value)}
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#2d5d89] bg-white dark:bg-gray-800 mb-4"
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] bg-white dark:bg-gray-800 mb-4"
               >
                 <option value="">اختر مجلداً...</option>
                 <option value="general">general</option>
@@ -775,7 +775,7 @@ export default function AdminMedia() {
                 ))}
               </select>
               <div className="flex gap-3">
-                <button onClick={moveToFolder} disabled={!moveTarget} className="flex-1 bg-[#2d5d89] hover:bg-[#245079] disabled:opacity-40 text-white py-2.5 rounded-xl font-semibold text-sm transition">
+                <button onClick={moveToFolder} disabled={!moveTarget} className="flex-1 bg-[var(--primary)] hover:bg-[#245079] disabled:opacity-40 text-white py-2.5 rounded-xl font-semibold text-sm transition">
                   نقل
                 </button>
                 <button onClick={() => setShowMoveModal(false)} className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2.5 rounded-xl font-semibold text-sm transition">

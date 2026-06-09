@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, XCircle, AlertCircle, Info, X } from "lucide-react";
+import { FaCircleCheck, FaCircleXmark, FaTriangleExclamation, FaCircleInfo, FaXmark } from "react-icons/fa6";
 
 const ToastContext = createContext(null);
 
 const icons = {
-  success: <CheckCircle className="w-5 h-5 text-green-500" />,
-  error: <XCircle className="w-5 h-5 text-red-500" />,
-  warning: <AlertCircle className="w-5 h-5 text-yellow-500" />,
-  info: <Info className="w-5 h-5 text-blue-500" />,
+  success: <FaCircleCheck className="w-5 h-5 text-green-500 flex-shrink-0" />,
+  error: <FaCircleXmark className="w-5 h-5 text-red-500 flex-shrink-0" />,
+  warning: <FaTriangleExclamation className="w-5 h-5 text-yellow-500 flex-shrink-0" />,
+  info: <FaCircleInfo className="w-5 h-5 text-blue-500 flex-shrink-0" />,
 };
 
 const colors = {
@@ -32,7 +32,7 @@ function Toast({ toast, onClose }) {
         <p className="text-gray-700 dark:text-gray-300 text-sm">{toast.message}</p>
       </div>
       <button onClick={() => onClose(toast.id)} className="text-gray-400 hover:text-gray-600 transition-colors">
-        <X className="w-4 h-4" />
+        <FaXmark className="w-4 h-4" />
       </button>
     </motion.div>
   );

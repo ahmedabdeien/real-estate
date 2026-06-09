@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, Edit2, Check, X, Printer, Download, ChevronRight, ChevronLeft,
-  BookOpen, Table2, Search, AlertTriangle, GripVertical,
-  FileSpreadsheet, RefreshCw, Menu, Upload, ClipboardList,
-  BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown,
-  PiggyBank, Wallet, CreditCard, Receipt, FileText, Layers,
-  Archive, Building2, BarChart3, FileDown, Copy as CopyIcon, Eye as EyeIcon, EyeOff,
-  Sparkles, Grid3x3, Zap, Target, PieChart, Activity, ArrowUpRight, ArrowDownRight,
-  ChevronDown, ChevronUp, Tag, Filter, SortAsc, SortDesc, Sigma, Users, Package,
-  RefreshCcw, GitMerge, Pin, MessageSquare,
-} from "lucide-react";
+  FaPlus, FaTrash, FaPen, FaCheck, FaXmark, FaPrint, FaDownload, FaChevronRight, FaChevronLeft,
+  FaBookOpen, FaTableList, FaMagnifyingGlass, FaTriangleExclamation, FaGripLines,
+  FaFileExcel, FaArrowsRotate, FaBars, FaUpload, FaClipboardList,
+  FaBookmark, FaCalculator, FaDollarSign, FaArrowTrendUp, FaArrowTrendDown,
+  FaPiggyBank, FaWallet, FaCreditCard, FaReceipt, FaFileLines, FaLayerGroup,
+  FaBoxArchive, FaBuilding, FaChartBar, FaFileArrowDown, FaCopy, FaEye, FaEyeSlash,
+  FaWandMagicSparkles, FaTableCellsLarge, FaBolt, FaBullseye, FaChartPie, FaChartLine, FaArrowUpRightFromSquare,
+  FaChevronDown, FaChevronUp, FaTag, FaFilter, FaSortUp, FaSortDown, FaPercent, FaUsers, FaBox,
+  FaCodeMerge, FaThumbtack, FaMessage,
+} from "react-icons/fa6";
 import {
   BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -69,7 +69,7 @@ function evaluateFormula(formula, cells) {
 }
 
 const LEDGER_COLORS = [
-  "#2d5d89","#217346","#0f4c81","#1a3a5c",
+  "var(--primary)","#217346","#0f4c81","#1a3a5c",
   "#7b2d8b","#c0392b","#d35400","#16a085",
   "#2c3e50","#8e44ad","#27ae60","#e67e22",
   "#2980b9","#c0392b","#1abc9c","#f39c12",
@@ -177,7 +177,7 @@ function Modal({ open, onClose, title, children, size = "md" }) {
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="font-bold text-gray-900 text-lg">{title}</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400"><FaXmark className="w-4 h-4" /></button>
         </div>
         <div className="p-6">{children}</div>
       </motion.div>
@@ -190,7 +190,7 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, loading }) {
     <Modal open={open} onClose={onClose} title={title} size="sm">
       <div className="flex gap-3 mb-6">
         <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-          <AlertTriangle className="w-5 h-5 text-red-600" />
+          <FaTriangleExclamation className="w-5 h-5 text-red-600" />
         </div>
         <p className="text-gray-600 text-sm leading-relaxed mt-1">{message}</p>
       </div>
@@ -208,7 +208,7 @@ function ConfirmModal({ open, onClose, onConfirm, title, message, loading }) {
 // ─── Ledger Form ─────────────────────────────────────────────────────────────
 
 function LedgerForm({ initial, onSave, onClose }) {
-  const [form, setForm] = useState(initial || { name: "", description: "", branch: "", color: "#2d5d89", icon: "BookOpen" });
+  const [form, setForm] = useState(initial || { name: "", description: "", branch: "", color: "var(--primary)", icon: "BookOpen" });
   const [saving, setSaving] = useState(false);
   const toast = useToast();
 
@@ -228,19 +228,19 @@ function LedgerForm({ initial, onSave, onClose }) {
         <label className="block text-sm font-medium text-gray-700 mb-1.5">الاسم *</label>
         <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
           placeholder="مثال: سجل المركز الرئيسي"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">الوصف</label>
         <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
           placeholder="وصف مختصر للسجل"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">الفرع</label>
         <input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })}
           placeholder="مثال: القاهرة، الإسكندرية"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">الأيقونة</label>
@@ -250,7 +250,7 @@ function LedgerForm({ initial, onSave, onClose }) {
               title={name}
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                 form.icon === name
-                  ? "ring-2 ring-[#2d5d89] bg-[#2d5d89]/10 scale-110"
+                  ? "ring-2 ring-[var(--primary)] bg-[var(--primary)]/10 scale-110"
                   : "bg-gray-100 hover:bg-gray-200"
               }`}>
               <Icon className="w-5 h-5" style={{ color: form.icon === name ? form.color : "#6b7280" }} />
@@ -271,7 +271,7 @@ function LedgerForm({ initial, onSave, onClose }) {
       <div className="flex gap-3 pt-2">
         <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
         <button onClick={submit} disabled={saving}
-          className="flex-1 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium disabled:opacity-50">
+          className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[#245079] text-white text-sm font-medium disabled:opacity-50">
           {saving ? "جاري الحفظ..." : "حفظ"}
         </button>
       </div>
@@ -322,7 +322,7 @@ function SheetForm({ initial, onSave, onClose }) {
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-bold text-gray-700">اختر نموذج جاهز</span>
-            <button onClick={() => setShowTemplates(false)} className="text-xs text-[#2d5d89] hover:underline">
+            <button onClick={() => setShowTemplates(false)} className="text-xs text-[var(--primary)] hover:underline">
               جدول فارغ
             </button>
           </div>
@@ -331,9 +331,9 @@ function SheetForm({ initial, onSave, onClose }) {
               const TplIcon = TEMPLATE_ICONS[tpl.id] || FileText;
               return (
                 <button key={tpl.id} onClick={() => applyTemplate(tpl)}
-                  className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-gray-100 hover:border-[#2d5d89] hover:bg-[#2d5d89]/5 transition-all text-right">
-                  <div className="w-7 h-7 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center">
-                    <TplIcon className="w-3.5 h-3.5 text-[#2d5d89]" />
+                  className="flex flex-col items-start gap-1.5 p-3 rounded-xl border-2 border-gray-100 hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all text-right">
+                  <div className="w-7 h-7 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                    <TplIcon className="w-3.5 h-3.5 text-[var(--primary)]" />
                   </div>
                   <span className="text-xs font-bold text-gray-800">{tpl.name}</span>
                   <span className="text-[10px] text-gray-400">{tpl.columns.length} أعمدة</span>
@@ -348,40 +348,40 @@ function SheetForm({ initial, onSave, onClose }) {
       )}
       {!showTemplates && !initial && (
         <button onClick={() => setShowTemplates(true)}
-          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-gray-300 text-xs text-gray-500 hover:border-[#2d5d89] hover:text-[#2d5d89] transition-colors">
-          <Target className="w-3.5 h-3.5" /> استخدام نموذج جاهز
+          className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-gray-300 text-xs text-gray-500 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors">
+          <FaBullseye className="w-3.5 h-3.5" /> استخدام نموذج جاهز
         </button>
       )}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">اسم الجدول *</label>
         <input value={name} onChange={(e) => setName(e.target.value)}
           placeholder="مثال: المصروفات الشهرية"
-          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
       </div>
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-gray-700">الأعمدة</label>
           <button onClick={addCol}
-            className="flex items-center gap-1 text-xs text-[#2d5d89] hover:underline font-medium">
-            <Plus className="w-3.5 h-3.5" /> إضافة عمود
+            className="flex items-center gap-1 text-xs text-[var(--primary)] hover:underline font-medium">
+            <FaPlus className="w-3.5 h-3.5" /> إضافة عمود
           </button>
         </div>
         <div className="space-y-2 max-h-60 overflow-y-auto">
           {columns.map((col, i) => (
             <div key={col.key} className="bg-gray-50 rounded-xl p-2 space-y-1.5">
               <div className="flex items-center gap-2">
-                <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                <FaGripLines className="w-4 h-4 text-gray-300 flex-shrink-0" />
                 <input value={col.label} onChange={(e) => updateCol(i, "label", e.target.value)}
-                  className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                  className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                   placeholder="اسم العمود" />
                 <select value={col.type} onChange={(e) => updateCol(i, "type", e.target.value)}
-                  className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+                  className="px-2 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
                   {COLUMN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
                 <span className="px-2 py-1 rounded-lg bg-gray-200 text-gray-500 text-[10px] font-mono whitespace-nowrap">{col.key}</span>
                 {columns.length > 1 && (
                   <button onClick={() => removeCol(i)} className="text-red-400 hover:text-red-600 flex-shrink-0">
-                    <X className="w-4 h-4" />
+                    <FaXmark className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -392,7 +392,7 @@ function SheetForm({ initial, onSave, onClose }) {
                     value={col.formula || ""}
                     onChange={(e) => updateCol(i, "formula", e.target.value)}
                     placeholder="مثال: col1 * col2 / 100"
-                    className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-blue-200 bg-white text-gray-900 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                    className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-blue-200 bg-white text-gray-900 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                   />
                 </div>
               )}
@@ -403,7 +403,7 @@ function SheetForm({ initial, onSave, onClose }) {
                     value={(col.options || []).join(",")}
                     onChange={(e) => updateCol(i, "options", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                     placeholder="خيار1,خيار2,خيار3"
-                    className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-purple-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                    className="flex-1 min-w-0 px-2 py-1.5 rounded-lg border border-purple-200 bg-white text-gray-900 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
                   />
                 </div>
               )}
@@ -417,7 +417,7 @@ function SheetForm({ initial, onSave, onClose }) {
       <div className="flex gap-3 pt-2">
         <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
         <button onClick={submit} disabled={saving}
-          className="flex-1 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium disabled:opacity-50">
+          className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[#245079] text-white text-sm font-medium disabled:opacity-50">
           {saving ? "جاري الحفظ..." : "حفظ"}
         </button>
       </div>
@@ -478,7 +478,7 @@ function AuditLogPanel() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-40">
-        <div className="w-6 h-6 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -486,14 +486,14 @@ function AuditLogPanel() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex items-center gap-2 mb-4">
-        <ClipboardList className="w-5 h-5 text-[#2d5d89]" />
+        <FaClipboardList className="w-5 h-5 text-[var(--primary)]" />
         <h3 className="font-bold text-gray-900 text-base">سجل العمليات</h3>
         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{logs.length} عملية</span>
       </div>
       <div className="flex-1 overflow-auto rounded-xl border border-gray-200">
         <table className="w-full text-sm">
           <thead className="sticky top-0">
-            <tr className="bg-[#2d5d89] text-white">
+            <tr className="bg-[var(--primary)] text-white">
               <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">المستخدم</th>
               <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">البريد</th>
               <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">العملية</th>
@@ -543,7 +543,7 @@ function RatesPanel({ rows, cols }) {
     return (
       <div className="flex items-center justify-center h-40">
         <div className="text-center">
-          <BarChart3 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+          <FaChartBar className="w-10 h-10 text-gray-200 mx-auto mb-2" />
           <p className="text-sm text-gray-400">لا توجد أعمدة رقمية لعرض المعدلات</p>
         </div>
       </div>
@@ -567,7 +567,7 @@ function RatesPanel({ rows, cols }) {
               <div className="space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">المجموع:</span>
-                  <span className="font-bold text-[#2d5d89]">{formatCell(s.sum, c.type)}</span>
+                  <span className="font-bold text-[var(--primary)]">{formatCell(s.sum, c.type)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">المتوسط:</span>
@@ -670,7 +670,7 @@ function LedgerSummary({ ledger }) {
     <div className="space-y-4 overflow-auto h-full pb-6">
       {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <div className="bg-gradient-to-br from-[#2d5d89] to-[#1f4566] text-white rounded-2xl p-4 shadow-sm">
+        <div className="bg-gradient-to-br from-[var(--primary)] to-[#1f4566] text-white rounded-2xl p-4 shadow-sm">
           <p className="text-xs opacity-70 mb-1">إجمالي قيمة العملات</p>
           <p className="text-2xl font-bold">{formatCell(grandTotal, "currency")}</p>
           <p className="text-xs opacity-60 mt-1">{sheets.length} جدول · {totalRows} سطر</p>
@@ -683,7 +683,7 @@ function LedgerSummary({ ledger }) {
           <p className="text-xs text-gray-400 mb-1">أعلى جدول قيمةً</p>
           {sheetTotals.length > 0 ? (
             <>
-              <p className="text-base font-bold text-[#2d5d89] truncate">{[...sheetTotals].sort((a,b)=>b.total-a.total)[0]?.name}</p>
+              <p className="text-base font-bold text-[var(--primary)] truncate">{[...sheetTotals].sort((a,b)=>b.total-a.total)[0]?.name}</p>
               <p className="text-sm text-gray-600">{formatCell(Math.max(...sheetTotals.map(s=>s.total)), "currency")}</p>
             </>
           ) : <p className="text-gray-400 text-sm">—</p>}
@@ -701,14 +701,14 @@ function LedgerSummary({ ledger }) {
       {Object.keys(totalByLabel).length > 0 && (
         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            <Sigma className="w-4 h-4 text-[#2d5d89]" />
+            <FaPercent className="w-4 h-4 text-[var(--primary)]" />
             مجموع الأعمدة الرقمية
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {Object.entries(totalByLabel).map(([label, val]) => (
               <div key={label} className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-400 truncate mb-1">{label}</p>
-                <p className="text-base font-bold text-[#2d5d89]">{formatCell(val, "currency")}</p>
+                <p className="text-base font-bold text-[var(--primary)]">{formatCell(val, "currency")}</p>
               </div>
             ))}
           </div>
@@ -719,7 +719,7 @@ function LedgerSummary({ ledger }) {
       {barData.length > 0 && (
         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#2d5d89]" />
+            <FaChartBar className="w-4 h-4 text-[var(--primary)]" />
             مقارنة إجماليات الجداول
           </p>
           <ResponsiveContainer width="100%" height={200}>
@@ -740,7 +740,7 @@ function LedgerSummary({ ledger }) {
       {sheetTotals.filter(s => s.top5.length > 0).map(s => (
         <div key={s.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <FaChartLine className="w-4 h-4 text-emerald-600" />
             أعلى 5 قيم — {s.name}
           </p>
           <div className="space-y-1.5">
@@ -752,9 +752,9 @@ function LedgerSummary({ ledger }) {
               const val   = firstCurrCol ? (parseFloat(cells[firstCurrCol.key])||0) : 0;
               return (
                 <div key={i} className="flex items-center gap-3 text-sm">
-                  <span className="w-5 h-5 rounded-full bg-[#2d5d89]/10 text-[#2d5d89] text-xs flex items-center justify-center font-bold flex-shrink-0">{i+1}</span>
+                  <span className="w-5 h-5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] text-xs flex items-center justify-center font-bold flex-shrink-0">{i+1}</span>
                   <span className="flex-1 text-gray-700 truncate">{label}</span>
-                  <span className="font-bold text-[#2d5d89] whitespace-nowrap">{formatCell(val, "currency")}</span>
+                  <span className="font-bold text-[var(--primary)] whitespace-nowrap">{formatCell(val, "currency")}</span>
                 </div>
               );
             })}
@@ -766,7 +766,7 @@ function LedgerSummary({ ledger }) {
       {sheetTotals.filter(s => s.monthly.length > 0).map(s => (
         <div key={s.id + "-monthly"} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-purple-600" />
+            <FaChartLine className="w-4 h-4 text-purple-600" />
             التوزيع الشهري — {s.name}
           </p>
           <ResponsiveContainer width="100%" height={160}>
@@ -785,7 +785,7 @@ function LedgerSummary({ ledger }) {
       {pieData.length > 1 && (
         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
           <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-purple-600" />
+            <FaChartPie className="w-4 h-4 text-purple-600" />
             التوزيع النسبي
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -812,7 +812,7 @@ function LedgerSummary({ ledger }) {
 
       {sheets.length === 0 && (
         <div className="text-center py-12">
-          <FileSpreadsheet className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+          <FaFileExcel className="w-12 h-12 text-gray-200 mx-auto mb-3" />
           <p className="text-gray-400 text-sm">لا توجد جداول في هذا السجل بعد</p>
         </div>
       )}
@@ -821,7 +821,7 @@ function LedgerSummary({ ledger }) {
 }
 
 // ─── Chart colors ─────────────────────────────────────────────────────────────
-const CHART_COLORS = ["#2d5d89","#0F9D58","#F4B400","#DB4437","#9B59B6","#1ABC9C","#E67E22","#3498DB"];
+const CHART_COLORS = ["var(--primary)","#0F9D58","#F4B400","#DB4437","#9B59B6","#1ABC9C","#E67E22","#3498DB"];
 
 // ─── Financial Charts Panel ───────────────────────────────────────────────────
 const ChartTooltip = ({ active, payload, label, valueCol, cols }) => {
@@ -921,7 +921,7 @@ function FinancialCharts({ rows, cols }) {
   if (numericCols.length === 0) return (
     <div className="flex items-center justify-center h-60">
       <div className="text-center">
-        <BarChart3 className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+        <FaChartBar className="w-12 h-12 text-gray-200 mx-auto mb-3" />
         <p className="text-gray-400 text-sm">أضف أعمدة رقمية أو عملة لعرض المخططات</p>
       </div>
     </div>
@@ -933,7 +933,7 @@ function FinancialCharts({ rows, cols }) {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label:"المجموع",   value: formatCell(stats.sum,  activeValueCol?.type), icon: Sigma,         color:"#2d5d89" },
+            { label:"المجموع",   value: formatCell(stats.sum,  activeValueCol?.type), icon: Sigma,         color:"var(--primary)" },
             { label:"المتوسط",   value: formatCell(stats.avg,  activeValueCol?.type), icon: Activity,      color:"#0F9D58" },
             { label:"أعلى قيمة",value: formatCell(stats.max,  activeValueCol?.type), icon: ArrowUpRight,  color:"#E67E22" },
             { label:"أدنى قيمة",value: formatCell(stats.min,  activeValueCol?.type), icon: ArrowDownRight, color:"#DB4437" },
@@ -964,7 +964,7 @@ function FinancialCharts({ rows, cols }) {
           ].map((t) => (
             <button key={t.id} onClick={() => setChartType(t.id)}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                chartType === t.id ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
+                chartType === t.id ? "bg-[var(--primary)] text-white shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}>
               <t.Icon className="w-3 h-3" />
               {t.label}
@@ -974,9 +974,9 @@ function FinancialCharts({ rows, cols }) {
 
         {/* Group by */}
         <div className="flex items-center gap-1.5">
-          <Tag className="w-3.5 h-3.5 text-gray-400" />
+          <FaTag className="w-3.5 h-3.5 text-gray-400" />
           <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)}
-            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
             <option value="">-- تجميع حسب --</option>
             {textCols.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
           </select>
@@ -984,9 +984,9 @@ function FinancialCharts({ rows, cols }) {
 
         {/* Value column */}
         <div className="flex items-center gap-1.5">
-          <Sigma className="w-3.5 h-3.5 text-gray-400" />
+          <FaPercent className="w-3.5 h-3.5 text-gray-400" />
           <select value={valueCol} onChange={(e) => setValueCol(e.target.value)}
-            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+            className="text-xs px-2 py-1.5 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
             <option value="">-- قيمة المحور --</option>
             {numericCols.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
           </select>
@@ -1013,21 +1013,21 @@ function FinancialCharts({ rows, cols }) {
                 <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
                 <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
                 <Tooltip formatter={(v) => formatCell(v, "currency")} />
-                <Line type="monotone" dataKey="value" stroke="#2d5d89" strokeWidth={2} dot={{ fill:"#2d5d89", r:4 }} />
+                <Line type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2} dot={{ fill:"var(--primary)", r:4 }} />
               </LineChart>
             ) : chartType === "area" ? (
               <AreaChart data={chartData} margin={{ top:5, right:5, left:5, bottom:30 }}>
                 <defs>
                   <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#2d5d89" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#2d5d89" stopOpacity={0}   />
+                    <stop offset="5%"  stopColor="var(--primary)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}   />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="name" tick={{ fontSize:10 }} angle={-35} textAnchor="end" />
                 <YAxis tick={{ fontSize:10 }} width={60} tickFormatter={(v) => v.toLocaleString("ar-EG")} />
                 <Tooltip formatter={(v) => formatCell(v, "currency")} />
-                <Area type="monotone" dataKey="value" stroke="#2d5d89" fill="url(#areaGrad)" strokeWidth={2} />
+                <Area type="monotone" dataKey="value" stroke="var(--primary)" fill="url(#areaGrad)" strokeWidth={2} />
               </AreaChart>
             ) : (
               <BarChart data={chartData} margin={{ top:5, right:5, left:5, bottom:30 }}>
@@ -1048,7 +1048,7 @@ function FinancialCharts({ rows, cols }) {
       {trendData.length > 1 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
           <p className="text-xs font-bold text-gray-600 mb-3">
-            <Activity className="w-3.5 h-3.5 inline ml-1 text-[#2d5d89]" />
+            <FaChartLine className="w-3.5 h-3.5 inline ml-1 text-[var(--primary)]" />
             التطور الشهري — {activeValueCol?.label}
           </p>
           <ResponsiveContainer width="100%" height={180}>
@@ -1071,7 +1071,7 @@ function FinancialCharts({ rows, cols }) {
 
       {chartData.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <BarChart3 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+          <FaChartBar className="w-10 h-10 text-gray-200 mx-auto mb-2" />
           <p className="text-sm text-gray-400">اختر عمود التجميع وعمود القيمة لعرض المخطط</p>
         </div>
       )}
@@ -1097,9 +1097,9 @@ function QuickEntryPanel({ cols, onAdd, saving }) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#2d5d89]/5 to-white rounded-2xl border border-[#2d5d89]/20 p-4 space-y-3">
+    <div className="bg-gradient-to-br from-[var(--primary)]/5 to-white rounded-2xl border border-[var(--primary)]/20 p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-[#2d5d89] flex items-center justify-center">
+        <div className="w-7 h-7 rounded-lg bg-[var(--primary)] flex items-center justify-center">
           <Zap className="w-3.5 h-3.5 text-white" />
         </div>
         <span className="font-bold text-gray-900 text-sm">الإدخال السريع</span>
@@ -1117,7 +1117,7 @@ function QuickEntryPanel({ cols, onAdd, saving }) {
               <select
                 value={data[col.key] || ""}
                 onChange={(e) => setData({ ...data, [col.key]: e.target.value })}
-                className="w-full px-2.5 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[#2d5d89]">
+                className="w-full px-2.5 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary)]">
                 <option value="">-- اختر --</option>
                 {(col.options || []).map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
@@ -1128,7 +1128,7 @@ function QuickEntryPanel({ cols, onAdd, saving }) {
                 onChange={(e) => setData({ ...data, [col.key]: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && submit()}
                 placeholder={col.label}
-                className="w-full px-2.5 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[#2d5d89]"
+                className="w-full px-2.5 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
               />
             )}
           </div>
@@ -1136,8 +1136,8 @@ function QuickEntryPanel({ cols, onAdd, saving }) {
       </div>
       <div className="flex justify-end">
         <button onClick={submit} disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#2d5d89] hover:bg-[#245079] text-white rounded-xl text-sm font-medium disabled:opacity-50">
-          <Plus className="w-3.5 h-3.5" />
+          className="flex items-center gap-1.5 px-4 py-2 bg-[var(--primary)] hover:bg-[#245079] text-white rounded-xl text-sm font-medium disabled:opacity-50">
+          <FaPlus className="w-3.5 h-3.5" />
           {saving ? "جاري الإضافة..." : "إضافة سطر (Enter ↵)"}
         </button>
       </div>
@@ -1865,13 +1865,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
         <meta charset="UTF-8"><title>${sheet.name}</title>
         <style>
           body { font-family: 'Segoe UI', sans-serif; direction: rtl; padding: 20px; font-size: 12px; }
-          h2 { color: #2d5d89; margin-bottom: 4px; }
+          h2 { color: var(--primary); margin-bottom: 4px; }
           .meta { color: #64748b; font-size: 11px; margin-bottom: 16px; }
           table { width: 100%; border-collapse: collapse; }
-          th { background: #2d5d89; color: white; padding: 8px 12px; text-align: right; font-size: 12px; }
+          th { background: var(--primary); color: white; padding: 8px 12px; text-align: right; font-size: 12px; }
           td { padding: 6px 12px; border-bottom: 1px solid #e5e7eb; font-size: 11px; text-align: right; }
           tr:nth-child(even) td { background: #f8fafc; }
-          .total-row td { font-weight: bold; background: #dbeafe; border-top: 2px solid #2d5d89; color: #2d5d89; }
+          .total-row td { font-weight: bold; background: #dbeafe; border-top: 2px solid var(--primary); color: var(--primary); }
           @media print { button { display: none; } }
         </style>
       </head><body>
@@ -2134,10 +2134,10 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             <div className="flex items-center gap-1">
               <button onClick={() => setAddingRow(true)}
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-[#217346] text-white hover:bg-[#1a5c38] transition-colors">
-                <Plus className="w-3.5 h-3.5" /> إضافة صف
+                <FaPlus className="w-3.5 h-3.5" /> إضافة صف
               </button>
               <label className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors ${importing ? "opacity-50 pointer-events-none" : ""}`}>
-                <Upload className="w-3.5 h-3.5 text-[#217346]" />
+                <FaUpload className="w-3.5 h-3.5 text-[#217346]" />
                 {importing ? "استيراد..." : "استيراد Excel"}
                 <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv,.ods,.tsv" className="hidden" onChange={handleExcelImport} />
               </label>
@@ -2147,15 +2147,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             <div className="flex items-center gap-1">
               <button onClick={exportCsv} title="تصدير CSV"
                 className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
-                <Download className="w-3.5 h-3.5" /> CSV
+                <FaDownload className="w-3.5 h-3.5" /> CSV
               </button>
               <button onClick={exportExcelPython} title="تصدير Excel"
                 className="flex items-center gap-1 px-2 py-1 rounded text-xs text-[#217346] border border-[#217346]/40 hover:bg-green-50 transition-colors">
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
+                <FaFileExcel className="w-3.5 h-3.5" /> Excel
               </button>
               <button onClick={() => handlePrint(false)} title="تصدير PDF"
                 className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-600 border border-red-200 hover:bg-red-50 transition-colors">
-                <FileDown className="w-3.5 h-3.5" /> PDF
+                <FaFileArrowDown className="w-3.5 h-3.5" /> PDF
               </button>
             </div>
             <div className="w-px h-5 bg-gray-300 mx-1" />
@@ -2163,12 +2163,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             <div className="flex items-center gap-1">
               <button onClick={() => handlePrint(false)} title="طباعة"
                 className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
-                <Printer className="w-3.5 h-3.5" /> طباعة
+                <FaPrint className="w-3.5 h-3.5" /> طباعة
               </button>
               {selected.size > 0 && (
                 <button onClick={() => handlePrint(true)}
-                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-[#2d5d89] border border-[#2d5d89]/40 hover:bg-blue-50 transition-colors">
-                  <Printer className="w-3.5 h-3.5" /> طباعة المحدد ({selected.size})
+                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-[var(--primary)] border border-[var(--primary)]/40 hover:bg-blue-50 transition-colors">
+                  <FaPrint className="w-3.5 h-3.5" /> طباعة المحدد ({selected.size})
                 </button>
               )}
             </div>
@@ -2178,7 +2178,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               <div className="relative">
                 <button onClick={() => setColsMenuOpen((p) => !p)}
                   className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
-                  <EyeIcon className="w-3.5 h-3.5" /> الأعمدة
+                  <FaEye className="w-3.5 h-3.5" /> الأعمدة
                 </button>
                 {colsMenuOpen && (
                   <div className="absolute right-0 top-8 z-30 bg-white rounded-xl shadow-2xl border border-gray-200 p-2 w-52 max-h-64 overflow-auto" dir="rtl">
@@ -2187,7 +2187,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                       <label key={c.key} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-xs">
                         <input type="checkbox" checked={!hiddenCols.has(c.key)} onChange={() => toggleCol(c.key)} className="accent-[#217346]" />
                         <span className="flex-1 text-gray-700">{c.label}</span>
-                        {hiddenCols.has(c.key) ? <EyeOff className="w-3 h-3 text-gray-300" /> : <EyeIcon className="w-3 h-3 text-[#217346]" />}
+                        {hiddenCols.has(c.key) ? <FaEyeSlash className="w-3 h-3 text-gray-300" /> : <FaEye className="w-3 h-3 text-[#217346]" />}
                       </label>
                     ))}
                     <div className="flex gap-1 mt-1 pt-1 border-t border-gray-100">
@@ -2218,16 +2218,16 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               <button
                 onClick={() => setFreezeFirstCol((p) => !p)}
                 title={freezeFirstCol ? "إلغاء تثبيت العمود" : "تثبيت العمود الأول"}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${freezeFirstCol ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${freezeFirstCol ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}
               >
-                <Pin className="w-3.5 h-3.5" /> تثبيت
+                <FaThumbtack className="w-3.5 h-3.5" /> تثبيت
               </button>
               <button
                 onClick={() => setCondFmtEnabled((p) => !p)}
                 title="تنسيق شرطي"
                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${condFmtEnabled ? "bg-orange-500 text-white border-orange-500" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}
               >
-                <Filter className="w-3.5 h-3.5" /> تنسيق شرطي
+                <FaFilter className="w-3.5 h-3.5" /> تنسيق شرطي
               </button>
               {condFmtEnabled && (
                 <div className="flex items-center gap-1">
@@ -2246,31 +2246,31 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             <button onClick={undoLastEdit} disabled={!undoStack.length}
               title="تراجع (Ctrl+Z)"
               className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-40">
-              <RefreshCcw className="w-3.5 h-3.5" /> تراجع
+              <FaArrowsRotate className="w-3.5 h-3.5" /> تراجع
             </button>
             <div className="w-px h-5 bg-gray-300 mx-0.5" />
             {/* Formatting toolbar toggle */}
             <button onClick={() => setFmtToolbar(p => !p)}
               title="تنسيق الخلايا"
-              className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${fmtToolbar ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${fmtToolbar ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}>
               <span className="font-bold text-sm leading-none">ب</span> تنسيق
             </button>
             {/* Find & Replace button */}
             <button onClick={() => setFindReplace({ find: "", replace: "", colKey: "all" })}
               title="بحث واستبدال (Ctrl+H)"
               className="flex items-center gap-1 px-2 py-1 rounded text-xs text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors">
-              <Search className="w-3.5 h-3.5" /> بحث / استبدال
+              <FaMagnifyingGlass className="w-3.5 h-3.5" /> بحث / استبدال
             </button>
             {/* Active filters indicator */}
             {hasFilter && (
               <button onClick={() => setColFilters({})}
                 className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100 transition-colors">
-                <Filter className="w-3.5 h-3.5" /> مرشح ({Object.keys(colFilters).length}) × إلغاء
+                <FaFilter className="w-3.5 h-3.5" /> مرشح ({Object.keys(colFilters).length}) × إلغاء
               </button>
             )}
             {/* Search */}
             <div className="mr-auto relative">
-              <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <FaMagnifyingGlass className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
               <input value={quickFilter} onChange={(e) => setQuickFilter(e.target.value)}
                 placeholder="تصفية سريعة..."
                 className="pr-7 pl-3 py-1 rounded border border-gray-300 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-[#217346] w-36" />
@@ -2279,7 +2279,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             {selected.size > 0 && (
               <button onClick={() => setConfirmBulk(true)}
                 className="flex items-center gap-1 px-2.5 py-1 rounded text-xs bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" /> حذف ({selected.size})
+                <FaTrash className="w-3.5 h-3.5" /> حذف ({selected.size})
               </button>
             )}
           </div>
@@ -2292,12 +2292,12 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           <span className="text-[10px] text-gray-400 font-bold uppercase ml-1">تنسيق الخلية المحددة</span>
           {/* Bold */}
           <button onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { bold: !getFmt(selectedCell.rowId, selectedCell.colKey).bold })}
-            className={`px-2 py-1 rounded text-xs font-bold border transition-colors ${getFmt(selectedCell.rowId, selectedCell.colKey).bold ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
+            className={`px-2 py-1 rounded text-xs font-bold border transition-colors ${getFmt(selectedCell.rowId, selectedCell.colKey).bold ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
             B
           </button>
           {/* Italic */}
           <button onClick={() => setFmt(selectedCell.rowId, selectedCell.colKey, { italic: !getFmt(selectedCell.rowId, selectedCell.colKey).italic })}
-            className={`px-2 py-1 rounded text-xs italic border transition-colors ${getFmt(selectedCell.rowId, selectedCell.colKey).italic ? "bg-[#2d5d89] text-white border-[#2d5d89]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
+            className={`px-2 py-1 rounded text-xs italic border transition-colors ${getFmt(selectedCell.rowId, selectedCell.colKey).italic ? "bg-[var(--primary)] text-white border-[var(--primary)]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
             I
           </button>
           {/* Text Color */}
@@ -2377,7 +2377,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           {/* Also show table below quick entry */}
           <div className="rounded-2xl border border-gray-200 overflow-auto max-h-[40vh]">
             <table className="w-full min-w-max text-sm">
-              <thead className="sticky top-0 bg-[#2d5d89] text-white">
+              <thead className="sticky top-0 bg-[var(--primary)] text-white">
                 <tr>
                   {cols.map((c) => (
                     <th key={c.key} className="px-3 py-2 text-right text-xs font-semibold whitespace-nowrap">{c.label}</th>
@@ -2484,20 +2484,20 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         style={{ width: getColWidth(col), minWidth: 60 }}
                         onClick={() => handleColSort(col.key)}>
                         <span className="flex items-center gap-1 text-gray-700">
-                          {isFiltered && <Filter className="w-3 h-3 text-amber-600 flex-shrink-0" />}
+                          {isFiltered && <FaFilter className="w-3 h-3 text-amber-600 flex-shrink-0" />}
                           {col.label}
                           {sortConfig?.key === col.key
                             ? sortConfig.dir === "asc"
-                              ? <SortAsc className="w-3 h-3 text-[#217346]" />
-                              : <SortDesc className="w-3 h-3 text-[#217346]" />
-                            : <SortAsc className="w-3 h-3 text-gray-300 opacity-0 group-hover/th:opacity-100" />
+                              ? <FaSortUp className="w-3 h-3 text-[#217346]" />
+                              : <FaSortDown className="w-3 h-3 text-[#217346]" />
+                            : <FaSortUp className="w-3 h-3 text-gray-300 opacity-0 group-hover/th:opacity-100" />
                           }
                         </span>
                         {/* Filter dropdown button */}
                         <button
                           className="absolute bottom-0.5 left-4 opacity-0 group-hover/th:opacity-100 transition-opacity"
                           onClick={(e) => { e.stopPropagation(); setColFilterOpen(colFilterOpen === col.key ? null : col.key); }}>
-                          <ChevronDown className="w-3 h-3 text-gray-400 hover:text-[#217346]" />
+                          <FaChevronDown className="w-3 h-3 text-gray-400 hover:text-[#217346]" />
                         </button>
                         {/* Filter popup */}
                         {colFilterOpen === col.key && (
@@ -2540,7 +2540,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   {filteredRows.length === 0 && !addingRow && (
                     <tr>
                       <td colSpan={cols.length + 3} className="text-center py-12 text-gray-400 text-sm">
-                        <Table2 className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                        <FaTableList className="w-10 h-10 mx-auto mb-2 text-gray-300" />
                         لا توجد بيانات — اضغط "سطر جديد" لإضافة البيانات
                       </td>
                     </tr>
@@ -2673,13 +2673,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                                 ? "text-amber-600 bg-amber-50 hover:bg-amber-100"
                                 : "text-gray-300 hover:text-amber-500 hover:bg-amber-50 opacity-0 group-hover:opacity-100"
                             }`}>
-                            <FileText className="w-3.5 h-3.5" />
+                            <FaFileLines className="w-3.5 h-3.5" />
                           </button>
                           {!row.isDeleted && (
                             <button onClick={() => duplicateRow(row)}
                               title="نسخ السطر"
                               className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-blue-500 hover:bg-blue-50 transition-colors opacity-0 group-hover:opacity-100">
-                              <CopyIcon className="w-3.5 h-3.5" />
+                              <FaCopy className="w-3.5 h-3.5" />
                             </button>
                           )}
                           {row.isDeleted ? (
@@ -2687,13 +2687,13 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                               <button onClick={() => restoreRow(row._id)}
                                 className="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-500 hover:bg-emerald-50 transition-colors"
                                 title="استعادة السطر">
-                                <RefreshCw className="w-3.5 h-3.5" />
+                                <FaArrowsRotate className="w-3.5 h-3.5" />
                               </button>
                             )
                           ) : (
                             <button onClick={() => deleteRow(row._id)}
                               className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <FaTrash className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
@@ -2704,7 +2704,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                               value={notePopover.value}
                               onChange={(e) => setNotePopover({ ...notePopover, value: e.target.value })}
                               rows={3}
-                              className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none"
+                              className="w-full px-2 py-1.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
                               placeholder="اكتب ملاحظة..."
                               autoFocus
                             />
@@ -2712,7 +2712,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                               <button onClick={() => setNotePopover(null)}
                                 className="px-2 py-1 text-xs rounded-lg border border-gray-200 hover:bg-gray-50">إلغاء</button>
                               <button onClick={() => saveRowNote(row._id, notePopover.value)}
-                                className="px-3 py-1 text-xs rounded-lg bg-[#2d5d89] text-white hover:bg-[#245079]">حفظ</button>
+                                className="px-3 py-1 text-xs rounded-lg bg-[var(--primary)] text-white hover:bg-[#245079]">حفظ</button>
                             </div>
                           </div>
                         )}
@@ -2726,7 +2726,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                     <tr className="bg-emerald-50/50 border-b border-emerald-100">
                       <td className="w-8 px-1 py-2 text-center text-[10px] text-emerald-400 select-none sticky right-0 bg-emerald-50/80 border-l border-emerald-100">*</td>
                       <td className="px-3 py-2 w-10 text-emerald-500">
-                        <Plus className="w-4 h-4 mx-auto" />
+                        <FaPlus className="w-4 h-4 mx-auto" />
                       </td>
                       {cols.map((col) => (
                         <td key={col.key} className="px-1 py-1" style={{ minWidth: col.width || 120 }}>
@@ -2751,11 +2751,11 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                         <div className="flex flex-col gap-1">
                           <button onClick={addRow} disabled={saving}
                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white">
-                            <Check className="w-3.5 h-3.5" />
+                            <FaCheck className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => { setAddingRow(false); setNewRowData({}); }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600">
-                            <X className="w-3.5 h-3.5" />
+                            <FaXmark className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -2764,15 +2764,15 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
 
                   {/* Totals row */}
                   {filteredRows.length > 0 && (
-                    <tr className="bg-[#2d5d89]/5 font-bold border-t-2 border-[#2d5d89] sticky bottom-0">
-                      <td className="w-8 px-1 py-3 sticky right-0 bg-[#2d5d89]/5 border-l border-[#2d5d89]/20" />
-                      <td className="px-3 py-3 text-xs text-[#2d5d89] whitespace-nowrap font-bold" colSpan={2}>
+                    <tr className="bg-[var(--primary)]/5 font-bold border-t-2 border-[var(--primary)] sticky bottom-0">
+                      <td className="w-8 px-1 py-3 sticky right-0 bg-[var(--primary)]/5 border-l border-[var(--primary)]/20" />
+                      <td className="px-3 py-3 text-xs text-[var(--primary)] whitespace-nowrap font-bold" colSpan={2}>
                         الإجمالي
                       </td>
                       {cols.slice(1).map((col) => {
                         const total = sumColumn(filteredRows, col.key, col.type, col);
                         return (
-                          <td key={col.key} className="px-3 py-3 text-sm text-[#2d5d89] whitespace-nowrap font-bold">
+                          <td key={col.key} className="px-3 py-3 text-sm text-[var(--primary)] whitespace-nowrap font-bold">
                             {total !== null ? formatCell(total, col.type) : ""}
                           </td>
                         );
@@ -2789,7 +2789,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
           <div className="flex-shrink-0 bg-[#217346] text-white flex items-center justify-between px-4 py-1 text-xs select-none">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5 text-white/70">
-                <Table2 className="w-3 h-3" />
+                <FaTableList className="w-3 h-3" />
                 {filteredRows.length} صف
                 {selected.size > 0 && <span className="text-white font-semibold mr-2">• {selected.size} محدد</span>}
               </span>
@@ -2816,7 +2816,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               })()}
               <button onClick={() => setStatsOpen(p => !p)}
                 className="flex items-center gap-1 text-white/60 hover:text-white transition-colors">
-                <BarChart3 className="w-3 h-3" />
+                <FaChartBar className="w-3 h-3" />
                 {statsOpen ? "إخفاء المعدلات" : "عرض المعدلات"}
               </button>
             </div>
@@ -2852,14 +2852,14 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
             onChange={(e) => setNoteEditVal(e.target.value)}
             rows={4}
             placeholder="اكتب ملاحظة للصف..."
-            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none"
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
             autoFocus
           />
           <div className="flex gap-2">
             <button onClick={() => setNoteEditId(null)} className="flex-1 py-2 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-gray-50">إلغاء</button>
             <button
               onClick={() => saveRowNote(noteEditId, noteEditVal)}
-              className="flex-1 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079]"
+              className="flex-1 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[#245079]"
             >
               حفظ
             </button>
@@ -2884,9 +2884,9 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               dir="rtl" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                  <Search className="w-4 h-4 text-[#217346]" /> بحث واستبدال
+                  <FaMagnifyingGlass className="w-4 h-4 text-[#217346]" /> بحث واستبدال
                 </h3>
-                <button onClick={() => setFindReplace(null)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+                <button onClick={() => setFindReplace(null)} className="text-gray-400 hover:text-gray-600"><FaXmark className="w-4 h-4" /></button>
               </div>
               <div className="space-y-3">
                 <div>
@@ -2941,7 +2941,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-l from-emerald-50 to-white">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                    <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+                    <FaFileExcel className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div>
                     <h2 className="font-bold text-gray-800 text-base">استيراد ملف Excel</h2>
@@ -2949,7 +2949,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   </div>
                 </div>
                 <button onClick={() => !importing && setImportModal(null)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
-                  <X className="w-4 h-4" />
+                  <FaXmark className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
@@ -2999,7 +2999,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                               onChange={(e) => { e.stopPropagation(); setImportModal((m) => { const next = new Set(m.checkedSheets); checked ? next.delete(ps.name) : next.add(ps.name); return { ...m, checkedSheets: next }; }); }}
                               className="accent-emerald-600 w-4 h-4 flex-shrink-0"
                             />
-                            <FileSpreadsheet className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            <FaFileExcel className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                             <span className="flex-1 text-sm font-medium text-gray-700 truncate">{ps.name}</span>
                             <span className="text-xs text-gray-400">{ps.dataRows.length} صف</span>
                             <span className="text-xs text-gray-400">{ps.columns.length} عمود</span>
@@ -3075,7 +3075,7 @@ function SheetTable({ ledgerId, sheet, onUpdate, printRef }) {
                   className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50">إلغاء</button>
                 <button onClick={confirmImport} disabled={importing || importModal.checkedSheets.size === 0}
                   className="flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold disabled:opacity-50 transition-colors">
-                  {importing ? <><RefreshCw className="w-4 h-4 animate-spin" /> جاري الاستيراد...</> : <><FileSpreadsheet className="w-4 h-4" /> استيراد {importModal.checkedSheets.size} {importModal.checkedSheets.size === 1 ? "ورقة" : "أوراق"}</>}
+                  {importing ? <><FaArrowsRotate className="w-4 h-4 animate-spin" /> جاري الاستيراد...</> : <><FaFileExcel className="w-4 h-4" /> استيراد {importModal.checkedSheets.size} {importModal.checkedSheets.size === 1 ? "ورقة" : "أوراق"}</>}
                 </button>
               </div>
             </motion.div>
@@ -3292,7 +3292,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
       <div className="flex items-center justify-center h-80">
         <div className="text-center">
           <div className="w-20 h-20 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-10 h-10 text-red-500" />
+            <FaTriangleExclamation className="w-10 h-10 text-red-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">غير مصرح بالدخول</h2>
           <p className="text-gray-500 text-sm">هذه الصفحة مخصصة لقسم الحسابات والمديرين فقط</p>
@@ -3307,7 +3307,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
       {/* Sidebar header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#e8eef4] bg-[#1e3a52] flex-shrink-0">
         <div className="flex items-center gap-2">
-          <BookMarked className="w-4 h-4 text-[#7eb8e0]" />
+          <FaBookmark className="w-4 h-4 text-[#7eb8e0]" />
           <span className="text-sm font-bold text-white">الدفاتر</span>
           {ledgers.length > 0 && (
             <span className="text-[10px] bg-white/10 text-[#7eb8e0] px-1.5 py-0.5 rounded-full font-medium">{ledgers.length}</span>
@@ -3317,19 +3317,19 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           <button onClick={openSearch}
             title="بحث شامل (Ctrl+K)"
             className="w-7 h-7 flex items-center justify-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white transition-colors">
-            <Search className="w-3.5 h-3.5" />
+            <FaMagnifyingGlass className="w-3.5 h-3.5" />
           </button>
           {user?.role === "admin" && (
             <button onClick={() => { setShowTrash(true); loadTrash(); }}
               title="سلة المحذوفات"
               className="w-7 h-7 flex items-center justify-center rounded-lg text-red-300 hover:bg-red-500/20 transition-colors">
-              <Trash2 className="w-3.5 h-3.5" />
+              <FaTrash className="w-3.5 h-3.5" />
             </button>
           )}
           <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
             title="دفتر جديد"
             className="w-7 h-7 flex items-center justify-center rounded-lg bg-[#2d6fa8] text-white hover:bg-[#3a7fbf] shadow-sm transition-colors">
-            <Plus className="w-4 h-4" />
+            <FaPlus className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -3343,12 +3343,12 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
         ) : ledgers.length === 0 ? (
           <div className="text-center py-10 px-3">
             <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-3">
-              <BookOpen className="w-6 h-6 text-white/20" />
+              <FaBookOpen className="w-6 h-6 text-white/20" />
             </div>
             <p className="text-white/40 text-xs mb-3">لا توجد دفاتر بعد</p>
             <button onClick={() => { setEditLedger(null); setLedgerModal(true); }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] text-white text-xs font-medium hover:bg-[#3a6fa0] transition-colors">
-              <Plus className="w-3.5 h-3.5" /> إنشاء دفتر
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white text-xs font-medium hover:bg-[#3a6fa0] transition-colors">
+              <FaPlus className="w-3.5 h-3.5" /> إنشاء دفتر
             </button>
           </div>
         ) : (
@@ -3358,7 +3358,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
             return (
               <button key={l._id} onClick={() => { setActiveLedger(l); setSidebarOpen(false); }}
                 className={`w-full text-right px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-all group relative ${
-                  isActive ? "bg-[#2d5d89] text-white" : "hover:bg-white/5 text-white/60 hover:text-white"
+                  isActive ? "bg-[var(--primary)] text-white" : "hover:bg-white/5 text-white/60 hover:text-white"
                 }`}>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: isActive ? "rgba(255,255,255,0.15)" : l.color + "30" }}>
@@ -3371,11 +3371,11 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                 <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <span onClick={(e) => { e.stopPropagation(); setEditLedger(l); setLedgerModal(true); }}
                     className="w-5 h-5 flex items-center justify-center rounded hover:bg-white/20 text-white/40 hover:text-white transition-colors cursor-pointer">
-                    <Edit2 className="w-3 h-3" />
+                    <FaPen className="w-3 h-3" />
                   </span>
                   <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteLedger(l); }}
                     className="w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/30 text-white/40 hover:text-red-300 transition-colors cursor-pointer">
-                    <Trash2 className="w-3 h-3" />
+                    <FaTrash className="w-3 h-3" />
                   </span>
                 </div>
               </button>
@@ -3410,7 +3410,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           <div className="flex flex-col h-full bg-[#1a3349] items-center py-3 gap-3">
             <button onClick={() => setLedgerSidebarCollapsed(false)}
               className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white flex items-center justify-center transition-colors" title="فتح الدفاتر">
-              <ChevronLeft className="w-4 h-4 rotate-180" />
+              <FaChevronLeft className="w-4 h-4 rotate-180" />
             </button>
             <div className="flex-1 flex flex-col gap-2 overflow-y-auto w-full px-1.5">
               {ledgers.map((l) => {
@@ -3418,7 +3418,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                 const isActive = activeLedger?._id === l._id;
                 return (
                   <button key={l._id} onClick={() => setActiveLedger(l)} title={l.name}
-                    className={`w-7 h-7 rounded-lg flex items-center justify-center mx-auto transition-all ${isActive ? "bg-[#2d5d89]" : "hover:bg-white/10"}`}
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center mx-auto transition-all ${isActive ? "bg-[var(--primary)]" : "hover:bg-white/10"}`}
                     style={{ backgroundColor: isActive ? l.color : undefined }}>
                     <LIcon className="w-3.5 h-3.5" style={{ color: isActive ? "#fff" : l.color }} />
                   </button>
@@ -3426,7 +3426,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
               })}
               <button onClick={() => { setEditLedger(null); setLedgerModal(true); }} title="دفتر جديد"
                 className="w-7 h-7 rounded-lg flex items-center justify-center mx-auto bg-white/5 hover:bg-white/15 text-white/40 hover:text-white transition-colors">
-                <Plus className="w-3.5 h-3.5" />
+                <FaPlus className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -3435,7 +3435,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
             {sidebarJSX}
             <button onClick={() => setLedgerSidebarCollapsed(true)}
               className="absolute bottom-12 left-1.5 z-10 w-5 h-5 rounded flex items-center justify-center text-white/20 hover:text-white/60 hover:bg-white/10 transition-colors" title="طي القائمة">
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <FaChevronLeft className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -3447,8 +3447,8 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="lg:hidden px-4 pt-3 flex-shrink-0">
               <button onClick={() => setSidebarOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium">
-                <Menu className="w-4 h-4" /> عرض الدفاتر
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-medium">
+                <FaBars className="w-4 h-4" /> عرض الدفاتر
               </button>
             </div>
             <FinancialDashboard
@@ -3460,7 +3460,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
           </div>
         ) : loadingLedger ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <div className="flex-1 flex flex-col overflow-hidden">
@@ -3469,7 +3469,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
             <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3 flex-shrink-0 shadow-sm">
               <button onClick={() => setSidebarOpen(true)}
                 className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500">
-                <Menu className="w-4 h-4" />
+                <FaBars className="w-4 h-4" />
               </button>
               {/* Ledger icon + name */}
               {(() => { const LIcon = getLedgerIcon(activeLedger.icon); return (
@@ -3480,34 +3480,34 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
               ); })()}
               <div className="min-w-0">
                 <h2 className="font-bold text-gray-900 text-sm leading-tight truncate">{activeLedger.name}</h2>
-                {branchLabel && <p className="text-[10px] text-[#2d5d89] font-medium">{branchLabel}</p>}
+                {branchLabel && <p className="text-[10px] text-[var(--primary)] font-medium">{branchLabel}</p>}
               </div>
               {/* Sheet tabs row inside top bar */}
               <div className="flex-1 flex items-center gap-0 overflow-x-auto mr-2 border-r border-gray-200 pr-3">
                 <button onClick={() => setShowLedgerSummary(true)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                    showLedgerSummary ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:bg-gray-100"
+                    showLedgerSummary ? "bg-[var(--primary)] text-white shadow-sm" : "text-gray-500 hover:bg-gray-100"
                   }`}>
-                  <BarChart3 className="w-3 h-3" /> ملخص
+                  <FaChartBar className="w-3 h-3" /> ملخص
                 </button>
                 {(fullLedger?.sheets || []).map((s) => {
                   const isActive = !showLedgerSummary && activeSheet?._id === s._id;
                   return (
                     <button key={s._id} onClick={() => { setShowLedgerSummary(false); setActiveSheet(s); }}
                       className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                        isActive ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:bg-gray-100"
+                        isActive ? "bg-[var(--primary)] text-white shadow-sm" : "text-gray-500 hover:bg-gray-100"
                       }`}>
-                      <Table2 className="w-3 h-3" />
+                      <FaTableList className="w-3 h-3" />
                       {s.name}
                       {isActive && (
                         <span className="flex gap-0.5 mr-1">
                           <span onClick={(e) => { e.stopPropagation(); setEditSheet(s); setSheetModal(true); }}
                             className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/20 cursor-pointer">
-                            <Edit2 className="w-2.5 h-2.5" />
+                            <FaPen className="w-2.5 h-2.5" />
                           </span>
                           <span onClick={(e) => { e.stopPropagation(); setConfirmDeleteSheet(s); }}
                             className="w-4 h-4 flex items-center justify-center rounded hover:bg-red-400/30 cursor-pointer">
-                            <X className="w-2.5 h-2.5" />
+                            <FaXmark className="w-2.5 h-2.5" />
                           </span>
                         </span>
                       )}
@@ -3515,14 +3515,14 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                   );
                 })}
                 <button onClick={() => { setEditSheet(null); setSheetModal(true); }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-gray-400 hover:text-[#2d5d89] hover:bg-blue-50 transition-all whitespace-nowrap">
-                  <Plus className="w-3 h-3" />
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-gray-400 hover:text-[var(--primary)] hover:bg-blue-50 transition-all whitespace-nowrap">
+                  <FaPlus className="w-3 h-3" />
                 </button>
               </div>
               {/* Actions */}
               <button onClick={() => loadFullLedger(activeLedger._id)}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors flex-shrink-0" title="تحديث">
-                <RefreshCw className="w-3.5 h-3.5" />
+                <FaArrowsRotate className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -3536,13 +3536,13 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
                     <div className="w-16 h-16 rounded-2xl bg-white shadow border border-gray-200 flex items-center justify-center mx-auto mb-4">
-                      <Table2 className="w-8 h-8 text-gray-300" />
+                      <FaTableList className="w-8 h-8 text-gray-300" />
                     </div>
                     <p className="text-gray-500 font-medium mb-1">لا توجد جداول</p>
                     <p className="text-gray-400 text-sm mb-4">أضف جدولاً جديداً لبدء إدخال البيانات</p>
                     <button onClick={() => { setEditSheet(null); setSheetModal(true); }}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-medium hover:bg-[#245079] shadow transition-colors">
-                      <Plus className="w-4 h-4" /> إضافة جدول
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-medium hover:bg-[#245079] shadow transition-colors">
+                      <FaPlus className="w-4 h-4" /> إضافة جدول
                     </button>
                   </div>
                 </div>
@@ -3628,7 +3628,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
               onClick={e => e.stopPropagation()}>
               {/* Search input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200" dir="rtl">
-                <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <FaMagnifyingGlass className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 <input
                   ref={searchInputRef}
                   value={searchQuery}
@@ -3636,9 +3636,9 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                   placeholder="ابحث في كل الدفاتر والجداول... (Ctrl+K)"
                   className="flex-1 text-sm text-gray-800 focus:outline-none placeholder:text-gray-400"
                 />
-                {searchLoading && <div className="w-4 h-4 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin flex-shrink-0" />}
+                {searchLoading && <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin flex-shrink-0" />}
                 <button onClick={() => setSearchOpen(false)} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
-                  <X className="w-4 h-4" />
+                  <FaXmark className="w-4 h-4" />
                 </button>
               </div>
               {/* Results */}
@@ -3654,7 +3654,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                     return Object.values(grouped).map(({ ledger, items }) => (
                       <div key={ledger._id}>
                         <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-                          <p className="text-xs font-bold text-[#2d5d89]">{ledger.name}</p>
+                          <p className="text-xs font-bold text-[var(--primary)]">{ledger.name}</p>
                         </div>
                         {items.map((item, i) => {
                           const cellValues = Object.values(item.cells instanceof Map ? Object.fromEntries(item.cells) : (item.cells||{}))
@@ -3665,7 +3665,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
                               setSearchOpen(false);
                             }}
                               className="w-full text-right flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 border-b border-gray-50 transition-colors">
-                              <Table2 className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                              <FaTableList className="w-4 h-4 text-gray-300 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-xs text-gray-500 mb-0.5">{item.sheet.name}</p>
                                 <p className="text-sm text-gray-800 truncate">{cellValues || "—"}</p>

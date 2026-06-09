@@ -1,9 +1,9 @@
-import { History, Sparkles, Wrench, Zap } from "lucide-react";
+import { FaClockRotateLeft, FaWandMagicSparkles, FaWrench, FaBolt } from "react-icons/fa6";
 
 const TYPE_META = {
-  feature:     { icon: Sparkles, color: "text-emerald-600", bg: "bg-emerald-50" },
-  fix:         { icon: Wrench,   color: "text-amber-600",   bg: "bg-amber-50" },
-  improvement: { icon: Zap,      color: "text-blue-600",    bg: "bg-blue-50" },
+  feature:     { icon: FaWandMagicSparkles, color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/30" },
+  fix:         { icon: FaWrench,            color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-900/30" },
+  improvement: { icon: FaBolt,              color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/30" },
 };
 
 const VERSIONS = [
@@ -212,8 +212,8 @@ export default function AdminChangelog() {
     <div dir="rtl" className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-[#2d5d89] flex items-center justify-center">
-          <History className="w-6 h-6 text-white" />
+        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)] flex items-center justify-center">
+          <FaClockRotateLeft className="w-6 h-6 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">سجل التحديثات</h1>
@@ -223,14 +223,14 @@ export default function AdminChangelog() {
 
       {/* Timeline */}
       <div className="relative">
-        <div className="absolute right-5 top-2 bottom-2 w-px bg-gradient-to-b from-[#2d5d89] via-[#2d5d89]/40 to-transparent" />
+        <div className="absolute right-5 top-2 bottom-2 w-px bg-gradient-to-b from-[var(--primary)] via-[var(--primary)]/40 to-transparent" />
 
         <div className="space-y-8">
           {VERSIONS.map((v, i) => (
             <div key={v.version} className="relative pr-14">
               {/* Dot */}
               <div className={`absolute right-2 top-1 w-7 h-7 rounded-full flex items-center justify-center shadow-md ring-4 ring-white dark:ring-gray-900 ${
-                i === 0 ? "bg-[#2d5d89]" : "bg-gray-300 dark:bg-gray-600"
+                i === 0 ? "bg-[var(--primary)]" : "bg-gray-300 dark:bg-gray-600"
               }`}>
                 <span className="text-white text-[10px] font-bold">{VERSIONS.length - i}</span>
               </div>
@@ -238,7 +238,7 @@ export default function AdminChangelog() {
               {/* Card */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
                 <div className="flex items-center gap-3 flex-wrap mb-1">
-                  <h2 className="text-xl font-bold text-[#2d5d89]">الإصدار {v.version}</h2>
+                  <h2 className="text-xl font-bold text-[var(--primary)]">الإصدار {v.version}</h2>
                   {i === 0 && (
                     <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">الأحدث</span>
                   )}

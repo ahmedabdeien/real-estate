@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Home as HomeIcon, Users, Award, ArrowLeft, Phone, MapPin, Search, X } from "lucide-react";
+
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
@@ -63,7 +63,7 @@ function HeroSearch() {
       <form onSubmit={handleSubmit} className="relative">
         <div className="flex items-center bg-white/95 backdrop-blur rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
           <button type="submit" className="flex-shrink-0 px-5 py-4 text-[var(--primary)]">
-            <Search className="w-5 h-5" />
+            <FaMagnifyingGlass className="w-5 h-5" />
           </button>
           <input
             ref={inputRef}
@@ -80,7 +80,7 @@ function HeroSearch() {
           )}
           {query && !searching && (
             <button type="button" onClick={clear} className="px-4 py-4 text-gray-400 hover:text-gray-600">
-              <X className="w-4 h-4" />
+              <FaXmark className="w-4 h-4" />
             </button>
           )}
         </div>
@@ -102,7 +102,7 @@ function HeroSearch() {
                   <img src={r.img} alt="" className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
                 ) : (
                   <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex-shrink-0 flex items-center justify-center">
-                    <Search className="w-4 h-4 text-[var(--primary)]" />
+                    <FaMagnifyingGlass className="w-4 h-4 text-[var(--primary)]" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
@@ -167,7 +167,7 @@ function ProjectCard({ project }) {
           <img src={project.coverImage} alt={project.name?.ar} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--secondary-mid)] to-[var(--secondary)]">
-            <Building2 className="w-16 h-16 text-white/30" />
+            <FaBuilding className="w-16 h-16 text-white/30" />
           </div>
         )}
         <div className="absolute top-3 right-3">
@@ -182,7 +182,7 @@ function ProjectCard({ project }) {
       <div className="p-5">
         <h3 className="font-bold text-gray-900 text-lg mb-1">{project.name?.ar}</h3>
         <div className="flex items-center gap-1.5 text-gray-500 text-sm mb-3">
-          <MapPin className="w-3.5 h-3.5" />
+          <FaLocationDot className="w-3.5 h-3.5" />
           <span>{project.location?.city?.ar}</span>
         </div>
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -335,7 +335,7 @@ export default function HomePage() {
                       {icon ? (
                         <span className="text-2xl">{icon}</span>
                       ) : (
-                        <Building2 className="w-7 h-7 text-[var(--primary)]" />
+                        <FaBuilding className="w-7 h-7 text-[var(--primary)]" />
                       )}
                     </div>
                     <h3 className="font-bold text-gray-900 mb-2 text-base">{title}</h3>
@@ -403,7 +403,7 @@ export default function HomePage() {
               {ctaCms.cta_phone && (
                 <a href={`tel:+${ctaCms.cta_phone}`}
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-8 py-4 rounded-2xl font-bold text-lg transition-colors">
-                  <Phone className="w-5 h-5" />
+                  <FaPhone className="w-5 h-5" />
                   اتصل الآن
                 </a>
               )}

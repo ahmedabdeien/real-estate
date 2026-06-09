@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, Phone, Instagram, Facebook, X, Share2 } from "lucide-react";
+import { FaPhone, FaInstagram, FaFacebook, FaWhatsapp, FaShareNodes, FaXmark } from "react-icons/fa6";
 import { useCms } from "../../hooks/useCms";
 
 const ICONS = {
-  whatsapp: { bg: "bg-green-500 hover:bg-green-600", icon: <MessageCircle className="w-5 h-5" />, label: "واتساب" },
-  phone:    { bg: "bg-blue-500 hover:bg-blue-600",   icon: <Phone className="w-5 h-5" />,          label: "اتصال" },
-  instagram:{ bg: "bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:opacity-90", icon: <Instagram className="w-5 h-5" />, label: "انستجرام" },
-  facebook: { bg: "bg-[#1877F2] hover:bg-blue-700",  icon: <Facebook className="w-5 h-5" />,        label: "فيسبوك" },
+  whatsapp: { bg: "bg-green-500 hover:bg-green-600", icon: <FaWhatsapp className="w-5 h-5" />, label: "واتساب" },
+  phone:    { bg: "bg-blue-500 hover:bg-blue-600",   icon: <FaPhone className="w-5 h-5" />,          label: "اتصال" },
+  instagram:{ bg: "bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:opacity-90", icon: <FaInstagram className="w-5 h-5" />, label: "انستجرام" },
+  facebook: { bg: "bg-[#1877F2] hover:bg-blue-700",  icon: <FaFacebook className="w-5 h-5" />,        label: "فيسبوك" },
 };
 
 export default function FloatingSocial() {
@@ -66,19 +66,19 @@ export default function FloatingSocial() {
       <motion.button
         onClick={() => setOpen((v) => !v)}
         whileTap={{ scale: 0.9 }}
-        className="w-14 h-14 bg-[#2d5d89] hover:bg-[#1e3f5e] text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 relative"
+        className="w-14 h-14 bg-[var(--primary)] hover:bg-[#1e3f5e] text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-200 relative"
         title={open ? "إغلاق" : "تواصل معنا"}
       >
         <motion.div
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          {open ? <X className="w-6 h-6" /> : <Share2 className="w-6 h-6" />}
+          {open ? <FaXmark className="w-6 h-6" /> : <FaShareNodes className="w-6 h-6" />}
         </motion.div>
 
         {/* Pulse ring */}
         {!open && (
-          <span className="absolute inset-0 rounded-full animate-ping bg-[#2d5d89] opacity-30 pointer-events-none" />
+          <span className="absolute inset-0 rounded-full animate-ping bg-[var(--primary)] opacity-30 pointer-events-none" />
         )}
       </motion.button>
     </div>

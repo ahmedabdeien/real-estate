@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { FaXmark } from "react-icons/fa6";
 
 export default function Modal({ open, onClose, title, children, size = "md" }) {
   const sizes = {
@@ -33,7 +33,7 @@ export default function Modal({ open, onClose, title, children, size = "md" }) {
                   onClick={onClose}
                   className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
                 >
-                  <X className="w-5 h-5" />
+                  <FaXmark className="w-5 h-5" />
                 </button>
               </div>
             )}

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Save, LogOut, ArrowRight, Phone, Mail, MapPin, Calendar, Lock, Edit3 } from "lucide-react";
+
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
 
-const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm transition-colors";
+const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm transition-colors";
 const lockedClass = "w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 text-gray-400 text-sm cursor-not-allowed select-none";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -16,7 +16,7 @@ function canChange(changedAt) {
 }
 
 const roleLabel = { admin: "مدير النظام", sales: "مبيعات", viewer: "عضو" };
-const roleBg    = { admin: "bg-[#2d5d89]/10 text-[#2d5d89]", sales: "bg-emerald-50 text-emerald-700", viewer: "bg-gray-100 text-gray-600" };
+const roleBg    = { admin: "bg-[var(--primary)]/10 text-[var(--primary)]", sales: "bg-emerald-50 text-emerald-700", viewer: "bg-gray-100 text-gray-600" };
 
 export default function ProfilePage() {
   const { user, updateUser, logout } = useAuth();
@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
         {/* Back */}
         <button onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-gray-500 hover:text-[#2d5d89] text-sm mb-8 transition-colors group">
+          className="flex items-center gap-1.5 text-gray-500 hover:text-[var(--primary)] text-sm mb-8 transition-colors group">
           <ArrowRight className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           رجوع
         </button>
@@ -76,7 +76,7 @@ export default function ProfilePage() {
             className="lg:col-span-1">
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 text-center">
               {/* Big Avatar */}
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#2d5d89] to-[#1a3d5c] flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--primary)] to-[#1a3d5c] flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-4xl font-black text-white">{avatar}</span>
               </div>
               <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
@@ -88,19 +88,19 @@ export default function ProfilePage() {
               <div className="border-t border-gray-100 mt-5 pt-5 space-y-3 text-right">
                 {user.phone && (
                   <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                    <Phone className="w-4 h-4 text-[#2d5d89] flex-shrink-0" />
+                    <FaPhone className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
                     <span dir="ltr">{user.phone}</span>
                   </div>
                 )}
                 {user.address && (
                   <div className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 text-[#2d5d89] flex-shrink-0 mt-0.5" />
+                    <FaLocationDot className="w-4 h-4 text-[var(--primary)] flex-shrink-0 mt-0.5" />
                     <span>{user.address}</span>
                   </div>
                 )}
                 {user.age && (
                   <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4 text-[#2d5d89] flex-shrink-0" />
+                    <FaCalendar className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
                     <span>{user.age} سنة</span>
                   </div>
                 )}
@@ -109,7 +109,7 @@ export default function ProfilePage() {
               {/* Logout */}
               <button onClick={async () => { await logout(); navigate("/"); }}
                 className="mt-6 w-full flex items-center justify-center gap-2 border border-red-200 text-red-500 hover:bg-red-50 py-2.5 rounded-xl text-sm font-medium transition-colors">
-                <LogOut className="w-4 h-4" />
+                <FaRightFromBracket className="w-4 h-4" />
                 تسجيل الخروج
               </button>
             </div>
@@ -120,8 +120,8 @@ export default function ProfilePage() {
             className="lg:col-span-2">
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7">
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-xl bg-[#2d5d89]/10 flex items-center justify-center">
-                  <Edit3 className="w-4 h-4 text-[#2d5d89]" />
+                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                  <FaPen className="w-4 h-4 text-[var(--primary)]" />
                 </div>
                 <h3 className="font-bold text-gray-900">تعديل المعلومات</h3>
               </div>
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                 {/* Name */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <User className="w-3.5 h-3.5 text-gray-400" /> الاسم الكامل *
+                    <FaUser className="w-3.5 h-3.5 text-gray-400" /> الاسم الكامل *
                   </label>
                   <input value={form.name} onChange={(e) => f("name", e.target.value)} required className={inputClass} />
                 </div>
@@ -138,10 +138,10 @@ export default function ProfilePage() {
                 {/* Phone */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <Phone className="w-3.5 h-3.5 text-gray-400" /> رقم الهاتف
+                    <FaPhone className="w-3.5 h-3.5 text-gray-400" /> رقم الهاتف
                     {!phoneStatus.ok && (
                       <span className="mr-auto flex items-center gap-1 text-xs text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">
-                        <Lock className="w-3 h-3" /> بعد {phoneStatus.days} أيام
+                        <FaLock className="w-3 h-3" /> بعد {phoneStatus.days} أيام
                       </span>
                     )}
                   </label>
@@ -152,10 +152,10 @@ export default function ProfilePage() {
                 {/* Email */}
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <Mail className="w-3.5 h-3.5 text-gray-400" /> البريد الإلكتروني
+                    <FaEnvelope className="w-3.5 h-3.5 text-gray-400" /> البريد الإلكتروني
                     {!emailStatus.ok && (
                       <span className="mr-auto flex items-center gap-1 text-xs text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">
-                        <Lock className="w-3 h-3" /> بعد {emailStatus.days} أيام
+                        <FaLock className="w-3 h-3" /> بعد {emailStatus.days} أيام
                       </span>
                     )}
                   </label>
@@ -167,14 +167,14 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-gray-400" /> العنوان
+                      <FaLocationDot className="w-3.5 h-3.5 text-gray-400" /> العنوان
                     </label>
                     <input value={form.address} onChange={(e) => f("address", e.target.value)}
                       placeholder="مثال: القاهرة، المعادي" className={inputClass} />
                   </div>
                   <div>
                     <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-gray-400" /> السن
+                      <FaCalendar className="w-3.5 h-3.5 text-gray-400" /> السن
                     </label>
                     <input type="number" min="10" max="120" value={form.age} onChange={(e) => f("age", e.target.value)}
                       placeholder="مثال: 30" className={inputClass} />
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                 )}
 
                 <button type="submit" disabled={saving}
-                  className="w-full flex items-center justify-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white py-3.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 mt-2">
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[#245079] text-white py-3.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 mt-2">
                   <Save className="w-4 h-4" />
                   {saving ? "جاري الحفظ..." : "حفظ التغييرات"}
                 </button>

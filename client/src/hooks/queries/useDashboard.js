@@ -66,7 +66,7 @@ export function useLeadsStatusData() {
         statusMap[s] = (statusMap[s] || 0) + 1;
       });
       const colors = {
-        "جديد": "#8A6924", "تم التواصل": "#2d5d89", "مهتم": "#16a34a",
+        "جديد": "#8A6924", "تم التواصل": "var(--primary)", "مهتم": "#16a34a",
         "غير مهتم": "#dc2626", "تم البيع": "#7c3aed", "متابعة": "#f59e0b",
       };
       return Object.entries(statusMap).map(([name, value]) => ({

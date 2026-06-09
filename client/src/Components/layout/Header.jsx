@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Building2, Phone, User, LogOut, Settings, ChevronDown } from "lucide-react";
+import {
+  FaBuilding, FaPhone, FaBars, FaXmark, FaUser, FaGear,
+  FaRightFromBracket, FaChevronDown,
+} from "react-icons/fa6";
+
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 
@@ -35,13 +39,13 @@ function UserDropdown({ user, logout }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 bg-[#2d5d89]/10 hover:bg-[#2d5d89]/20 text-[#2d5d89] px-3 py-2 rounded-xl text-sm font-medium transition-colors"
+        className="flex items-center gap-2 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] px-3 py-2 rounded-xl text-sm font-medium transition-colors"
       >
-        <div className="w-6 h-6 rounded-full bg-[#2d5d89] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+        <div className="w-6 h-6 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
           {user.name?.[0]?.toUpperCase()}
         </div>
         <span className="hidden sm:block max-w-[100px] truncate">{user.name?.split(" ")[0]}</span>
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        <FaChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       <AnimatePresence>
@@ -61,19 +65,19 @@ function UserDropdown({ user, logout }) {
             <div className="p-1.5">
               <Link to="/profile" onClick={() => setOpen(false)}
                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                <User className="w-4 h-4 text-gray-400" />
+                <FaUser className="w-4 h-4 text-gray-400" />
                 الملف الشخصي
               </Link>
               {["admin", "sales"].includes(user.role) && (
                 <Link to="/admin" onClick={() => setOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                  <Settings className="w-4 h-4 text-gray-400" />
+                  <FaGear className="w-4 h-4 text-gray-400" />
                   لوحة التحكم
                 </Link>
               )}
               <button onClick={handleLogout}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-colors">
-                <LogOut className="w-4 h-4" />
+                <FaRightFromBracket className="w-4 h-4" />
                 تسجيل الخروج
               </button>
             </div>
@@ -121,8 +125,8 @@ export default function Header() {
           {logo ? (
             <img src={logo} alt={name} className="h-9 w-auto object-contain" />
           ) : (
-            <div className="w-9 h-9 rounded-xl bg-[#2d5d89] flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center">
+              <FaBuilding className="w-5 h-5 text-white" />
             </div>
           )}
           <span className="font-bold text-gray-900 text-lg">{name}</span>
@@ -137,7 +141,7 @@ export default function Header() {
               end={exact}
               className={({ isActive }) =>
                 `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? "text-[#2d5d89] bg-[#2d5d89]/8" : "text-gray-600 hover:text-[#2d5d89] hover:bg-gray-50"
+                  isActive ? "text-[var(--primary)] bg-[var(--primary)]/8" : "text-gray-600 hover:text-[var(--primary)] hover:bg-gray-50"
                 }`
               }
             >
@@ -154,7 +158,7 @@ export default function Header() {
             <>
               <Link
                 to="/admin/login"
-                className="hidden md:flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors"
+                className="hidden md:flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors"
               >
                 تسجيل الدخول
               </Link>
@@ -162,7 +166,7 @@ export default function Header() {
                 href={`tel:+2${phone}`}
                 className="hidden md:flex items-center gap-2 bg-[#f59e0b] hover:bg-[#d97706] text-white px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
               >
-                <Phone className="w-4 h-4" />
+                <FaPhone className="w-4 h-4" />
                 اتصل بنا
               </a>
             </>
@@ -171,7 +175,7 @@ export default function Header() {
             onClick={() => setOpen(!open)}
             className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-700"
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {open ? <FaXmark className="w-5 h-5" /> : <FaBars className="w-5 h-5" />}
           </button>
         </div>
       </div>
@@ -193,7 +197,7 @@ export default function Header() {
                   end={exact}
                   className={({ isActive }) =>
                     `px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                      isActive ? "text-[#2d5d89] bg-[#2d5d89]/8" : "text-gray-600 hover:bg-gray-50"
+                      isActive ? "text-[var(--primary)] bg-[var(--primary)]/8" : "text-gray-600 hover:bg-gray-50"
                     }`
                   }
                 >
@@ -205,31 +209,31 @@ export default function Header() {
                 <div className="mt-2 border-t border-gray-100 pt-2 space-y-1">
                   <Link to="/profile"
                     className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-gray-700 hover:bg-gray-50">
-                    <User className="w-4 h-4 text-gray-400" />
+                    <FaUser className="w-4 h-4 text-gray-400" />
                     {user.name} — الملف الشخصي
                   </Link>
                   {["admin", "sales"].includes(user.role) && (
                     <Link to="/admin"
                       className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-gray-700 hover:bg-gray-50">
-                      <Settings className="w-4 h-4 text-gray-400" />
+                      <FaGear className="w-4 h-4 text-gray-400" />
                       لوحة التحكم
                     </Link>
                   )}
                   <button onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-red-600 hover:bg-red-50">
-                    <LogOut className="w-4 h-4" />
+                    <FaRightFromBracket className="w-4 h-4" />
                     تسجيل الخروج
                   </button>
                 </div>
               ) : (
                 <div className="mt-2 space-y-2">
                   <Link to="/admin/login"
-                    className="flex items-center justify-center gap-2 bg-[#2d5d89] text-white px-4 py-3 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+                    className="flex items-center justify-center gap-2 bg-[var(--primary)] text-white px-4 py-3 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
                     تسجيل الدخول
                   </Link>
                   <a href={`tel:+2${phone}`}
                     className="flex items-center justify-center gap-2 bg-[#f59e0b] text-white px-4 py-3 rounded-xl text-sm font-semibold">
-                    <Phone className="w-4 h-4" />
+                    <FaPhone className="w-4 h-4" />
                     اتصل بنا الآن
                   </a>
                 </div>

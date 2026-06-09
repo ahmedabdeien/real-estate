@@ -1,15 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  TrendingUp, TrendingDown, DollarSign, BookOpen, Plus, FileText, Upload,
-  RefreshCw, ArrowUpRight, ArrowDownRight, Layers, Printer,
-} from "lucide-react";
+import { FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown, FaCircleExclamation } from 'react-icons/fa6';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import api from "../../api/axios";
 
-const CHART_COLORS = ["#2d5d89","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#84cc16"];
+const CHART_COLORS = ["var(--primary)","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#84cc16"];
 
 function CrossLedgerReports() {
   const today = new Date();
@@ -51,7 +48,7 @@ function CrossLedgerReports() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
-            <Layers className="w-4 h-4" />
+            <FaLayerGroup className="w-4 h-4" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-gray-900">تقارير متقاطعة</h3>
@@ -59,7 +56,7 @@ function CrossLedgerReports() {
           </div>
         </div>
         <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-gray-600 text-xs hover:bg-gray-50">
-          <Printer className="w-3.5 h-3.5" /> طباعة
+          <FaPrint className="w-3.5 h-3.5" /> طباعة
         </button>
       </div>
 
@@ -68,16 +65,16 @@ function CrossLedgerReports() {
         <div>
           <label className="block text-xs text-gray-500 mb-1">من</label>
           <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+            className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">إلى</label>
           <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+            className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
         </div>
         <div className="self-end">
-          <button onClick={load} className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079]">
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> تحديث
+          <button onClick={load} className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[#245079]">
+            <FaArrowsRotate className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> تحديث
           </button>
         </div>
       </div>
@@ -116,7 +113,7 @@ function CrossLedgerReports() {
                   <XAxis dataKey="name" tick={{ fontSize: 9 }} />
                   <YAxis tick={{ fontSize: 9 }} tickFormatter={(v) => (v / 1000).toFixed(0) + "ك"} />
                   <Tooltip formatter={(v) => [Number(v).toLocaleString("ar-EG") + " ج", "الإجمالي"]} />
-                  <Line type="monotone" dataKey="إجمالي" stroke="#2d5d89" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="إجمالي" stroke="var(--primary)" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -221,7 +218,7 @@ export default function FinancialDashboard({ branch, onNewLedger, onImportExcel,
     <div className="flex-1 flex items-center justify-center">
       <div className="text-center">
         <p className="text-red-500 mb-4">{error}</p>
-        <button onClick={load} className="px-4 py-2 bg-[#2d5d89] text-white rounded-xl text-sm">إعادة المحاولة</button>
+        <button onClick={load} className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-sm">إعادة المحاولة</button>
       </div>
     </div>
   );
@@ -243,7 +240,7 @@ export default function FinancialDashboard({ branch, onNewLedger, onImportExcel,
           <p className="text-sm text-gray-400">نظرة عامة على الأداء المالي</p>
         </div>
         <button onClick={load} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 transition-colors" title="تحديث">
-          <RefreshCw className="w-4 h-4" />
+          <FaArrowsRotate className="w-4 h-4" />
         </button>
       </div>
 
@@ -351,7 +348,7 @@ export default function FinancialDashboard({ branch, onNewLedger, onImportExcel,
                     <td className="px-4 py-2.5 text-gray-700 font-medium truncate max-w-[120px]">{row.ledgerName}</td>
                     <td className="px-4 py-2.5 text-gray-500 truncate max-w-[100px]">{row.sheetName}</td>
                     <td className="px-4 py-2.5 text-gray-700 truncate max-w-[150px]">{row.description || "—"}</td>
-                    <td className="px-4 py-2.5 font-semibold text-[#2d5d89] whitespace-nowrap">{formatArabic(row.amount)}</td>
+                    <td className="px-4 py-2.5 font-semibold text-[var(--primary)] whitespace-nowrap">{formatArabic(row.amount)}</td>
                     <td className="px-4 py-2.5 text-gray-400 text-xs whitespace-nowrap">
                       {row.date ? new Date(row.date).toLocaleDateString("ar-EG") : "—"}
                     </td>
@@ -371,16 +368,16 @@ export default function FinancialDashboard({ branch, onNewLedger, onImportExcel,
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
         <button onClick={onNewLedger}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079] shadow transition-colors">
-          <Plus className="w-4 h-4" /> إضافة دفتر جديد
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[#245079] shadow transition-colors">
+          <FaPlus className="w-4 h-4" /> إضافة دفتر جديد
         </button>
         <button onClick={onImportExcel}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#217346] text-white text-sm font-semibold hover:bg-[#1a5c38] shadow transition-colors">
-          <Upload className="w-4 h-4" /> استيراد Excel
+          <FaUpload className="w-4 h-4" /> استيراد Excel
         </button>
         <button onClick={() => window.print()}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 shadow-sm transition-colors">
-          <FileText className="w-4 h-4" /> تقرير مالي
+          <FaFileLines className="w-4 h-4" /> تقرير مالي
         </button>
       </div>
     </div>

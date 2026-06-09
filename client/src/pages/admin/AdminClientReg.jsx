@@ -1,15 +1,19 @@
 import { useEffect, useState, useMemo } from "react";
-import { Plus, Search, User, Phone, MessageSquare, Calendar, X, Building2, Pencil, Trash2, Download } from "lucide-react";
+import {
+  FaPlus, FaMagnifyingGlass, FaUser, FaDownload,
+  FaPen, FaTrash, FaXmark,
+} from "react-icons/fa6";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
-import Modal from "../../Components/UI/Modal";
-import ConfirmModal from "../../Components/UI/ConfirmModal";
+import AdminModal from "../../Components/UI/AdminModal";
+import ConfirmDialog from "../../Components/UI/ConfirmDialog";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
-import Badge from "../../Components/UI/Badge";
 import EmptyState from "../../Components/UI/EmptyState";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import ArabicDatePicker from "../../Components/UI/ArabicDatePicker";
+import PageHeader, { PrimaryButton, SecondaryButton } from "../../Components/UI/PageHeader";
+import FormField, { inputCls, filterInputCls, SelectField, TextareaField } from "../../Components/UI/FormField";
 
 const SOURCE_OPTIONS = [
   { value: "walk_in", label: "زيارة مباشرة" },
@@ -157,59 +161,66 @@ export default function AdminClientReg() {
   return (
     <div className="space-y-5" dir="rtl">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">تسجيل العملاء</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
-            {filtered.length} عميل{isAdmin && " (كل الموظفين)"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={exportCSV}
-            className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Download className="w-4 h-4" />
-            تصدير CSV
-          </button>
-          <button onClick={openCreate}
-            className="flex items-center gap-2 bg-[#2d5d89] hover:bg-[#245079] text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors">
-            <Plus className="w-4 h-4" />
-            تسجيل عميل جديد
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="تسجيل العملاء"
+        subtitle={`${filtered.length} عميل${isAdmin ? " (كل الموظفين)" : ""}`}
+        icon={<FaUser />}
+        loading={loading}
+        actions={
+          <>
+            <SecondaryButton icon={<FaDownload className="w-4 h-4" />} onClick={exportCSV}>
+              تصدير CSV
+            </SecondaryButton>
+            <PrimaryButton icon={<FaPlus className="w-4 h-4" />} onClick={openCreate}>
+              تسجيل عميل جديد
+            </PrimaryButton>
+          </>
+        }
+      />
 
       {/* Stats chips */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 px-1">
         <button
           onClick={() => setStatusFilter("")}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${!statusFilter ? "bg-[#2d5d89] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            !statusFilter
+              ? "text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+          style={!statusFilter ? { background: "var(--primary)" } : {}}
         >
           الكل ({leads.length})
         </button>
-        {Object.entries(STATUS_LABELS).map(([key, { label, color }]) => (
+        {Object.entries(STATUS_LABELS).map(([key, { label, color }]) =>
           statusCounts[key] ? (
             <button
               key={key}
               onClick={() => setStatusFilter(statusFilter === key ? "" : key)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                statusFilter === key ? "ring-2 ring-offset-1 ring-[#2d5d89] " + color : color + " opacity-80 hover:opacity-100"
+                statusFilter === key
+                  ? "ring-2 ring-offset-1 " + color
+                  : color + " opacity-80 hover:opacity-100"
               }`}
+              style={statusFilter === key ? { ringColor: "var(--primary)" } : {}}
             >
               {label} ({statusCounts[key]})
             </button>
           ) : null
-        ))}
+        )}
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-        <input value={search} onChange={e => setSearch(e.target.value)}
+      <div className="relative max-w-md px-1">
+        <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
           placeholder="بحث بالاسم أو الهاتف..."
-          className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+          className={`${filterInputCls} w-full pr-9 pl-4`}
+        />
         {search && (
           <button onClick={() => setSearch("")} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-            <X className="w-4 h-4" />
+            <FaXmark className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -219,9 +230,20 @@ export default function AdminClientReg() {
         {loading ? (
           <LoadingSpinner className="h-64" size="lg" />
         ) : filtered.length === 0 ? (
-          <EmptyState icon={User} title="لا يوجد عملاء مسجلون" description="ابدأ بتسجيل أول عميل" action={
-            <button onClick={openCreate} className="bg-[#2d5d89] text-white px-4 py-2 rounded-xl text-sm">تسجيل عميل</button>
-          } />
+          <EmptyState
+            icon={FaUser}
+            title="لا يوجد عملاء مسجلون"
+            description="ابدأ بتسجيل أول عميل"
+            action={
+              <button
+                onClick={openCreate}
+                className="text-white px-4 py-2 rounded-xl text-sm"
+                style={{ background: "var(--primary)" }}
+              >
+                تسجيل عميل
+              </button>
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -241,11 +263,18 @@ export default function AdminClientReg() {
                 {filtered.map(l => {
                   const st = STATUS_LABELS[l.status] || STATUS_LABELS.new;
                   return (
-                    <motion.tr key={l._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <motion.tr
+                      key={l._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-bold text-sm flex-shrink-0">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 text-white"
+                            style={{ background: "var(--primary)" }}
+                          >
                             {l.name?.[0]?.toUpperCase()}
                           </div>
                           <div>
@@ -276,18 +305,22 @@ export default function AdminClientReg() {
                       )}
                       <td className="px-4 py-3 text-xs text-gray-400">
                         {new Date(l.createdAt).toLocaleDateString("ar-EG", { year: "numeric", month: "short", day: "numeric" })}
-                        <br/>
+                        <br />
                         <span className="text-gray-300">{new Date(l.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          <button onClick={() => openEdit(l)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-blue-600 transition-colors">
-                            <Pencil className="w-3.5 h-3.5" />
+                          <button
+                            onClick={() => openEdit(l)}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"
+                          >
+                            <FaPen className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => setDeleteId(l._id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-500 transition-colors">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <button
+                            onClick={() => setDeleteId(l._id)}
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-500 transition-colors"
+                          >
+                            <FaTrash className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -301,81 +334,103 @@ export default function AdminClientReg() {
       </div>
 
       {/* Form Modal */}
-      <Modal open={modal} onClose={() => setModal(false)} title={editItem ? "تعديل بيانات العميل" : "تسجيل عميل جديد"} size="md">
+      <AdminModal
+        isOpen={modal}
+        onClose={() => setModal(false)}
+        title={editItem ? "تعديل بيانات العميل" : "تسجيل عميل جديد"}
+        size="md"
+        footer={
+          <>
+            <button
+              onClick={() => setModal(false)}
+              className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              إلغاء
+            </button>
+            <PrimaryButton onClick={handleSave} loading={saving}>
+              {saving ? "جاري الحفظ..." : editItem ? "حفظ التعديلات" : "تسجيل العميل"}
+            </PrimaryButton>
+          </>
+        }
+      >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم الكامل *</label>
-              <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            <FormField label="الاسم الكامل" required>
+              <input
+                value={form.name}
+                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="اسم العميل"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم الهاتف *</label>
-              <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                placeholder="01xxxxxxxxx" type="tel"
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-            </div>
+                className={inputCls}
+              />
+            </FormField>
+            <FormField label="رقم الهاتف" required>
+              <input
+                value={form.phone}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="01xxxxxxxxx"
+                type="tel"
+                className={inputCls}
+              />
+            </FormField>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">البريد الإلكتروني</label>
-            <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+          <FormField label="البريد الإلكتروني">
+            <input
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
               placeholder="اختياري"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
-          </div>
+              className={inputCls}
+            />
+          </FormField>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المصدر</label>
-              <select value={form.registrationSource} onChange={e => setForm(f => ({ ...f, registrationSource: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
+            <FormField label="المصدر">
+              <SelectField
+                value={form.registrationSource}
+                onChange={e => setForm(f => ({ ...f, registrationSource: e.target.value }))}
+              >
                 {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
-                className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
-                {Object.entries(STATUS_LABELS).map(([v, {label}]) => <option key={v} value={v}>{label}</option>)}
-              </select>
-            </div>
+              </SelectField>
+            </FormField>
+            <FormField label="الحالة">
+              <SelectField
+                value={form.status}
+                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+              >
+                {Object.entries(STATUS_LABELS).map(([v, { label }]) => (
+                  <option key={v} value={v}>{label}</option>
+                ))}
+              </SelectField>
+            </FormField>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">المشروع المهتم به</label>
-            <select value={form.interestedProject} onChange={e => setForm(f => ({ ...f, interestedProject: e.target.value }))}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]">
+          <FormField label="المشروع المهتم به">
+            <SelectField
+              value={form.interestedProject}
+              onChange={e => setForm(f => ({ ...f, interestedProject: e.target.value }))}
+            >
               <option value="">-- اختر مشروع --</option>
               {projects.map(p => <option key={p._id} value={p._id}>{p.name?.ar}</option>)}
-            </select>
-          </div>
+            </SelectField>
+          </FormField>
           <ArabicDatePicker
             label="تاريخ المتابعة"
             value={form.followUpDate}
             onChange={v => setForm(f => ({ ...f, followUpDate: v }))}
             placeholder="اختر تاريخ المتابعة"
           />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ملاحظات</label>
-            <textarea rows={3} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+          <FormField label="ملاحظات">
+            <TextareaField
+              rows={3}
+              value={form.notes}
+              onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="ملاحظات إضافية..."
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none" />
-          </div>
+            />
+          </FormField>
         </div>
-        <div className="flex justify-end gap-3 mt-5 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <button onClick={() => setModal(false)}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors">
-            إلغاء
-          </button>
-          <button onClick={handleSave} disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-semibold transition-colors disabled:opacity-50">
-            {saving ? "جاري الحفظ..." : editItem ? "حفظ التعديلات" : "تسجيل العميل"}
-          </button>
-        </div>
-      </Modal>
+      </AdminModal>
 
-      <ConfirmModal
-        open={!!deleteId}
+      <ConfirmDialog
+        isOpen={!!deleteId}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
+        onClose={() => setDeleteId(null)}
         loading={deleting}
         title="حذف العميل"
         message="هل أنت متأكد من حذف هذا العميل؟"

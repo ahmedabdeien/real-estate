@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Sparkles, Bot, User, Loader2 } from "lucide-react";
+import { FaXmark, FaWandMagicSparkles, FaUser, FaRobot, FaSpinner, FaPaperPlane } from "react-icons/fa6";
+
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
@@ -100,10 +101,10 @@ export default function AiAssistant() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-2xl bg-[#2d5d89] text-white shadow-lg hover:bg-[#245079] transition-colors flex items-center justify-center"
+            className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-2xl bg-[var(--primary)] text-white shadow-lg hover:bg-[#245079] transition-colors flex items-center justify-center"
             title="المساعد الذكي"
           >
-            <Sparkles className="w-6 h-6" />
+            <FaWandMagicSparkles className="w-6 h-6" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -120,16 +121,16 @@ export default function AiAssistant() {
             dir="rtl"
           >
             {/* Header */}
-            <div className="flex items-center gap-3 px-4 py-3.5 bg-[#2d5d89] text-white flex-shrink-0">
+            <div className="flex items-center gap-3 px-4 py-3.5 bg-[var(--primary)] text-white flex-shrink-0">
               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
-                <Sparkles className="w-4 h-4" />
+                <FaWandMagicSparkles className="w-4 h-4" />
               </div>
               <div className="flex-1">
                 <p className="font-bold text-sm">المساعد الذكي</p>
                 <p className="text-xs text-white/60">مدعوم بالذكاء الاصطناعي</p>
               </div>
               <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-                <X className="w-4 h-4" />
+                <FaXmark className="w-4 h-4" />
               </button>
             </div>
 
@@ -141,7 +142,7 @@ export default function AiAssistant() {
                   onClick={() => setContext(c.key)}
                   className={`flex-1 text-xs font-medium py-1.5 rounded-lg transition-all min-w-[48px] ${
                     context === c.key
-                      ? "bg-[#2d5d89] text-white"
+                      ? "bg-[var(--primary)] text-white"
                       : "text-gray-500 hover:text-gray-700 hover:bg-gray-200"
                   }`}
                 >
@@ -155,16 +156,16 @@ export default function AiAssistant() {
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                   <div className={`flex-shrink-0 w-7 h-7 rounded-xl flex items-center justify-center text-white text-xs ${
-                    msg.role === "user" ? "bg-[#2d5d89]" : "bg-gray-200"
+                    msg.role === "user" ? "bg-[var(--primary)]" : "bg-gray-200"
                   }`}>
                     {msg.role === "user"
-                      ? <User className="w-3.5 h-3.5" />
-                      : <Bot className="w-3.5 h-3.5 text-gray-600" />
+                      ? <FaUser className="w-3.5 h-3.5" />
+                      : <FaRobot className="w-3.5 h-3.5 text-gray-600" />
                     }
                   </div>
                   <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
                     msg.role === "user"
-                      ? "bg-[#2d5d89] text-white rounded-tr-sm"
+                      ? "bg-[var(--primary)] text-white rounded-tr-sm"
                       : "bg-gray-100 text-gray-800 rounded-tl-sm"
                   }`}>
                     {msg.content}
@@ -174,10 +175,10 @@ export default function AiAssistant() {
               {loading && (
                 <div className="flex gap-2 flex-row">
                   <div className="flex-shrink-0 w-7 h-7 rounded-xl bg-gray-200 flex items-center justify-center">
-                    <Bot className="w-3.5 h-3.5 text-gray-600" />
+                    <FaRobot className="w-3.5 h-3.5 text-gray-600" />
                   </div>
                   <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-3 py-2 flex items-center gap-1.5">
-                    <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
+                    <FaSpinner className="w-3.5 h-3.5 text-gray-400 animate-spin" />
                     <span className="text-xs text-gray-400">جاري التفكير...</span>
                   </div>
                 </div>
@@ -194,15 +195,15 @@ export default function AiAssistant() {
                 onKeyDown={handleKeyDown}
                 rows={1}
                 placeholder="اكتب رسالتك..."
-                className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 focus:border-[#2d5d89] max-h-24"
+                className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] max-h-24"
                 style={{ minHeight: "40px" }}
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || loading}
-                className="w-10 h-10 flex-shrink-0 rounded-xl bg-[#2d5d89] text-white flex items-center justify-center hover:bg-[#245079] transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
+                className="w-10 h-10 flex-shrink-0 rounded-xl bg-[var(--primary)] text-white flex items-center justify-center hover:bg-[#245079] transition-colors disabled:opacity-50 disabled:cursor-not-allowed self-end"
               >
-                <Send className="w-4 h-4" />
+                <FaPaperPlane className="w-4 h-4" />
               </button>
             </div>
           </motion.div>

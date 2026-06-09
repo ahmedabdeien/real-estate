@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Trash2, PiggyBank, RefreshCw } from "lucide-react";
+import { FaPlus, FaTrash, FaPen, FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown } from 'react-icons/fa6';
+
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 
@@ -111,15 +112,15 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
     <div className="p-5 space-y-5 overflow-auto h-full" dir="rtl">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
-          <PiggyBank className="w-5 h-5 text-[#2d5d89]" /> متابعة الميزانية
+          <PiggyBank className="w-5 h-5 text-[var(--primary)]" /> متابعة الميزانية
         </h3>
         <div className="flex gap-2">
           <button onClick={loadBudgets} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400">
-            <RefreshCw className="w-3.5 h-3.5" />
+            <FaArrowsRotate className="w-3.5 h-3.5" />
           </button>
           <button onClick={() => setShowForm(s => !s)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2d5d89] text-white text-xs font-semibold hover:bg-[#245079] transition-colors">
-            <Plus className="w-3.5 h-3.5" /> ميزانية جديدة
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[#245079] transition-colors">
+            <FaPlus className="w-3.5 h-3.5" /> ميزانية جديدة
           </button>
         </div>
       </div>
@@ -133,12 +134,12 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
               <label className="text-xs text-gray-500 mb-1 block">الاسم</label>
               <input value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
                 placeholder="مثال: ميزانية يناير 2025"
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#2d5d89]" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]" />
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-1 block">الفترة</label>
               <select value={form.period} onChange={e => setForm(f => ({...f, period: e.target.value}))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#2d5d89]">
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]">
                 <option value="monthly">شهرية</option>
                 <option value="quarterly">ربع سنوية</option>
                 <option value="annual">سنوية</option>
@@ -147,7 +148,7 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
             <div>
               <label className="text-xs text-gray-500 mb-1 block">السنة</label>
               <input type="number" value={form.year} onChange={e => setForm(f => ({...f, year: parseInt(e.target.value)}))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#2d5d89]" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]" />
             </div>
           </div>
           {/* Budget lines */}
@@ -158,26 +159,26 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
                 <div key={i} className="flex gap-2 items-center">
                   <input value={line.category} onChange={e => updateLine(i,"category",e.target.value)}
                     placeholder="الفئة"
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#2d5d89]" />
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]" />
                   <input type="number" value={line.allocated} onChange={e => updateLine(i,"allocated",e.target.value)}
                     placeholder="المبلغ المخصص"
-                    className="w-36 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#2d5d89]" />
+                    className="w-36 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--primary)]" />
                   {lines.length > 1 && (
                     <button onClick={() => removeLine(i)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-400">
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <FaTrash className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
               ))}
             </div>
-            <button onClick={addLine} className="mt-2 text-xs text-[#2d5d89] hover:underline flex items-center gap-1">
-              <Plus className="w-3 h-3" /> إضافة بند
+            <button onClick={addLine} className="mt-2 text-xs text-[var(--primary)] hover:underline flex items-center gap-1">
+              <FaPlus className="w-3 h-3" /> إضافة بند
             </button>
           </div>
           <div className="flex gap-2 pt-1">
             <button onClick={saveBudget} disabled={saving}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079] disabled:opacity-50 transition-colors">
-              {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <PiggyBank className="w-3.5 h-3.5" />}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[#245079] disabled:opacity-50 transition-colors">
+              {saving ? <FaArrowsRotate className="w-3.5 h-3.5 animate-spin" /> : <PiggyBank className="w-3.5 h-3.5" />}
               حفظ الميزانية
             </button>
             <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
@@ -190,7 +191,7 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
       {/* Budget List + Progress */}
       {loading ? (
         <div className="flex items-center justify-center py-10">
-          <div className="w-6 h-6 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
         </div>
       ) : budgets.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
@@ -204,7 +205,7 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
             {budgets.map(b => (
               <div key={b._id}
                 onClick={() => setActiveBudget(b)}
-                className={`p-3 rounded-xl border cursor-pointer transition-all ${activeBudget?._id === b._id ? "border-[#2d5d89] bg-[#2d5d89]/5" : "border-gray-200 hover:border-[#2d5d89]/30 bg-white"}`}>
+                className={`p-3 rounded-xl border cursor-pointer transition-all ${activeBudget?._id === b._id ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-gray-200 hover:border-[var(--primary)]/30 bg-white"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-semibold text-gray-800">{b.name}</p>
@@ -212,7 +213,7 @@ export default function BudgetPanel({ ledgerId, sheetId, rows, cols, branch }) {
                   </div>
                   <button onClick={(e) => { e.stopPropagation(); deleteBudget(b._id); }}
                     className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 text-red-400 opacity-0 group-hover:opacity-100 flex-shrink-0">
-                    <Trash2 className="w-3 h-3" />
+                    <FaTrash className="w-3 h-3" />
                   </button>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">{b.lines?.length || 0} بند</p>

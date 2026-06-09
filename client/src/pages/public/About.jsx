@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Building2, Users, Award, Target, Eye } from "lucide-react";
+
 import { useCms } from "../../hooks/useCms";
 import PageHero from "../../Components/shared/PageHero";
 import SectionHeader from "../../Components/shared/SectionHeader";
@@ -68,7 +68,7 @@ export default function AboutPage() {
                 <img src={content.image} alt="الصرح للتطوير العقاري" className="rounded-2xl w-full h-80 object-cover shadow-xl" />
               ) : (
                 <div className="rounded-2xl w-full h-80 flex items-center justify-center shadow-xl" style={{ background: "linear-gradient(to bottom right, var(--primary), var(--primary-dark))" }}>
-                  <Building2 className="w-24 h-24 text-white/30" />
+                  <FaBuilding className="w-24 h-24 text-white/30" />
                 </div>
               )}
             </motion.div>
@@ -83,7 +83,7 @@ export default function AboutPage() {
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-5">
-                <Eye className="w-6 h-6 text-[var(--primary)]" />
+                <FaEye className="w-6 h-6 text-[var(--primary)]" />
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-3">رؤيتنا</h3>
               <p className="text-gray-600 leading-relaxed">

@@ -50,7 +50,7 @@ const groups = [
       { key: "secondary_color", label: "اللون الثانوي",    type: "color", defaultVal: "#12283C", hint: "الهيدر والخلفيات" },
       { key: "accent_color",    label: "لون التمييز",      type: "color", defaultVal: "#f59e0b", hint: "التنبيهات والإشارات" },
       { key: "secondary_mid",   label: "لون ثانوي متوسط", type: "color", defaultVal: "#1a3d5c" },
-      { key: "secondary_light", label: "لون ثانوي فاتح",  type: "color", defaultVal: "#2d5d89" },
+      { key: "secondary_light", label: "لون ثانوي فاتح",  type: "color", defaultVal: "var(--primary)" },
     ],
   },
   {
@@ -155,7 +155,7 @@ const colorMap = {
 };
 
 const themePresets = [
-  { name: "ذهبي وبحري",   primary: "#8A6924", secondary: "#12283C", accent: "#DFBA6B", secMid: "#1a3d5c", secLight: "#2d5d89" },
+  { name: "ذهبي وبحري",   primary: "#8A6924", secondary: "#12283C", accent: "#DFBA6B", secMid: "#1a3d5c", secLight: "var(--primary)" },
   { name: "أزرق احترافي", primary: "#1d4ed8", secondary: "#0f172a", accent: "#60a5fa", secMid: "#1e3a5f", secLight: "#2563eb" },
   { name: "أخضر طبيعي",   primary: "#16a34a", secondary: "#052e16", accent: "#4ade80", secMid: "#064e3b", secLight: "#15803d" },
   { name: "أحمر عصري",    primary: "#dc2626", secondary: "#1c1917", accent: "#f87171", secMid: "#292524", secLight: "#b91c1c" },

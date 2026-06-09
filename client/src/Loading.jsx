@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock } from "lucide-react";
+import { FaClock } from "react-icons/fa6";
 import Logo from "./assets/images/logo.svg";
 
 const Loading = () => {
@@ -25,7 +25,7 @@ const Loading = () => {
         />
       </div>
       <h1 className="text-white text-xl font-bold flex items-center gap-2">
-        <Clock className="animate-spin" size={20} />
+        <FaClock className="w-5 h-5 animate-spin" />
         Loading...
       </h1>
     </div>

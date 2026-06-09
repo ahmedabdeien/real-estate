@@ -4,7 +4,11 @@
  */
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Bot, User, Loader2, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import {
+  FaWandMagicSparkles, FaUser, FaRobot, FaSpinner,
+  FaPaperPlane, FaChevronDown, FaChevronUp, FaArrowRotateLeft,
+} from "react-icons/fa6";
+
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
@@ -81,10 +85,10 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
 
   const ctxColors = {
     accounting: "bg-blue-600",
-    sales:      "bg-[#2d5d89]",
+    sales:      "bg-[var(--primary)]",
     legal:      "bg-purple-700",
     inventory:  "bg-orange-600",
-    general:    "bg-[#2d5d89]",
+    general:    "bg-[var(--primary)]",
   };
   const headerBg = ctxColors[context] || ctxColors.general;
 
@@ -96,7 +100,7 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
         className={`w-full flex items-center gap-3 px-4 py-3 ${headerBg} text-white transition-opacity hover:opacity-90`}
       >
         <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-4 h-4" />
+          <FaWandMagicSparkles className="w-4 h-4" />
         </div>
         <div className="flex-1 text-right">
           <p className="font-bold text-sm">المساعد الذكي</p>
@@ -106,7 +110,7 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
           {messages.length > 1 && (
             <span className="text-xs bg-white/20 rounded-full px-2 py-0.5">{messages.length - 1} رسائل</span>
           )}
-          {open ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+          {open ? <FaChevronDown className="w-4 h-4" /> : <FaChevronUp className="w-4 h-4" />}
         </div>
       </button>
 
@@ -128,8 +132,8 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
                     msg.role === "user" ? `${headerBg} text-white` : "bg-white border border-gray-200"
                   }`}>
                     {msg.role === "user"
-                      ? <User className="w-3.5 h-3.5" />
-                      : <Bot className="w-3.5 h-3.5 text-gray-500" />
+                      ? <FaUser className="w-3.5 h-3.5" />
+                      : <FaRobot className="w-3.5 h-3.5 text-gray-500" />
                     }
                   </div>
                   <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
@@ -144,10 +148,10 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
               {loading && (
                 <div className="flex gap-2">
                   <div className="w-7 h-7 rounded-xl bg-white border border-gray-200 flex items-center justify-center">
-                    <Bot className="w-3.5 h-3.5 text-gray-500" />
+                    <FaRobot className="w-3.5 h-3.5 text-gray-500" />
                   </div>
                   <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-3 py-2 flex items-center gap-2 shadow-sm">
-                    <Loader2 className="w-3.5 h-3.5 text-gray-400 animate-spin" />
+                    <FaSpinner className="w-3.5 h-3.5 text-gray-400 animate-spin" />
                     <span className="text-xs text-gray-400">جاري التفكير...</span>
                   </div>
                 </div>
@@ -162,7 +166,7 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
                   key={q}
                   onClick={() => sendMessage(q)}
                   disabled={loading}
-                  className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:border-[#2d5d89] hover:text-[#2d5d89] transition-colors disabled:opacity-40"
+                  className="text-xs px-2.5 py-1 rounded-full border border-gray-200 text-gray-600 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors disabled:opacity-40"
                 >
                   {q}
                 </button>
@@ -172,7 +176,7 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
                 className="mr-auto text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 transition-colors"
                 title="مسح المحادثة"
               >
-                <RotateCcw className="w-3 h-3" />
+                <FaArrowRotateLeft className="w-3 h-3" />
                 مسح
               </button>
             </div>
@@ -186,7 +190,7 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 rows={1}
                 placeholder="اكتب سؤالك هنا..."
-                className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 focus:border-[#2d5d89] max-h-24"
+                className="flex-1 resize-none border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] max-h-24"
                 style={{ minHeight: "40px" }}
               />
               <button
@@ -194,7 +198,7 @@ export default function InlineAiChat({ context = "general", pageData = null }) {
                 disabled={!input.trim() || loading}
                 className={`w-10 h-10 flex-shrink-0 rounded-xl text-white flex items-center justify-center transition-colors disabled:opacity-50 self-end ${headerBg}`}
               >
-                <Send className="w-4 h-4" />
+                <FaPaperPlane className="w-4 h-4" />
               </button>
             </div>
           </motion.div>

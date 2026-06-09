@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, Edit2, X, Search, Scale, FileText,
-  MessageSquare, BarChart3, AlertTriangle, Eye,
-} from "lucide-react";
+  FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaScaleBalanced, FaFileLines,
+  FaMessage, FaChartBar, FaTriangleExclamation, FaEye,
+} from "react-icons/fa6";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
@@ -61,7 +61,7 @@ function Modal({ open, onClose, title, children, wide }) {
         <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h3 className="text-lg font-bold text-gray-900">{title}</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
+            <FaXmark className="w-5 h-5 text-gray-500" />
           </button>
         </div>
         <div className="p-5">{children}</div>
@@ -74,7 +74,7 @@ function Input({ label, ...props }) {
   return (
     <div>
       {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-      <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 focus:border-[#2d5d89]" {...props} />
+      <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]" {...props} />
     </div>
   );
 }
@@ -83,7 +83,7 @@ function Select({ label, children, ...props }) {
   return (
     <div>
       {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-      <select className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 bg-white" {...props}>{children}</select>
+      <select className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 bg-white" {...props}>{children}</select>
     </div>
   );
 }
@@ -162,15 +162,15 @@ function CasesTab() {
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث في القضايا..." className="w-full border border-gray-200 rounded-xl pr-10 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+          <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث في القضايا..." className="w-full border border-gray-200 rounded-xl pr-10 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none">
           <option value="">كل الحالات</option>
           {Object.entries(CASE_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
-        <button onClick={openAdd} className="flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
-          <Plus className="w-4 h-4" /> إضافة قضية
+        <button onClick={openAdd} className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+          <FaPlus className="w-4 h-4" /> إضافة قضية
         </button>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-gray-100">
@@ -205,9 +205,9 @@ function CasesTab() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
-                      <button onClick={() => setViewModal(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Eye className="w-4 h-4" /></button>
-                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                      <button onClick={() => setDeleteId(c._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => setViewModal(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><FaEye className="w-4 h-4" /></button>
+                      <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><FaPen className="w-4 h-4" /></button>
+                      <button onClick={() => setDeleteId(c._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><FaTrash className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -235,14 +235,14 @@ function CasesTab() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={save} disabled={saving} className="flex-1 bg-[#2d5d89] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
+            <button onClick={save} disabled={saving} className="flex-1 bg-[var(--primary)] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
               {saving ? "جاري الحفظ..." : "حفظ"}
             </button>
             <button onClick={() => setModal(false)} className="flex-1 border border-gray-200 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50">إلغاء</button>
@@ -268,7 +268,7 @@ function CasesTab() {
                 <p className="font-medium text-gray-700 mb-2">المستندات</p>
                 <ul className="space-y-1">
                   {viewModal.documents.map((d, i) => (
-                    <li key={i} className="text-xs text-[#2d5d89] flex items-center gap-1"><FileText className="w-3 h-3" />{d.name || d}</li>
+                    <li key={i} className="text-xs text-[var(--primary)] flex items-center gap-1"><FaFileLines className="w-3 h-3" />{d.name || d}</li>
                   ))}
                 </ul>
               </div>
@@ -319,7 +319,7 @@ function ContractTimeline({ startDate, endDate }) {
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${isOver ? "bg-red-400" : pct > 80 ? "bg-orange-400" : "bg-[#2d5d89]"}`}
+          className={`h-full rounded-full transition-all ${isOver ? "bg-red-400" : pct > 80 ? "bg-orange-400" : "bg-[var(--primary)]"}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -341,7 +341,7 @@ function DocChecklist({ contractId, docs = [] }) {
       {CONTRACT_DOCS.map((doc) => (
         <label key={doc} className="flex items-center gap-2 cursor-pointer group">
           <input type="checkbox" checked={!!checked[doc]} onChange={() => toggle(doc)}
-            className="w-3.5 h-3.5 rounded accent-[#2d5d89]" />
+            className="w-3.5 h-3.5 rounded accent-[var(--primary)]" />
           <span className={`text-xs transition-colors ${checked[doc] ? "line-through text-gray-400" : "text-gray-600 group-hover:text-gray-900"}`}>{doc}</span>
         </label>
       ))}
@@ -480,8 +480,8 @@ function ContractsTab() {
             {parties.map((p) => <option key={p} value={p}>{p}</option>)}
           </select>
         )}
-        <button onClick={openAdd} className="mr-auto flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
-          <Plus className="w-4 h-4" /> إضافة عقد
+        <button onClick={openAdd} className="mr-auto flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+          <FaPlus className="w-4 h-4" /> إضافة عقد
         </button>
       </div>
 
@@ -526,8 +526,8 @@ function ContractsTab() {
                     <button onClick={() => setExpandedId(isExpanded ? null : c._id)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors text-xs">
                       {isExpanded ? "إخفاء" : "تفاصيل"}
                     </button>
-                    <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => setDeleteId(c._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => openEdit(c)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><FaPen className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteId(c._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><FaTrash className="w-4 h-4" /></button>
                   </div>
                 </div>
 
@@ -568,10 +568,10 @@ function ContractsTab() {
           <Input label="قيمة العقد (ج)" type="number" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="0.00" />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={save} disabled={saving} className="flex-1 bg-[#2d5d89] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
+            <button onClick={save} disabled={saving} className="flex-1 bg-[var(--primary)] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
               {saving ? "جاري الحفظ..." : "حفظ"}
             </button>
             <button onClick={() => setModal(false)} className="flex-1 border border-gray-200 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50">إلغاء</button>
@@ -657,8 +657,8 @@ function ConsultationsTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={() => { setForm(emptyForm); setModal(true); }} className="flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
-          <Plus className="w-4 h-4" /> إضافة استشارة
+        <button onClick={() => { setForm(emptyForm); setModal(true); }} className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+          <FaPlus className="w-4 h-4" /> إضافة استشارة
         </button>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-gray-100">
@@ -691,8 +691,8 @@ function ConsultationsTab() {
                   </td>
                   <td className="px-4 py-3">
                     {c.status === "pending" && (
-                      <button onClick={() => { setReplyModal(c); setReplyText(""); }} className="flex items-center gap-1.5 text-xs font-medium text-[#2d5d89] bg-[#2d5d89]/10 hover:bg-[#2d5d89]/20 px-2.5 py-1.5 rounded-lg transition-colors">
-                        <MessageSquare className="w-3.5 h-3.5" /> رد
+                      <button onClick={() => { setReplyModal(c); setReplyText(""); }} className="flex items-center gap-1.5 text-xs font-medium text-[var(--primary)] bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 px-2.5 py-1.5 rounded-lg transition-colors">
+                        <FaMessage className="w-3.5 h-3.5" /> رد
                       </button>
                     )}
                     {c.status === "answered" && c.answer && (
@@ -716,10 +716,10 @@ function ConsultationsTab() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">وصف الاستشارة</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={save} disabled={saving} className="flex-1 bg-[#2d5d89] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
+            <button onClick={save} disabled={saving} className="flex-1 bg-[var(--primary)] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
               {saving ? "جاري الحفظ..." : "حفظ"}
             </button>
             <button onClick={() => setModal(false)} className="flex-1 border border-gray-200 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50">إلغاء</button>
@@ -743,7 +743,7 @@ function ConsultationsTab() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">نص الرد *</label>
-                  <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={4} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" placeholder="أكتب ردك هنا..." />
+                  <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} rows={4} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" placeholder="أكتب ردك هنا..." />
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button onClick={submitReply} disabled={saving} className="flex-1 bg-green-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-green-700 disabled:opacity-60">
@@ -805,8 +805,8 @@ export default function AdminLegal() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center">
-            <Scale className="w-6 h-6 text-[#2d5d89]" />
+          <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
+            <FaScaleBalanced className="w-6 h-6 text-[var(--primary)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">الشئون القانونية</h1>
@@ -821,7 +821,7 @@ export default function AdminLegal() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${
-                activeTab === tab.key ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                activeTab === tab.key ? "bg-[var(--primary)] text-white shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
               {tab.label}

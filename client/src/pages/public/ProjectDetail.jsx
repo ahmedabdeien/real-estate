@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
+import { FaLocationDot, FaBuilding, FaHouseChimney, FaArrowRight, FaPhone, FaWhatsapp, FaStar, FaShare, FaChevronLeft, FaChevronRight, FaRulerCombined, FaLayerGroup } from 'react-icons/fa6';
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  MapPin, Building2, Phone, MessageCircle, CheckCircle,
-  ChevronLeft, ChevronRight, Play, BedDouble, Bath,
-  Maximize2, X, Pencil, ArrowRight, Tag, Home,
-  GitCompare, RotateCcw
-} from "lucide-react";
 import api from "../../api/axios";
 import { PageLoader } from "../../Components/UI/LoadingSpinner";
 import { statusBadge } from "../../Components/UI/Badge";
@@ -50,10 +45,10 @@ export default function ProjectDetailPage() {
     <div className="min-h-screen flex items-center justify-center" dir="rtl">
       <div className="text-center">
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Building2 className="w-10 h-10 text-gray-300" />
+          <FaBuilding className="w-10 h-10 text-gray-300" />
         </div>
         <p className="text-gray-500 mb-4">المشروع غير موجود</p>
-        <Link to="/projects" className="text-[#2d5d89] font-semibold hover:underline">← العودة للمشاريع</Link>
+        <Link to="/projects" className="text-[var(--primary)] font-semibold hover:underline">← العودة للمشاريع</Link>
       </div>
     </div>
   );
@@ -103,11 +98,11 @@ export default function ProjectDetailPage() {
             <>
               <button onClick={() => setActiveImg(i => (i + 1) % allImages.length)}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30">
-                <ChevronLeft className="w-5 h-5" />
+                <FaChevronLeft className="w-5 h-5" />
               </button>
               <button onClick={() => setActiveImg(i => (i - 1 + allImages.length) % allImages.length)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30">
-                <ChevronRight className="w-5 h-5" />
+                <FaChevronRight className="w-5 h-5" />
               </button>
               <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {allImages.map((_, i) => (
@@ -129,7 +124,7 @@ export default function ProjectDetailPage() {
               <h1 className="text-3xl md:text-4xl font-black text-white mb-1 drop-shadow">{project.name?.ar}</h1>
               {project.location?.city?.ar && (
                 <p className="text-white/70 text-sm flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" />
+                  <FaLocationDot className="w-4 h-4" />
                   {[project.location.address?.ar, project.location.city.ar].filter(Boolean).join("، ")}
                 </p>
               )}
@@ -141,9 +136,9 @@ export default function ProjectDetailPage() {
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-100 py-2.5">
         <div className="container mx-auto px-4 flex items-center gap-2 text-sm text-gray-500">
-          <Link to="/" className="hover:text-[#2d5d89]">الرئيسية</Link>
+          <Link to="/" className="hover:text-[var(--primary)]">الرئيسية</Link>
           <span className="text-gray-300">/</span>
-          <Link to="/projects" className="hover:text-[#2d5d89]">المشاريع</Link>
+          <Link to="/projects" className="hover:text-[var(--primary)]">المشاريع</Link>
           <span className="text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">{project.name?.ar}</span>
         </div>
@@ -159,8 +154,8 @@ export default function ProjectDetailPage() {
             {/* Contact card */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-20">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-[#2d5d89] rounded-xl flex items-center justify-center">
-                  <Phone className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center">
+                  <FaPhone className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <p className="font-bold text-gray-900 text-sm">احجز استشارة مجانية</p>
@@ -206,7 +201,7 @@ export default function ProjectDetailPage() {
             {project.description?.ar && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 text-lg mb-3 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-[#2d5d89] rounded-full" />
+                  <span className="w-1 h-5 bg-[var(--primary)] rounded-full" />
                   عن المشروع
                 </h2>
                 <p className="text-gray-600 leading-loose text-sm">{project.description.ar}</p>
@@ -217,14 +212,14 @@ export default function ProjectDetailPage() {
             {project.amenities?.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-[#2d5d89] rounded-full" />
+                  <span className="w-1 h-5 bg-[var(--primary)] rounded-full" />
                   المميزات والمرافق
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {project.amenities.map(a => (
-                    <div key={a} className="flex items-center gap-2 p-2.5 bg-[#2d5d89]/5 rounded-xl border border-[#2d5d89]/10">
-                      <div className="w-5 h-5 rounded-full bg-[#2d5d89]/15 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-3 h-3 text-[#2d5d89]" />
+                    <div key={a} className="flex items-center gap-2 p-2.5 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
+                      <div className="w-5 h-5 rounded-full bg-[var(--primary)]/15 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-3 h-3 text-[var(--primary)]" />
                       </div>
                       <span className="text-sm text-gray-700 font-medium">{a}</span>
                     </div>
@@ -237,13 +232,13 @@ export default function ProjectDetailPage() {
             {allImages.length > 1 && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-[#2d5d89] rounded-full" />
+                  <span className="w-1 h-5 bg-[var(--primary)] rounded-full" />
                   معرض الصور
                 </h2>
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                   {allImages.map((img, i) => (
                     <button key={i} onClick={() => { setActiveImg(i); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      className={`aspect-square rounded-xl overflow-hidden transition-all ${i === activeImg ? "ring-2 ring-[#2d5d89]" : "opacity-60 hover:opacity-100"}`}>
+                      className={`aspect-square rounded-xl overflow-hidden transition-all ${i === activeImg ? "ring-2 ring-[var(--primary)]" : "opacity-60 hover:opacity-100"}`}>
                       <img src={img} alt="" className="w-full h-full object-cover" />
                     </button>
                   ))}
@@ -255,7 +250,7 @@ export default function ProjectDetailPage() {
             {mapEmbed && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#2d5d89]" />
+                  <FaLocationDot className="w-4 h-4 text-[var(--primary)]" />
                   <h2 className="font-bold text-gray-900">موقع المشروع</h2>
                 </div>
                 <iframe
@@ -275,7 +270,7 @@ export default function ProjectDetailPage() {
             {project.videoUrl && (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                  <Play className="w-4 h-4 text-[#2d5d89]" />
+                  <Play className="w-4 h-4 text-[var(--primary)]" />
                   <h2 className="font-bold text-gray-900">فيديو المشروع</h2>
                 </div>
                 <div className="aspect-video">
@@ -304,7 +299,7 @@ export default function ProjectDetailPage() {
                           onClick={() => setUnitFilter(tab.key)}
                           className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                             unitFilter === tab.key
-                              ? "bg-[#2d5d89] text-white"
+                              ? "bg-[var(--primary)] text-white"
                               : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                           }`}>
                           {tab.label} {counts[tab.key] > 0 && `(${counts[tab.key]})`}
@@ -315,11 +310,11 @@ export default function ProjectDetailPage() {
 
                   {/* Compare bar */}
                   {compareList.length >= 2 && (
-                    <div className="mt-3 flex items-center justify-between bg-[#2d5d89]/5 border border-[#2d5d89]/20 rounded-xl px-4 py-2.5">
-                      <span className="text-sm text-[#2d5d89] font-semibold">{compareList.length} وحدات مختارة للمقارنة</span>
+                    <div className="mt-3 flex items-center justify-between bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl px-4 py-2.5">
+                      <span className="text-sm text-[var(--primary)] font-semibold">{compareList.length} وحدات مختارة للمقارنة</span>
                       <div className="flex gap-2">
                         <button onClick={() => setShowCompare(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2d5d89] text-white text-xs rounded-lg font-semibold">
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-xs rounded-lg font-semibold">
                           <GitCompare className="w-3.5 h-3.5" /> مقارنة
                         </button>
                         <button onClick={() => setCompareList([])}
@@ -335,7 +330,7 @@ export default function ProjectDetailPage() {
                 <div className="divide-y divide-gray-50">
                   {filteredUnits.length === 0 ? (
                     <div className="text-center py-12 text-gray-400">
-                      <Home className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                      <FaHouseChimney className="w-10 h-10 mx-auto mb-2 opacity-30" />
                       <p className="text-sm">لا توجد وحدات بهذه الحالة</p>
                     </div>
                   ) : filteredUnits.map(u => {
@@ -344,13 +339,13 @@ export default function ProjectDetailPage() {
                     return (
                       <motion.div key={u._id}
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                        className={`flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors ${inCompare ? "bg-[#2d5d89]/3" : ""}`}>
+                        className={`flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors ${inCompare ? "bg-[var(--primary)]/3" : ""}`}>
 
                         {/* Image */}
                         <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                           {u.images?.[0]
                             ? <img src={u.images[0]} alt="" className="w-full h-full object-cover" />
-                            : <div className="w-full h-full flex items-center justify-center"><Home className="w-6 h-6 text-gray-300" /></div>
+                            : <div className="w-full h-full flex items-center justify-center"><FaHouseChimney className="w-6 h-6 text-gray-300" /></div>
                           }
                         </div>
 
@@ -372,14 +367,14 @@ export default function ProjectDetailPage() {
                         <div className="flex items-center gap-3 flex-shrink-0">
                           {u.price > 0 && (
                             <div className="text-left">
-                              <p className="font-black text-[#2d5d89] text-sm">{u.price.toLocaleString("ar-EG")}</p>
+                              <p className="font-black text-[var(--primary)] text-sm">{u.price.toLocaleString("ar-EG")}</p>
                               <p className="text-xs text-gray-400">ج.م</p>
                             </div>
                           )}
                           <button onClick={() => toggleCompare(u._id)}
                             title={inCompare ? "إلغاء المقارنة" : "أضف للمقارنة"}
                             className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${
-                              inCompare ? "bg-[#2d5d89] border-[#2d5d89] text-white" : "border-gray-200 text-gray-400 hover:border-[#2d5d89] hover:text-[#2d5d89]"
+                              inCompare ? "bg-[var(--primary)] border-[var(--primary)] text-white" : "border-gray-200 text-gray-400 hover:border-[var(--primary)] hover:text-[var(--primary)]"
                             }`}>
                             <GitCompare className="w-3.5 h-3.5" />
                           </button>
@@ -397,8 +392,8 @@ export default function ProjectDetailPage() {
       {/* Admin quick edit button */}
       {user && ["admin", "supervisor"].includes(user.role) && project && (
         <Link to={`/admin/projects?edit=${project._id}`}
-          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-full shadow-xl hover:bg-[#245079] transition-all text-sm font-bold">
-          <Pencil className="w-4 h-4" />
+          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-full shadow-xl hover:bg-[#245079] transition-all text-sm font-bold">
+          <FaPen className="w-4 h-4" />
           تعديل المشروع
         </Link>
       )}
@@ -414,12 +409,12 @@ export default function ProjectDetailPage() {
               className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[80vh] overflow-auto" dir="rtl">
               <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <GitCompare className="w-5 h-5 text-[#2d5d89]" />
+                  <GitCompare className="w-5 h-5 text-[var(--primary)]" />
                   <h3 className="font-bold text-gray-900">مقارنة الوحدات</h3>
                 </div>
                 <button onClick={() => setShowCompare(false)}
                   className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
-                  <X className="w-4 h-4" />
+                  <FaXmark className="w-4 h-4" />
                 </button>
               </div>
 
@@ -430,7 +425,7 @@ export default function ProjectDetailPage() {
                       <th className="w-28 text-right text-xs text-gray-400 font-medium pb-4"></th>
                       {compareUnits.map(u => (
                         <th key={u._id} className="pb-4 px-4">
-                          <div className="bg-[#2d5d89]/5 rounded-2xl p-3 text-center">
+                          <div className="bg-[var(--primary)]/5 rounded-2xl p-3 text-center">
                             {u.images?.[0] && <img src={u.images[0]} alt="" className="w-full h-16 object-cover rounded-xl mb-2" />}
                             <p className="font-bold text-gray-900 text-sm">{unitTypeAr[u.type] || u.type}</p>
                             <p className="text-xs text-gray-400">{u.unitNumber}</p>
@@ -442,7 +437,7 @@ export default function ProjectDetailPage() {
                   <tbody>
                     {[
                       { label: "الحالة",      fn: u => { const s = UNIT_STATUS[u.status]; return s ? <span className={`text-xs px-2 py-1 rounded-full font-bold ${s.bg} ${s.text}`}>{s.label}</span> : "—"; } },
-                      { label: "السعر",       fn: u => u.price ? <span className="font-black text-[#2d5d89]">{u.price.toLocaleString("ar-EG")} ج.م</span> : "—" },
+                      { label: "السعر",       fn: u => u.price ? <span className="font-black text-[var(--primary)]">{u.price.toLocaleString("ar-EG")} ج.م</span> : "—" },
                       { label: "المساحة",     fn: u => u.area ? `${u.area} م²` : "—" },
                       { label: "الغرف",       fn: u => u.rooms || "—" },
                       { label: "الحمامات",    fn: u => u.bathrooms || "—" },
@@ -494,21 +489,21 @@ function ContactForm({ projectName, projectId, waNumber }) {
     <form onSubmit={submit} className="space-y-2.5">
       <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
         placeholder="الاسم الكامل" required
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
       <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
         placeholder="رقم الهاتف" required type="tel"
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
       <textarea rows={2} value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
         placeholder="رسالة (اختياري)"
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none" />
+        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none" />
       <button type="submit" disabled={loading}
-        className="w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-2.5 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">
+        className="w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-2.5 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">
         {loading ? "..." : "احجز الآن"}
       </button>
       <div className="grid grid-cols-2 gap-2">
         <a href={`tel:${waNumber}`}
           className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 py-2 rounded-xl text-xs font-medium hover:bg-gray-50">
-          <Phone className="w-3.5 h-3.5" /> اتصل
+          <FaPhone className="w-3.5 h-3.5" /> اتصل
         </a>
         <a href={`https://wa.me/${waNumber}?text=${encodeURIComponent(`أريد الاستفسار عن ${projectName}`)}`}
           target="_blank" rel="noopener noreferrer"

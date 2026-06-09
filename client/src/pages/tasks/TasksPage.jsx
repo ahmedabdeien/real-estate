@@ -1,13 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
+import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaSquareCheck, FaUser, FaCalendar, FaChartLine, FaArrowsRotate } from 'react-icons/fa6';
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, LogOut, CheckCircle2, Clock, AlertCircle, Trash2, Edit2,
-  User, Flag, X, ChevronDown, AlignLeft, Layers, Building2,
-  ChevronUp, MoreVertical, ArrowRight, Check, FileText,
-  LayoutList, Columns, RefreshCw, List, LayoutGrid, Search,
-  CalendarDays, AlertTriangle, TrendingUp,
-} from "lucide-react";
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 
@@ -92,7 +86,7 @@ export function Countdown({ dueDate, compact = false }) {
 
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-mono font-bold px-2 py-0.5 rounded-lg ${cls}`}>
-      <Clock className="w-3 h-3" />{text}
+      <FaClock className="w-3 h-3" />{text}
     </span>
   );
 }
@@ -125,7 +119,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact =
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 text-sm leading-snug">{task.title}</h3>
             <span className={`inline-flex items-center gap-1 mt-1.5 text-xs px-2 py-0.5 rounded-full border font-medium ${deptCls}`}>
-              <Building2 className="w-3 h-3 flex-shrink-0" />{dept}
+              <FaBuilding className="w-3 h-3 flex-shrink-0" />{dept}
             </span>
           </div>
 
@@ -153,9 +147,9 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact =
                       <button key={k}
                         onClick={() => { onStatusChange(task._id, k); setMenuOpen(false); }}
                         className={`w-full text-right px-3 py-2.5 text-sm transition-colors hover:bg-gray-50 flex items-center gap-2 ${
-                          task.status === k ? "font-bold text-[#2d5d89]" : "text-gray-700"
+                          task.status === k ? "font-bold text-[var(--primary)]" : "text-gray-700"
                         }`}>
-                        {task.status === k && <CheckCircle2 className="w-3.5 h-3.5 text-[#2d5d89]" />}
+                        {task.status === k && <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary)]" />}
                         {v}
                       </button>
                     ))}
@@ -164,11 +158,11 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact =
                         <div className="border-t border-gray-50" />
                         <button onClick={() => { onEdit(task); setMenuOpen(false); }}
                           className="w-full text-right px-3 py-2.5 text-sm text-blue-600 hover:bg-blue-50 transition-colors flex items-center gap-2">
-                          <Edit2 className="w-3.5 h-3.5" />تعديل
+                          <FaPen className="w-3.5 h-3.5" />تعديل
                         </button>
                         <button onClick={() => { onDelete(task._id); setMenuOpen(false); }}
                           className="w-full text-right px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                          <Trash2 className="w-3.5 h-3.5" />حذف
+                          <FaTrash className="w-3.5 h-3.5" />حذف
                         </button>
                       </>
                     )}
@@ -199,14 +193,14 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact =
               className="ml-auto text-xs px-2 py-0.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold flex items-center gap-1 transition-colors active:scale-95"
               title="إنجاز سريع"
             >
-              <Check className="w-3 h-3" />إنجاز
+              <FaCheck className="w-3 h-3" />إنجاز
             </button>
           )}
         </div>
 
         {/* Due date */}
         <div className="text-xs text-gray-400 flex items-center gap-1">
-          <Clock className="w-3 h-3" />
+          <FaClock className="w-3 h-3" />
           {new Date(task.dueDate).toLocaleString("ar-EG", {
             month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
           })}
@@ -215,7 +209,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact =
         {/* Assigned users */}
         {task.assignedTo?.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+            <FaUser className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
             {task.assignedTo.map((u) => (
               <span key={u._id}
                 className="text-xs bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full text-gray-600">
@@ -236,7 +230,7 @@ function TaskCard({ task, canManage, onEdit, onDelete, onStatusChange, compact =
         {/* Notes */}
         {task.notes && (
           <div className="text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded-xl px-3 py-2">
-            <FileText className="w-3 h-3 inline ml-1 text-gray-400" />
+            <FaFileLines className="w-3 h-3 inline ml-1 text-gray-400" />
             {task.notes}
           </div>
         )}
@@ -317,7 +311,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
           <h2 className="text-base font-bold text-gray-900">{editItem ? "تعديل المهمة" : "مهمة جديدة"}</h2>
           <button onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400">
-            <X className="w-5 h-5" />
+            <FaXmark className="w-5 h-5" />
           </button>
         </div>
 
@@ -328,7 +322,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">عنوان المهمة *</label>
             <input value={form.title} onChange={(e) => f("title", e.target.value)}
               placeholder="أدخل عنوان المهمة..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] focus:border-transparent" />
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent" />
           </div>
 
           {/* Department */}
@@ -336,7 +330,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">القسم *</label>
             <select value={form.department} onChange={(e) => f("department", e.target.value)}
               disabled={userRole === "manager"}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white disabled:opacity-60">
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white disabled:opacity-60">
               <option value="">— اختر القسم —</option>
               {Object.entries(DEPARTMENTS).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
@@ -349,7 +343,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">الوصف</label>
             <textarea value={form.description} onChange={(e) => f("description", e.target.value)}
               rows={3} placeholder="وصف المهمة..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none" />
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none" />
           </div>
 
           {/* Due + Priority */}
@@ -357,12 +351,12 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">التاريخ والوقت *</label>
               <input type="datetime-local" value={form.dueDate} onChange={(e) => f("dueDate", e.target.value)}
-                className="w-full px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+                className="w-full px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">الأولوية</label>
               <select value={form.priority} onChange={(e) => f("priority", e.target.value)}
-                className="w-full px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white">
+                className="w-full px-3 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white">
                 <option value="low">منخفض</option>
                 <option value="medium">متوسط</option>
                 <option value="high">عالي</option>
@@ -384,8 +378,8 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
                   <button key={u._id} type="button" onClick={() => toggleUser(u._id)}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm border transition-all active:scale-95 ${
                       form.assignedTo.includes(u._id)
-                        ? "bg-[#2d5d89] text-white border-[#2d5d89] shadow-sm"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-[#2d5d89]"
+                        ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-sm"
+                        : "bg-white text-gray-600 border-gray-200 hover:border-[var(--primary)]"
                     }`}>
                     <span className="w-5 h-5 rounded-full bg-current/10 flex items-center justify-center text-xs font-bold flex-shrink-0">
                       {u.name[0]}
@@ -402,7 +396,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">ملاحظات</label>
             <textarea value={form.notes} onChange={(e) => f("notes", e.target.value)}
               rows={2} placeholder="ملاحظات إضافية..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] resize-none" />
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none" />
           </div>
         </div>
 
@@ -414,7 +408,7 @@ function TaskModal({ open, onClose, onSave, editItem, users, userRole, userDept 
           </button>
           <button onClick={handleSave}
             disabled={saving || !form.title || !form.dueDate || !form.department}
-            className="flex-1 py-3 rounded-xl bg-[#2d5d89] text-white text-sm font-bold transition-colors disabled:opacity-50 active:scale-95">
+            className="flex-1 py-3 rounded-xl bg-[var(--primary)] text-white text-sm font-bold transition-colors disabled:opacity-50 active:scale-95">
             {saving ? "جاري الحفظ..." : editItem ? "تحديث" : "إضافة"}
           </button>
         </div>
@@ -577,14 +571,14 @@ export default function TasksPage({ embedded = false }) {
             <div className="flex items-center gap-2 flex-shrink-0">
               {canManage && (
                 <button onClick={openCreate}
-                  className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#245079] active:scale-95 text-white px-3 py-2 sm:px-4 rounded-xl text-sm font-semibold transition-all">
-                  <Plus className="w-4 h-4" />
+                  className="flex items-center gap-1.5 bg-[var(--primary)] hover:bg-[#245079] active:scale-95 text-white px-3 py-2 sm:px-4 rounded-xl text-sm font-semibold transition-all">
+                  <FaPlus className="w-4 h-4" />
                   <span className="hidden sm:inline">مهمة جديدة</span>
                 </button>
               )}
               <button onClick={handleLogout} title="تسجيل الخروج"
                 className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-400 transition-colors">
-                <LogOut className="w-4 h-4" />
+                <FaRightFromBracket className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -600,8 +594,8 @@ export default function TasksPage({ embedded = false }) {
             </p>
           </div>
           <button onClick={openCreate}
-            className="flex items-center gap-1.5 bg-[#2d5d89] hover:bg-[#245079] active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
-            <Plus className="w-4 h-4" />
+            className="flex items-center gap-1.5 bg-[var(--primary)] hover:bg-[#245079] active:scale-95 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">
+            <FaPlus className="w-4 h-4" />
             <span className="hidden sm:inline">مهمة جديدة</span>
           </button>
         </div>
@@ -613,11 +607,11 @@ export default function TasksPage({ embedded = false }) {
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <div className="flex items-center justify-between mb-2 text-sm">
               <span className="font-bold text-gray-900">{doneCount} من {totalCount} مهمة مكتملة</span>
-              <span className="text-[#2d5d89] font-bold">{donePct}%</span>
+              <span className="text-[var(--primary)] font-bold">{donePct}%</span>
             </div>
             <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-l from-emerald-500 to-[#2d5d89] rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-l from-emerald-500 to-[var(--primary)] rounded-full transition-all duration-500"
                 style={{ width: `${donePct}%` }}
               />
             </div>
@@ -630,7 +624,7 @@ export default function TasksPage({ embedded = false }) {
             <button key={key} onClick={() => setStatusTab(key)}
               className={`bg-white rounded-2xl border p-3 text-center transition-all active:scale-95 ${
                 statusTab === key
-                  ? "border-[#2d5d89] ring-2 ring-[#2d5d89]/20 shadow-sm"
+                  ? "border-[var(--primary)] ring-2 ring-[var(--primary)]/20 shadow-sm"
                   : "border-gray-100 hover:border-gray-200"
               }`}>
               <Icon className={`w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 ${cls}`} />
@@ -652,7 +646,7 @@ export default function TasksPage({ embedded = false }) {
             <button key={k} onClick={() => setPriorityFilter(k)}
               className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
                 priorityFilter === k
-                  ? "bg-[#2d5d89] text-white border-[#2d5d89]"
+                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                   : cls
               }`}>
               {v}
@@ -667,7 +661,7 @@ export default function TasksPage({ embedded = false }) {
               <button key={k} onClick={() => setDeptFilter(k)}
                 className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold border transition-all active:scale-95 whitespace-nowrap ${
                   deptFilter === k
-                    ? "bg-[#2d5d89] text-white border-[#2d5d89]"
+                    ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                     : "bg-white text-gray-600 border-gray-200"
                 }`}>
                 {v}
@@ -688,7 +682,7 @@ export default function TasksPage({ embedded = false }) {
             <button key={k} onClick={() => setDateFilter(k)}
               className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
                 dateFilter === k
-                  ? "bg-[#2d5d89] text-white border-[#2d5d89]"
+                  ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                   : k === "overdue"
                     ? "bg-red-50 text-red-700 border-red-200"
                     : "bg-white text-gray-600 border-gray-200"
@@ -702,14 +696,14 @@ export default function TasksPage({ embedded = false }) {
         {totalCount > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="bg-white rounded-xl border border-gray-100 px-3 py-2 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-gray-400" />
+              <FaLayerGroup className="w-4 h-4 text-gray-400" />
               <div>
                 <p className="text-[10px] text-gray-400 leading-none">الإجمالي</p>
                 <p className="text-sm font-bold text-gray-900 leading-tight">{totalCount}</p>
               </div>
             </div>
             <div className="bg-white rounded-xl border border-red-100 px-3 py-2 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <FaTriangleExclamation className="w-4 h-4 text-red-500" />
               <div>
                 <p className="text-[10px] text-gray-400 leading-none">متأخرة</p>
                 <p className="text-sm font-bold text-red-600 leading-tight">{overdueCount}</p>
@@ -723,7 +717,7 @@ export default function TasksPage({ embedded = false }) {
               </div>
             </div>
             <div className="bg-white rounded-xl border border-emerald-100 px-3 py-2 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
+              <FaChartLine className="w-4 h-4 text-emerald-500" />
               <div>
                 <p className="text-[10px] text-gray-400 leading-none">منجزة الأسبوع</p>
                 <p className="text-sm font-bold text-emerald-600 leading-tight">{doneThisWeek}</p>
@@ -735,19 +729,19 @@ export default function TasksPage({ embedded = false }) {
         {/* ── Search + assignee filter ── */}
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-[160px]">
-            <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+            <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث في المهام..."
-              className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
           {canManage && users.length > 0 && (
             <select
               value={assigneeFilter}
               onChange={(e) => setAssigneeFilter(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             >
               <option value="all">كل المعيّن لهم</option>
               {users.map((u) => <option key={u._id} value={u._id}>{u.name}</option>)}
@@ -768,7 +762,7 @@ export default function TasksPage({ embedded = false }) {
                 onClick={() => setViewMode(mode)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   viewMode === mode
-                    ? "bg-white dark:bg-gray-700 text-[#2d5d89] shadow-sm"
+                    ? "bg-white dark:bg-gray-700 text-[var(--primary)] shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
@@ -783,7 +777,7 @@ export default function TasksPage({ embedded = false }) {
             title="تحديث"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 shadow-sm disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <FaArrowsRotate className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">تحديث</span>
           </button>
           <span className="text-xs text-gray-400 mr-auto">{filtered.length} مهمة</span>
@@ -807,8 +801,8 @@ export default function TasksPage({ embedded = false }) {
             </p>
             {canManage && statusTab === "all" && (
               <button onClick={openCreate}
-                className="mt-5 flex items-center gap-2 bg-[#2d5d89] text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-[#245079] active:scale-95 transition-all">
-                <Plus className="w-4 h-4" />إضافة مهمة
+                className="mt-5 flex items-center gap-2 bg-[var(--primary)] text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-[#245079] active:scale-95 transition-all">
+                <FaPlus className="w-4 h-4" />إضافة مهمة
               </button>
             )}
           </div>
@@ -868,7 +862,7 @@ export default function TasksPage({ embedded = false }) {
                                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-emerald-50 text-emerald-600"
                                 title="إنجاز"
                               >
-                                <Check className="w-3.5 h-3.5" />
+                                <FaCheck className="w-3.5 h-3.5" />
                               </button>
                             )}
                             {canManage && (
@@ -877,7 +871,7 @@ export default function TasksPage({ embedded = false }) {
                                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-500"
                                 title="حذف"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <FaTrash className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>

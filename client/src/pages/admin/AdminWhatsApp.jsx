@@ -1,23 +1,23 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import {
-  MessageCircle, Wifi, WifiOff, RefreshCw, Send, Unplug,
-  CheckCircle, Loader, Zap, Users, Bell, ChevronDown,
-  ChevronUp, Save, AlertCircle, Info, Clock,
-  Plus, Trash2, Copy, Check, FileText, History,
-  Phone, Download, Upload, Search, X, Star, StarOff,
-  BarChart2, Calendar, BriefcaseBusiness, UserCheck,
-  PlayCircle, PauseCircle, RotateCcw, Filter,
-} from "lucide-react";
+  FaWhatsapp, FaWifi, FaArrowsRotate, FaPaperPlane, FaPlugCircleXmark,
+  FaCircleCheck, FaSpinner, FaBolt, FaUsers, FaBell, FaChevronDown,
+  FaChevronUp, FaFloppyDisk, FaCircleExclamation, FaCircleInfo, FaClock,
+  FaPlus, FaTrash, FaCopy, FaCheck, FaFileLines, FaClockRotateLeft,
+  FaPhone, FaDownload, FaUpload, FaMagnifyingGlass, FaXmark, FaStar, FaStarHalfStroke,
+  FaChartBar, FaCalendar, FaBriefcase, FaUserCheck,
+  FaCirclePlay, FaCirclePause, FaArrowRotateLeft, FaFilter,
+} from "react-icons/fa6";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 
 // ─── Status config ─────────────────────────────────────────────────────────────
 const STATUS_INFO = {
-  connected:    { color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20",  border: "border-green-200 dark:border-green-800",  dot: "bg-green-500",  icon: <CheckCircle className="w-4 h-4" />, label: "متصل" },
-  qr_ready:     { color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20",    border: "border-blue-200 dark:border-blue-800",    dot: "bg-blue-500",   icon: <Loader className="w-4 h-4 animate-spin" />, label: "في انتظار QR" },
-  connecting:   { color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-900/20",  border: "border-amber-200 dark:border-amber-800",  dot: "bg-amber-500",  icon: <Loader className="w-4 h-4 animate-spin" />, label: "جارٍ الاتصال..." },
-  disconnected: { color: "text-red-600",    bg: "bg-red-50 dark:bg-red-900/20",      border: "border-red-200 dark:border-red-800",      dot: "bg-red-500",    icon: <WifiOff className="w-4 h-4" />, label: "غير متصل" },
+  connected:    { color: "text-green-600",  bg: "bg-green-50 dark:bg-green-900/20",  border: "border-green-200 dark:border-green-800",  dot: "bg-green-500",  icon: <FaCircleCheck className="w-4 h-4" />, label: "متصل" },
+  qr_ready:     { color: "text-blue-600",   bg: "bg-blue-50 dark:bg-blue-900/20",    border: "border-blue-200 dark:border-blue-800",    dot: "bg-blue-500",   icon: <FaSpinner className="w-4 h-4 animate-spin" />, label: "في انتظار QR" },
+  connecting:   { color: "text-amber-600",  bg: "bg-amber-50 dark:bg-amber-900/20",  border: "border-amber-200 dark:border-amber-800",  dot: "bg-amber-500",  icon: <FaSpinner className="w-4 h-4 animate-spin" />, label: "جارٍ الاتصال..." },
+  disconnected: { color: "text-red-600",    bg: "bg-red-50 dark:bg-red-900/20",      border: "border-red-200 dark:border-red-800",      dot: "bg-red-500",    icon: <FaWifi className="w-4 h-4" />, label: "غير متصل" },
 };
 
 const TABS = [
@@ -62,7 +62,7 @@ function TemplateEditor({ label, value, onChange, vars = [], rows = 3 }) {
             </button>
           ))}
           <button onClick={copy} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 transition-colors">
-            {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <FaCheck className="w-3.5 h-3.5 text-green-500" /> : <FaCopy className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>
@@ -95,7 +95,7 @@ function SectionCard({ title, icon: Icon, color = "blue", badge, children, defau
           <span className="font-semibold text-gray-900 dark:text-white text-sm">{title}</span>
           {badge && <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">{badge}</span>}
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        {open ? <FaChevronUp className="w-4 h-4 text-gray-400" /> : <FaChevronDown className="w-4 h-4 text-gray-400" />}
       </button>
       {open && <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-700 pt-3">{children}</div>}
     </div>
@@ -387,7 +387,7 @@ export default function AdminWhatsApp() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center shadow-sm">
-          <MessageCircle className="w-6 h-6 text-green-600" />
+          <FaWhatsapp className="w-6 h-6 text-green-600" />
         </div>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">إدارة الواتساب</h1>
@@ -466,20 +466,20 @@ export default function AdminWhatsApp() {
                     {status === "disconnected" && (
                       <button onClick={handleConnect} disabled={loading}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                        {loading ? <Loader className="w-4 h-4 animate-spin" /> : <Wifi className="w-4 h-4" />}
+                        {loading ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaWifi className="w-4 h-4" />}
                         اتصال
                       </button>
                     )}
                     {(status === "connecting" || status === "qr_ready") && (
                       <button onClick={handleConnect} disabled={loading}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium transition-colors disabled:opacity-50">
-                        <RefreshCw className="w-4 h-4" /> إعادة المحاولة
+                        <FaArrowsRotate className="w-4 h-4" /> إعادة المحاولة
                       </button>
                     )}
                     {status === "connected" && (
                       <button onClick={handleDisconnect} disabled={loading}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 text-sm font-medium transition-colors">
-                        <Unplug className="w-4 h-4" /> قطع الاتصال
+                        <FaPlugCircleXmark className="w-4 h-4" /> قطع الاتصال
                       </button>
                     )}
                   </div>
@@ -524,7 +524,7 @@ export default function AdminWhatsApp() {
 
               {/* Info box */}
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 space-y-1.5">
-                <p className="font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2 text-sm"><Info className="w-4 h-4" /> كيف يعمل النظام؟</p>
+                <p className="font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2 text-sm"><FaCircleInfo className="w-4 h-4" /> كيف يعمل النظام؟</p>
                 {["مجاني 100% — يستخدم واتساب الخاص بك عبر بروتوكول Baileys", "الجلسة تُحفظ في قاعدة البيانات وتُعاد تلقائياً عند إعادة تشغيل الخادم", "استخدم رقم هاتف مخصص للشركة وليس رقمك الشخصي"].map((t, i) => (
                   <p key={i} className="text-xs text-blue-700 dark:text-blue-400 flex items-start gap-1.5">
                     <span className="mt-1 w-1 h-1 rounded-full bg-blue-400 flex-shrink-0" /> {t}
@@ -538,9 +538,9 @@ export default function AdminWhatsApp() {
           {activeTab === "automation" && (
             <div className="space-y-4">
               {autoLoading ? (
-                <div className="flex items-center justify-center py-16"><Loader className="w-6 h-6 animate-spin text-gray-400" /></div>
+                <div className="flex items-center justify-center py-16"><FaSpinner className="w-6 h-6 animate-spin text-gray-400" /></div>
               ) : !auto ? (
-                <div className="text-center py-10 text-gray-500 text-sm"><AlertCircle className="w-8 h-8 mx-auto mb-2 text-gray-300" />تعذّر تحميل الإعدادات</div>
+                <div className="text-center py-10 text-gray-500 text-sm"><FaCircleExclamation className="w-8 h-8 mx-auto mb-2 text-gray-300" />تعذّر تحميل الإعدادات</div>
               ) : (<>
                 {/* 1. New Lead */}
                 <SectionCard title="استفسار جديد" icon={Bell} color="blue" badge={auto.newLead?.enabled ? "مفعّل" : null}>
@@ -619,7 +619,7 @@ export default function AdminWhatsApp() {
                       </div>
                       <TemplateEditor label="نص رسالة المتابعة" value={auto.followUp?.msg || ""} onChange={(v) => setAutoField("followUp.msg", v)} vars={["name", "project"]} />
                       <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800">
-                        <Info className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
+                        <FaCircleInfo className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
                         <p className="text-xs text-rose-700 dark:text-rose-400">يُرسل للعملاء الجدد الذين حالتهم "جديد" ولم يتم تغييرها بعد {auto.followUp?.afterDays || 3} أيام.</p>
                       </div>
                     </div>
@@ -628,8 +628,8 @@ export default function AdminWhatsApp() {
 
                 <div className="flex justify-end">
                   <button onClick={saveAuto} disabled={autoSaving}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#24507a] text-white text-sm font-medium transition-colors disabled:opacity-50">
-                    {autoSaving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[#24507a] text-white text-sm font-medium transition-colors disabled:opacity-50">
+                    {autoSaving ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaFloppyDisk className="w-4 h-4" />}
                     حفظ الإعدادات
                   </button>
                 </div>
@@ -642,7 +642,7 @@ export default function AdminWhatsApp() {
             <div className="space-y-4">
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
                 <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2 text-sm">
-                  <Users className="w-4 h-4 text-[#2d5d89]" /> إرسال رسائل جماعية
+                  <FaUsers className="w-4 h-4 text-[var(--primary)]" /> إرسال رسائل جماعية
                 </h3>
 
                 {/* Phone numbers */}
@@ -653,8 +653,8 @@ export default function AdminWhatsApp() {
                       <span className="text-xs text-gray-400 font-normal mr-2">({bulkPhones.split(/[\n,،]+/).filter(p=>p.trim()).length} رقم)</span>
                     </label>
                     <button onClick={importLeadsPhones} disabled={importingLeads}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-[#2d5d89]/10 text-[#2d5d89] hover:bg-[#2d5d89]/20 transition-colors font-medium disabled:opacity-50">
-                      {importingLeads ? <Loader className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-colors font-medium disabled:opacity-50">
+                      {importingLeads ? <FaSpinner className="w-3 h-3 animate-spin" /> : <FaDownload className="w-3 h-3" />}
                       استيراد من العملاء
                     </button>
                   </div>
@@ -684,7 +684,7 @@ export default function AdminWhatsApp() {
 
                 {/* Delay */}
                 <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
-                  <Clock className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <FaClock className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">التأخير بين الرسائل</span>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setBulkDelay(d => Math.max(1, d-1))} className="w-7 h-7 rounded-lg bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 text-sm font-bold hover:bg-gray-100 transition-colors flex items-center justify-center">−</button>
@@ -715,13 +715,13 @@ export default function AdminWhatsApp() {
 
                 {/* Warning */}
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <FaCircleExclamation className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700 dark:text-amber-400">الإرسال على التوالي بتأخير {bulkDelay}ث بين كل رسالة لتجنب الحظر. يجب الاتصال بالواتساب أولاً.</p>
                 </div>
 
                 <button onClick={handleBulk} disabled={bulkSending || status !== "connected"}
                   className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors disabled:opacity-50">
-                  {bulkSending ? <><Loader className="w-4 h-4 animate-spin" /> جارٍ الإرسال...</> : <><Send className="w-4 h-4" /> إرسال ({bulkPhones.split(/[\n,،]+/).filter(p=>p.trim()).length} رسالة)</>}
+                  {bulkSending ? <><FaSpinner className="w-4 h-4 animate-spin" /> جارٍ الإرسال...</> : <><FaPaperPlane className="w-4 h-4" /> إرسال ({bulkPhones.split(/[\n,،]+/).filter(p=>p.trim()).length} رسالة)</>}
                 </button>
                 {status !== "connected" && <p className="text-center text-xs text-red-500">يجب الاتصال بالواتساب أولاً من تبويب "الاتصال"</p>}
               </div>
@@ -753,15 +753,15 @@ export default function AdminWhatsApp() {
               {/* New / Edit template form */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
                 <h3 className="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#2d5d89]" />
+                  <FaFileLines className="w-4 h-4 text-[var(--primary)]" />
                   {editTplId ? "تعديل القالب" : "إضافة قالب جديد"}
                 </h3>
                 <input value={newTpl.name} onChange={(e) => setNewTpl(n => ({...n, name: e.target.value}))}
                   placeholder="اسم القالب (مثال: ترحيب عميل)"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-gray-900 dark:text-white" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-gray-900 dark:text-white" />
                 <textarea value={newTpl.body} onChange={(e) => setNewTpl(n => ({...n, body: e.target.value}))} rows={4}
                   placeholder={"مرحباً {name}،\nشكراً لتواصلك مع الصرح للتطوير العقاري 🏢\nسيتواصل معك فريقنا قريباً."}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-gray-900 dark:text-white resize-none" dir="rtl" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-gray-900 dark:text-white resize-none" dir="rtl" />
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                     <input type="checkbox" checked={newTpl.starred} onChange={(e) => setNewTpl(n => ({...n, starred: e.target.checked}))} className="w-4 h-4 rounded accent-amber-500" />
@@ -775,8 +775,8 @@ export default function AdminWhatsApp() {
                       </button>
                     )}
                     <button onClick={saveTemplate}
-                      className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium transition-colors">
-                      <Save className="w-3.5 h-3.5" /> {editTplId ? "تحديث" : "حفظ القالب"}
+                      className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--primary)] hover:bg-[#245079] text-white text-sm font-medium transition-colors">
+                      <FaFloppyDisk className="w-3.5 h-3.5" /> {editTplId ? "تحديث" : "حفظ القالب"}
                     </button>
                   </div>
                 </div>
@@ -786,16 +786,16 @@ export default function AdminWhatsApp() {
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
                   <div className="relative flex-1">
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                     <input value={tplSearch} onChange={(e) => setTplSearch(e.target.value)} placeholder="بحث في القوالب..."
-                      className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 text-gray-900 dark:text-white" />
+                      className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 text-gray-900 dark:text-white" />
                   </div>
                   <span className="text-xs text-gray-400">{filteredTemplates.length} قالب</span>
                 </div>
 
                 {filteredTemplates.length === 0 ? (
                   <div className="text-center py-12 text-gray-400">
-                    <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <FaFileLines className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     <p className="text-sm">{templates.length === 0 ? "لا يوجد قوالب بعد — أضف قالبك الأول أعلاه" : "لا نتائج"}</p>
                   </div>
                 ) : (
@@ -805,7 +805,7 @@ export default function AdminWhatsApp() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              {tpl.starred && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400 flex-shrink-0" />}
+                              {tpl.starred && <FaStar className="w-3.5 h-3.5 text-amber-400 fill-amber-400 flex-shrink-0" />}
                               <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{tpl.name}</p>
                               {tpl.usedCount > 0 && <span className="text-[10px] text-gray-400">استُخدم {tpl.usedCount}×</span>}
                             </div>
@@ -814,23 +814,23 @@ export default function AdminWhatsApp() {
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button onClick={() => toggleStar(tpl.id)} title={tpl.starred ? "إزالة التمييز" : "تمييز"}
                               className="w-7 h-7 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 flex items-center justify-center transition-colors">
-                              {tpl.starred ? <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> : <StarOff className="w-3.5 h-3.5 text-gray-400" />}
+                              {tpl.starred ? <FaStar className="w-3.5 h-3.5 text-amber-400 fill-amber-400" /> : <FaStarHalfStroke className="w-3.5 h-3.5 text-gray-400" />}
                             </button>
                             <button onClick={() => editTemplate(tpl)} title="تعديل"
                               className="w-7 h-7 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500 flex items-center justify-center transition-colors">
-                              <RefreshCw className="w-3.5 h-3.5" />
+                              <FaArrowsRotate className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => useTemplate(tpl.body, "test")} title="استخدام في الاختبار"
                               className="w-7 h-7 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500 flex items-center justify-center transition-colors">
-                              <Phone className="w-3.5 h-3.5" />
+                              <FaPhone className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => useTemplate(tpl.body, "bulk")} title="استخدام في الجماعي"
-                              className="w-7 h-7 rounded-lg hover:bg-[#2d5d89]/10 text-[#2d5d89] flex items-center justify-center transition-colors">
-                              <Users className="w-3.5 h-3.5" />
+                              className="w-7 h-7 rounded-lg hover:bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center transition-colors">
+                              <FaUsers className="w-3.5 h-3.5" />
                             </button>
                             <button onClick={() => deleteTemplate(tpl.id)} title="حذف"
                               className="w-7 h-7 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-400 flex items-center justify-center transition-colors">
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <FaTrash className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -855,26 +855,26 @@ export default function AdminWhatsApp() {
                   ))}
                 </div>
                 <div className="relative flex-1 min-w-[180px]">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                   <input value={logsSearch} onChange={(e) => setLogsSearch(e.target.value)} placeholder="بحث بالرقم أو الرسالة..."
-                    className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 text-gray-900 dark:text-white" />
+                    className="w-full pr-9 pl-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 text-gray-900 dark:text-white" />
                 </div>
                 <button onClick={exportLogsCSV}
                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <Download className="w-3.5 h-3.5" /> تصدير CSV
+                  <FaDownload className="w-3.5 h-3.5" /> تصدير CSV
                 </button>
                 <button onClick={loadLogs}
                   className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <RotateCcw className="w-3.5 h-3.5" /> تحديث
+                  <FaArrowRotateLeft className="w-3.5 h-3.5" /> تحديث
                 </button>
               </div>
 
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 {logsLoading ? (
-                  <div className="flex items-center justify-center py-12"><Loader className="w-5 h-5 animate-spin text-gray-400" /></div>
+                  <div className="flex items-center justify-center py-12"><FaSpinner className="w-5 h-5 animate-spin text-gray-400" /></div>
                 ) : filteredLogs.length === 0 ? (
                   <div className="text-center py-12 text-gray-400">
-                    <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <FaClockRotateLeft className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     <p className="text-sm">{logs.length === 0 ? "لا يوجد سجل رسائل بعد" : "لا نتائج للفلتر المحدد"}</p>
                     {logs.length === 0 && <p className="text-xs mt-1 text-gray-400">سيُسجَّل هنا كل رسالة مُرسَلة عبر النظام</p>}
                   </div>
@@ -906,7 +906,7 @@ export default function AdminWhatsApp() {
           {activeTab === "stats" && (
             <div className="space-y-4">
               {statsLoading ? (
-                <div className="flex items-center justify-center py-12"><Loader className="w-5 h-5 animate-spin text-gray-400" /></div>
+                <div className="flex items-center justify-center py-12"><FaSpinner className="w-5 h-5 animate-spin text-gray-400" /></div>
               ) : (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -920,7 +920,7 @@ export default function AdminWhatsApp() {
 
                   <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-4 text-sm flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-amber-500" /> حالة الأتومايشن
+                      <FaBolt className="w-4 h-4 text-amber-500" /> حالة الأتومايشن
                     </h3>
                     {auto ? (
                       <div className="space-y-2">
@@ -938,14 +938,14 @@ export default function AdminWhatsApp() {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-400 text-center py-4">
-                        <button onClick={() => setActiveTab("automation")} className="text-[#2d5d89] hover:underline">افتح تبويب الأتومايشن</button> لتحميل الإعدادات
+                        <button onClick={() => setActiveTab("automation")} className="text-[var(--primary)] hover:underline">افتح تبويب الأتومايشن</button> لتحميل الإعدادات
                       </p>
                     )}
                   </div>
 
                   {!statsData && (
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
-                      <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <FaCircleInfo className="w-4 h-4 flex-shrink-0 mt-0.5" />
                       الإحصائيات التفصيلية تحتاج endpoint <span className="font-mono bg-amber-100 dark:bg-amber-900/40 px-1 rounded">/api/whatsapp/stats</span> في الخادم.
                     </div>
                   )}
@@ -959,7 +959,7 @@ export default function AdminWhatsApp() {
           {activeTab === "test" && (
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
               <h3 className="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
-                <Phone className="w-4 h-4 text-green-600" /> إرسال رسالة اختبار
+                <FaPhone className="w-4 h-4 text-green-600" /> إرسال رسالة اختبار
               </h3>
               <div className="space-y-3">
                 <div>
@@ -985,7 +985,7 @@ export default function AdminWhatsApp() {
                 </div>
                 <button onClick={handleTest} disabled={sending || status !== "connected"}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
-                  {sending ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {sending ? <FaSpinner className="w-4 h-4 animate-spin" /> : <FaPaperPlane className="w-4 h-4" />}
                   إرسال اختبار
                 </button>
                 {status !== "connected" && <p className="text-xs text-red-500">يجب الاتصال بالواتساب أولاً</p>}

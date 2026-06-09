@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 const variants = {
   default:     "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-  primary:     "bg-[#2d5d89]/10 text-[#2d5d89] dark:bg-[#2d5d89]/20",
+  primary:     "bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[var(--primary)]/20",
   success:     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   warning:     "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   danger:      "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle, MessageCircle, Navigation } from "lucide-react";
+
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
@@ -171,7 +171,7 @@ export default function ContactPage() {
 
                 <button type="submit" disabled={loading}
                   className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-4 rounded-xl font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50 text-sm">
-                  <Send className="w-4 h-4" />
+                  <FaPaperPlane className="w-4 h-4" />
                   {loading ? "جاري الإرسال..." : "إرسال الرسالة"}
                 </button>
               </form>
@@ -193,26 +193,26 @@ export default function ContactPage() {
                   className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-[var(--primary)]" />
+                      <FaLocationDot className="w-5 h-5 text-[var(--primary)]" />
                     </div>
                     <h3 className="font-bold text-gray-900">{br.name || `فرع ${i + 1}`}</h3>
                   </div>
                   <div className="space-y-2.5 text-sm text-gray-600">
                     {br.address && (
                       <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <FaLocationDot className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                         <span>{br.address}</span>
                       </div>
                     )}
                     {br.phone && (
                       <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <FaPhone className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         <a href={`tel:${br.phone}`} className="hover:text-[var(--primary)] transition-colors">{br.phone}</a>
                       </div>
                     )}
                     {br.hours && (
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <FaClock className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         <span>{br.hours}</span>
                       </div>
                     )}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Plus, Play, ToggleLeft, ToggleRight, Trash2, RefreshCw, Clock, Calendar } from "lucide-react";
+import { FaPlus, FaTrash, FaPen, FaClock, FaCalendar, FaArrowsRotate } from 'react-icons/fa6';
+
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 
@@ -109,13 +110,13 @@ export default function RecurringPanel({ ledgerId, sheet }) {
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400">
-            <RefreshCw className="w-4 h-4" />
+            <FaArrowsRotate className="w-4 h-4" />
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2d5d89] text-white text-xs font-semibold hover:bg-[#245079]"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--primary)] text-white text-xs font-semibold hover:bg-[#245079]"
           >
-            <Plus className="w-3.5 h-3.5" /> إضافة
+            <FaPlus className="w-3.5 h-3.5" /> إضافة
           </button>
         </div>
       </div>
@@ -123,7 +124,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
       {/* Add Form */}
       {showForm && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
-          <p className="text-sm font-semibold text-[#2d5d89]">معاملة متكررة جديدة</p>
+          <p className="text-sm font-semibold text-[var(--primary)]">معاملة متكررة جديدة</p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -132,7 +133,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="مثال: إيجار شهري"
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white"
               />
             </div>
             <div>
@@ -140,7 +141,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
               <select
                 value={form.frequency}
                 onChange={(e) => setForm((f) => ({ ...f, frequency: e.target.value }))}
-                className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white"
+                className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white"
               >
                 <option value="daily">يومي</option>
                 <option value="weekly">أسبوعي</option>
@@ -159,7 +160,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                 max={28}
                 value={form.dayOfMonth}
                 onChange={(e) => setForm((f) => ({ ...f, dayOfMonth: Number(e.target.value) }))}
-                className="w-24 px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white"
+                className="w-24 px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white"
               />
             </div>
           )}
@@ -175,7 +176,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                     type={col.type === "number" || col.type === "currency" ? "number" : col.type === "date" ? "date" : "text"}
                     value={form.columns[col.key] ?? ""}
                     onChange={(e) => setColVal(col.key, e.target.value)}
-                    className="w-full px-2 py-1.5 rounded-lg border border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-[#2d5d89] bg-white"
+                    className="w-full px-2 py-1.5 rounded-lg border border-gray-300 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--primary)] bg-white"
                   />
                 </div>
               ))}
@@ -184,7 +185,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
 
           <div className="flex gap-2 pt-1">
             <button onClick={() => setShowForm(false)} className="flex-1 py-2 rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">إلغاء</button>
-            <button onClick={handleCreate} className="flex-1 py-2 rounded-xl bg-[#2d5d89] text-white text-sm font-semibold hover:bg-[#245079]">حفظ</button>
+            <button onClick={handleCreate} className="flex-1 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-semibold hover:bg-[#245079]">حفظ</button>
           </div>
         </div>
       )}
@@ -198,7 +199,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
         </div>
       ) : list.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
-          <Clock className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <FaClock className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p className="text-sm">لا توجد معاملات متكررة بعد</p>
           <p className="text-xs mt-1">أضف معاملة للبدء في الجدولة التلقائية</p>
         </div>
@@ -225,11 +226,11 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
+                      <FaClock className="w-3 h-3" />
                       آخر تشغيل: {fmtDate(rec.lastRunAt)}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
+                      <FaCalendar className="w-3 h-3" />
                       التالي: {fmtDate(rec.nextRunAt)}
                     </span>
                   </div>
@@ -244,7 +245,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                     className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#217346]/10 text-[#217346] hover:bg-[#217346]/20 transition-colors disabled:opacity-50"
                   >
                     {running === rec._id
-                      ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ? <FaArrowsRotate className="w-3.5 h-3.5 animate-spin" />
                       : <Play className="w-3.5 h-3.5" />
                     }
                   </button>
@@ -254,7 +255,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     {rec.isActive
-                      ? <ToggleRight className="w-4 h-4 text-[#2d5d89]" />
+                      ? <ToggleRight className="w-4 h-4 text-[var(--primary)]" />
                       : <ToggleLeft className="w-4 h-4 text-gray-400" />
                     }
                   </button>
@@ -263,7 +264,7 @@ export default function RecurringPanel({ ledgerId, sheet }) {
                     title="حذف"
                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <FaTrash className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

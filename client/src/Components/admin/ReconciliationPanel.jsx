@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Download, Filter, AlertCircle, CheckCircle2, BarChart2 } from "lucide-react";
+import { FaCheck, FaXmark, FaArrowsRotate, FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
+
 import * as XLSX from "xlsx";
 
 function fmtNum(n) {
@@ -62,7 +63,7 @@ export default function ReconciliationPanel({ rows, cols }) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400 text-sm p-8" dir="rtl">
         <div className="text-center">
-          <BarChart2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+          <FaChartBar className="w-12 h-12 mx-auto mb-3 opacity-30" />
           <p>يتطلب عمودين رقميين على الأقل للمطابقة</p>
         </div>
       </div>
@@ -81,7 +82,7 @@ export default function ReconciliationPanel({ rows, cols }) {
           onClick={exportReconcile}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#217346] text-white text-xs font-semibold hover:bg-[#1a5c38]"
         >
-          <Download className="w-3.5 h-3.5" /> تصدير
+          <FaDownload className="w-3.5 h-3.5" /> تصدير
         </button>
       </div>
 
@@ -93,7 +94,7 @@ export default function ReconciliationPanel({ rows, cols }) {
             <select
               value={colA}
               onChange={(e) => setColA(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white"
             >
               {numericCols.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
             </select>
@@ -103,7 +104,7 @@ export default function ReconciliationPanel({ rows, cols }) {
             <select
               value={colB}
               onChange={(e) => setColB(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] bg-white"
+              className="w-full px-3 py-2 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white"
             >
               {numericCols.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
             </select>
@@ -116,7 +117,7 @@ export default function ReconciliationPanel({ rows, cols }) {
               type="checkbox"
               checked={diffOnly}
               onChange={(e) => setDiffOnly(e.target.checked)}
-              className="accent-[#2d5d89]"
+              className="accent-[var(--primary)]"
             />
             فروقات فقط
           </label>
@@ -160,7 +161,7 @@ export default function ReconciliationPanel({ rows, cols }) {
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-auto max-h-[50vh]">
           <table className="w-full text-xs">
-            <thead className="sticky top-0 bg-[#2d5d89] text-white">
+            <thead className="sticky top-0 bg-[var(--primary)] text-white">
               <tr>
                 <th className="px-3 py-2.5 text-right">#</th>
                 {cols.filter((c) => c.type !== "formula").slice(0, 4).map((c) => (
@@ -197,7 +198,7 @@ export default function ReconciliationPanel({ rows, cols }) {
                     </td>
                     <td className="px-3 py-2 text-center">
                       {hasDiff
-                        ? <AlertCircle className="w-4 h-4 text-red-400 mx-auto" />
+                        ? <FaCircleExclamation className="w-4 h-4 text-red-400 mx-auto" />
                         : <CheckCircle2 className="w-4 h-4 text-emerald-400 mx-auto" />
                       }
                     </td>

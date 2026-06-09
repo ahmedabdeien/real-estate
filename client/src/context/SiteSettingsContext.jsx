@@ -25,7 +25,7 @@ export function SiteSettingsProvider({ children }) {
   }, []);
 
   function injectTheme(s) {
-    const primary   = s.primary_color   || "#2d5d89";
+    const primary   = s.primary_color   || "var(--primary)";
     const secondary = s.secondary_color || "#1a3d5c";
     const accent    = s.accent_color    || "#f59e0b";
 

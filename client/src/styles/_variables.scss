@@ -9,7 +9,7 @@ $gold-dark:     #6b5219;   // ذهبي داكن
 $gold-pale:     #f5e9c8;   // ذهبي شاحب (خلفيات)
 $navy:          #12283C;   // كحلي داكن
 $navy-mid:      #1a3d5c;   // كحلي متوسط
-$navy-light:    #2d5d89;   // أزرق
+$navy-light:    var(--primary);   // أزرق
 
 // ─── Semantic Aliases ───────────────────────────
 $primary:       $gold;

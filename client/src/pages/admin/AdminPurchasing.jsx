@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, Edit2, X, Search, ShoppingCart, Eye,
-  CheckCircle, XCircle, RefreshCw, ChevronDown, FileText,
-} from "lucide-react";
+  FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaCartShopping, FaEye,
+  FaCircleCheck, FaCircleXmark, FaArrowsRotate, FaChevronDown, FaFileLines,
+} from "react-icons/fa6";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
@@ -41,7 +41,7 @@ function Modal({ open, onClose, title, children, wide }) {
         <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h3 className="text-lg font-bold text-gray-900">{title}</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-            <X className="w-5 h-5 text-gray-500" />
+            <FaXmark className="w-5 h-5 text-gray-500" />
           </button>
         </div>
         <div className="p-5">{children}</div>
@@ -54,7 +54,7 @@ function Input({ label, ...props }) {
   return (
     <div>
       {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-      <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 focus:border-[#2d5d89]" {...props} />
+      <input className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]" {...props} />
     </div>
   );
 }
@@ -63,7 +63,7 @@ function Select({ label, children, ...props }) {
   return (
     <div>
       {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-      <select className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30 bg-white" {...props}>{children}</select>
+      <select className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30 bg-white" {...props}>{children}</select>
     </div>
   );
 }
@@ -85,8 +85,8 @@ function StatusPipeline({ currentStatus }) {
     <div className="flex items-center gap-1">
       {PIPELINE_STEPS.map((step, i) => (
         <div key={step.key} className="flex items-center gap-1">
-          <div className={`w-2 h-2 rounded-full ${i <= currentIdx ? "bg-[#2d5d89]" : "bg-gray-200"}`} title={step.label} />
-          {i < PIPELINE_STEPS.length - 1 && <div className={`w-4 h-0.5 ${i < currentIdx ? "bg-[#2d5d89]" : "bg-gray-200"}`} />}
+          <div className={`w-2 h-2 rounded-full ${i <= currentIdx ? "bg-[var(--primary)]" : "bg-gray-200"}`} title={step.label} />
+          {i < PIPELINE_STEPS.length - 1 && <div className={`w-4 h-0.5 ${i < currentIdx ? "bg-[var(--primary)]" : "bg-gray-200"}`} />}
         </div>
       ))}
       <span className="text-xs text-gray-600 mr-1">{PIPELINE_STEPS[currentIdx]?.label || currentStatus}</span>
@@ -222,10 +222,10 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-[#2d5d89]/5 border border-[#2d5d89]/10 rounded-xl p-3">
+        <div className="bg-[var(--primary)]/5 border border-[var(--primary)]/10 rounded-xl p-3">
           <p className="text-xs text-gray-500 mb-0.5">أكثر المورّدين طلباً</p>
           <p className="font-bold text-gray-900 truncate">{topSupplier ? topSupplier[0] : "—"}</p>
-          {topSupplier && <p className="text-xs text-[#2d5d89] mt-0.5">{topSupplier[1]} أمر شراء</p>}
+          {topSupplier && <p className="text-xs text-[var(--primary)] mt-0.5">{topSupplier[1]} أمر شراء</p>}
         </div>
         <div className="col-span-1 sm:col-span-2 bg-gray-50 border border-gray-100 rounded-xl p-3">
           <div className="flex justify-between items-center mb-1.5">
@@ -234,7 +234,7 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${monthTotal > MONTHLY_BUDGET ? "bg-red-500" : monthTotal > MONTHLY_BUDGET * 0.8 ? "bg-orange-400" : "bg-[#2d5d89]"}`}
+              className={`h-full rounded-full transition-all ${monthTotal > MONTHLY_BUDGET ? "bg-red-500" : monthTotal > MONTHLY_BUDGET * 0.8 ? "bg-orange-400" : "bg-[var(--primary)]"}`}
               style={{ width: `${Math.min(100, (monthTotal / MONTHLY_BUDGET) * 100)}%` }}
             />
           </div>
@@ -244,15 +244,15 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الأمر أو المورد..." className="w-full border border-gray-200 rounded-xl pr-10 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+          <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الأمر أو المورد..." className="w-full border border-gray-200 rounded-xl pr-10 pl-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none">
           <option value="">كل الحالات</option>
           {Object.entries(ORDER_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
-        <button onClick={() => { setForm(emptyForm); setCreateModal(true); }} className="flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
-          <Plus className="w-4 h-4" /> أمر شراء جديد
+        <button onClick={() => { setForm(emptyForm); setCreateModal(true); }} className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+          <FaPlus className="w-4 h-4" /> أمر شراء جديد
         </button>
       </div>
 
@@ -285,17 +285,17 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5 flex-wrap">
-                      <button onClick={() => setViewModal(order)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="عرض"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => setViewModal(order)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="عرض"><FaEye className="w-4 h-4" /></button>
                       {order.status === "draft" && (
                         <button onClick={() => approveOrder(order._id)} className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors" title="موافقة">
-                          <CheckCircle className="w-3.5 h-3.5" /> موافقة
+                          <FaCircleCheck className="w-3.5 h-3.5" /> موافقة
                         </button>
                       )}
                       {(order.status === "sent" || order.status === "partial") && (
-                        <button onClick={() => openReceive(order)} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 transition-colors" title="استلام"><CheckCircle className="w-4 h-4" /></button>
+                        <button onClick={() => openReceive(order)} className="p-1.5 rounded-lg hover:bg-green-50 text-green-600 transition-colors" title="استلام"><FaCircleCheck className="w-4 h-4" /></button>
                       )}
                       {order.status === "draft" && (
-                        <button onClick={() => cancelOrder(order._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="إلغاء"><XCircle className="w-4 h-4" /></button>
+                        <button onClick={() => cancelOrder(order._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="إلغاء"><FaCircleXmark className="w-4 h-4" /></button>
                       )}
                     </div>
                   </td>
@@ -325,7 +325,7 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-gray-700">الأصناف *</label>
-              <button onClick={addItemRow} className="text-xs text-[#2d5d89] hover:underline flex items-center gap-1"><Plus className="w-3 h-3" />إضافة صنف</button>
+              <button onClick={addItemRow} className="text-xs text-[var(--primary)] hover:underline flex items-center gap-1"><FaPlus className="w-3 h-3" />إضافة صنف</button>
             </div>
             <div className="space-y-2">
               {form.items.map((row, idx) => (
@@ -338,7 +338,7 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
                   <input type="number" value={row.unitCost} onChange={(e) => updateItemRow(idx, "unitCost", e.target.value)} placeholder="سعر" className="w-24 border border-gray-200 rounded-xl px-2 py-2 text-sm focus:outline-none" />
                   <span className="text-xs text-gray-500 w-20 text-left">{(Number(row.qty) * Number(row.unitCost)).toLocaleString("ar-EG")} ج</span>
                   {form.items.length > 1 && (
-                    <button onClick={() => removeItemRow(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors"><X className="w-4 h-4" /></button>
+                    <button onClick={() => removeItemRow(idx)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-400 transition-colors"><FaXmark className="w-4 h-4" /></button>
                   )}
                 </div>
               ))}
@@ -359,11 +359,11 @@ function OrdersTab({ suppliers, warehouseItems, warehouses }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">ملاحظات</label>
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]/30" />
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/30" />
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button onClick={saveOrder} disabled={saving} className="flex-1 bg-[#2d5d89] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] transition-colors disabled:opacity-60">
+            <button onClick={saveOrder} disabled={saving} className="flex-1 bg-[var(--primary)] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] transition-colors disabled:opacity-60">
               {saving ? "جاري الحفظ..." : "إنشاء أمر الشراء"}
             </button>
             <button onClick={() => setCreateModal(false)} className="flex-1 border border-gray-200 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors">إلغاء</button>
@@ -504,8 +504,8 @@ function SuppliersTab({ onRefresh }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={openAdd} className="flex items-center gap-2 bg-[#2d5d89] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
-          <Plus className="w-4 h-4" /> إضافة مورد
+        <button onClick={openAdd} className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-[#245079] transition-colors">
+          <FaPlus className="w-4 h-4" /> إضافة مورد
         </button>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-gray-100">
@@ -532,8 +532,8 @@ function SuppliersTab({ onRefresh }) {
                 <td className="px-4 py-3 text-gray-600 font-mono text-xs">{s.taxNumber || "—"}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><Edit2 className="w-4 h-4" /></button>
-                    <button onClick={() => setDeleteId(s._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors"><FaPen className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteId(s._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors"><FaTrash className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -548,7 +548,7 @@ function SuppliersTab({ onRefresh }) {
           <Input label="البريد الإلكتروني" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" />
           <Input label="الرقم الضريبي" value={form.taxNumber} onChange={(e) => setForm({ ...form, taxNumber: e.target.value })} placeholder="الرقم الضريبي" />
           <div className="flex gap-3 pt-2">
-            <button onClick={save} disabled={saving} className="flex-1 bg-[#2d5d89] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
+            <button onClick={save} disabled={saving} className="flex-1 bg-[var(--primary)] text-white py-2.5 rounded-xl font-medium text-sm hover:bg-[#245079] disabled:opacity-60">
               {saving ? "جاري الحفظ..." : "حفظ"}
             </button>
             <button onClick={() => setModal(false)} className="flex-1 border border-gray-200 py-2.5 rounded-xl font-medium text-sm hover:bg-gray-50">إلغاء</button>
@@ -651,8 +651,8 @@ export default function AdminPurchasing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center">
-            <ShoppingCart className="w-6 h-6 text-[#2d5d89]" />
+          <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
+            <FaCartShopping className="w-6 h-6 text-[var(--primary)]" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">إدارة المشتريات</h1>
@@ -667,7 +667,7 @@ export default function AdminPurchasing() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                activeTab === tab.key ? "bg-[#2d5d89] text-white shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                activeTab === tab.key ? "bg-[var(--primary)] text-white shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
               {tab.label}

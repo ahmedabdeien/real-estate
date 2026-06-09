@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";
-import { Building2, Mail, Lock, Eye, EyeOff, Home } from "lucide-react";
+import { FaBuilding, FaHouseChimney, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../api/axios";
@@ -96,13 +96,13 @@ export default function AdminLogin() {
     <div className="min-h-screen flex" dir="rtl">
       {/* Left panel — info/image (desktop only) */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[#2d5d89] overflow-hidden"
+        className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[var(--primary)] overflow-hidden"
       >
         {/* Background image overlay */}
         {cms.heroImage && (
           <div className="absolute inset-0">
             <img src={cms.heroImage} alt="" className="w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0f2336]/80 to-[#2d5d89]/60" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0f2336]/80 to-[var(--primary)]/60" />
           </div>
         )}
         <div className="relative z-10 text-center text-white">
@@ -110,7 +110,7 @@ export default function AdminLogin() {
             {loginCms?.logo_url ? (
               <img src={loginCms.logo_url} alt="logo" className="h-12 object-contain" />
             ) : (
-              <Building2 className="w-10 h-10 text-white" />
+              <FaBuilding className="w-10 h-10 text-white" />
             )}
           </div>
           <h1 className="text-3xl font-black mb-3 leading-tight">{cms.heroTitle}</h1>
@@ -124,13 +124,13 @@ export default function AdminLogin() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[#2d5d89] via-[#1a3d5c] to-[#0f2336] lg:bg-none lg:bg-[#f8fafc] relative p-4">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[var(--primary)] via-[#1a3d5c] to-[#0f2336] lg:bg-none lg:bg-[#f8fafc] relative p-4">
         {/* Home button */}
         <Link
           to="/"
           className="absolute top-4 left-4 flex items-center gap-2 bg-white/15 hover:bg-white/25 lg:bg-gray-100 lg:hover:bg-gray-200 text-white lg:text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition-colors backdrop-blur-sm"
         >
-          <Home className="w-4 h-4" />
+          <FaHouseChimney className="w-4 h-4" />
           <span className="hidden sm:inline">الرئيسية</span>
         </Link>
 
@@ -141,7 +141,7 @@ export default function AdminLogin() {
               {loginCms?.logo_url ? (
                 <img src={loginCms.logo_url} alt="logo" className="h-10 object-contain" />
               ) : (
-                <Building2 className="w-8 h-8 text-white" />
+                <FaBuilding className="w-8 h-8 text-white" />
               )}
             </div>
             <h1 className="text-2xl font-bold text-white">{cms.heroTitle}</h1>
@@ -186,14 +186,14 @@ export default function AdminLogin() {
                   البريد الإلكتروني
                 </label>
                 <div className="relative">
-                  <Mail className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
                   <input
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="admin@elsarh.com"
                     required
-                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
+                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm"
                   />
                 </div>
               </div>
@@ -203,21 +203,21 @@ export default function AdminLogin() {
                   كلمة المرور
                 </label>
                 <div className="relative">
-                  <Lock className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+                  <FaLock className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
                   <input
                     type={showPass ? "text" : "password"}
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     placeholder="••••••••"
                     required
-                    className="w-full pr-10 pl-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm"
+                    className="w-full pr-10 pl-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
                     className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-400 hover:text-gray-600"
                   >
-                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPass ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -225,7 +225,7 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={loading || googleLoading}
-                className="w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 text-sm"
+                className="w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 text-sm"
               >
                 {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
               </button>

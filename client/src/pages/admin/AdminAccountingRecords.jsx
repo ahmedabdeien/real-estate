@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
+import { FaPlus, FaTrash, FaPen, FaArrowsRotate, FaDownload, FaMagnifyingGlass, FaXmark, FaFilter, FaChevronDown } from 'react-icons/fa6';
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, Trash2, Edit2, X, Download, Search, AlertTriangle,
-  BookOpen, TrendingUp, TrendingDown, Scale, Filter, Calendar,
-} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import HelpCard from "../../Components/UI/HelpCard";
@@ -94,7 +91,7 @@ function EntryModal({ open, onClose, onSave, initial }) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="font-bold text-gray-900 text-lg">{initial ? "تعديل القيد" : "قيد محاسبي جديد"}</h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400">
-            <X className="w-4 h-4" />
+            <FaXmark className="w-4 h-4" />
           </button>
         </div>
 
@@ -105,7 +102,7 @@ function EntryModal({ open, onClose, onSave, initial }) {
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
 
@@ -115,7 +112,7 @@ function EntryModal({ open, onClose, onSave, initial }) {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="مثال: تحصيل مبلغ من عميل"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
 
@@ -151,7 +148,7 @@ function EntryModal({ open, onClose, onSave, initial }) {
               value={form.amount}
               onChange={(e) => setForm({ ...form, amount: e.target.value })}
               placeholder="0.00"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
         </div>
@@ -160,7 +157,7 @@ function EntryModal({ open, onClose, onSave, initial }) {
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm hover:bg-white">
             إلغاء
           </button>
-          <button onClick={submit} className="flex-1 py-2.5 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium">
+          <button onClick={submit} className="flex-1 py-2.5 rounded-xl bg-[var(--primary)] hover:bg-[#245079] text-white text-sm font-medium">
             {initial ? "حفظ التعديل" : "إضافة القيد"}
           </button>
         </div>
@@ -276,7 +273,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
       <div className="flex items-center justify-center h-80" dir="rtl">
         <div className="text-center">
           <div className="w-20 h-20 rounded-2xl bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-10 h-10 text-red-500" />
+            <FaTriangleExclamation className="w-10 h-10 text-red-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">غير مصرح بالدخول</h2>
           <p className="text-gray-500 text-sm">هذه الصفحة مخصصة لقسم الحسابات والمديرين فقط</p>
@@ -301,8 +298,8 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
       {/* ── Header ── */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-[#2d5d89]" />
+          <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
+            <FaBookOpen className="w-5 h-5 text-[var(--primary)]" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">السجلات المحاسبية{branchLabel ? ` — ${branchLabel}` : ""}</h1>
@@ -312,11 +309,11 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
         <div className="flex items-center gap-2">
           <button onClick={exportCsv}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm font-medium">
-            <Download className="w-4 h-4" /> تصدير CSV
+            <FaDownload className="w-4 h-4" /> تصدير CSV
           </button>
           <button onClick={() => { setEditItem(null); setModalOpen(true); }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#2d5d89] hover:bg-[#245079] text-white text-sm font-medium">
-            <Plus className="w-4 h-4" /> قيد جديد
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--primary)] hover:bg-[#245079] text-white text-sm font-medium">
+            <FaPlus className="w-4 h-4" /> قيد جديد
           </button>
         </div>
       </div>
@@ -326,7 +323,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
+              <FaChartLine className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
               <p className="text-xs text-gray-400">إجمالي المدين</p>
@@ -347,12 +344,12 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
         </div>
         <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#2d5d89]/10 flex items-center justify-center">
-              <Scale className="w-5 h-5 text-[#2d5d89]" />
+            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+              <FaScaleBalanced className="w-5 h-5 text-[var(--primary)]" />
             </div>
             <div>
               <p className="text-xs text-gray-400">الرصيد</p>
-              <p className={`text-lg font-bold ${totals.balance === 0 ? "text-[#2d5d89]" : "text-amber-600"}`}>
+              <p className={`text-lg font-bold ${totals.balance === 0 ? "text-[var(--primary)]" : "text-amber-600"}`}>
                 {fmt(totals.balance)} ج.م
               </p>
             </div>
@@ -364,29 +361,29 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
       <div className="bg-white rounded-2xl border border-gray-100 p-3 sm:p-4 shadow-sm">
         <div className="flex flex-wrap gap-2 items-center">
           <div className="relative flex-1 min-w-40">
-            <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaMagnifyingGlass className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="بحث في البيان أو الحساب..."
-              className="w-full pr-8 pl-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="w-full pr-8 pl-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
           <select
             value={accountFilter}
             onChange={(e) => setAccountFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+            className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
           >
             <option value="all">كل الحسابات</option>
             {ACCOUNTS.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
           <div className="flex items-center gap-1">
-            <Calendar className="w-4 h-4 text-gray-400" />
+            <FaCalendar className="w-4 h-4 text-gray-400" />
             <input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="px-2 py-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="px-2 py-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               title="من تاريخ"
             />
             <span className="text-gray-400 text-xs">إلى</span>
@@ -394,7 +391,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="px-2 py-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-[#2d5d89]"
+              className="px-2 py-2 rounded-xl border border-gray-200 bg-white text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               title="إلى تاريخ"
             />
           </div>
@@ -403,7 +400,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
               onClick={() => { setSearch(""); setAccountFilter("all"); setFromDate(""); setToDate(""); }}
               className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-medium flex items-center gap-1"
             >
-              <X className="w-3 h-3" /> مسح الفلاتر
+              <FaXmark className="w-3 h-3" /> مسح الفلاتر
             </button>
           )}
         </div>
@@ -417,7 +414,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
-            <thead className="bg-[#2d5d89] text-white">
+            <thead className="bg-[var(--primary)] text-white">
               <tr>
                 <th className="px-4 py-3 text-right font-semibold whitespace-nowrap text-xs">التاريخ</th>
                 <th className="px-4 py-3 text-right font-semibold text-xs">البيان</th>
@@ -431,7 +428,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12 text-gray-400">
-                    <BookOpen className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+                    <FaBookOpen className="w-10 h-10 mx-auto mb-2 text-gray-300" />
                     <p className="text-sm">لا توجد قيود — اضغط "قيد جديد" لإضافة أول قيد</p>
                   </td>
                 </tr>
@@ -460,7 +457,7 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
                           {r.creditAccount}
                         </span>
                       </td>
-                      <td className="px-4 py-2.5 text-left font-bold text-[#2d5d89] whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-left font-bold text-[var(--primary)] whitespace-nowrap">
                         {fmt(r.amount)} ج.م
                       </td>
                       <td className="px-3 py-2.5">
@@ -470,14 +467,14 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
                             className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-100 text-gray-400 hover:text-blue-600"
                             title="تعديل"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <FaPen className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => deleteRecord(r.id)}
                             className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-600"
                             title="حذف"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <FaTrash className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -488,9 +485,9 @@ export default function AdminAccountingRecords({ branch = null, branchLabel = nu
 
               {/* Totals row */}
               {filtered.length > 0 && (
-                <tr className="bg-blue-50 font-bold border-t-2 border-[#2d5d89]">
-                  <td colSpan={4} className="px-4 py-3 text-[#2d5d89] text-sm">الإجمالي</td>
-                  <td className="px-4 py-3 text-left text-[#2d5d89] whitespace-nowrap">
+                <tr className="bg-blue-50 font-bold border-t-2 border-[var(--primary)]">
+                  <td colSpan={4} className="px-4 py-3 text-[var(--primary)] text-sm">الإجمالي</td>
+                  <td className="px-4 py-3 text-left text-[var(--primary)] whitespace-nowrap">
                     {fmt(totals.debit)} ج.م
                   </td>
                   <td />

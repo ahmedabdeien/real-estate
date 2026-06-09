@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
+import { FaBriefcase, FaLocationDot, FaClock, FaMoneyBill, FaArrowRight, FaCheck } from 'react-icons/fa6';
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Briefcase, MapPin, Calendar, Clock, ArrowRight, Share2,
-  CheckCircle, Link2, Facebook, Twitter, Linkedin, MessageCircle,
-  Copy, ChevronLeft, Users, DollarSign, ExternalLink,
-} from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 
@@ -98,7 +94,7 @@ export default function CareerDetail() {
   return (
     <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[#2d5d89] py-14">
+      <div className="bg-gradient-to-br from-[#1a3d5c] to-[var(--primary)] py-14">
         <div className="container mx-auto px-4">
           <Link to="/careers" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm mb-6 transition-colors">
             <ArrowRight className="w-4 h-4" /> العودة للوظائف
@@ -124,20 +120,20 @@ export default function CareerDetail() {
               {career.title?.en && <p className="text-white/60 text-lg mb-4">{career.title.en}</p>}
               <div className="flex flex-wrap gap-5 text-white/70 text-sm">
                 {career.department?.ar && (
-                  <span className="flex items-center gap-2"><Briefcase className="w-4 h-4" />{career.department.ar}</span>
+                  <span className="flex items-center gap-2"><FaBriefcase className="w-4 h-4" />{career.department.ar}</span>
                 )}
                 {career.location?.ar && (
-                  <span className="flex items-center gap-2"><MapPin className="w-4 h-4" />{career.location.ar}</span>
+                  <span className="flex items-center gap-2"><FaLocationDot className="w-4 h-4" />{career.location.ar}</span>
                 )}
                 {career.deadline && (
                   <span className={`flex items-center gap-2 ${isExpired ? "text-red-300" : ""}`}>
-                    <Calendar className="w-4 h-4" />
+                    <FaCalendar className="w-4 h-4" />
                     آخر موعد: {new Date(career.deadline).toLocaleDateString("ar-EG")}
                   </span>
                 )}
                 {career.salary?.min && !career.salary?.hidden && (
                   <span className="flex items-center gap-2 text-green-300">
-                    <DollarSign className="w-4 h-4" />
+                    <FaDollarSign className="w-4 h-4" />
                     {Number(career.salary.min).toLocaleString("ar-EG")} — {Number(career.salary.max).toLocaleString("ar-EG")} {career.salary.currency}
                   </span>
                 )}
@@ -166,7 +162,7 @@ export default function CareerDetail() {
                     className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-medium transition-colors ${
                       copied ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"
                     }`}>
-                    <Copy className="w-3.5 h-3.5" />
+                    <FaCopy className="w-3.5 h-3.5" />
                     {copied ? "تم النسخ!" : "نسخ الرابط"}
                   </button>
                 </motion.div>
@@ -184,7 +180,7 @@ export default function CareerDetail() {
             {career.description?.ar && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-[#2d5d89]" /> وصف الوظيفة
+                  <FaBriefcase className="w-5 h-5 text-[var(--primary)]" /> وصف الوظيفة
                 </h2>
                 <p className="text-gray-600 leading-relaxed whitespace-pre-line">{career.description.ar}</p>
               </div>
@@ -194,13 +190,13 @@ export default function CareerDetail() {
             {career.requirements?.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-[#2d5d89]" /> المتطلبات
+                  <CheckCircle className="w-5 h-5 text-[var(--primary)]" /> المتطلبات
                 </h2>
                 <ul className="space-y-3">
                   {career.requirements.map((r, i) => (
                     <li key={i} className="flex items-start gap-3">
-                      <span className="w-5 h-5 rounded-full bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle className="w-3 h-3 text-[#2d5d89]" />
+                      <span className="w-5 h-5 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircle className="w-3 h-3 text-[var(--primary)]" />
                       </span>
                       <span className="text-gray-700 text-sm leading-relaxed">{r}</span>
                     </li>
@@ -212,7 +208,7 @@ export default function CareerDetail() {
             {/* Share section (mobile) */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm lg:hidden">
               <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-[#2d5d89]" /> شارك هذه الوظيفة
+                <Share2 className="w-4 h-4 text-[var(--primary)]" /> شارك هذه الوظيفة
               </h2>
               <div className="grid grid-cols-2 gap-2">
                 {shareLinks.map(s => (
@@ -224,7 +220,7 @@ export default function CareerDetail() {
               </div>
               <button onClick={copyLink}
                 className={`w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-colors ${copied ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                <Copy className="w-4 h-4" /> {copied ? "تم النسخ!" : "نسخ الرابط"}
+                <FaCopy className="w-4 h-4" /> {copied ? "تم النسخ!" : "نسخ الرابط"}
               </button>
             </div>
           </div>
@@ -237,7 +233,7 @@ export default function CareerDetail() {
 
               {isExpired ? (
                 <div className="text-center py-6">
-                  <Calendar className="w-10 h-10 text-red-300 mx-auto mb-2" />
+                  <FaCalendar className="w-10 h-10 text-red-300 mx-auto mb-2" />
                   <p className="text-gray-500 text-sm">انتهت مدة التقديم على هذه الوظيفة</p>
                 </div>
               ) : sent ? (
@@ -252,21 +248,21 @@ export default function CareerDetail() {
                 <div>
                   <p className="text-gray-500 text-sm mb-4">للتقديم على هذه الوظيفة يرجى الضغط على الزر أدناه</p>
                   <a href={career.cv_link} target="_blank" rel="noreferrer"
-                    className="flex items-center justify-center gap-2 w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-3 rounded-xl text-sm font-bold transition-colors">
-                    <ExternalLink className="w-4 h-4" /> تقديم عبر الرابط
+                    className="flex items-center justify-center gap-2 w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-3 rounded-xl text-sm font-bold transition-colors">
+                    <FaArrowUpRightFromSquare className="w-4 h-4" /> تقديم عبر الرابط
                   </a>
                 </div>
               ) : (
                 <form onSubmit={handleApply} className="space-y-3">
                   <input value={form.name} onChange={e => setForm({...form, name: e.target.value})}
                     placeholder="الاسم الكامل *" required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
                   <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
                     placeholder="رقم الهاتف *" required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
                   <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
                     placeholder="البريد الإلكتروني *" required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
                       <Link2 className="w-3.5 h-3.5 text-gray-400" />
@@ -274,10 +270,10 @@ export default function CareerDetail() {
                     </div>
                     <input type="url" value={form.cv_link} onChange={e => setForm({...form, cv_link: e.target.value})}
                       placeholder="https://drive.google.com/..."
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89]" />
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
                   </div>
                   <button type="submit" disabled={sending}
-                    className="w-full bg-[#2d5d89] hover:bg-[#245079] text-white py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-50">
+                    className="w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-50">
                     {sending ? "جاري الإرسال..." : "إرسال الطلب"}
                   </button>
                 </form>
@@ -287,7 +283,7 @@ export default function CareerDetail() {
             {/* Share (desktop) */}
             <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hidden lg:block">
               <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-[#2d5d89]" /> مشاركة الوظيفة
+                <Share2 className="w-4 h-4 text-[var(--primary)]" /> مشاركة الوظيفة
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 {shareLinks.map(s => (
@@ -299,7 +295,7 @@ export default function CareerDetail() {
               </div>
               <button onClick={copyLink}
                 className={`w-full mt-2 flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-medium transition-colors ${copied ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                <Copy className="w-3.5 h-3.5" /> {copied ? "تم النسخ!" : "نسخ الرابط"}
+                <FaCopy className="w-3.5 h-3.5" /> {copied ? "تم النسخ!" : "نسخ الرابط"}
               </button>
             </div>
           </div>
@@ -312,14 +308,14 @@ export default function CareerDetail() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {related.map(c => (
                 <Link key={c._id} to={`/careers/${c._id}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:border-[#2d5d89]/30 hover:shadow-md transition-all group">
+                  className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:border-[var(--primary)]/30 hover:shadow-md transition-all group">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#2d5d89]/10 flex items-center justify-center">
-                      <Briefcase className="w-4 h-4 text-[#2d5d89]" />
+                    <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
+                      <FaBriefcase className="w-4 h-4 text-[var(--primary)]" />
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[c.type]}`}>{TYPE_LABELS[c.type]}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-[#2d5d89] transition-colors">{c.title?.ar}</h3>
+                  <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-[var(--primary)] transition-colors">{c.title?.ar}</h3>
                   <p className="text-gray-400 text-xs">{c.department?.ar} • {c.location?.ar}</p>
                 </Link>
               ))}

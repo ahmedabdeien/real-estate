@@ -123,7 +123,7 @@ function NotFound() {
       <div className="text-center">
         <p className="text-8xl font-black text-gray-200">404</p>
         <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-2">الصفحة غير موجودة</h1>
-        <a href="/" className="text-[#2d5d89] font-semibold hover:underline">العودة للرئيسية</a>
+        <a href="/" className="text-[var(--primary)] font-semibold hover:underline">العودة للرئيسية</a>
       </div>
     </div>
   );

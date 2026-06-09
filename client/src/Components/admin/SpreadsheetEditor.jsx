@@ -7,11 +7,7 @@
  * Tab 4: Dropbox        → Dropbox file preview
  */
 import { useState, lazy, Suspense } from "react";
-import {
-  ExternalLink, Link2, X, Grid3x3, Globe,
-  Cloud, RefreshCw, Check, Copy,
-  FolderOpen, Info,
-} from "lucide-react";
+import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaCheck, FaDownload, FaUpload, FaArrowsRotate, FaPrint, FaChevronDown, FaChevronUp, FaGripLines, FaTableList, FaFileExcel, FaFilter, FaBookmark, FaBookOpen, FaCalculator, FaEye, FaEyeSlash, FaCopy, FaFileArrowDown, FaClipboardList, FaSortUp, FaSortDown, FaBars, FaWandMagicSparkles, FaChartBar, FaCircleExclamation } from 'react-icons/fa6';
 import { useToast } from "../../context/ToastContext";
 
 const HansoEditor = lazy(() => import("./HansoEditor"));
@@ -55,7 +51,7 @@ function CloudPane({ provider, storageKey, buildEmbed, placeholder, icon: Icon, 
         <div className="w-full max-w-md rounded-xl p-3 text-xs border"
           style={{ backgroundColor: color + "0d", borderColor: color + "30", color }}>
           <p className="font-bold mb-1.5 flex items-center gap-1">
-            <Info className="w-3.5 h-3.5" /> خطوات الربط:
+            <FaCircleInfo className="w-3.5 h-3.5" /> خطوات الربط:
           </p>
           <ol className="list-decimal list-inside space-y-0.5 opacity-80">
             {steps.map((s, i) => <li key={i}>{s}</li>)}
@@ -92,24 +88,24 @@ function CloudPane({ provider, storageKey, buildEmbed, placeholder, icon: Icon, 
       <div className="flex items-center gap-2 mb-2 px-1 flex-wrap">
         <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium"
           style={{ backgroundColor: color + "12", color }}>
-          <Check className="w-3 h-3" /> مرتبط
+          <FaCheck className="w-3 h-3" /> مرتبط
         </span>
         <div className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 overflow-hidden flex items-center gap-2">
           <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color }} />
           <span className="text-xs text-gray-500 truncate" dir="ltr">{url}</span>
         </div>
         <button onClick={copyLink} title="نسخ الرابط" className="p-1.5 rounded-lg border hover:bg-gray-50">
-          {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-gray-500" />}
+          {copied ? <FaCheck className="w-3.5 h-3.5 text-green-500" /> : <FaCopy className="w-3.5 h-3.5 text-gray-500" />}
         </button>
         <button onClick={() => { setInput(url); setEditing(true); }} title="تغيير الرابط"
           className="p-1.5 rounded-lg border hover:bg-gray-50"><Link2 className="w-3.5 h-3.5 text-gray-500" /></button>
         <a href={url} target="_blank" rel="noopener noreferrer" title="فتح في تبويب جديد"
-          className="p-1.5 rounded-lg border hover:bg-gray-50"><ExternalLink className="w-3.5 h-3.5 text-gray-500" /></a>
+          className="p-1.5 rounded-lg border hover:bg-gray-50"><FaArrowUpRightFromSquare className="w-3.5 h-3.5 text-gray-500" /></a>
         <button
           onClick={() => { localStorage.removeItem(`${storageKey}_${provider}url`); setUrl(""); setEditing(true); }}
           title="إلغاء الربط"
           className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-400">
-          <X className="w-3.5 h-3.5" />
+          <FaXmark className="w-3.5 h-3.5" />
         </button>
       </div>
 
@@ -189,7 +185,7 @@ const PROVIDERS = [
     id:    "local",
     label: "جداول محلية",
     icon:  Grid3x3,
-    color: "#2d5d89",
+    color: "var(--primary)",
     desc:  "تعمل بدون إنترنت — استيراد/تصدير جميع صيغ Excel وApple Numbers",
   },
   {
@@ -282,11 +278,11 @@ function DropboxPane({ storageKey }) {
       <div className="flex gap-3">
         <a href={url} target="_blank" rel="noopener noreferrer"
           className="flex items-center gap-2 px-5 py-2.5 bg-[#0061FF] text-white rounded-xl text-sm font-medium hover:bg-blue-700">
-          <ExternalLink className="w-4 h-4" /> فتح في Dropbox
+          <FaArrowUpRightFromSquare className="w-4 h-4" /> فتح في Dropbox
         </a>
         <button onClick={() => { localStorage.removeItem(`${storageKey}_dropboxurl`); setUrl(""); setEditing(true); }}
           className="px-4 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm hover:bg-red-50">
-          <X className="w-4 h-4" />
+          <FaXmark className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -344,7 +340,7 @@ export default function SpreadsheetEditor({ cols, rows, sheetId }) {
         <Suspense fallback={
           <div className="flex items-center justify-center h-[60vh] rounded-2xl border border-gray-200 bg-gray-50">
             <div className="text-center">
-              <div className="w-8 h-8 border-2 border-[#2d5d89] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               <p className="text-sm text-gray-500">جاري تحميل محرر الجداول...</p>
             </div>
           </div>

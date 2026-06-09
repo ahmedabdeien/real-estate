@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Building2, Phone, Mail, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
+import { FaBuilding, FaPhone, FaEnvelope, FaLocationDot, FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa6";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useCms } from "../../hooks/useCms";
 
@@ -36,8 +36,8 @@ export default function Footer() {
               {logo ? (
                 <img src={logo} alt={name} className="h-10 w-auto object-contain" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-[#2d5d89] flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
+                  <FaBuilding className="w-5 h-5 text-white" />
                 </div>
               )}
               <span className="font-bold text-lg">{name}</span>
@@ -46,17 +46,17 @@ export default function Footer() {
             <div className="flex items-center gap-3 mt-4">
               {facebook !== "#" || true ? (
                 <a href={facebook || "#"} target="_blank" rel="noreferrer"
-                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#2d5d89] flex items-center justify-center transition-colors">
-                  <Facebook className="w-4 h-4" />
+                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[var(--primary)] flex items-center justify-center transition-colors">
+                  <FaFacebook className="w-4 h-4" />
                 </a>
               ) : null}
               <a href={instagram || "#"} target="_blank" rel="noreferrer"
-                className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#2d5d89] flex items-center justify-center transition-colors">
-                <Instagram className="w-4 h-4" />
+                className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[var(--primary)] flex items-center justify-center transition-colors">
+                <FaInstagram className="w-4 h-4" />
               </a>
               <a href={youtube || "#"} target="_blank" rel="noreferrer"
-                className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#2d5d89] flex items-center justify-center transition-colors">
-                <Youtube className="w-4 h-4" />
+                className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[var(--primary)] flex items-center justify-center transition-colors">
+                <FaYoutube className="w-4 h-4" />
               </a>
             </div>
           </div>
@@ -86,15 +86,15 @@ export default function Footer() {
             <h3 className="font-bold text-sm mb-4 text-gray-200 uppercase tracking-wide">تواصل معنا</h3>
             <ul className="space-y-3">
               <li className="flex items-center gap-2.5 text-gray-400 text-sm">
-                <Phone className="w-4 h-4 flex-shrink-0 text-[#f59e0b]" />
+                <FaPhone className="w-4 h-4 flex-shrink-0 text-[#f59e0b]" />
                 <a href={`tel:+2${phone}`} className="hover:text-white transition-colors">{phone}</a>
               </li>
               <li className="flex items-center gap-2.5 text-gray-400 text-sm">
-                <Mail className="w-4 h-4 flex-shrink-0 text-[#f59e0b]" />
+                <FaEnvelope className="w-4 h-4 flex-shrink-0 text-[#f59e0b]" />
                 <a href={`mailto:${email}`} className="hover:text-white transition-colors">{email}</a>
               </li>
               <li className="flex items-start gap-2.5 text-gray-400 text-sm">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#f59e0b]" />
+                <FaLocationDot className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#f59e0b]" />
                 <span>{address}</span>
               </li>
             </ul>

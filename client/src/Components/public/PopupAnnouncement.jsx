@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Megaphone, ExternalLink } from "lucide-react";
+import { FaXmark, FaArrowUpRightFromSquare } from "react-icons/fa6";
 import { useCms } from "../../hooks/useCms";
 
 const SESSION_KEY = "popup_dismissed_v1";
@@ -63,7 +63,7 @@ export default function PopupAnnouncement() {
                 onClick={dismiss}
                 className="absolute top-3 left-3 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors z-10"
               >
-                <X className="w-4 h-4" />
+                <FaXmark className="w-4 h-4" />
               </button>
 
               {/* Top accent bar */}
@@ -100,7 +100,7 @@ export default function PopupAnnouncement() {
                       className="flex items-center gap-2 flex-1 justify-center bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors"
                     >
                       {cms.popup_button_text}
-                      {cms.popup_button_link.startsWith("http") && <ExternalLink className="w-3.5 h-3.5" />}
+                      {cms.popup_button_link.startsWith("http") && <FaArrowUpRightFromSquare className="w-3.5 h-3.5" />}
                     </a>
                   )}
                   <button

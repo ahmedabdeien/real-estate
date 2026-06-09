@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { FaChevronRight, FaChevronLeft, FaCalendar } from 'react-icons/fa6';
 import { createPortal } from "react-dom";
-import { Calendar, ChevronRight, ChevronLeft, X } from "lucide-react";
+
 
 const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 const DAYS_AR = ["أح","إث","ث","أر","خ","ج","س"];
@@ -97,7 +98,7 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
       <div className="flex items-center justify-between mb-3" dir="rtl">
         <button type="button" onClick={nextMonth}
           className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <ChevronRight className="w-4 h-4 text-gray-500" />
+          <FaChevronRight className="w-4 h-4 text-gray-500" />
         </button>
         <div className="text-center">
           <span className="font-bold text-gray-900 dark:text-white text-sm">
@@ -106,7 +107,7 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
         </div>
         <button type="button" onClick={prevMonth}
           className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <ChevronLeft className="w-4 h-4 text-gray-500" />
+          <FaChevronLeft className="w-4 h-4 text-gray-500" />
         </button>
       </div>
 
@@ -125,9 +126,9 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
               <button type="button" onClick={() => selectDay(d)}
                 className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
                   isSelected(d)
-                    ? "bg-[#2d5d89] text-white"
+                    ? "bg-[var(--primary)] text-white"
                     : isToday(d)
-                    ? "bg-[#2d5d89]/10 text-[#2d5d89] font-bold"
+                    ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}>
                 {d.toLocaleString("ar-EG")}
@@ -141,7 +142,7 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
       <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700" dir="rtl">
         <button type="button"
           onClick={() => { const t = today; onChange(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`); setOpen(false); }}
-          className="w-full text-xs text-[#2d5d89] hover:underline font-medium py-1">
+          className="w-full text-xs text-[var(--primary)] hover:underline font-medium py-1">
           اليوم
         </button>
       </div>
@@ -153,15 +154,15 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
       {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>}
       <button type="button" disabled={disabled} ref={buttonRef}
         onClick={handleOpen}
-        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2d5d89] transition-colors hover:border-[#2d5d89]/50 disabled:opacity-50">
-        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-colors hover:border-[var(--primary)]/50 disabled:opacity-50">
+        <FaCalendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
         <span className={`flex-1 text-right ${value ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>
           {value ? formatAr(value) : placeholder}
         </span>
         {value && (
           <span onClick={(e) => { e.stopPropagation(); onChange(""); }}
             className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer">
-            <X className="w-3.5 h-3.5" />
+            <FaXmark className="w-3.5 h-3.5" />
           </span>
         )}
       </button>

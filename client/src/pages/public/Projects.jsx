@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, MapPin, ArrowLeft, Search, LayoutGrid, List, Sparkles, Settings } from "lucide-react";
+
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
@@ -33,7 +33,7 @@ function ProjectCard({ p, view = "grid" }) {
             <img src={p.coverImage} alt={p.name?.ar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary-dark)]/30">
-              <Building2 className="w-16 h-16 text-[var(--primary)]/30" />
+              <FaBuilding className="w-16 h-16 text-[var(--primary)]/30" />
             </div>
           )}
           <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -47,7 +47,7 @@ function ProjectCard({ p, view = "grid" }) {
             {p.developer?.ar && <p className="text-xs text-gray-400 mb-2">{p.developer.ar}</p>}
             {p.location?.city?.ar && (
               <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
-                <MapPin className="w-3.5 h-3.5" />
+                <FaLocationDot className="w-3.5 h-3.5" />
                 <span>{p.location.city.ar}</span>
               </div>
             )}
@@ -80,7 +80,7 @@ function ProjectCard({ p, view = "grid" }) {
           <img src={p.coverImage} alt={p.name?.ar} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary-dark)]/30">
-            <Building2 className="w-16 h-16 text-[var(--primary)]/30" />
+            <FaBuilding className="w-16 h-16 text-[var(--primary)]/30" />
           </div>
         )}
         <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -98,7 +98,7 @@ function ProjectCard({ p, view = "grid" }) {
         {p.developer?.ar && <p className="text-xs text-gray-400 mb-2">{p.developer.ar}</p>}
         {p.location?.city?.ar && (
           <div className="flex items-center gap-1 text-gray-500 text-sm mb-3">
-            <MapPin className="w-3.5 h-3.5" />
+            <FaLocationDot className="w-3.5 h-3.5" />
             <span>{p.location.city.ar}</span>
           </div>
         )}
@@ -194,7 +194,7 @@ export default function ProjectsPage() {
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6 items-center">
           <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+            <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -226,14 +226,14 @@ export default function ProjectsPage() {
               className={`px-3 py-2.5 text-sm ${view === "grid" ? "bg-[var(--primary)] text-white" : "bg-white text-gray-700"}`}
               title="عرض بطاقات"
             >
-              <LayoutGrid className="w-4 h-4" />
+              <FaTableCellsLarge className="w-4 h-4" />
             </button>
             <button
               onClick={() => setView("list")}
               className={`px-3 py-2.5 text-sm ${view === "list" ? "bg-[var(--primary)] text-white" : "bg-white text-gray-700"}`}
               title="عرض قائمة"
             >
-              <List className="w-4 h-4" />
+              <FaTableList className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -249,7 +249,7 @@ export default function ProjectsPage() {
             {featured.length > 0 && page === 1 && !status && !debouncedSearch && (
               <div className="mb-10">
                 <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                  <FaWandMagicSparkles className="w-5 h-5 text-yellow-500" />
                   <h2 className="font-bold text-gray-900 text-lg">المشاريع المميزة</h2>
                 </div>
                 <div className={view === "list" ? "space-y-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"}>
@@ -273,7 +273,7 @@ export default function ProjectsPage() {
         <a href="/admin/projects"
           className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-full shadow-lg hover:bg-[var(--primary-dark)] transition-all text-sm font-medium"
           title="إدارة المشاريع">
-          <Settings className="w-4 h-4" />
+          <FaGear className="w-4 h-4" />
           إدارة المشاريع
         </a>
       )}

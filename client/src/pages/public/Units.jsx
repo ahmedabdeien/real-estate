@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { FaHouseChimney, FaMagnifyingGlass, FaFilter, FaArrowRight, FaRulerCombined, FaLayerGroup, FaBed, FaBath, FaChevronDown } from 'react-icons/fa6';
 import { motion } from "framer-motion";
-import {
-  Home, BedDouble, Bath, Maximize2, Layers, Building2,
-  Check, GitCompare, X, Search, SlidersHorizontal, ArrowLeft,
-} from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
@@ -110,7 +107,7 @@ export default function UnitsPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
           <form onSubmit={submitSearch} className="flex flex-wrap gap-3 items-center">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+              <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
               <input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -196,7 +193,7 @@ export default function UnitsPage() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center">
-                          <Building2 className="w-12 h-12 text-[var(--primary)]/30" />
+                          <FaBuilding className="w-12 h-12 text-[var(--primary)]/30" />
                         </div>
                       )}
                       {/* Type badge */}
@@ -230,7 +227,7 @@ export default function UnitsPage() {
                               : "bg-white/80 border-white text-gray-400 hover:text-[var(--primary)]"
                           }`}
                         >
-                          {isCompared ? <Check className="w-4 h-4" /> : <GitCompare className="w-3.5 h-3.5" />}
+                          {isCompared ? <FaCheck className="w-4 h-4" /> : <GitCompare className="w-3.5 h-3.5" />}
                         </button>
                       )}
                     </div>
@@ -241,7 +238,7 @@ export default function UnitsPage() {
                       </h3>
                       {unit.project?.name?.ar && (
                         <div className="flex items-center gap-1 text-gray-500 text-xs mb-2">
-                          <Building2 className="w-3 h-3" />
+                          <FaBuilding className="w-3 h-3" />
                           <span>{unit.project.name.ar}</span>
                         </div>
                       )}
@@ -309,7 +306,7 @@ export default function UnitsPage() {
             مقارنة
           </button>
           <button onClick={() => setCompareIds([])} className="text-white/70 hover:text-white">
-            <X className="w-4 h-4" />
+            <FaXmark className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -327,7 +324,7 @@ export default function UnitsPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">مقارنة الوحدات</h2>
               <button onClick={() => setShowCompare(false)}>
-                <X className="w-5 h-5" />
+                <FaXmark className="w-5 h-5" />
               </button>
             </div>
             <div className="overflow-x-auto">
@@ -342,7 +339,7 @@ export default function UnitsPage() {
                           onClick={() => setCompareIds((p) => p.filter((i) => i !== u._id))}
                           className="mr-2 text-gray-300 hover:text-red-400"
                         >
-                          <X className="w-3 h-3 inline" />
+                          <FaXmark className="w-3 h-3 inline" />
                         </button>
                       </th>
                     ))}

@@ -2,6 +2,7 @@
  * HansoEditor v2 — Professional Spreadsheet Editor
  * ══════════════════════════════════════════════════
  * ✅ Drag & Drop file import (prominent zone)
+import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaCheck, FaDownload, FaUpload, FaArrowsRotate, FaPrint, FaChevronDown, FaChevronUp, FaGripLines, FaTableList, FaFileExcel, FaFilter, FaBookmark, FaBookOpen, FaCalculator, FaEye, FaEyeSlash, FaCopy, FaFileArrowDown, FaClipboardList, FaSortUp, FaSortDown, FaBars, FaWandMagicSparkles, FaChartBar, FaCircleExclamation } from 'react-icons/fa6';
  * ✅ All formats: .xlsx  .xls  .csv  .tsv  .ods  (Microsoft + Apple Numbers export)
  * ✅ Multi-sheet tabs — shows all sheets from imported file
  * ✅ Full Excel-like editing: formulas, sort, filter, merge, undo/redo
@@ -16,10 +17,6 @@ import { HyperFormula } from "hyperformula";
 import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
 import * as XLSX from "xlsx";
-import {
-  Upload, Download, RefreshCw, Plus, Trash2,
-  FileSpreadsheet, ChevronDown, Maximize2, Minimize2,
-} from "lucide-react";
 import { useToast } from "../../context/ToastContext";
 
 registerAllModules();
@@ -78,7 +75,7 @@ function DropZone({ onFile, compact }) {
       onClick={() => inputRef.current?.click()}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium transition-colors"
     >
-      <Upload className="w-3.5 h-3.5" />
+      <FaUpload className="w-3.5 h-3.5" />
       فتح ملف
       <input ref={inputRef} type="file"
         accept=".xlsx,.xls,.csv,.tsv,.ods" className="hidden"
@@ -95,12 +92,12 @@ function DropZone({ onFile, compact }) {
       onClick={() => inputRef.current?.click()}
       className={`cursor-pointer border-2 border-dashed rounded-2xl p-10 text-center transition-all select-none
         ${dragging
-          ? "border-[#2d5d89] bg-[#2d5d89]/5 scale-[1.01]"
-          : "border-gray-300 dark:border-gray-600 hover:border-[#2d5d89] hover:bg-blue-50/40 dark:hover:bg-blue-900/10"
+          ? "border-[var(--primary)] bg-[var(--primary)]/5 scale-[1.01]"
+          : "border-gray-300 dark:border-gray-600 hover:border-[var(--primary)] hover:bg-blue-50/40 dark:hover:bg-blue-900/10"
         }`}
     >
-      <div className="w-16 h-16 rounded-2xl bg-[#2d5d89]/10 flex items-center justify-center mx-auto mb-4">
-        <FileSpreadsheet className="w-8 h-8 text-[#2d5d89]" />
+      <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
+        <FaFileExcel className="w-8 h-8 text-[var(--primary)]" />
       </div>
       <p className="text-gray-900 dark:text-white font-bold text-lg mb-1">
         {dragging ? "أفلت الملف هنا..." : "اسحب ملفك هنا أو اضغط للاختيار"}
@@ -108,7 +105,7 @@ function DropZone({ onFile, compact }) {
       <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
         يدعم: Excel (.xlsx .xls) · CSV · TSV · ODS (Numbers / LibreOffice)
       </p>
-      <span className="inline-block bg-[#2d5d89] text-white text-sm px-5 py-2 rounded-xl font-medium">
+      <span className="inline-block bg-[var(--primary)] text-white text-sm px-5 py-2 rounded-xl font-medium">
         اختر ملف
       </span>
       <input ref={inputRef} type="file"
@@ -267,7 +264,7 @@ export default function HansoEditor({ cols, rows, storageKey }) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium transition-colors"
           title="أضف بيانات ملف قديم على الموجود بدون حذف"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <FaPlus className="w-3.5 h-3.5" />
           إضافة من ملف قديم
         </button>
         <input ref={appendFileRef} type="file" accept=".xlsx,.xls,.csv,.tsv,.ods" className="hidden"
@@ -277,14 +274,14 @@ export default function HansoEditor({ cols, rows, storageKey }) {
         {/* Export */}
         <button onClick={exportExcel}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors">
-          <Download className="w-3.5 h-3.5" />
+          <FaDownload className="w-3.5 h-3.5" />
           تصدير Excel
         </button>
 
         {/* Sync from ledger */}
         <button onClick={resetToLedger}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" />
+          <FaArrowsRotate className="w-3.5 h-3.5" />
           مزامنة من الدفتر
         </button>
 
@@ -353,9 +350,9 @@ export default function HansoEditor({ cols, rows, storageKey }) {
               />
             ))}
             <button onClick={addSheet}
-              className="flex-shrink-0 px-3 py-2 text-gray-400 hover:text-[#2d5d89] hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+              className="flex-shrink-0 px-3 py-2 text-gray-400 hover:text-[var(--primary)] hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
               title="إضافة ورقة">
-              <Plus className="w-4 h-4" />
+              <FaPlus className="w-4 h-4" />
             </button>
           </div>
         </>
@@ -384,7 +381,7 @@ function SheetTab({ name, active, onSelect, onRename, onDelete, showDelete }) {
       onClick={onSelect}
       className={`group flex items-center gap-1 px-4 py-2 border-r border-gray-200 dark:border-gray-700 cursor-pointer text-sm flex-shrink-0 transition-colors
         ${active
-          ? "bg-white dark:bg-gray-900 text-[#2d5d89] font-semibold border-t-2 border-t-[#2d5d89]"
+          ? "bg-white dark:bg-gray-900 text-[var(--primary)] font-semibold border-t-2 border-t-[var(--primary)]"
           : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
         }`}
     >
@@ -395,7 +392,7 @@ function SheetTab({ name, active, onSelect, onRename, onDelete, showDelete }) {
           onChange={(e) => setVal(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") { setEditing(false); setVal(name); } }}
-          className="w-20 text-sm outline-none bg-transparent border-b border-[#2d5d89]"
+          className="w-20 text-sm outline-none bg-transparent border-b border-[var(--primary)]"
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
@@ -406,7 +403,7 @@ function SheetTab({ name, active, onSelect, onRename, onDelete, showDelete }) {
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
           className="opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all ml-1"
         >
-          <Trash2 className="w-3 h-3" />
+          <FaTrash className="w-3 h-3" />
         </button>
       )}
     </div>

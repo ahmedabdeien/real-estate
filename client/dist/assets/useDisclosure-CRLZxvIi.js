@@ -1,0 +1,1 @@
+import{r as s}from"./react-vendor-CQxFvlPW.js";function f(l=!1){const[n,e]=s.useState(l),[o,a]=s.useState(null),u=s.useCallback((t=null)=>{a(t),e(!0)},[]),c=s.useCallback(()=>{e(!1),a(null)},[]),r=s.useCallback(()=>e(t=>!t),[]);return{isOpen:n,data:o,open:u,close:c,toggle:r}}export{f as u};

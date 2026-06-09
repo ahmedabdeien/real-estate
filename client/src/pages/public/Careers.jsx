@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
+import { FaBriefcase, FaLocationDot, FaClock, FaMagnifyingGlass, FaArrowRight } from 'react-icons/fa6';
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Briefcase, MapPin, Calendar, Clock, Search, Filter,
-  ArrowLeft, Users, CheckCircle, DollarSign, ChevronLeft,
-} from "lucide-react";
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import EmptyState from "../../Components/UI/EmptyState";
@@ -56,7 +53,7 @@ export default function CareersPage() {
         {/* Search + Filter */}
         <div className="flex items-center gap-3 mb-8 flex-wrap">
           <div className="relative flex-1 min-w-60">
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <FaMagnifyingGlass className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ابحث عن وظيفة..."
               className="w-full pr-11 pl-4 py-3 rounded-2xl border border-gray-200 bg-white text-gray-900 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
           </div>
@@ -89,7 +86,7 @@ export default function CareersPage() {
                   <div className="p-5 flex-1 flex flex-col">
                     <div className="flex items-start justify-between mb-4">
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${isExpired ? "bg-gray-100" : "bg-[var(--primary)]/10"}`}>
-                        <Briefcase className={`w-5 h-5 ${isExpired ? "text-gray-400" : "text-[var(--primary)]"}`} />
+                        <FaBriefcase className={`w-5 h-5 ${isExpired ? "text-gray-400" : "text-[var(--primary)]"}`} />
                       </div>
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${TYPE_COLORS[c.type]}`}>
                         {TYPE_LABELS[c.type]}
@@ -101,10 +98,10 @@ export default function CareersPage() {
 
                     <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-gray-500 mb-3">
                       {c.department?.ar && (
-                        <span className="flex items-center gap-1"><Briefcase className="w-3 h-3" />{c.department.ar}</span>
+                        <span className="flex items-center gap-1"><FaBriefcase className="w-3 h-3" />{c.department.ar}</span>
                       )}
                       {c.location?.ar && (
-                        <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{c.location.ar}</span>
+                        <span className="flex items-center gap-1"><FaLocationDot className="w-3 h-3" />{c.location.ar}</span>
                       )}
                     </div>
 
@@ -123,7 +120,7 @@ export default function CareersPage() {
                     {/* Salary */}
                     {c.salary?.min && !c.salary?.hidden && (
                       <div className="flex items-center gap-1 text-xs text-green-600 font-semibold mb-3">
-                        <DollarSign className="w-3.5 h-3.5" />
+                        <FaDollarSign className="w-3.5 h-3.5" />
                         <span>{Number(c.salary.min).toLocaleString("ar-EG")} — {Number(c.salary.max).toLocaleString("ar-EG")} {c.salary.currency}</span>
                       </div>
                     )}
@@ -131,7 +128,7 @@ export default function CareersPage() {
                     <div className="mt-auto pt-3 border-t border-gray-100">
                       {c.deadline && (
                         <p className={`flex items-center gap-1 text-xs mb-3 ${isExpired ? "text-red-500" : "text-gray-400"}`}>
-                          <Calendar className="w-3 h-3" />
+                          <FaCalendar className="w-3 h-3" />
                           {isExpired ? "انتهت في " : "حتى "}
                           {new Date(c.deadline).toLocaleDateString("ar-EG")}
                         </p>
@@ -143,7 +140,7 @@ export default function CareersPage() {
                             : "bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white"
                         }`}>
                         عرض التفاصيل والتقديم
-                        <ChevronLeft className="w-4 h-4" />
+                        <FaChevronLeft className="w-4 h-4" />
                       </Link>
                     </div>
                   </div>

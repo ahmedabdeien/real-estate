@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { User, Phone, MapPin, Mail, Shield, Building2 } from "lucide-react";
+import { FaUser, FaEnvelope, FaPhone, FaGear, FaPen, FaCheck } from 'react-icons/fa6';
+
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -54,7 +55,7 @@ export default function StaffProfile() {
   };
 
   const inputClass =
-    "w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2d5d89] text-sm";
+    "w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm";
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
@@ -67,7 +68,7 @@ export default function StaffProfile() {
       {/* Info card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-[#2d5d89]/10 flex items-center justify-center text-[#2d5d89] font-black text-2xl">
+          <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-black text-2xl">
             {user?.name?.[0]?.toUpperCase()}
           </div>
           <div>
@@ -78,8 +79,8 @@ export default function StaffProfile() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-            <div className="w-8 h-8 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-              <Shield className="w-4 h-4 text-[#2d5d89]" />
+            <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+              <Shield className="w-4 h-4 text-[var(--primary)]" />
             </div>
             <div>
               <p className="text-xs text-gray-400">الدور الوظيفي</p>
@@ -89,8 +90,8 @@ export default function StaffProfile() {
 
           {user?.department && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-              <div className="w-8 h-8 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-4 h-4 text-[#2d5d89]" />
+              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+                <FaBuilding className="w-4 h-4 text-[var(--primary)]" />
               </div>
               <div>
                 <p className="text-xs text-gray-400">القسم</p>
@@ -100,8 +101,8 @@ export default function StaffProfile() {
           )}
 
           <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-            <div className="w-8 h-8 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-              <Mail className="w-4 h-4 text-[#2d5d89]" />
+            <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+              <FaEnvelope className="w-4 h-4 text-[var(--primary)]" />
             </div>
             <div>
               <p className="text-xs text-gray-400">البريد الإلكتروني</p>
@@ -111,8 +112,8 @@ export default function StaffProfile() {
 
           {user?.phone && (
             <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-              <div className="w-8 h-8 rounded-lg bg-[#2d5d89]/10 flex items-center justify-center flex-shrink-0">
-                <Phone className="w-4 h-4 text-[#2d5d89]" />
+              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+                <FaPhone className="w-4 h-4 text-[var(--primary)]" />
               </div>
               <div>
                 <p className="text-xs text-gray-400">رقم الهاتف</p>
@@ -161,7 +162,7 @@ export default function StaffProfile() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full sm:w-auto px-6 py-2.5 bg-[#2d5d89] hover:bg-[#245079] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-6 py-2.5 bg-[var(--primary)] hover:bg-[#245079] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
             >
               {saving ? "جاري الحفظ..." : "حفظ التغييرات"}
             </button>

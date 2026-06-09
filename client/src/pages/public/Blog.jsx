@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FileText, Search, Calendar, Eye } from "lucide-react";
+
 import api from "../../api/axios";
 import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 import Pagination from "../../Components/UI/Pagination";
@@ -59,7 +59,7 @@ export default function BlogPage() {
       <div className="container mx-auto px-4 py-10">
         <div className="flex gap-3 mb-8">
           <div className="relative">
-            <Search className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
+            <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
             <input value={search} onChange={handleSearchChange} onKeyDown={(e) => { if (e.key === "Enter") { clearTimeout(timerRef.current); setPage(1); load(search, 1); } }}
               placeholder="ابحث عن مقال..."
               className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64" />
@@ -79,18 +79,18 @@ export default function BlogPage() {
                       <img src={b.coverImage} alt={b.title?.ar} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(to bottom right, var(--primary), var(--primary-dark))" }}>
-                        <FileText className="w-12 h-12 text-white/30" />
+                        <FaFileLines className="w-12 h-12 text-white/30" />
                       </div>
                     )}
                   </div>
                   <div className="p-5">
                     <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
+                        <FaCalendar className="w-3 h-3" />
                         {new Date(b.createdAt).toLocaleDateString("ar-EG")}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
+                        <FaEye className="w-3 h-3" />
                         {b.views}
                       </span>
                     </div>

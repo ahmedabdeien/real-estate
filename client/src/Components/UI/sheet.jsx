@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
+import { FaXmark } from 'react-icons/fa6';
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/Components/UI/Button"
-import { XIcon } from "lucide-react"
+import { FaXmark as XIcon } from "react-icons/fa6"
 
 function Sheet({
   ...props
