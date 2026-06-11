@@ -142,6 +142,9 @@ const CompanyTab = ({ company }) => {
       currency: company?.settings?.currency || 'EGP',
       timezone: company?.settings?.timezone || 'Africa/Cairo',
       dateFormat: company?.settings?.dateFormat || 'DD/MM/YYYY',
+      taxRate: company?.settings?.taxRate ?? 14,
+      invoicePrefix: company?.settings?.invoicePrefix || 'INV-',
+      paymentTermsDays: company?.settings?.paymentTermsDays ?? 30,
     },
   });
   const [logoUploading, setLogoUploading] = useState(false);
@@ -252,6 +255,29 @@ const CompanyTab = ({ company }) => {
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               <option value="YYYY-MM-DD">YYYY-MM-DD</option>
             </select>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="الإعدادات المالية" subtitle="تُستخدم في الفواتير والعقود الجديدة">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="label">نسبة الضريبة (%)</label>
+            <input type="number" min="0" max="100" step="0.5" className="input text-sm"
+              value={form.settings.taxRate}
+              onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, taxRate: Number(e.target.value) } }))} />
+          </div>
+          <div>
+            <label className="label">بادئة رقم الفاتورة</label>
+            <input className="input text-sm" style={{ direction: 'ltr' }}
+              value={form.settings.invoicePrefix}
+              onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, invoicePrefix: e.target.value } }))} />
+          </div>
+          <div>
+            <label className="label">مهلة السداد (يوم)</label>
+            <input type="number" min="0" className="input text-sm"
+              value={form.settings.paymentTermsDays}
+              onChange={e => setForm(f => ({ ...f, settings: { ...f.settings, paymentTermsDays: Number(e.target.value) } }))} />
           </div>
         </div>
         <div className="mt-4">

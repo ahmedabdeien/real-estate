@@ -106,9 +106,9 @@ exports.getDashboard = async (req, res) => {
     const topProperties = await Payment.aggregate([
       { $match: { companyId: cId } },
       { $lookup: { from: 'contracts', localField: 'contractId', foreignField: '_id', as: 'contract' } },
-      { $unwind: { path: '$contract', preserveNullAndEmpty: true } },
+      { $unwind: { path: '$contract', preserveNullAndEmptyArrays: true } },
       { $lookup: { from: 'properties', localField: 'contract.propertyId', foreignField: '_id', as: 'property' } },
-      { $unwind: { path: '$property', preserveNullAndEmpty: true } },
+      { $unwind: { path: '$property', preserveNullAndEmptyArrays: true } },
       { $group: { _id: '$property._id', name: { $first: '$property.name' }, revenue: { $sum: '$amount' } } },
       { $sort: { revenue: -1 } },
       { $limit: 5 },

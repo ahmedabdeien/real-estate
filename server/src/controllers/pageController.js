@@ -1,49 +1,69 @@
-const Page   = require('../models/Page');
-const asyncHandler = require('../middleware/asyncHandler');
+const Page = require('../models/Page');
+const { success, error } = require('../utils/response');
 
-exports.getPages = asyncHandler(async (req, res) => {
-  const { type, isPublished } = req.query;
-  const filter = { companyId: req.companyId };
-  if (type)        filter.type = type;
-  if (isPublished !== undefined) filter.isPublished = isPublished === 'true';
-  const pages = await Page.find(filter).select('-craftJson').sort({ updatedAt: -1 });
-  res.json({ success: true, data: pages });
-});
+exports.getPages = async (req, res) => {
+  try {
+    const { type, isPublished } = req.query;
+    const filter = { companyId: req.tenantId };
+    if (type) filter.type = type;
+    if (isPublished !== undefined) filter.isPublished = isPublished === 'true';
+    const pages = await Page.find(filter).select('-craftJson').sort({ updatedAt: -1 });
+    return success(res, pages);
+  } catch (err) { return error(res, err.message); }
+};
 
-exports.getPage = asyncHandler(async (req, res) => {
-  const page = await Page.findOne({ _id: req.params.id, companyId: req.companyId });
-  if (!page) return res.status(404).json({ success: false, message: 'الصفحة غير موجودة' });
-  res.json({ success: true, data: page });
-});
+exports.getPage = async (req, res) => {
+  try {
+    const page = await Page.findOne({ _id: req.params.id, companyId: req.tenantId });
+    if (!page) return error(res, 'الصفحة غير موجودة', 404);
+    return success(res, page);
+  } catch (err) { return error(res, err.message); }
+};
 
-exports.getPageBySlug = asyncHandler(async (req, res) => {
-  const page = await Page.findOne({ companyId: req.companyId, slug: req.params.slug, isPublished: true });
-  if (!page) return res.status(404).json({ success: false, message: 'الصفحة غير موجودة' });
-  res.json({ success: true, data: page });
-});
+// Public — no auth: serves published pages to site visitors
+exports.getPublicPageBySlug = async (req, res) => {
+  try {
+    const page = await Page.findOne({ slug: req.params.slug, isPublished: true }).sort({ updatedAt: -1 });
+    if (!page) return error(res, 'الصفحة غير موجودة', 404);
+    return success(res, page);
+  } catch (err) { return error(res, err.message); }
+};
 
-exports.createPage = asyncHandler(async (req, res) => {
-  const { title, slug, type, craftJson, seo } = req.body;
-  const exists = await Page.findOne({ companyId: req.companyId, slug });
-  if (exists) return res.status(400).json({ success: false, message: 'هذا الرابط مستخدم بالفعل' });
-  const page = await Page.create({ companyId: req.companyId, title, slug, type, craftJson, seo });
-  res.status(201).json({ success: true, data: page });
-});
+exports.createPage = async (req, res) => {
+  try {
+    const { title, slug, type, craftJson, isPublished, seo } = req.body;
+    if (!title || !slug) return error(res, 'العنوان والرابط مطلوبان', 400);
+    const exists = await Page.findOne({ companyId: req.tenantId, slug });
+    if (exists) return error(res, 'هذا الرابط مستخدم بالفعل', 400);
+    const page = await Page.create({ companyId: req.tenantId, title, slug, type, craftJson, isPublished, seo });
+    return success(res, page, 'تم إنشاء الصفحة', 201);
+  } catch (err) { return error(res, err.message); }
+};
 
-exports.updatePage = asyncHandler(async (req, res) => {
-  const { title, slug, craftJson, isPublished, seo, type } = req.body;
-  const page = await Page.findOne({ _id: req.params.id, companyId: req.companyId });
-  if (!page) return res.status(404).json({ success: false, message: 'الصفحة غير موجودة' });
-  if (slug && slug !== page.slug) {
-    const exists = await Page.findOne({ companyId: req.companyId, slug, _id: { $ne: page._id } });
-    if (exists) return res.status(400).json({ success: false, message: 'هذا الرابط مستخدم بالفعل' });
-  }
-  Object.assign(page, { title, slug, craftJson, isPublished, seo, type });
-  await page.save();
-  res.json({ success: true, data: page });
-});
+exports.updatePage = async (req, res) => {
+  try {
+    const page = await Page.findOne({ _id: req.params.id, companyId: req.tenantId });
+    if (!page) return error(res, 'الصفحة غير موجودة', 404);
+    const { title, slug, craftJson, isPublished, seo, type } = req.body;
+    if (slug && slug !== page.slug) {
+      const exists = await Page.findOne({ companyId: req.tenantId, slug, _id: { $ne: page._id } });
+      if (exists) return error(res, 'هذا الرابط مستخدم بالفعل', 400);
+    }
+    if (title !== undefined) page.title = title;
+    if (slug !== undefined) page.slug = slug;
+    if (type !== undefined) page.type = type;
+    if (craftJson !== undefined) page.craftJson = craftJson;
+    if (isPublished !== undefined) page.isPublished = isPublished;
+    if (seo !== undefined) page.seo = seo;
+    await page.save();
+    return success(res, page);
+  } catch (err) { return error(res, err.message); }
+};
 
-exports.deletePage = asyncHandler(async (req, res) => {
-  await Page.findOneAndDelete({ _id: req.params.id, companyId: req.companyId });
-  res.json({ success: true, message: 'تم الحذف' });
-});
+exports.deletePage = async (req, res) => {
+  try {
+    const page = await Page.findOneAndDelete({ _id: req.params.id, companyId: req.tenantId });
+    if (!page) return error(res, 'الصفحة غير موجودة', 404);
+    return success(res, { message: 'تم الحذف' });
+  } catch (err) { return error(res, err.message); }
+};

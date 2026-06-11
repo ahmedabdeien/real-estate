@@ -8,7 +8,7 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { FaPlus, FaPen, FaTrash, FaShield, FaUsers, FaBuilding, FaFileContract, FaChartBar, FaBell, FaWhatsapp, FaGear, FaWarehouse, FaImages } from 'react-icons/fa6';
+import { FaPlus, FaPen, FaTrash, FaShield, FaUsers, FaBuilding, FaFileContract, FaChartBar, FaBell, FaWhatsapp, FaGear, FaWarehouse, FaImages, FaCopy } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
 const MODULE_LABELS = {
@@ -58,6 +58,16 @@ const RolesPage = () => {
 
   const openCreate = () => { setEditing(null); setForm(defaultForm); setModal(true); };
   const openEdit = (row) => { setEditing(row); setForm({ ...defaultForm, ...row }); setModal(true); };
+  const openDuplicate = (row) => {
+    setEditing(null);
+    setForm({
+      name: `${row.name}_copy`,
+      label: `${row.label} (نسخة)`,
+      description: row.description || '',
+      permissions: [...(row.permissions || [])],
+    });
+    setModal(true);
+  };
   const closeModal = () => { setModal(false); setEditing(null); };
 
   const togglePerm = (perm) => {
@@ -97,20 +107,34 @@ const RolesPage = () => {
                   <p className="text-xs opacity-60">{role.name}</p>
                 </div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 items-center">
+                <Button variant="ghost" size="icon" title="نسخ الدور" onClick={() => openDuplicate(role)} className="text-blue-600 hover:bg-blue-50"><FaCopy /></Button>
                 {!role.isSystem && (
                   <>
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(role)}><FaPen /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDelId(role._id)} className="text-red-600 hover:bg-red-50"><FaTrash /></Button>
+                    <Button variant="ghost" size="icon" title="تعديل" onClick={() => openEdit(role)}><FaPen /></Button>
+                    <Button variant="ghost" size="icon" title="حذف" onClick={() => setDelId(role._id)} className="text-red-600 hover:bg-red-50"><FaTrash /></Button>
                   </>
                 )}
                 {role.isSystem && <Badge color="primary">نظام</Badge>}
               </div>
             </div>
             <p className="text-sm opacity-60 mb-3">{role.description || 'لا يوجد وصف'}</p>
-            <p className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
-              {role.permissions?.length || 0} صلاحية
-            </p>
+            {(() => {
+              const total = Object.values(permsData || {}).reduce((a, perms) => a + perms.length, 0);
+              const count = role.permissions?.length || 0;
+              const pct = total ? Math.min(100, Math.round((count / total) * 100)) : 0;
+              return (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>{count} صلاحية</p>
+                    <p className="text-[10px] opacity-50">{pct}%</p>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: 'var(--color-primary)' }} />
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>

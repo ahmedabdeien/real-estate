@@ -18,6 +18,9 @@ const COLOR_PRESETS = [
   { label: 'أخضر طبيعي',primaryColor: '#059669', primaryDark: '#047857', primaryLight: '#10b981', accentColor: '#f97316' },
   { label: 'بنفسجي',    primaryColor: '#7c3aed', primaryDark: '#6d28d9', primaryLight: '#8b5cf6', accentColor: '#ec4899' },
   { label: 'رمادي أنيق',primaryColor: '#374151', primaryDark: '#1f2937', primaryLight: '#6b7280', accentColor: '#f59e0b' },
+  { label: 'ذهبي فاخر',  primaryColor: '#b45309', primaryDark: '#92400e', primaryLight: '#d97706', accentColor: '#231f20' },
+  { label: 'تركواز',     primaryColor: '#0d9488', primaryDark: '#0f766e', primaryLight: '#14b8a6', accentColor: '#f59e0b' },
+  { label: 'وردي عصري',  primaryColor: '#db2777', primaryDark: '#be185d', primaryLight: '#ec4899', accentColor: '#8b5cf6' },
 ];
 
 const TABS = [
@@ -390,6 +393,48 @@ const ThemePage = () => {
                 value={parseFloat(form.cardRadius) || 0.75}
                 onChange={e => set('cardRadius', `${e.target.value}rem`)}
                 className="w-full" style={{ accentColor: 'var(--color-primary)' }} />
+            </div>
+
+            <div>
+              <label className="label">حجم الخط العام</label>
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                {[
+                  { value: '93.75%', label: 'صغير' },
+                  { value: '100%',   label: 'عادي' },
+                  { value: '106.25%', label: 'كبير' },
+                ].map(o => (
+                  <button key={o.value} onClick={() => set('fontScale', o.value)}
+                    className="py-2.5 rounded-xl border text-sm font-semibold transition-all"
+                    style={{
+                      borderColor: (form.fontScale || '100%') === o.value ? 'var(--color-primary)' : 'var(--color-border)',
+                      backgroundColor: (form.fontScale || '100%') === o.value ? 'var(--color-primary)' : 'transparent',
+                      color: (form.fontScale || '100%') === o.value ? '#fff' : 'var(--color-text-dark)',
+                    }}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="label">ظلال البطاقات</label>
+              <div className="grid grid-cols-3 gap-3 mt-2">
+                {[
+                  { value: 'none',   label: 'بدون',  shadow: 'none' },
+                  { value: 'soft',   label: 'خفيف',  shadow: '0 1px 3px rgba(0,0,0,0.06)' },
+                  { value: 'medium', label: 'متوسط', shadow: '0 4px 14px rgba(0,0,0,0.10)' },
+                ].map(o => (
+                  <button key={o.value} onClick={() => set('cardShadow', o.value)}
+                    className="py-3 rounded-xl border text-sm font-semibold transition-all bg-white"
+                    style={{
+                      borderColor: (form.cardShadow || 'soft') === o.value ? 'var(--color-primary)' : 'var(--color-border)',
+                      color: (form.cardShadow || 'soft') === o.value ? 'var(--color-primary)' : 'var(--color-text-dark)',
+                      boxShadow: o.shadow,
+                    }}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>

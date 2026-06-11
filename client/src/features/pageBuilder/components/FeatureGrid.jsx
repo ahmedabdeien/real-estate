@@ -1,8 +1,30 @@
 import React from 'react';
 import { useNode } from '@craftjs/core';
-import { FaStar, FaRocket, FaShield, FaGear } from 'react-icons/fa6';
+import {
+  FaStar, FaRocket, FaShield, FaGear, FaBolt, FaHeart, FaChartLine,
+  FaUsers, FaBuilding, FaPhone, FaEnvelope, FaCircleCheck, FaCrown,
+  FaGlobe, FaLock, FaMobileScreen, FaCloudArrowUp, FaHeadset, FaWallet,
+  FaHandshake, FaAward, FaLightbulb, FaClock, FaMapLocationDot,
+} from 'react-icons/fa6';
 
-const ICONS = { star: FaStar, rocket: FaRocket, shield: FaShield, gear: FaGear };
+const ICONS = {
+  star: FaStar, rocket: FaRocket, shield: FaShield, gear: FaGear,
+  bolt: FaBolt, heart: FaHeart, chart: FaChartLine, users: FaUsers,
+  building: FaBuilding, phone: FaPhone, envelope: FaEnvelope,
+  check: FaCircleCheck, crown: FaCrown, globe: FaGlobe, lock: FaLock,
+  mobile: FaMobileScreen, cloud: FaCloudArrowUp, headset: FaHeadset,
+  wallet: FaWallet, handshake: FaHandshake, award: FaAward,
+  lightbulb: FaLightbulb, clock: FaClock, map: FaMapLocationDot,
+};
+
+const ICON_LABELS = {
+  star: 'نجمة', rocket: 'صاروخ', shield: 'درع', gear: 'ترس',
+  bolt: 'برق', heart: 'قلب', chart: 'رسم بياني', users: 'مستخدمون',
+  building: 'مبنى', phone: 'هاتف', envelope: 'بريد', check: 'صح',
+  crown: 'تاج', globe: 'كرة أرضية', lock: 'قفل', mobile: 'موبايل',
+  cloud: 'سحابة', headset: 'سماعة دعم', wallet: 'محفظة',
+  handshake: 'مصافحة', award: 'جائزة', lightbulb: 'فكرة', clock: 'ساعة', map: 'خريطة',
+};
 
 function FeatureGridSettings() {
   const { actions: { setProp }, props } = useNode(n => ({ props: n.data.props }));
@@ -31,6 +53,9 @@ function FeatureGridSettings() {
           <div key={i} className="mb-3 p-2 rounded border bg-gray-50 space-y-1">
             <input value={f.title} onChange={e => updateFeature(i, 'title', e.target.value)} placeholder="العنوان" className="input text-xs" />
             <input value={f.desc} onChange={e => updateFeature(i, 'desc', e.target.value)} placeholder="الوصف" className="input text-xs" />
+            <select value={f.icon || 'star'} onChange={e => updateFeature(i, 'icon', e.target.value)} className="input text-xs">
+              {Object.keys(ICONS).map(k => <option key={k} value={k}>{ICON_LABELS[k]}</option>)}
+            </select>
           </div>
         ))}
         <button onClick={() => setProp(p => p.features.push({ title: 'ميزة جديدة', desc: 'وصف الميزة هنا', icon: 'star' }))}

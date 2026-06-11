@@ -65,7 +65,7 @@ exports.getCompanyUsers = async (req, res) => {
   const users = await User.find({
     companyId,
     _id: { $ne: req.user._id },
-    isActive: true,
+    isActive: { $ne: false },
   }).select('name isOnline lastSeen');
   sendSuccess(res, users);
 };

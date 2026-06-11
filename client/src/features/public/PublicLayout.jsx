@@ -18,7 +18,6 @@ const NAV_LINKS = [
   { label: 'المميزات', to: '/#features' },
   { label: 'الأسعار',  to: '/#pricing' },
   { label: 'كيف يعمل', to: '/#how' },
-  { label: 'المدونة',  to: '/blog' },
 ];
 
 const FOOTER_COLS = [
@@ -34,7 +33,6 @@ const FOOTER_COLS = [
   {
     title: 'الموارد',
     links: [
-      { label: 'المدونة',        to: '/blog' },
       { label: 'تسجيل الدخول', to: '/login' },
     ],
   },

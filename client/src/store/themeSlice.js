@@ -51,6 +51,11 @@ const applyTheme = (theme) => {
   if (theme.sidebarActiveColor) r.setProperty('--sidebar-active-color', theme.sidebarActiveColor);
   if (theme.sidebarTextColor)   r.setProperty('--sidebar-text', theme.sidebarTextColor);
   if (theme.sidebarGroupColor)  r.setProperty('--sidebar-group', theme.sidebarGroupColor);
+  if (theme.fontScale) document.documentElement.style.fontSize = theme.fontScale;
+  if (theme.cardShadow) {
+    const shadows = { none: 'none', soft: '0 1px 3px rgba(0,0,0,0.06)', medium: '0 4px 14px rgba(0,0,0,0.10)' };
+    r.setProperty('--card-shadow', shadows[theme.cardShadow] || shadows.soft);
+  }
   if (theme.fontFamily) {
     r.setProperty('--font-family', theme.fontFamily);
     document.body.style.fontFamily = `'${theme.fontFamily}', sans-serif`;

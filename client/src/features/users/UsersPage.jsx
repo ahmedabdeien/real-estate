@@ -9,7 +9,7 @@ import Modal from '../../components/ui/Modal';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
-import { FaPlus, FaPen, FaTrash, FaUsers, FaUserCheck, FaUserXmark } from 'react-icons/fa6';
+import { FaPlus, FaPen, FaTrash, FaUsers, FaUserCheck, FaUserXmark, FaUserSlash, FaShield } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 import { usePagination } from '../../hooks/usePagination';
 
@@ -41,6 +41,12 @@ const UsersPage = () => {
     onSuccess: () => { qc.invalidateQueries(['users']); toast.success('تم الحذف'); setDelId(null); },
   });
 
+  const toggleStatus = useMutation({
+    mutationFn: ({ id, status }) => usersAPI.update(id, { status }),
+    onSuccess: (_, v) => { qc.invalidateQueries(['users']); toast.success(v.status === 'active' ? 'تم تفعيل المستخدم' : 'تم إيقاف المستخدم'); },
+    onError: (e) => toast.error(e.response?.data?.message || 'حدث خطأ'),
+  });
+
   const openCreate = () => { setEditing(null); setForm(defaultForm); setModal(true); };
   const openEdit = (row) => { setEditing(row); setForm({ ...defaultForm, ...row, role: row.role?._id || row.role }); setModal(true); };
   const closeModal = () => { setModal(false); setEditing(null); };
@@ -51,7 +57,7 @@ const UsersPage = () => {
       <div className="flex items-center gap-3">
         <div className="relative flex-shrink-0">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm"
-            style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))' }}>
+            style={{ background: 'var(--color-primary)' }}>
             {r.name?.charAt(0)}
           </div>
           <span className={`absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${r.isOnline ? 'bg-green-500' : 'bg-gray-300'}`} />
@@ -62,7 +68,13 @@ const UsersPage = () => {
         </div>
       </div>
     )},
-    { header: 'الدور', render: (r) => r.role?.label || '-' },
+    { header: 'الدور', render: (r) => (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg"
+        style={{ background: 'rgba(200,22,29,0.08)', color: 'var(--color-primary)' }}>
+        <FaShield size={10} />
+        {r.isSuperAdmin ? 'مشرف عام' : r.role?.label || '—'}
+      </span>
+    )},
     { header: 'الهاتف', accessor: 'phone' },
     { header: 'الحالة', render: (r) => (
       <Badge color={r.status === 'active' ? 'success' : r.status === 'suspended' ? 'danger' : 'default'}>
@@ -75,9 +87,14 @@ const UsersPage = () => {
       </span>
     )},
     { header: 'الإجراءات', render: (r) => (
-      <div className="flex gap-2">
-        <Button variant="ghost" size="icon" onClick={() => openEdit(r)}><FaPen /></Button>
-        <Button variant="ghost" size="icon" onClick={() => setDelId(r._id)} className="text-red-600 hover:bg-red-50"><FaTrash /></Button>
+      <div className="flex gap-1">
+        <Button variant="ghost" size="icon" onClick={() => openEdit(r)} title="تعديل"><FaPen /></Button>
+        <Button variant="ghost" size="icon" title={r.status === 'active' ? 'إيقاف' : 'تفعيل'}
+          onClick={() => toggleStatus.mutate({ id: r._id, status: r.status === 'active' ? 'suspended' : 'active' })}
+          className={r.status === 'active' ? 'text-amber-600 hover:bg-amber-50' : 'text-green-600 hover:bg-green-50'}>
+          {r.status === 'active' ? <FaUserSlash /> : <FaUserCheck />}
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => setDelId(r._id)} title="حذف" className="text-red-600 hover:bg-red-50"><FaTrash /></Button>
       </div>
     )},
   ];

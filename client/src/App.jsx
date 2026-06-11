@@ -34,10 +34,10 @@ import InstallmentsPage from './features/installments/InstallmentsPage';
 import AdminChangelogPage from './features/pages/ChangelogPage';
 import DocumentsPage from './features/documents/DocumentsPage';
 // Lazy-loaded to keep main bundle small
-const BlogsPage          = lazy(() => import('./features/marketing/BlogsPage'));
+
 const MediaLibraryPage   = lazy(() => import('./features/marketing/MediaLibraryPage'));
-const BlogListPage        = lazy(() => import('./features/public/BlogListPage'));
-const BlogPostPage        = lazy(() => import('./features/public/BlogPostPage'));
+
+
 const TermsPage           = lazy(() => import('./features/public/TermsPage'));
 const PrivacyPage         = lazy(() => import('./features/public/PrivacyPage'));
 const PagesListPage       = lazy(() => import('./features/pageBuilder/PagesListPage'));
@@ -77,10 +77,7 @@ const App = () => {
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin" style={{borderColor:'#da1f27',borderTopColor:'transparent'}}></div></div>}>
       <Routes>
         {/* Public */}
-        <Route path="/"            element={<LandingPage />} />
-        <Route path="/blog"        element={<BlogListPage />} />
-        <Route path="/blog/:slug"  element={<BlogPostPage />} />
-        <Route path="/terms"       element={<TermsPage />} />
+        <Route path="/"            element={<LandingPage />} />        <Route path="/terms"       element={<TermsPage />} />
         <Route path="/privacy"     element={<PrivacyPage />} />
         <Route path="/p/:slug"     element={<PublicPage />} />
         <Route path="/login"       element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} />
@@ -107,9 +104,7 @@ const App = () => {
           <Route path="/documents"     element={<DocumentsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/chat"          element={<ChatPage />} />
-          <Route path="/installments"  element={<InstallmentsPage />} />
-          <Route path="/marketing/blogs"    element={<BlogsPage />} />
-          <Route path="/marketing/media"  element={<MediaLibraryPage />} />
+          <Route path="/installments"  element={<InstallmentsPage />} />          <Route path="/marketing/media"  element={<MediaLibraryPage />} />
           <Route path="/page-builder"     element={<PagesListPage />} />
           <Route path="/page-builder/:id" element={<PageBuilderPage />} />
           <Route path="/super/companies" element={<CompaniesPage />} />
