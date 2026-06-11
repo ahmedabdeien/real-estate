@@ -3,6 +3,23 @@ import { useParams } from 'react-router-dom';
 import { Editor, Frame } from '@craftjs/core';
 import { useQuery } from '@tanstack/react-query';
 import { pagesAPI } from '../../api/services';
+import { validCraftJson } from './PageBuilderPage';
+
+class RenderBoundary extends React.Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ textAlign: 'center', padding: '80px 20px', color: '#6b7280' }}>
+          <p style={{ fontSize: 17, fontWeight: 700 }}>تعذر عرض محتوى الصفحة</p>
+          <p style={{ fontSize: 14 }}>محتوى الصفحة تالف — افتحها في محرر الصفحات وأعد حفظها.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import {
   TextBlock, ButtonBlock, ContainerBlock, ImageBlock,
   HeroBlock, SpacerBlock, ColumnsBlock, DividerBlock,
@@ -38,7 +55,9 @@ export default function PublicPage() {
     );
   }
 
-  if (isError || !page) {
+  const safeJson = validCraftJson(page?.craftJson);
+
+  if (isError || !page || !safeJson) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 20px' }}>
         <h1 style={{ fontSize: 56, fontWeight: 900, color: '#c8161d', margin: 0 }}>404</h1>
@@ -52,9 +71,11 @@ export default function PublicPage() {
 
   return (
     <div dir="rtl">
-      <Editor resolver={RESOLVER} enabled={false}>
-        <Frame data={page.craftJson} />
-      </Editor>
+      <RenderBoundary>
+        <Editor resolver={RESOLVER} enabled={false}>
+          <Frame data={safeJson} />
+        </Editor>
+      </RenderBoundary>
     </div>
   );
 }

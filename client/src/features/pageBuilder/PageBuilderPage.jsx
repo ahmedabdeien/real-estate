@@ -24,6 +24,15 @@ const RESOLVER = {
   TestimonialsBlock, PricingBlock,
 };
 
+/* craftJson must contain a ROOT node, otherwise Craft.js throws "Invariant failed" */
+export const validCraftJson = (json) => {
+  if (!json || typeof json !== 'string') return undefined;
+  try {
+    const parsed = JSON.parse(json);
+    return parsed && parsed.ROOT ? json : undefined;
+  } catch { return undefined; }
+};
+
 const VIEWPORTS = [
   { key: 'desktop', label: 'كمبيوتر', icon: FaDesktop,            width: '100%' },
   { key: 'tablet',  label: 'تابلت',   icon: FaTabletScreenButton, width: 768 },
@@ -100,7 +109,7 @@ function EditorShell({ page, isNew, type, onSave, viewport, previewMode }) {
           boxShadow: '0 1px 4px rgba(0,0,0,.12)', overflow: 'hidden',
           maxWidth: vp.width, margin: '0 auto', transition: 'max-width .25s ease',
         }}>
-          <Frame data={!isNew && page?.craftJson ? page.craftJson : undefined}>
+          <Frame data={!isNew ? validCraftJson(page?.craftJson) : undefined}>
             <Element is={ContainerBlock} canvas id="root" bg="#ffffff" padding={0} maxWidth="100%">
               {isNew && <TemplateSeed type={type} />}
             </Element>

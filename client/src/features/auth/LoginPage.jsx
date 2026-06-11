@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaBuilding, FaShield, FaChartBar, FaCity, FaCircleCheck } from 'react-icons/fa6';
+import { motion } from 'framer-motion';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa6';
 import { authAPI } from '../../api/services';
 import { setCredentials } from '../../store/authSlice';
 import toast from 'react-hot-toast';
 import logoColor from '../../assets/logo.svg';
 import { PublicNav } from '../public/PublicLayout';
 
-const FEATURES = [
-  { icon: FaCity,     label: 'إدارة المشاريع والوحدات العقارية' },
-  { icon: FaBuilding, label: 'عقود وجداول أقساط ذكية' },
-  { icon: FaChartBar, label: 'تقارير مالية وإحصاءات متقدمة' },
-  { icon: FaShield,   label: 'نظام صلاحيات وأمان متعدد المستأجرين' },
-];
+const RED  = '#da1f27';
+const DARK = '#231f20';
 
 export default function LoginPage() {
   const dispatch = useDispatch();
@@ -23,7 +19,6 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [errors, setErrors]     = useState({});
-  const [focused, setFocused]   = useState('');
 
   const validate = () => {
     const e = {};
@@ -50,138 +45,89 @@ export default function LoginPage() {
   };
 
   return (
-    <div dir="rtl" style={{ minHeight: '100vh', background: '#f9fafb' }}>
+    <div dir="rtl" style={{ minHeight: '100vh', background: '#f0f0f0' }}>
       <PublicNav />
 
-      <div className="flex items-center justify-center min-h-[calc(100vh-64px)] px-4 py-12">
-        <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      <div className="flex flex-col items-center justify-center px-4 py-16 min-h-[calc(100vh-72px)]">
 
-          {/* Brand panel */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-            className="hidden lg:block rounded-3xl p-10 text-white"
-            style={{ background: '#231f20' }}
-          >
-            <img src={logoColor} alt="EgyEstate" className="h-9 brightness-0 invert object-contain mb-8" />
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold mb-6"
-              style={{ background: 'rgba(200,22,29,0.25)', border: '1px solid rgba(200,22,29,0.4)', color: '#ff9196' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-              نظام SaaS متعدد المستأجرين
-            </div>
-            <h2 className="text-3xl font-black leading-tight mb-3">
-              أدر مشاريعك<br />
-              <span style={{ color: '#c8161d' }}>العقارية</span> بذكاء
-            </h2>
-            <p className="text-white/50 text-sm leading-relaxed mb-8">
-              منصة متكاملة لإدارة العقارات والعملاء والعقود والمحاسبة
-            </p>
-            <div className="space-y-3">
-              {FEATURES.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <FaCircleCheck className="text-sm flex-shrink-0" style={{ color: '#c8161d' }} />
-                  <span className="text-sm text-white/65">{f.label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-8 mt-10 pt-8 border-t border-white/10">
-              {[['500+', 'شركة'], ['50k+', 'وحدة'], ['99%', 'رضا']].map(([v, l]) => (
-                <div key={l}>
-                  <p className="text-2xl font-black">{v}</p>
-                  <p className="text-xs mt-0.5 text-white/35">{l}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+        {/* Logo above card */}
+        <motion.img
+          src={logoColor} alt="EgyEstate"
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="h-12 object-contain mb-8"
+        />
 
-          {/* Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45 }}
-            className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-gray-100"
-          >
-            <div className="flex justify-center mb-8 lg:hidden">
-              <img src={logoColor} alt="EgyEstate" className="h-10 object-contain" />
-            </div>
+        {/* Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+          className="w-full max-w-md bg-white rounded-2xl px-8 py-10"
+          style={{ boxShadow: '0 4px 24px rgba(35,31,32,0.08)' }}>
 
-            <div className="mb-7">
-              <h2 className="text-2xl font-black mb-1.5" style={{ color: '#231f20', letterSpacing: '-0.02em' }}>
-                تسجيل الدخول
-              </h2>
-              <p className="text-sm text-gray-500">
-                أدخل بياناتك للوصول إلى لوحة التحكم
-              </p>
-            </div>
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-black" style={{ color: DARK }}>تسجيل الدخول</h1>
+            <p className="text-sm text-gray-400 mt-2">أدخل بياناتك للوصول إلى لوحة التحكم</p>
+          </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="label">البريد الإلكتروني</label>
-                <div className="relative">
-                  <FaEnvelope className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs transition-colors"
-                    style={{ color: focused === 'email' ? '#c8161d' : '#9ca3af' }} />
-                  <input type="email"
-                    className={`input pr-10 ${errors.email ? 'border-red-400' : ''}`}
-                    placeholder="admin@company.com"
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                    onFocus={() => setFocused('email')}
-                    onBlur={() => setFocused('')}
-                    autoComplete="email" />
-                </div>
-                <AnimatePresence>
-                  {errors.email && (
-                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                      className="mt-1.5 text-xs text-red-600 font-medium">{errors.email}</motion.p>
-                  )}
-                </AnimatePresence>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-bold mb-2" style={{ color: DARK }}>البريد الإلكتروني</label>
+              <div className="relative">
+                <FaEnvelope className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm" />
+                <input
+                  type="email" dir="ltr" placeholder="admin@company.com"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full pr-11 pl-4 py-3 rounded-xl text-sm outline-none transition-colors text-left"
+                  style={{ border: `1.5px solid ${errors.email ? RED : '#e5e7eb'}`, background: '#fff' }}
+                  onFocus={e => e.target.style.borderColor = DARK}
+                  onBlur={e => e.target.style.borderColor = errors.email ? RED : '#e5e7eb'}
+                />
               </div>
+              {errors.email && <p className="text-xs mt-1.5" style={{ color: RED }}>{errors.email}</p>}
+            </div>
 
-              <div>
-                <label className="label">كلمة المرور</label>
-                <div className="relative">
-                  <FaLock className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs transition-colors"
-                    style={{ color: focused === 'pass' ? '#c8161d' : '#9ca3af' }} />
-                  <input
-                    type={showPass ? 'text' : 'password'}
-                    className={`input pr-10 pl-10 ${errors.password ? 'border-red-400' : ''}`}
-                    placeholder="••••••••"
-                    value={form.password}
-                    onChange={e => setForm({ ...form, password: e.target.value })}
-                    onFocus={() => setFocused('pass')}
-                    onBlur={() => setFocused('')}
-                    autoComplete="current-password" />
-                  <button type="button"
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs hover:opacity-80 transition-opacity text-gray-400"
-                    onClick={() => setShowPass(!showPass)}>
-                    {showPass ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                <AnimatePresence>
-                  {errors.password && (
-                    <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                      className="mt-1.5 text-xs text-red-600 font-medium">{errors.password}</motion.p>
-                  )}
-                </AnimatePresence>
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-bold mb-2" style={{ color: DARK }}>كلمة المرور</label>
+              <div className="relative">
+                <FaLock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm" />
+                <input
+                  type={showPass ? 'text' : 'password'} dir="ltr" placeholder="••••••••"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  className="w-full pr-11 pl-11 py-3 rounded-xl text-sm outline-none transition-colors text-left"
+                  style={{ border: `1.5px solid ${errors.password ? RED : '#e5e7eb'}`, background: '#fff' }}
+                  onFocus={e => e.target.style.borderColor = DARK}
+                  onBlur={e => e.target.style.borderColor = errors.password ? RED : '#e5e7eb'}
+                />
+                <button type="button" onClick={() => setShowPass(s => !s)}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                  {showPass ? <FaEyeSlash className="text-sm" /> : <FaEye className="text-sm" />}
+                </button>
               </div>
+              {errors.password && <p className="text-xs mt-1.5" style={{ color: RED }}>{errors.password}</p>}
+            </div>
 
-              <motion.button type="submit" disabled={loading}
-                whileTap={{ scale: 0.985 }}
-                className="btn btn-primary w-full py-3 text-sm font-bold mt-1">
-                {loading ? (
-                  <span className="flex items-center gap-2 justify-center">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    جارٍ تسجيل الدخول...
-                  </span>
-                ) : 'تسجيل الدخول →'}
-              </motion.button>
-            </form>
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+              style={{ background: RED }}>
+              {loading ? (
+                <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+              ) : (
+                <>
+                  تسجيل الدخول
+                  <FaArrowLeft className="text-xs" />
+                </>
+              )}
+            </button>
+          </form>
 
-            <p className="text-center text-xs mt-6 text-gray-400">
-              EgyEstate © {new Date().getFullYear()} — جميع الحقوق محفوظة
-            </p>
-          </motion.div>
-        </div>
+          <p className="text-center text-xs text-gray-300 mt-8">
+            EgyEstate © {new Date().getFullYear()} — جميع الحقوق محفوظة
+          </p>
+        </motion.div>
       </div>
     </div>
   );
