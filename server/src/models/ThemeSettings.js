@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const themeSchema = new mongoose.Schema({
+  companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', default: null, unique: true },
+  primaryColor: { type: String, default: '#da1f27' },
+  primaryDark: { type: String, default: '#a01820' },
+  primaryLight: { type: String, default: '#f04048' },
+  accentColor: { type: String, default: '#fbb140' },
+  backgroundColor: { type: String, default: '#fcfcfc' },
+  surfaceColor: { type: String, default: '#FFFFFF' },
+  textDark: { type: String, default: '#1F1F1F' },
+  textMuted: { type: String, default: '#6B7280' },
+  borderColor: { type: String, default: '#E5E0DC' },
+  logo: { type: String },
+  logoWhite: { type: String },
+  loginImage: { type: String },
+  fontFamily: { type: String, default: 'Tajawal' },
+  buttonRadius: { type: String, default: '0.5rem' },
+  cardRadius: { type: String, default: '0.75rem' },
+  sidebarStyle: { type: String, enum: ['dark', 'light', 'colored'], default: 'dark' },
+  dashboardLayout: { type: String, enum: ['default', 'compact', 'wide'], default: 'default' },
+  sidebarBg:          { type: String, default: '#0F0E0E' },
+  sidebarActiveBg:    { type: String, default: 'rgba(218,31,39,0.35)' },
+  sidebarActiveColor: { type: String, default: '#ff7b82' },
+  sidebarTextColor:   { type: String, default: 'rgba(255,255,255,0.68)' },
+  sidebarGroupColor:  { type: String, default: 'rgba(255,255,255,0.28)' },
+  footerContent: { type: String },
+  customCss: { type: String },
+  announcementBar: {
+    enabled:  { type: Boolean, default: false },
+    text:     { type: String, default: '' },
+    bgColor:  { type: String, default: '#da1f27' },
+    textColor:{ type: String, default: '#ffffff' },
+    link:     { type: String, default: '' },
+    dismissible: { type: Boolean, default: true },
+  },
+}, { timestamps: true });
+
+module.exports = mongoose.model('ThemeSettings', themeSchema);

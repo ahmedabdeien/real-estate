@@ -1,0 +1,315 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
+
+/* ─────────────────────────────────────────
+   DESIGN TOKENS — EgyEstate v3.0
+   Inspired by Attio · Linear · HubSpot
+───────────────────────────────────────── */
+:root {
+  /* Brand */
+  --color-primary:       #c8161d;
+  --color-primary-dark:  #971018;
+  --color-primary-light: #e8444a;
+  --color-accent:        #f59e0b;
+  --color-brand-dark:    #231f20;
+  --color-brand-green:   #059669;
+
+  /* Surface */
+  --color-background:    #F4F5F7;
+  --color-surface:       #FFFFFF;
+  --color-surface-hover: #F8F9FA;
+  --color-surface-2:     #F1F2F4;
+
+  /* Text */
+  --color-text-dark:     #111827;
+  --color-text-medium:   #374151;
+  --color-text-muted:    #6B7280;
+  --color-text-faint:    #9CA3AF;
+
+  /* Borders */
+  --color-border:        #E5E7EB;
+  --color-border-strong: #D1D5DB;
+
+  /* Semantic */
+  --color-success:       #059669;
+  --color-warning:       #d97706;
+  --color-danger:        #dc2626;
+  --color-info:          #2563eb;
+
+  /* Radii */
+  --btn-radius:  0.5rem;
+  --card-radius: 0.75rem;
+  --input-radius: 0.5rem;
+
+  /* Typography */
+  --font-family: 'Tajawal', 'Cairo', sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Sidebar */
+  --sidebar-bg:           #111827;
+  --sidebar-active-bg:    rgba(200,22,29,0.18);
+  --sidebar-active-color: #f87171;
+  --sidebar-text:         rgba(255,255,255,0.62);
+  --sidebar-group:        rgba(255,255,255,0.22);
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 28px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-xl: 0 20px 48px rgba(0,0,0,0.14), 0 8px 16px rgba(0,0,0,0.08);
+}
+
+/* ── Reset ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.6;
+  background-color: var(--color-background);
+  color: var(--color-text-dark);
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-faint); }
+
+/* ── Selection ── */
+::selection { background: rgba(200,22,29,0.12); }
+
+/* ── Focus ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Toast ── */
+.react-hot-toast > div { font-family: var(--font-family) !important; direction: rtl !important; }
+
+@layer components {
+
+  /* ─────────────── BUTTONS ─────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-semibold
+           transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed select-none;
+    border-radius: var(--btn-radius);
+    white-space: nowrap;
+  }
+  .btn-primary {
+    @apply btn text-white;
+    background-color: var(--color-primary);
+    box-shadow: var(--shadow-xs);
+    &:hover:not(:disabled) { background-color: var(--color-primary-dark); box-shadow: var(--shadow-sm); }
+    &:active:not(:disabled) { transform: scale(0.99); }
+  }
+  .btn-outline {
+    @apply btn border;
+    background-color: var(--color-surface);
+    border-color: var(--color-border-strong);
+    color: var(--color-text-medium);
+    box-shadow: var(--shadow-xs);
+    &:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); background-color: rgba(200,22,29,0.04); }
+  }
+  .btn-danger {
+    @apply btn text-white;
+    background-color: var(--color-danger);
+    &:hover:not(:disabled) { background-color: #b91c1c; }
+    &:active:not(:disabled) { transform: scale(0.99); }
+  }
+  .btn-ghost {
+    @apply btn bg-transparent;
+    color: var(--color-text-muted);
+    &:hover:not(:disabled) { background-color: var(--color-surface-2); color: var(--color-text-dark); }
+  }
+  .btn-soft {
+    @apply btn;
+    background-color: rgba(200,22,29,0.08);
+    color: var(--color-primary);
+    &:hover:not(:disabled) { background-color: rgba(200,22,29,0.14); }
+  }
+  .btn-sm { @apply text-xs px-2.5 py-1.5; gap: 0.3rem; }
+  .btn-lg { @apply text-base px-5 py-2.5; }
+  .btn-icon { @apply p-2; border-radius: var(--btn-radius); }
+  .btn-icon-sm { @apply p-1.5; border-radius: calc(var(--btn-radius) - 2px); }
+
+  /* ─────────────── CARD ─────────────── */
+  .card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-xs);
+  }
+  .card-hover {
+    transition: box-shadow 0.2s, transform 0.2s;
+    &:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  }
+  .card-flat {
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--card-radius);
+  }
+
+  /* ─────────────── INPUTS ─────────────── */
+  .input {
+    @apply w-full px-3 py-2 text-sm border transition-all duration-150 focus:outline-none;
+    background-color: var(--color-surface);
+    border-color: var(--color-border-strong);
+    color: var(--color-text-dark);
+    border-radius: var(--input-radius);
+    box-shadow: var(--shadow-xs);
+    &:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(200,22,29,0.1);
+    }
+    &::placeholder { color: var(--color-text-faint); }
+    &:hover:not(:focus) { border-color: var(--color-border-strong); }
+  }
+  .label {
+    @apply block text-xs font-semibold mb-1;
+    color: var(--color-text-medium);
+    letter-spacing: 0.01em;
+  }
+
+  /* ─────────────── BADGE ─────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold;
+    border-radius: 4px;
+  }
+
+  /* ─────────────── TABLE (base) ─────────────── */
+  .table { @apply w-full text-sm; }
+  .table thead tr {
+    background-color: var(--color-surface-2);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .table th {
+    @apply px-3.5 py-2.5 text-start font-semibold text-xs;
+    color: var(--color-text-muted);
+  }
+  .table td {
+    @apply px-3.5 py-3;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-medium);
+  }
+  .table td:first-child, .table th:first-child { padding-right: 1.25rem; }
+  .table tbody tr:last-child td { border-bottom: none; }
+  .table tbody tr { transition: background-color 0.1s; }
+  .table tbody tr:hover { background-color: var(--color-surface-hover); }
+
+  /* ─────────────── PAGE HEADER ─────────────── */
+  .page-title {
+    @apply text-xl font-bold;
+    color: var(--color-text-dark);
+    letter-spacing: -0.01em;
+  }
+  .page-subtitle { @apply text-sm; color: var(--color-text-muted); }
+
+  /* ─────────────── DIVIDER ─────────────── */
+  .divider {
+    @apply my-4;
+    height: 1px;
+    background-color: var(--color-border);
+  }
+
+  /* ─────────────── EMPTY STATE ─────────────── */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-16 gap-3 text-center;
+  }
+
+  /* ─────────────── SKELETON ─────────────── */
+  .skeleton { @apply rounded bg-gray-100 animate-pulse; }
+
+  /* ─────────────── TAG / STAT CHIP ─────────────── */
+  .stat-chip {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-md;
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-medium);
+  }
+
+  /* ─────────────── SIDEBAR ITEM ─────────────── */
+  .sidebar-item {
+    @apply flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium transition-all duration-100 cursor-pointer;
+  }
+
+  /* ─────────────── SECTION TITLE ─────────────── */
+  .section-title {
+    @apply text-xs font-semibold uppercase mb-2;
+    color: var(--color-text-faint);
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Keyframes ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ping-slow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.2); opacity: 0.6; }
+}
+
+.animate-fade-in-up   { animation: fadeInUp 0.3s ease both; }
+.animate-fade-in      { animation: fadeIn 0.25s ease both; }
+.animate-scale-in     { animation: scaleIn 0.2s ease both; }
+.animate-slide-right  { animation: slideInRight 0.3s ease both; }
+.animate-count-up     { animation: count-up 0.35s ease both; }
+
+/* Stagger */
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 50ms; }
+.stagger > *:nth-child(3) { animation-delay: 100ms; }
+.stagger > *:nth-child(4) { animation-delay: 150ms; }
+.stagger > *:nth-child(5) { animation-delay: 200ms; }
+.stagger > *:nth-child(6) { animation-delay: 250ms; }
+.stagger > *:nth-child(7) { animation-delay: 300ms; }
+.stagger > *:nth-child(8) { animation-delay: 350ms; }
+
+/* ── RTL tweaks ── */
+[dir="rtl"] .table th,
+[dir="rtl"] .table td { text-align: right; }
+
+/* ── Print ── */
+@media print {
+  .sidebar, .navbar, .no-print { display: none !important; }
+  .card { box-shadow: none; border: 1px solid #e5e5e5; }
+}
