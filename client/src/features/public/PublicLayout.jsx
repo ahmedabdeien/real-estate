@@ -5,9 +5,7 @@ import {
   FaBars, FaXmark, FaChevronDown, FaArrowLeft,
   FaLinkedin, FaXTwitter, FaYoutube, FaInstagram,
   FaEnvelope, FaPhone, FaLocationDot,
-  FaBuilding, FaHandshake, FaBriefcase,
-  FaHeadset, FaRss, FaCode, FaCircleDot, FaMap,
-  FaCircleCheck, FaNewspaper,
+  FaCircleCheck,
 } from 'react-icons/fa6';
 import logoWhite from '../../assets/logo-white.svg';
 
@@ -17,59 +15,34 @@ const DARK = '#231f20';
 
 /* ─── NAV DATA ─── */
 const NAV_LINKS = [
-  { label: 'المميزات',  to: '/features' },
-  { label: 'الأسعار',   to: '/pricing' },
-  { label: 'التكاملات', to: '/integrations' },
-  {
-    label: 'الشركة',
-    children: [
-      { label: 'من نحن',        to: '/about',     icon: FaBuilding,  desc: 'قصتنا وفريقنا وقيمنا' },
-      { label: 'الشركاء',       to: '/partners',  icon: FaHandshake, desc: 'برنامج الشركاء والعمولات' },
-      { label: 'الوظائف',       to: '/careers',   icon: FaBriefcase, desc: 'انضم لفريق EgyEstate' },
-      { label: 'تواصل معنا',    to: '/contact',   icon: FaPhone, desc: 'نحن هنا للمساعدة' },
-      { label: 'سجل التحديثات', to: '/changelog', icon: FaNewspaper, desc: 'آخر تحديثات المنتج' },
-    ],
-  },
-  {
-    label: 'الموارد',
-    children: [
-      { label: 'مركز المساعدة', to: '/help',     icon: FaHeadset,    desc: 'أجوبة لأسئلتك الشائعة' },
-      { label: 'المدونة',        to: '/blog',     icon: FaRss,        desc: 'مقالات ونصائح عقارية' },
-      { label: 'API Docs',       to: '/api-docs', icon: FaCode,       desc: 'وثائق التكامل للمطورين' },
-      { label: 'حالة الخدمة',   to: '/status',   icon: FaCircleDot,  desc: 'مراقبة حالة الأنظمة' },
-      { label: 'خريطة الطريق',  to: '/roadmap',  icon: FaMap,        desc: 'ما نبنيه الآن والمستقبل' },
-    ],
-  },
+  { label: 'المميزات', to: '/#features' },
+  { label: 'الأسعار',  to: '/#pricing' },
+  { label: 'كيف يعمل', to: '/#how' },
+  { label: 'المدونة',  to: '/blog' },
 ];
 
 const FOOTER_COLS = [
   {
     title: 'المنتج',
     links: [
-      { label: 'المميزات',      to: '/features' },
-      { label: 'الأسعار',       to: '/pricing' },
-      { label: 'التكاملات',     to: '/integrations' },
-      { label: 'خريطة الطريق',  to: '/roadmap' },
-      { label: 'سجل التحديثات', to: '/changelog' },
+      { label: 'المميزات',   to: '/#features' },
+      { label: 'الأسعار',    to: '/#pricing' },
+      { label: 'كيف يعمل',  to: '/#how' },
+      { label: 'آراء العملاء', to: '/#testimonials' },
     ],
   },
   {
-    title: 'الشركة',
+    title: 'الموارد',
     links: [
-      { label: 'من نحن',     to: '/about' },
-      { label: 'الشركاء',    to: '/partners' },
-      { label: 'الوظائف',    to: '/careers' },
-      { label: 'تواصل معنا', to: '/contact' },
+      { label: 'المدونة',        to: '/blog' },
+      { label: 'تسجيل الدخول', to: '/login' },
     ],
   },
   {
-    title: 'الدعم',
+    title: 'قانوني',
     links: [
-      { label: 'مركز المساعدة',  to: '/help' },
-      { label: 'حالة الخدمة',   to: '/status' },
-      { label: 'API Docs',       to: '/api-docs' },
       { label: 'شروط الاستخدام', to: '/terms' },
-      { label: 'الخصوصية',       to: '/privacy' },
+      { label: 'سياسة الخصوصية', to: '/privacy' },
     ],
   },
 ];
@@ -409,7 +382,7 @@ export const PublicFooter = () => {
             <span className="flex items-center gap-1.5"><FaEnvelope className="text-[10px]" />hello@egyestate.com</span>
             <span className="flex items-center gap-1.5"><FaLocationDot className="text-[10px]" />القاهرة، مصر</span>
           </div>
-          <p className="text-xs text-white/22">© {new Date().getFullYear()} EgyEstate · صُنع في مصر 🇪🇬</p>
+          <p className="text-xs text-white/22">© {new Date().getFullYear()} EgyEstate · صُنع في مصر</p>
         </div>
       </div>
     </footer>
@@ -418,7 +391,7 @@ export const PublicFooter = () => {
 
 /* ─── LAYOUT WRAPPER ─── */
 const PublicLayout = ({ children, navTransparent = false }) => (
-  <div dir="rtl" style={{ fontFamily: 'Cairo, Tajawal, sans-serif', minHeight: '100vh', background: '#fafafa' }}>
+  <div dir="rtl" style={{ minHeight: '100vh', background: '#fafafa' }}>
     <PublicNav transparent={navTransparent} />
     <main>{children}</main>
     <PublicFooter />

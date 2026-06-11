@@ -7,11 +7,12 @@ import {
   FaCity, FaMoneyBillWave, FaRocket,
   FaHeadset, FaGauge, FaLayerGroup,
   FaCircleCheck, FaBolt, FaWhatsapp, FaQuoteLeft,
-  FaMobileScreen, FaArrowTrendUp, FaBell,
+  FaMobileScreen, FaArrowTrendUp, FaBell, FaChevronDown,
 } from 'react-icons/fa6';
 import { Button } from '../../components/ui/shadcn/button';
 import { Badge } from '../../components/ui/shadcn/badge';
 import { Card, CardContent } from '../../components/ui/shadcn/card';
+import { Separator } from '../../components/ui/shadcn/separator';
 import { cn } from '../../lib/utils';
 import PublicLayout from '../public/PublicLayout';
 
@@ -529,7 +530,7 @@ function PricingSection() {
 
         <p className="text-center text-sm text-gray-500 mt-10">
           تحتاج خطة مخصصة؟{' '}
-          <Link to="/contact" className="font-bold underline" style={{ color: P }}>تواصل مع فريق المبيعات</Link>
+          <a href="mailto:hello@egyestate.com" className="font-bold underline" style={{ color: P }}>تواصل مع فريق المبيعات</a>
         </p>
       </div>
     </section>
@@ -612,7 +613,7 @@ function CTA() {
               </Link>
             </Button>
             <Button asChild size="xl" variant="outline">
-              <Link to="/contact">تواصل مع فريق المبيعات</Link>
+              <a href="mailto:hello@egyestate.com">تواصل مع فريق المبيعات</a>
             </Button>
           </div>
           <p className="text-white/25 text-xs mt-8">بدون التزام — يمكنك الإلغاء في أي وقت</p>

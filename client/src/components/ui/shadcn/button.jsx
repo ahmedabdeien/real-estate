@@ -26,9 +26,18 @@ const buttonVariants = cva(
   }
 );
 
-const Button = React.forwardRef(({ className, variant, size, ...props }, ref) => (
-  <button ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />
-));
+const Button = React.forwardRef(({ className, variant, size, asChild = false, children, ...props }, ref) => {
+  const classes = cn(buttonVariants({ variant, size }), className);
+  // asChild: render the child element itself (like Radix Slot) instead of a nested <button>
+  if (asChild && React.isValidElement(children)) {
+    return React.cloneElement(children, {
+      ...props,
+      ref,
+      className: cn(classes, children.props.className),
+    });
+  }
+  return <button ref={ref} className={classes} {...props}>{children}</button>;
+});
 Button.displayName = 'Button';
 
 export { Button, buttonVariants };
