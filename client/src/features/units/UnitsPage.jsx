@@ -29,7 +29,7 @@ const STATUS_COLORS  = { available: '#059669', reserved: '#2563eb', sold: '#6b72
 const TYPE_LABELS   = { apartment: 'شقة', studio: 'استوديو', villa: 'فيلا', duplex: 'دوبلكس', penthouse: 'بنتهاوس', shop: 'محل', office: 'مكتب', warehouse: 'مخزن', land: 'أرض' };
 const FINISH_LABELS = { raw: 'خام', semi_finished: 'نص تشطيب', fully_finished: 'تشطيب كامل', super_lux: 'سوبر لوكس' };
 
-const fmt = (n) => Number(n || 0).toLocaleString('ar-EG');
+const fmt = (n) => Number(n || 0).toLocaleString('en-US');
 const defaultForm = { unitNumber: '', propertyId: '', type: 'apartment', floor: '', rooms: '', bathrooms: '', area: '', price: '', finishingType: 'raw', status: 'available', description: '' };
 
 function UnitCard({ unit, onEdit, onDelete }) {
@@ -45,7 +45,7 @@ function UnitCard({ unit, onEdit, onDelete }) {
       style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
     >
       {/* Color header */}
-      <div className="h-2" style={{ background: `linear-gradient(90deg, ${statusColor}, ${statusColor}44)` }} />
+      <div className="h-2" style={{ background: statusColor }} />
 
       <div className="p-4">
         {/* Top row */}
@@ -204,7 +204,7 @@ export default function UnitsPage() {
       {/* Header */}
       <PageHeader
         title="إدارة الوحدات"
-        subtitle={`${total.toLocaleString('ar-EG')} وحدة عقارية`}
+        subtitle={`${total.toLocaleString('en-US')} وحدة عقارية`}
         icon={FaLayerGroup}
         actions={
           <Button onClick={openCreate}>

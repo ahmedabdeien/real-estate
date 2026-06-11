@@ -18,7 +18,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { Tooltip } from '../../components/ui/Tooltip';
 import toast from 'react-hot-toast';
 
-const fmt = (n) => Number(n || 0).toLocaleString('ar-EG');
+const fmt = (n) => Number(n || 0).toLocaleString('en-US');
 const daysOverdue = (d) => Math.ceil((new Date() - new Date(d)) / 86400000);
 const daysUntil   = (d) => Math.ceil((new Date(d) - new Date()) / 86400000);
 

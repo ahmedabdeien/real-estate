@@ -16,7 +16,7 @@ import {
 import * as XLSX from 'xlsx';
 import { exportFinancialReportPDF } from '../../utils/pdfExport';
 
-const fmt    = (n) => Number(n || 0).toLocaleString('ar-EG');
+const fmt    = (n) => Number(n || 0).toLocaleString('en-US');
 const fmtCur = (n) => `${fmt(n)} ج.م`;
 const ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
@@ -71,12 +71,12 @@ const ReportsPage = () => {
       'العميل': p.customerId?.name || '—',
       'رقم العقد': p.contractId?.contractNumber || '—',
       'المبلغ': p.amount,
-      'التاريخ': p.date ? new Date(p.date).toLocaleDateString('ar-EG') : '—',
+      'التاريخ': p.date ? new Date(p.date).toLocaleDateString('ar-EG-u-nu-latn') : '—',
       'طريقة الدفع': p.method || '—',
     }))), 'المدفوعات');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((data.expenses || []).map(e => ({
       'التصنيف': e.category, 'الوصف': e.description || '—', 'المبلغ': e.amount,
-      'التاريخ': e.date ? new Date(e.date).toLocaleDateString('ar-EG') : '—',
+      'التاريخ': e.date ? new Date(e.date).toLocaleDateString('ar-EG-u-nu-latn') : '—',
     }))), 'المصروفات');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([{
       'إجمالي الإيرادات': data.totalRevenue, 'إجمالي المصروفات': data.totalExpenses, 'صافي الربح': data.netProfit,
@@ -209,7 +209,7 @@ const ReportsPage = () => {
                     <td className="font-medium">{p.customerId?.name || '—'}</td>
                     <td className="font-mono text-xs" style={{ color: 'var(--color-primary)' }}>{p.contractId?.contractNumber || '—'}</td>
                     <td className="font-bold text-green-700">{fmtCur(p.amount)}</td>
-                    <td style={{ color: 'var(--color-text-muted)' }}>{p.date ? new Date(p.date).toLocaleDateString('ar-EG') : '—'}</td>
+                    <td style={{ color: 'var(--color-text-muted)' }}>{p.date ? new Date(p.date).toLocaleDateString('ar-EG-u-nu-latn') : '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -235,7 +235,7 @@ const ReportsPage = () => {
                     <td className="font-mono text-xs" style={{ color: 'var(--color-primary)' }}>{p.contractId?.contractNumber || '—'}</td>
                     <td className="font-bold text-green-700">{fmtCur(p.amount)}</td>
                     <td><Badge color="info">{{ cash: 'كاش', bank: 'تحويل بنكي', check: 'شيك', installments: 'تقسيط' }[p.method] || p.method || '—'}</Badge></td>
-                    <td style={{ color: 'var(--color-text-muted)' }}>{p.date ? new Date(p.date).toLocaleDateString('ar-EG') : '—'}</td>
+                    <td style={{ color: 'var(--color-text-muted)' }}>{p.date ? new Date(p.date).toLocaleDateString('ar-EG-u-nu-latn') : '—'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -266,7 +266,7 @@ const ReportsPage = () => {
                     <td><Badge color="warning">{e.category}</Badge></td>
                     <td style={{ color: 'var(--color-text-medium)' }}>{e.description || '—'}</td>
                     <td className="font-bold text-red-700">{fmtCur(e.amount)}</td>
-                    <td style={{ color: 'var(--color-text-muted)' }}>{e.date ? new Date(e.date).toLocaleDateString('ar-EG') : '—'}</td>
+                    <td style={{ color: 'var(--color-text-muted)' }}>{e.date ? new Date(e.date).toLocaleDateString('ar-EG-u-nu-latn') : '—'}</td>
                   </tr>
                 ))}
               </tbody>

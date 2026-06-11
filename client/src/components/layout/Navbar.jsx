@@ -97,7 +97,7 @@ const Navbar = () => {
                 <div className="px-4 py-3.5" style={{ borderBottom: '1px solid var(--color-border)' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-black flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))' }}>
+                      style={{ background: 'var(--color-primary)' }}>
                       {user?.name?.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">

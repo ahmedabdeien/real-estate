@@ -6,6 +6,7 @@ const STATUS_MAP = {
   active:      { label: 'نشط',        color: '#059669', bg: '#d1fae5', icon: FaCircleCheck },
   completed:   { label: 'منتهي',      color: '#6b7280', bg: '#f3f4f6', icon: FaCircleCheck },
   cancelled:   { label: 'ملغي',       color: '#ef4444', bg: '#fee2e2', icon: FaCircleXmark },
+  terminated:  { label: 'مُنهى',      color: '#7c3aed', bg: '#ede9fe', icon: FaCircleXmark },
   draft:       { label: 'مسودة',      color: '#6b7280', bg: '#f3f4f6', icon: FaCircle },
   // Invoices / Payments
   paid:        { label: 'مدفوع',      color: '#059669', bg: '#d1fae5', icon: FaCircleCheck },

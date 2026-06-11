@@ -173,7 +173,7 @@ export default function DocumentsPage() {
     <div className="p-6 space-y-6">
       <PageHeader
         title="إدارة المستندات"
-        subtitle={`${total.toLocaleString('ar-EG')} مستند محفوظ`}
+        subtitle={`${total.toLocaleString('en-US')} مستند محفوظ`}
         icon={FaFolder}
         actions={
           <Can I="create" a="documents">

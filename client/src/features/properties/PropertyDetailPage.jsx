@@ -47,7 +47,7 @@ const UnitCard = ({ unit, onEdit }) => {
         </div>
         {unit.price > 0 && (
           <p className="text-sm font-bold" style={{ color: 'var(--color-primary)' }}>
-            {unit.price.toLocaleString('ar-EG')} ج.م
+            {unit.price.toLocaleString('en-US')} ج.م
           </p>
         )}
       </div>

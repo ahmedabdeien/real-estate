@@ -422,7 +422,7 @@ const SubscriptionTab = ({ company }) => {
                     ? 'انتهى الاشتراك — يرجى التجديد'
                     : daysLeft < 14
                       ? `ينتهي الاشتراك خلال ${daysLeft} يوم`
-                      : `الاشتراك نشط حتى ${expiry.toLocaleDateString('ar-EG')}`
+                      : `الاشتراك نشط حتى ${expiry.toLocaleDateString('ar-EG-u-nu-latn')}`
                   }
                 </p>
               </div>

@@ -28,7 +28,7 @@ const METHOD_CONFIG = {
   online:        { label: 'إلكتروني',      icon: FaReceipt,       color: '#0891b2', bg: '#cffafe' },
 };
 
-const fmt = (n) => Number(n || 0).toLocaleString('ar-EG');
+const fmt = (n) => Number(n || 0).toLocaleString('en-US');
 const defaultForm = {
   customerId: '', amount: '', method: 'cash',
   date: new Date().toISOString().split('T')[0],
@@ -130,7 +130,7 @@ export default function PaymentsPage() {
     { header: 'طريقة الدفع', render: (r) => <MethodBadge method={r.method} /> },
     { header: 'التاريخ', render: (r) => (
       <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-        {new Date(r.date || r.createdAt).toLocaleDateString('ar-EG')}
+        {new Date(r.date || r.createdAt).toLocaleDateString('ar-EG-u-nu-latn')}
       </span>
     )},
     { header: 'المرجع', render: (r) => r.reference || r.checkNumber || '—' },
@@ -145,7 +145,7 @@ export default function PaymentsPage() {
     <div className="p-6 space-y-5">
       <PageHeader
         title="المدفوعات والإيصالات"
-        subtitle={`${total.toLocaleString('ar-EG')} دفعة مسجلة`}
+        subtitle={`${total.toLocaleString('en-US')} دفعة مسجلة`}
         icon={FaMoneyBillWave}
         actions={
           <Button onClick={() => setModal(true)}>

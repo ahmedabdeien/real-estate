@@ -44,7 +44,7 @@ function relativeTime(dateStr) {
   if (h < 24) return `منذ ${h} ساعة`;
   const d = Math.floor(h / 24);
   if (d < 30) return `منذ ${d} يوم`;
-  return new Date(dateStr).toLocaleDateString('ar-EG');
+  return new Date(dateStr).toLocaleDateString('ar-EG-u-nu-latn');
 }
 
 function DiffViewer({ diff }) {
@@ -158,7 +158,7 @@ function AuditEntry({ log, expanded, onToggle }) {
               {relativeTime(log.createdAt)}
             </span>
             <span className="text-xs hidden lg:block" style={{ color: 'var(--color-text-muted)', opacity: 0.6 }}>
-              {new Date(log.createdAt).toLocaleString('ar-EG')}
+              {new Date(log.createdAt).toLocaleString('en-US')}
             </span>
             {log.ip && (
               <span className="text-xs font-mono" style={{ color: 'var(--color-text-muted)', opacity: 0.5 }}>{log.ip}</span>
@@ -213,7 +213,7 @@ export default function AuditPage() {
     <div className="p-6 space-y-6">
       <PageHeader
         title="سجل النشاطات"
-        subtitle={`${total.toLocaleString('ar-EG')} عملية مسجلة — من فعل ماذا ومتى`}
+        subtitle={`${total.toLocaleString('en-US')} عملية مسجلة — من فعل ماذا ومتى`}
         icon={FaShield}
       />
 
@@ -227,7 +227,7 @@ export default function AuditPage() {
               </div>
               <div>
                 <p className="text-2xl font-black" style={{ color: cfg.color }}>
-                  {(actionCounts[action] || 0).toLocaleString('ar-EG')}
+                  {(actionCounts[action] || 0).toLocaleString('en-US')}
                 </p>
                 <p className="text-xs font-semibold" style={{ color: cfg.color, opacity: 0.75 }}>{cfg.label}</p>
               </div>
@@ -327,7 +327,7 @@ export default function AuditPage() {
         {pages > 1 && (
           <div className="flex items-center justify-between mt-6 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
             <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              الصفحة {filters.page} من {pages} — {total.toLocaleString('ar-EG')} سجل
+              الصفحة {filters.page} من {pages} — {total.toLocaleString('en-US')} سجل
             </p>
             <div className="flex gap-2">
               <button

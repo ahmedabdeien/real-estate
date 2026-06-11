@@ -28,7 +28,7 @@ const CAT_COLORS = {
   'مستلزمات': '#d97706', 'عمولات': '#be185d', 'رسوم قانونية': '#6b7280', 'أخرى': '#9ca3af',
 };
 
-const fmt = (n) => Number(n || 0).toLocaleString('ar-EG');
+const fmt = (n) => Number(n || 0).toLocaleString('en-US');
 const defaultForm = { category: '', description: '', amount: '', date: new Date().toISOString().split('T')[0], paymentMethod: 'cash', vendor: '', reference: '' };
 
 export default function ExpensesPage() {
@@ -98,7 +98,7 @@ export default function ExpensesPage() {
     )},
     { header: 'التاريخ', render: (r) => (
       <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-        {new Date(r.date).toLocaleDateString('ar-EG')}
+        {new Date(r.date).toLocaleDateString('ar-EG-u-nu-latn')}
       </span>
     )},
     { header: '', render: (r) => (
@@ -113,7 +113,7 @@ export default function ExpensesPage() {
     <div className="p-6 space-y-5">
       <PageHeader
         title="إدارة المصروفات"
-        subtitle={`${total.toLocaleString('ar-EG')} مصروف مسجل`}
+        subtitle={`${total.toLocaleString('en-US')} مصروف مسجل`}
         icon={FaSackXmark}
         actions={<Button onClick={openCreate}><FaPlus className="text-xs" /> إضافة مصروف</Button>}
       />

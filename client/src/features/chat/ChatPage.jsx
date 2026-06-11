@@ -20,7 +20,7 @@ const formatDate = (date) => {
   const diff = Math.floor((today - d) / 86400000);
   if (diff === 0) return 'اليوم';
   if (diff === 1) return 'أمس';
-  return d.toLocaleDateString('ar-EG');
+  return d.toLocaleDateString('ar-EG-u-nu-latn');
 };
 
 const Avatar = ({ name, size = 10, online }) => (

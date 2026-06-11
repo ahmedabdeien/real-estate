@@ -91,3 +91,12 @@ export const mediaAPI = {
   update:  (id, data) => api.put(`/media/${id}`, data),
   remove:  (id) => api.delete(`/media/${id}`),
 };
+
+export const pagesAPI = {
+  getAll:    (params) => api.get('/pages', { params }),
+  getOne:    (id)     => api.get(`/pages/${id}`),
+  getBySlug: (slug)   => api.get(`/pages/slug/${slug}`),
+  create:    (data)   => api.post('/pages', data),
+  update:    (id, data) => api.put(`/pages/${id}`, data),
+  delete:    (id)     => api.delete(`/pages/${id}`),
+};

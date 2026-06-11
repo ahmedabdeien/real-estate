@@ -132,7 +132,7 @@ const PlansPage = () => {
                     </button>
                   </div>
                   <div className="mt-4">
-                    <span className="text-3xl font-black">{Number(plan.price || 0).toLocaleString('ar-EG')}</span>
+                    <span className="text-3xl font-black">{Number(plan.price || 0).toLocaleString('en-US')}</span>
                     <span className="text-sm opacity-70 mr-1">ج.م / {plan.duration} يوم</span>
                   </div>
                 </div>

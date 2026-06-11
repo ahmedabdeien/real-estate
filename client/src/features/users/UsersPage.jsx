@@ -71,7 +71,7 @@ const UsersPage = () => {
     )},
     { header: 'آخر ظهور', render: (r) => (
       <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-        {r.isOnline ? <span className="text-green-600 font-medium">متصل الآن</span> : r.lastSeen ? new Date(r.lastSeen).toLocaleDateString('ar-EG') : '—'}
+        {r.isOnline ? <span className="text-green-600 font-medium">متصل الآن</span> : r.lastSeen ? new Date(r.lastSeen).toLocaleDateString('ar-EG-u-nu-latn') : '—'}
       </span>
     )},
     { header: 'الإجراءات', render: (r) => (

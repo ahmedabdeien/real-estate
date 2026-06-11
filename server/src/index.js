@@ -55,6 +55,7 @@ app.use('/api/blogs', require('./routes/blogs'));
 app.use('/api/cms',   require('./routes/cms'));
 app.use('/api/media',     require('./routes/media'));
 app.use('/api/documents', require('./routes/documents'));
+app.use('/api/pages',     require('./routes/pages'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 

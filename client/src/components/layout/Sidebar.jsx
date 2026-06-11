@@ -71,7 +71,7 @@ const menuGroups = [
   {
     label: 'التسويق',
     items: [
-      { label: 'محرر الموقع',  icon: FaWandMagicSparkles, path: '/marketing/cms',   module: 'theme' },
+      { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder',    module: 'theme' },
       { label: 'المقالات',     icon: FaNewspaper,          path: '/marketing/blogs', module: 'theme' },
       { label: 'مكتبة الصور', icon: FaImages,             path: '/marketing/media', module: 'media' },
     ],

@@ -31,7 +31,7 @@ const StatCard = ({ title, value, icon, color = 'primary', change, suffix = '', 
           {title}
         </p>
         <p className="text-xl font-bold truncate leading-tight" style={{ color: 'var(--color-text-dark)' }}>
-          {typeof value === 'number' ? value.toLocaleString('ar-EG') : (value ?? '—')}
+          {typeof value === 'number' ? value.toLocaleString('en-US') : (value ?? '—')}
           {suffix && <span className="text-sm font-normal mr-1" style={{ color: 'var(--color-text-muted)' }}>{suffix}</span>}
         </p>
         {sub && (

@@ -206,7 +206,7 @@ function DetailPanel({ item, onClose, onCopy, onDelete }) {
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-1">تاريخ الرفع</p>
-          <p className="text-sm">{new Date(item.createdAt).toLocaleDateString('ar-EG')}</p>
+          <p className="text-sm">{new Date(item.createdAt).toLocaleDateString('ar-EG-u-nu-latn')}</p>
         </div>
 
         {/* URL */}

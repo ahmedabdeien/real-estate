@@ -12,8 +12,8 @@ import {
   FaFolder, FaDownload, FaFileLines, FaFileImage, FaFile,
 } from 'react-icons/fa6';
 
-const fmt = (n) => Number(n || 0).toLocaleString('ar-EG');
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('ar-EG') : '—';
+const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+const fmtDate = (d) => d ? new Date(d).toLocaleDateString('ar-EG-u-nu-latn') : '—';
 
 const InfoRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-center gap-3 py-2" style={{ borderBottom: '1px solid var(--color-border)' }}>

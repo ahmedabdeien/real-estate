@@ -23,7 +23,7 @@ const formatRelative = (date) => {
   if (diff < 60) return 'منذ ثوان';
   if (diff < 3600) return `منذ ${Math.floor(diff / 60)} دقيقة`;
   if (diff < 86400) return `منذ ${Math.floor(diff / 3600)} ساعة`;
-  return d.toLocaleDateString('ar-EG');
+  return d.toLocaleDateString('ar-EG-u-nu-latn');
 };
 
 const NotificationsPage = () => {

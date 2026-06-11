@@ -34,25 +34,15 @@ import InstallmentsPage from './features/installments/InstallmentsPage';
 import AdminChangelogPage from './features/pages/ChangelogPage';
 import DocumentsPage from './features/documents/DocumentsPage';
 // Lazy-loaded to keep main bundle small
-const BlogsPage        = lazy(() => import('./features/marketing/BlogsPage'));
-const CmsEditorPage    = lazy(() => import('./features/marketing/CmsEditorPage'));
-const MediaLibraryPage = lazy(() => import('./features/marketing/MediaLibraryPage'));
-const BlogListPage     = lazy(() => import('./features/public/BlogListPage'));
-const BlogPostPage     = lazy(() => import('./features/public/BlogPostPage'));
-const TermsPage        = lazy(() => import('./features/public/TermsPage'));
-const PrivacyPage      = lazy(() => import('./features/public/PrivacyPage'));
-const HelpPage         = lazy(() => import('./features/public/HelpPage'));
-const CareersPage      = lazy(() => import('./features/public/CareersPage'));
-const ApiDocsPage      = lazy(() => import('./features/public/ApiDocsPage'));
-const ChangelogPage    = lazy(() => import('./features/public/ChangelogPage'));
-const FeaturesPage     = lazy(() => import('./features/public/FeaturesPage'));
-const PricingPage      = lazy(() => import('./features/public/PricingPage'));
-const AboutPage        = lazy(() => import('./features/public/AboutPage'));
-const ContactPage      = lazy(() => import('./features/public/ContactPage'));
-const RoadmapPage      = lazy(() => import('./features/public/RoadmapPage'));
-const StatusPage       = lazy(() => import('./features/public/StatusPage'));
-const PartnersPage     = lazy(() => import('./features/public/PartnersPage'));
-const IntegrationsPage = lazy(() => import('./features/public/IntegrationsPage'));
+const BlogsPage          = lazy(() => import('./features/marketing/BlogsPage'));
+const MediaLibraryPage   = lazy(() => import('./features/marketing/MediaLibraryPage'));
+const BlogListPage        = lazy(() => import('./features/public/BlogListPage'));
+const BlogPostPage        = lazy(() => import('./features/public/BlogPostPage'));
+const TermsPage           = lazy(() => import('./features/public/TermsPage'));
+const PrivacyPage         = lazy(() => import('./features/public/PrivacyPage'));
+const PagesListPage       = lazy(() => import('./features/pageBuilder/PagesListPage'));
+const PageBuilderPage     = lazy(() => import('./features/pageBuilder/PageBuilderPage'));
+const PublicPage          = lazy(() => import('./features/pageBuilder/PublicPage'));
 
 const ThemeLoader = () => {
   const dispatch = useDispatch();
@@ -92,19 +82,8 @@ const App = () => {
         <Route path="/blog/:slug"  element={<BlogPostPage />} />
         <Route path="/terms"       element={<TermsPage />} />
         <Route path="/privacy"     element={<PrivacyPage />} />
-        <Route path="/help"        element={<HelpPage />} />
-        <Route path="/careers"     element={<CareersPage />} />
-        <Route path="/api-docs"    element={<ApiDocsPage />} />
-        <Route path="/changelog"   element={<ChangelogPage />} />
-        <Route path="/features"    element={<FeaturesPage />} />
-        <Route path="/pricing"     element={<PricingPage />} />
-        <Route path="/about"       element={<AboutPage />} />
-        <Route path="/contact"     element={<ContactPage />} />
-        <Route path="/roadmap"       element={<RoadmapPage />} />
-        <Route path="/status"        element={<StatusPage />} />
-        <Route path="/partners"      element={<PartnersPage />} />
-        <Route path="/integrations"  element={<IntegrationsPage />} />
-        <Route path="/login"         element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} />
+        <Route path="/p/:slug"     element={<PublicPage />} />
+        <Route path="/login"       element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" />} />
 
         {/* App — all protected routes under AppLayout */}
         <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -129,9 +108,10 @@ const App = () => {
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/chat"          element={<ChatPage />} />
           <Route path="/installments"  element={<InstallmentsPage />} />
-          <Route path="/marketing/blogs"  element={<BlogsPage />} />
-          <Route path="/marketing/cms"    element={<CmsEditorPage />} />
+          <Route path="/marketing/blogs"    element={<BlogsPage />} />
           <Route path="/marketing/media"  element={<MediaLibraryPage />} />
+          <Route path="/page-builder"     element={<PagesListPage />} />
+          <Route path="/page-builder/:id" element={<PageBuilderPage />} />
           <Route path="/super/companies" element={<CompaniesPage />} />
           <Route path="/super/plans"      element={<PlansPage />} />
           <Route path="/updates"          element={<AdminChangelogPage />} />

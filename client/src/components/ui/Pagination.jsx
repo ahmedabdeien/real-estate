@@ -21,7 +21,7 @@ const Pagination = ({ page, pages, total, limit, onPageChange }) => {
   return (
     <div className="flex items-center justify-between px-5 py-3.5">
       <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
-        {start.toLocaleString('ar-EG')}–{end.toLocaleString('ar-EG')} من {total.toLocaleString('ar-EG')} سجل
+        {start.toLocaleString('en-US')}–{end.toLocaleString('en-US')} من {total.toLocaleString('en-US')} سجل
       </p>
       <div className="flex items-center gap-1">
         <button onClick={() => onPageChange(page - 1)} disabled={page === 1}

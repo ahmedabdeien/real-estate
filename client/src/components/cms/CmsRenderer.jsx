@@ -61,7 +61,7 @@ function AnimCounter({ to, suffix = '' }) {
     return () => clearInterval(t);
   }, [inView, numericTo]);
 
-  return <span ref={ref}>{val.toLocaleString('ar-EG')}{hasSuffix || suffix}</span>;
+  return <span ref={ref}>{val.toLocaleString('en-US')}{hasSuffix || suffix}</span>;
 }
 
 function CTAButton({ btn }) {

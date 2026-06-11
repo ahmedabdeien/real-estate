@@ -67,7 +67,7 @@ const BlogListPage = () => {
                   <p className="text-sm opacity-50 line-clamp-2 mb-3">{b.excerpt}</p>
                   <div className="flex items-center justify-between text-xs opacity-40">
                     <span className="flex items-center gap-1"><FaCalendar />
-                      {b.publishedAt ? new Date(b.publishedAt).toLocaleDateString('ar-EG') : ''}
+                      {b.publishedAt ? new Date(b.publishedAt).toLocaleDateString('ar-EG-u-nu-latn') : ''}
                     </span>
                     {b.views > 0 && <span className="flex items-center gap-1"><FaEye />{b.views}</span>}
                   </div>

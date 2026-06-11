@@ -147,7 +147,7 @@ const BlogsPage = () => {
                   <p className="text-xs opacity-50 line-clamp-2 mb-3">{b.excerpt}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs opacity-40">
-                      {b.publishedAt ? new Date(b.publishedAt).toLocaleDateString('ar-EG') : 'غير منشور'}
+                      {b.publishedAt ? new Date(b.publishedAt).toLocaleDateString('ar-EG-u-nu-latn') : 'غير منشور'}
                       {b.views > 0 && ` • ${b.views} مشاهدة`}
                     </span>
                     <div className="flex gap-1">

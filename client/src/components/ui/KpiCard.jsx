@@ -19,8 +19,12 @@ export function KpiCard({
   active = false,
 }) {
   const hasTrend = trend !== undefined && trend !== null;
-  const isUp = trend > 0;
+  const isUp   = trend > 0;
   const isFlat = trend === 0;
+
+  const displayValue = typeof value === 'number'
+    ? value.toLocaleString('en-US')
+    : (value ?? '—');
 
   return (
     <motion.div
@@ -28,22 +32,21 @@ export function KpiCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay }}
       onClick={onClick}
-      className={`rounded-2xl border p-5 relative overflow-hidden transition-all ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''} ${active ? 'ring-2' : ''}`}
+      className={`rounded-2xl border p-5 relative overflow-hidden transition-all ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''}`}
       style={{
         background: 'var(--color-surface)',
         borderColor: active ? color : 'var(--color-border)',
-        ringColor: color,
+        boxShadow: active ? `0 0 0 2px ${color}` : undefined,
       }}
     >
-      {/* Top accent line */}
-      <div className="absolute top-0 inset-x-0 h-[3px] rounded-t-2xl"
-        style={{ background: `linear-gradient(90deg, ${color}, ${color}44)` }} />
+      {/* Top accent - solid, no gradient */}
+      <div className="absolute top-0 inset-x-0 h-[3px] rounded-t-2xl" style={{ background: color }} />
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold mb-2 truncate" style={{ color: 'var(--color-text-muted)' }}>{title}</p>
           <p className="text-3xl font-black leading-none tabular-nums" style={{ color: 'var(--color-text-dark)' }}>
-            {typeof value === 'number' ? value.toLocaleString('ar-EG') : value}
+            {displayValue}
             {suffix && <span className="text-sm font-semibold opacity-60 mr-1">{suffix}</span>}
           </p>
           {sub && <p className="text-xs mt-1.5 truncate" style={{ color: 'var(--color-text-muted)' }}>{sub}</p>}
@@ -63,7 +66,7 @@ export function KpiCard({
             className="flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg"
             style={{
               background: isFlat ? '#f3f4f6' : isUp ? '#d1fae5' : '#fee2e2',
-              color: isFlat ? '#6b7280' : isUp ? '#059669' : '#dc2626',
+              color:      isFlat ? '#6b7280' : isUp ? '#059669' : '#dc2626',
             }}
           >
             {isFlat ? <FaMinus className="text-[9px]" /> : isUp ? <FaArrowTrendUp className="text-[9px]" /> : <FaArrowTrendDown className="text-[9px]" />}
