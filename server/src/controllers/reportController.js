@@ -187,6 +187,56 @@ exports.getFinancialReport = async (req, res) => {
   }
 };
 
+exports.getSuperStats = async (req, res) => {
+  try {
+    const Company  = require('../models/Company');
+    const User     = require('../models/User');
+
+    const [
+      totalCompanies,
+      activeCompanies,
+      totalUsers,
+      totalProperties,
+      totalUnits,
+      totalCustomers,
+      totalContracts,
+      revenueAgg,
+      recentCompanies,
+      monthlyAgg,
+    ] = await Promise.all([
+      Company.countDocuments(),
+      Company.countDocuments({ isActive: { $ne: false } }),
+      User.countDocuments({ isSuperAdmin: { $ne: true } }),
+      Property.countDocuments(),
+      Unit.countDocuments(),
+      Customer.countDocuments(),
+      Contract.countDocuments({ status: 'active' }),
+      Payment.aggregate([{ $group: { _id: null, total: { $sum: '$amount' } } }]),
+      Company.find().sort('-createdAt').limit(8).populate('plan', 'name nameAr'),
+      Payment.aggregate([
+        { $group: { _id: { y: { $year: '$date' }, m: { $month: '$date' } }, total: { $sum: '$amount' } } },
+        { $sort: { '_id.y': 1, '_id.m': 1 } },
+        { $limit: 12 },
+      ]),
+    ]);
+
+    sendSuccess(res, {
+      totalCompanies,
+      activeCompanies,
+      totalUsers,
+      totalProperties,
+      totalUnits,
+      totalCustomers,
+      totalContracts,
+      totalRevenue: revenueAgg[0]?.total || 0,
+      recentCompanies,
+      monthlyRevenue: monthlyAgg,
+    });
+  } catch (err) {
+    sendError(res, err.message);
+  }
+};
+
 exports.getInstallmentsReport = async (req, res) => {
   try {
     const cId  = req.tenantId;
