@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import {
   FaBars, FaXmark, FaArrowLeft,
   FaLinkedin, FaXTwitter, FaYoutube, FaInstagram,
@@ -8,6 +9,7 @@ import {
 } from 'react-icons/fa6';
 import logo from '../../assets/logo.svg';
 import logoWhite from '../../assets/logo-white.svg';
+import { pagesAPI } from '../../api/services';
 
 const RED    = '#da1f27';
 const GREEN  = '#009756';
@@ -15,7 +17,7 @@ const YELLOW = '#fbb140';
 const DARK   = '#231f20';
 
 /* ─── NAV DATA ─── */
-const NAV_LINKS = [
+const STATIC_LINKS = [
   { label: 'المميزات', to: '/#features' },
   { label: 'الأسعار',  to: '/#pricing' },
   { label: 'كيف يعمل', to: '/#how' },
@@ -52,6 +54,17 @@ export const PublicNav = () => {
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
+  const { data: navPages } = useQuery({
+    queryKey: ['public-nav-pages'],
+    queryFn: () => pagesAPI.getNavPages().then(r => r.data.data),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allLinks = [
+    ...STATIC_LINKS,
+    ...(navPages || []).map(p => ({ label: p.title, to: `/p/${p.slug}` })),
+  ];
+
   return (
     <header className="sticky top-0 inset-x-0 z-50 bg-white" style={{ borderBottom: '1px solid #ededed' }}>
       <div className="max-w-7xl mx-auto px-5 md:px-8 h-[72px] flex items-center justify-between gap-6">
@@ -63,7 +76,7 @@ export const PublicNav = () => {
 
         {/* Desktop links */}
         <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-          {NAV_LINKS.map(l => (
+          {allLinks.map(l => (
             <Link key={l.to} to={l.to}
               className="text-sm font-semibold px-4 py-2 rounded-lg transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-50">
               {l.label}
@@ -104,7 +117,7 @@ export const PublicNav = () => {
             transition={{ duration: 0.2 }}
             className="lg:hidden overflow-hidden bg-white border-t" style={{ borderColor: '#ededed' }}>
             <div className="px-5 py-4 space-y-1">
-              {NAV_LINKS.map(l => (
+              {allLinks.map(l => (
                 <Link key={l.to} to={l.to}
                   className="block text-sm font-semibold py-3 px-3 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                   {l.label}

@@ -21,6 +21,7 @@ const pageSchema = new mongoose.Schema({
     direction: { type: String, enum: ['rtl', 'ltr'], default: 'rtl' },
     customCss: String,
     showInNav:  { type: Boolean, default: false },
+    navOrder:   { type: Number, default: 99 },
     showNavbar: { type: Boolean, default: false },
     showFooter: { type: Boolean, default: false },
   },

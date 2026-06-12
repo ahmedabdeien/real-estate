@@ -4,6 +4,7 @@ const { protect, hasAnyPermission } = require('../middlewares/auth');
 const { tenantScope } = require('../middlewares/tenant');
 
 // Public — site visitors read published pages without auth
+router.get('/public-nav', c.getNavPages);
 router.get('/public/:slug', c.getPublicPageBySlug);
 
 router.use(protect, tenantScope);

@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-/* migration idempotent: الأدوار القديمة بدون scope كانت سبب تداخل
-   أدوار المنصة مع أدوار الشركات — نصنّفها مرة واحدة حسب companyId */
+/* migration idempotent: تصنيف الأدوار القديمة + إصلاح أي دور شركة وقع بـ scope='platform' خطأً */
 const migrateRoleScopes = async () => {
   try {
     const Role = require('../models/Role');
+    // أدوار بدون scope → صنّف حسب companyId
     const r1 = await Role.updateMany(
       { scope: { $exists: false }, companyId: { $ne: null } },
       { $set: { scope: 'company' } }
@@ -13,8 +13,13 @@ const migrateRoleScopes = async () => {
       { scope: { $exists: false }, companyId: null },
       { $set: { scope: 'platform' } }
     );
-    if (r1.modifiedCount || r2.modifiedCount) {
-      console.log(`Role scope migration: ${r1.modifiedCount} company, ${r2.modifiedCount} platform`);
+    // إصلاح: أي دور عنده companyId حقيقي لكن scope='platform' → غلطة → أصلحه إلى 'company'
+    const r3 = await Role.updateMany(
+      { scope: 'platform', companyId: { $ne: null } },
+      { $set: { scope: 'company' } }
+    );
+    if (r1.modifiedCount || r2.modifiedCount || r3.modifiedCount) {
+      console.log(`Role scope migration: ${r1.modifiedCount} + ${r2.modifiedCount} scoped, ${r3.modifiedCount} platform→company fixed`);
     }
   } catch (err) {
     console.error(`Role migration error: ${err.message}`);

@@ -95,10 +95,11 @@ export const mediaAPI = {
 };
 
 export const pagesAPI = {
-  getAll:    (params) => api.get('/pages', { params }),
-  getOne:    (id)     => api.get(`/pages/${id}`),
-  getBySlug: (slug)   => api.get(`/pages/public/${slug}`),
-  create:    (data)   => api.post('/pages', data),
-  update:    (id, data) => api.put(`/pages/${id}`, data),
-  delete:    (id)     => api.delete(`/pages/${id}`),
+  getAll:      (params) => api.get('/pages', { params }),
+  getOne:      (id)     => api.get(`/pages/${id}`),
+  getBySlug:   (slug)   => api.get(`/pages/public/${slug}`),
+  getNavPages: ()       => api.get('/pages/public-nav'),
+  create:      (data)   => api.post('/pages', data),
+  update:      (id, data) => api.put(`/pages/${id}`, data),
+  delete:      (id)     => api.delete(`/pages/${id}`),
 };

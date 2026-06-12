@@ -15,6 +15,7 @@ import {
 import { logout } from '../../store/authSlice';
 import { toggleSidebar, setSidebarMobile } from '../../store/uiSlice';
 import { usePlanFeatures } from '../../hooks/usePlanFeatures';
+import { useAbility } from '../../casl/AbilityContext';
 import logoWhite from '../../assets/logo-white.svg';
 import logoIconDark from '../../assets/logo-icon-dark.svg';
 
@@ -33,54 +34,53 @@ const menuGroups = [
   {
     label: 'العقارات',
     items: [
-      { label: 'المشاريع',  icon: FaCity,    path: '/properties' },
-      { label: 'الوحدات',   icon: FaBuilding, path: '/units' },
-      { label: 'العملاء',   icon: FaUserTie,  path: '/customers' },
+      { label: 'المشاريع',  icon: FaCity,    path: '/properties', perm: 'properties.view' },
+      { label: 'الوحدات',   icon: FaBuilding, path: '/units',      perm: 'units.view' },
+      { label: 'العملاء',   icon: FaUserTie,  path: '/customers',  perm: 'customers.view' },
     ],
   },
   {
     label: 'المالية',
     items: [
-      { label: 'العقود',       icon: FaFileContract,    path: '/contracts',    module: 'contracts' },
-      { label: 'الأقساط',      icon: FaCalendarCheck,   path: '/installments', module: 'installments' },
-      { label: 'الفواتير',     icon: FaFileInvoice,     path: '/invoices',     module: 'accounting' },
-      { label: 'المدفوعات',    icon: FaMoneyBillWave,   path: '/payments',     module: 'accounting' },
-      { label: 'المصروفات',    icon: FaBuildingColumns, path: '/expenses',     module: 'accounting' },
+      { label: 'العقود',       icon: FaFileContract,    path: '/contracts',    module: 'contracts',    perm: 'contracts.view' },
+      { label: 'الأقساط',      icon: FaCalendarCheck,   path: '/installments', module: 'installments', perm: 'installments.view' },
+      { label: 'الفواتير',     icon: FaFileInvoice,     path: '/invoices',     module: 'accounting',   perm: 'invoices.view' },
+      { label: 'المدفوعات',    icon: FaMoneyBillWave,   path: '/payments',     module: 'accounting',   perm: 'payments.view' },
+      { label: 'المصروفات',    icon: FaBuildingColumns, path: '/expenses',     module: 'accounting',   perm: 'expenses.view' },
     ],
   },
   {
     label: 'التقارير',
-    items: [{ label: 'التقارير والإحصاءات', icon: FaChartBar, path: '/reports', module: 'reports' }],
+    items: [{ label: 'التقارير والإحصاءات', icon: FaChartBar, path: '/reports', module: 'reports', perm: 'reports.view' }],
   },
   {
     label: 'التواصل',
     items: [
-      { label: 'الإشعارات',        icon: FaBell,     path: '/notifications', module: 'notifications' },
-      { label: 'الرسائل الداخلية',  icon: FaComments, path: '/chat',          module: 'notifications' },
+      { label: 'الإشعارات',        icon: FaBell,     path: '/notifications', module: 'notifications', perm: 'notifications.view' },
+      { label: 'الرسائل الداخلية',  icon: FaComments, path: '/chat',          module: 'notifications', perm: 'notifications.view' },
     ],
   },
   {
     label: 'الإدارة',
     items: [
-      { label: 'المستخدمون',         icon: FaUsers,         path: '/users' },
-      { label: 'الأدوار والصلاحيات',  icon: FaShield,        path: '/roles',     module: 'roles' },
-      { label: 'المستندات',           icon: FaFolderOpen,    path: '/documents', module: 'documents' },
-      { label: 'سجل العمليات',       icon: FaClipboardList,  path: '/audit',     module: 'activity' },
+      { label: 'المستخدمون',         icon: FaUsers,         path: '/users',     perm: 'users.view' },
+      { label: 'الأدوار والصلاحيات',  icon: FaShield,        path: '/roles',     module: 'roles',      perm: 'roles.view' },
+      { label: 'المستندات',           icon: FaFolderOpen,    path: '/documents', module: 'documents',  perm: 'documents.view' },
+      { label: 'سجل العمليات',       icon: FaClipboardList,  path: '/audit',     module: 'activity',   perm: 'audit.view' },
     ],
   },
   {
     label: 'التسويق',
     items: [
-      { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder',    module: 'theme' },
-      { label: 'مكتبة الصور', icon: FaImages,             path: '/marketing/media', module: 'media' },
+      { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder',    module: 'theme', perm: 'pages.view' },
+      { label: 'مكتبة الصور',  icon: FaImages,             path: '/marketing/media', module: 'media', perm: 'media.view' },
     ],
   },
   {
     label: 'الإعدادات',
     items: [
-      // الثيم والمظهر للمنصة فقط — الشركات تستخدم «مظهري الشخصي» من الشريط العلوي
-      { label: 'الإعدادات',       icon: FaGear,       path: '/settings' },
-      { label: 'سجل التحديثات',   icon: FaCodeBranch, path: '/updates' },
+      { label: 'الإعدادات',      icon: FaGear,       path: '/settings', perm: 'settings.view' },
+      { label: 'سجل التحديثات', icon: FaCodeBranch, path: '/updates' },
     ],
   },
 ];
@@ -98,7 +98,16 @@ const superAdminGroup = {
 const SidebarItem = ({ item, collapsed }) => {
   const Icon = item.icon;
   const { can } = usePlanFeatures();
+  const ability = useAbility();
   const locked = item.module && !can(item.module);
+
+  // CASL: hide items the user's role has no permission for (SuperAdmin can('manage','all') always passes)
+  if (item.perm) {
+    const dotIdx = item.perm.indexOf('.');
+    const subject = item.perm.slice(0, dotIdx);
+    const action  = item.perm.slice(dotIdx + 1);
+    if (!ability.can(action, subject)) return null;
+  }
 
   return (
     <NavLink

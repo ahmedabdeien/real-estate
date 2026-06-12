@@ -29,6 +29,16 @@ exports.getPublicPageBySlug = async (req, res) => {
   } catch (err) { return error(res, err.message); }
 };
 
+// Public — no auth: nav pages (showInNav + published)
+exports.getNavPages = async (req, res) => {
+  try {
+    const pages = await Page.find({ isPublished: true, 'settings.showInNav': true })
+      .select('title slug settings.navOrder')
+      .sort({ 'settings.navOrder': 1, updatedAt: -1 });
+    return success(res, pages);
+  } catch (err) { return error(res, err.message); }
+};
+
 exports.createPage = async (req, res) => {
   try {
     const { title, slug, type, craftJson, isPublished, seo, settings } = req.body;
