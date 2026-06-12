@@ -50,7 +50,6 @@ function CustomerCard({ customer, stageColor, overlay = false }) {
   return (
     <div
       ref={setNodeRef}
-      style={style}
       {...attributes}
       {...listeners}
       className="bg-white rounded-xl border select-none transition-shadow hover:shadow-md"
