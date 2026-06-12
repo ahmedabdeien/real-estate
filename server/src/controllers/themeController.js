@@ -1,9 +1,12 @@
 const ThemeSettings = require('../models/ThemeSettings');
 const { success, error } = require('../utils/response');
 
+const isPlatformScope = (req) =>
+  req.user?.isSuperAdmin || req.user?.role?.scope === 'platform';
+
 exports.getTheme = async (req, res) => {
   try {
-    const companyId = req.user?.isSuperAdmin ? (req.query.companyId || null) : req.tenantId;
+    const companyId = isPlatformScope(req) ? (req.query.companyId || null) : req.tenantId;
     let theme = await ThemeSettings.findOne({ companyId });
     if (!theme) theme = await ThemeSettings.create({ companyId });
     return success(res, theme);
@@ -14,7 +17,7 @@ exports.getTheme = async (req, res) => {
 
 exports.updateTheme = async (req, res) => {
   try {
-    const companyId = req.user?.isSuperAdmin ? (req.body.companyId || null) : req.tenantId;
+    const companyId = isPlatformScope(req) ? (req.body.companyId || null) : req.tenantId;
     const theme = await ThemeSettings.findOneAndUpdate(
       { companyId },
       req.body,
