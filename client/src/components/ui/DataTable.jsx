@@ -5,7 +5,7 @@ import {
   getSortedRowModel,
   flexRender,
 } from '@tanstack/react-table';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   FaMagnifyingGlass, FaXmark, FaTableCells,
   FaArrowUp, FaArrowDown, FaArrowsUpDown,
@@ -237,17 +237,15 @@ const DataTable = ({
               </tr>
             ) : (
               table.getRowModel().rows.map((row, ri) => (
-                <motion.tr key={row.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.12, delay: Math.min(ri * 0.015, 0.15) }}
-                  className="group">
+                <tr key={row.id}
+                  className="group"
+                  style={{ animation: `fadeIn 0.15s ease both`, animationDelay: `${Math.min(ri * 15, 150)}ms` }}>
                   {row.getVisibleCells().map(cell => (
                     <td key={cell.id} className={rowPad}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
-                </motion.tr>
+                </tr>
               ))
             )}
           </tbody>
