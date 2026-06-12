@@ -3,9 +3,12 @@ const mongoose = require('mongoose');
 const roleSchema = new mongoose.Schema({
   name: { type: String, required: true },
   label: { type: String, required: true },
-  // company roles: companyId set + scope 'company' — platform roles (superadmin): companyId null + scope 'platform'
+  /* 3 مستويات معزولة تماماً:
+     platform — أدوار المنصة (companyId: null)
+     company  — أدوار الشركة (companyId مطلوب)
+     page     — أدوار المحتوى/الصفحات (companyId مطلوب) */
   companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company', default: null },
-  scope: { type: String, enum: ['company', 'platform'], default: 'company' },
+  scope: { type: String, enum: ['platform', 'company', 'page'], default: 'company' },
   isSystem: { type: Boolean, default: false },
   permissions: [{ type: String }],
   description: { type: String },

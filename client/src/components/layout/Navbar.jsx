@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
-import { FaBars, FaBell, FaChevronDown, FaGear, FaPalette, FaArrowRightFromBracket, FaCrown } from 'react-icons/fa6';
+import {
+  FaBars, FaBell, FaChevronDown, FaGear, FaPalette,
+  FaArrowRightFromBracket, FaCrown, FaMoon, FaSun, FaRotateLeft, FaWandMagicSparkles,
+} from 'react-icons/fa6';
 import { toggleSidebar, setSidebarMobile } from '../../store/uiSlice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logout, exitImpersonation } from '../../store/authSlice';
+import { setUserTheme, resetUserTheme } from '../../store/themeSlice';
 import { useNavigate } from 'react-router-dom';
 import NotificationsDropdown from '../dashboard/NotificationsDropdown';
 import CommandPalette from '../ui/CommandPalette';
@@ -16,6 +20,8 @@ const Navbar = () => {
   const company  = useSelector(s => s.auth.company);
   const [showNotifs, setShowNotifs]   = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  const theme = useSelector(s => s.theme);
 
   const { isImpersonating } = useSelector(s => s.auth);
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
@@ -55,6 +61,122 @@ const Navbar = () => {
 
       {/* Right actions */}
       <div className="flex items-center gap-1.5">
+
+        {/* Dark mode quick toggle */}
+        <button
+          className="p-2.5 rounded-lg transition-colors hover:bg-gray-100"
+          onClick={() => dispatch(setUserTheme({ darkMode: !theme.darkMode }))}
+          title={theme.darkMode ? 'الوضع النهاري' : 'الوضع الليلي'}
+          style={{ color: 'var(--color-text-muted)' }}
+        >
+          {theme.darkMode ? <FaSun className="text-base" /> : <FaMoon className="text-base" />}
+        </button>
+
+        {/* Personal theme customizer */}
+        <div className="relative">
+          <button
+            className="p-2.5 rounded-lg transition-colors hover:bg-gray-100"
+            onClick={() => { setShowCustomizer(!showCustomizer); setShowNotifs(false); setShowProfile(false); }}
+            title="مظهري الشخصي"
+            style={{ color: showCustomizer ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+          >
+            <FaWandMagicSparkles className="text-base" />
+          </button>
+          <AnimatePresence>
+            {showCustomizer && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                className="absolute left-0 top-11 w-72 card shadow-xl z-50 p-4"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-bold" style={{ color: 'var(--color-text-dark)' }}>مظهري الشخصي</p>
+                  <button onClick={() => dispatch(resetUserTheme())}
+                    className="flex items-center gap-1 text-[11px] font-bold cursor-pointer bg-transparent border-none"
+                    style={{ color: 'var(--color-primary)' }}>
+                    <FaRotateLeft className="text-[9px]" /> استعادة الافتراضي
+                  </button>
+                </div>
+                <p className="text-[11px] mb-4" style={{ color: 'var(--color-text-muted)' }}>
+                  تفضيلاتك تُحفظ في متصفحك ولا تؤثر على باقي المستخدمين.
+                </p>
+
+                {/* Primary color */}
+                <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>اللون الأساسي</label>
+                <div className="flex gap-1.5 mb-4 flex-wrap">
+                  {['#da1f27', '#009756', '#fbb140', '#2563eb', '#7c3aed', '#0d9488', '#db2777', '#231f20'].map(c => (
+                    <button key={c} onClick={() => dispatch(setUserTheme({ primaryColor: c }))}
+                      className="w-7 h-7 rounded-full transition-transform"
+                      style={{
+                        background: c,
+                        transform: theme.primaryColor === c ? 'scale(1.2)' : 'scale(1)',
+                        border: theme.primaryColor === c ? '2px solid #fff' : '2px solid transparent',
+                        boxShadow: theme.primaryColor === c ? `0 0 0 2px ${c}` : 'none',
+                        cursor: 'pointer',
+                      }} />
+                  ))}
+                  <div className="relative w-7 h-7">
+                    <input type="color" value={theme.primaryColor || '#da1f27'}
+                      onChange={e => dispatch(setUserTheme({ primaryColor: e.target.value }))}
+                      className="opacity-0 absolute inset-0 w-full h-full cursor-pointer" />
+                    <div className="w-7 h-7 rounded-full border-2 border-dashed flex items-center justify-center text-[9px] font-black"
+                      style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>+</div>
+                  </div>
+                </div>
+
+                {/* Accent color */}
+                <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>لون التمييز</label>
+                <div className="flex gap-1.5 mb-4 flex-wrap">
+                  {['#fbb140', '#da1f27', '#009756', '#2563eb', '#7c3aed', '#db2777'].map(c => (
+                    <button key={c} onClick={() => dispatch(setUserTheme({ accentColor: c }))}
+                      className="w-7 h-7 rounded-full transition-transform"
+                      style={{
+                        background: c,
+                        transform: theme.accentColor === c ? 'scale(1.2)' : 'scale(1)',
+                        border: theme.accentColor === c ? '2px solid #fff' : '2px solid transparent',
+                        boxShadow: theme.accentColor === c ? `0 0 0 2px ${c}` : 'none',
+                        cursor: 'pointer',
+                      }} />
+                  ))}
+                </div>
+
+                {/* Dark mode */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-semibold" style={{ color: 'var(--color-text-dark)' }}>الوضع الليلي</span>
+                  <button onClick={() => dispatch(setUserTheme({ darkMode: !theme.darkMode }))}
+                    className="relative w-10 h-5.5 rounded-full transition-all"
+                    style={{ backgroundColor: theme.darkMode ? 'var(--color-primary)' : 'var(--color-border)', height: 22, cursor: 'pointer', border: 'none' }}>
+                    <div className="absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow transition-all"
+                      style={{ width: 18, height: 18, left: theme.darkMode ? 20 : 2 }} />
+                  </button>
+                </div>
+
+                {/* Font scale */}
+                <label className="block text-[11px] font-bold mb-1.5" style={{ color: 'var(--color-text-muted)' }}>حجم الخط</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { value: '93.75%', label: 'صغير' },
+                    { value: '100%',   label: 'عادي' },
+                    { value: '106.25%', label: 'كبير' },
+                  ].map(o => (
+                    <button key={o.value} onClick={() => dispatch(setUserTheme({ fontScale: o.value }))}
+                      className="py-1.5 rounded-lg text-[11px] font-bold transition-all"
+                      style={{
+                        border: '1px solid',
+                        borderColor: (theme.fontScale || '100%') === o.value ? 'var(--color-primary)' : 'var(--color-border)',
+                        backgroundColor: (theme.fontScale || '100%') === o.value ? 'var(--color-primary)' : 'transparent',
+                        color: (theme.fontScale || '100%') === o.value ? '#fff' : 'var(--color-text-dark)',
+                        cursor: 'pointer',
+                      }}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Notifications */}
         <div className="relative">

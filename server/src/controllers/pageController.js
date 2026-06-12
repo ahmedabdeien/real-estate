@@ -31,11 +31,11 @@ exports.getPublicPageBySlug = async (req, res) => {
 
 exports.createPage = async (req, res) => {
   try {
-    const { title, slug, type, craftJson, isPublished, seo } = req.body;
+    const { title, slug, type, craftJson, isPublished, seo, settings } = req.body;
     if (!title || !slug) return error(res, 'العنوان والرابط مطلوبان', 400);
     const exists = await Page.findOne({ companyId: req.tenantId, slug });
     if (exists) return error(res, 'هذا الرابط مستخدم بالفعل', 400);
-    const page = await Page.create({ companyId: req.tenantId, title, slug, type, craftJson, isPublished, seo });
+    const page = await Page.create({ companyId: req.tenantId, title, slug, type, craftJson, isPublished, seo, settings });
     return success(res, page, 'تم إنشاء الصفحة', 201);
   } catch (err) { return error(res, err.message); }
 };
@@ -44,7 +44,7 @@ exports.updatePage = async (req, res) => {
   try {
     const page = await Page.findOne({ _id: req.params.id, companyId: req.tenantId });
     if (!page) return error(res, 'الصفحة غير موجودة', 404);
-    const { title, slug, craftJson, isPublished, seo, type } = req.body;
+    const { title, slug, craftJson, isPublished, seo, type, settings } = req.body;
     if (slug && slug !== page.slug) {
       const exists = await Page.findOne({ companyId: req.tenantId, slug, _id: { $ne: page._id } });
       if (exists) return error(res, 'هذا الرابط مستخدم بالفعل', 400);
@@ -55,6 +55,7 @@ exports.updatePage = async (req, res) => {
     if (craftJson !== undefined) page.craftJson = craftJson;
     if (isPublished !== undefined) page.isPublished = isPublished;
     if (seo !== undefined) page.seo = seo;
+    if (settings !== undefined) page.settings = settings;
     await page.save();
     return success(res, page);
   } catch (err) { return error(res, err.message); }

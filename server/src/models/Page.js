@@ -10,6 +10,16 @@ const pageSchema = new mongoose.Schema({
   seo: {
     title:       String,
     description: String,
+    keywords:    String,
+    ogImage:     String,
+    noIndex:     { type: Boolean, default: false },
+  },
+  settings: {
+    bgColor:   { type: String, default: '#ffffff' },
+    maxWidth:  { type: String, enum: ['full', 'boxed'], default: 'full' },
+    direction: { type: String, enum: ['rtl', 'ltr'], default: 'rtl' },
+    customCss: String,
+    showInNav: { type: Boolean, default: false },
   },
 }, { timestamps: true });
 

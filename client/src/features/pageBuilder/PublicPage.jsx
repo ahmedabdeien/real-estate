@@ -48,7 +48,34 @@ export default function PublicPage() {
   });
 
   useEffect(() => {
-    if (page?.seo?.title || page?.title) document.title = page.seo?.title || page.title;
+    if (!page) return;
+    if (page.seo?.title || page.title) document.title = page.seo?.title || page.title;
+
+    // meta description / keywords / robots / og:image
+    const setMeta = (selector, attr, value, create) => {
+      let el = document.head.querySelector(selector);
+      if (!el && value) { el = create(); document.head.appendChild(el); }
+      if (el && value) el.setAttribute(attr, value);
+      if (el && !value) el.remove();
+    };
+    setMeta('meta[name="description"]', 'content', page.seo?.description,
+      () => Object.assign(document.createElement('meta'), { name: 'description' }));
+    setMeta('meta[name="keywords"]', 'content', page.seo?.keywords,
+      () => Object.assign(document.createElement('meta'), { name: 'keywords' }));
+    setMeta('meta[property="og:image"]', 'content', page.seo?.ogImage,
+      () => { const m = document.createElement('meta'); m.setAttribute('property', 'og:image'); return m; });
+    setMeta('meta[name="robots"]', 'content', page.seo?.noIndex ? 'noindex, nofollow' : null,
+      () => Object.assign(document.createElement('meta'), { name: 'robots' }));
+
+    // CSS مخصص للصفحة
+    let styleEl = document.getElementById('page-custom-css');
+    if (page.settings?.customCss) {
+      if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'page-custom-css'; document.head.appendChild(styleEl); }
+      styleEl.textContent = page.settings.customCss;
+    } else if (styleEl) {
+      styleEl.remove();
+    }
+    return () => { document.getElementById('page-custom-css')?.remove(); };
   }, [page]);
 
   if (isLoading) {
@@ -73,13 +100,16 @@ export default function PublicPage() {
     );
   }
 
+  const settings = page.settings || {};
   return (
-    <div dir="rtl">
-      <RenderBoundary>
-        <Editor resolver={RESOLVER} enabled={false}>
-          <Frame data={safeJson} />
-        </Editor>
-      </RenderBoundary>
+    <div dir={settings.direction || 'rtl'} style={{ background: settings.bgColor || '#ffffff', minHeight: '100vh' }}>
+      <div style={settings.maxWidth === 'boxed' ? { maxWidth: 1200, margin: '0 auto', boxShadow: '0 0 30px rgba(0,0,0,0.06)' } : undefined}>
+        <RenderBoundary>
+          <Editor resolver={RESOLVER} enabled={false}>
+            <Frame data={safeJson} />
+          </Editor>
+        </RenderBoundary>
+      </div>
     </div>
   );
 }

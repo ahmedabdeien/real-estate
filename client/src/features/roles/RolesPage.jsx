@@ -59,15 +59,22 @@ const RolesPage = () => {
   const [delId, setDelId] = useState(null);
   // '' = أدوار المنصة (للسوبر أدمن) — أو companyId محدد
   const [companyFilter, setCompanyFilter] = useState('');
+  // النطاق داخل الشركة: company (إدارة) أو page (محتوى)
+  const [scopeTab, setScopeTab] = useState('company');
 
-  const params = isSuper && companyFilter ? { companyId: companyFilter } : undefined;
+  // السوبر أدمن بدون شركة → منصة. غير ذلك → نطاق الشركة المختار
+  const inCompanyContext = !isSuper || !!companyFilter;
+  const params = {
+    ...(isSuper && companyFilter ? { companyId: companyFilter } : {}),
+    ...(inCompanyContext ? { scope: scopeTab } : {}),
+  };
 
   const { data: roles, isLoading } = useQuery({
-    queryKey: ['roles', companyFilter],
+    queryKey: ['roles', companyFilter, inCompanyContext ? scopeTab : 'platform'],
     queryFn: () => rolesAPI.getAll(params).then(r => r.data.data),
   });
   const { data: permsData } = useQuery({
-    queryKey: ['permissions', companyFilter],
+    queryKey: ['permissions', companyFilter, inCompanyContext ? scopeTab : 'platform'],
     queryFn: () => rolesAPI.getPermissions(params).then(r => r.data.data),
   });
   const { data: companies } = useQuery({
@@ -77,7 +84,13 @@ const RolesPage = () => {
   });
 
   const save = useMutation({
-    mutationFn: (d) => editing ? rolesAPI.update(editing._id, d) : rolesAPI.create(companyFilter ? { ...d, companyId: companyFilter } : d),
+    mutationFn: (d) => editing
+      ? rolesAPI.update(editing._id, d)
+      : rolesAPI.create({
+          ...d,
+          ...(companyFilter ? { companyId: companyFilter } : {}),
+          ...(inCompanyContext ? { scope: scopeTab } : {}),
+        }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['roles'] }); toast.success(editing ? 'تم التحديث' : 'تم الإنشاء'); closeModal(); },
     onError: (e) => toast.error(e.response?.data?.message || 'حدث خطأ'),
   });
@@ -155,6 +168,34 @@ const RolesPage = () => {
           style={{ background: 'rgba(251,177,64,0.12)', color: '#92400e', border: '1px solid rgba(251,177,64,0.35)' }}>
           <FaCrown />
           أنت في وضع المنصة — هذه الأدوار لفريقك أنت (مالك المشروع)، ولا تظهر لأي شركة.
+        </div>
+      )}
+
+      {/* تبويبات النطاق داخل الشركة: إدارة / محتوى */}
+      {inCompanyContext && (
+        <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit"
+          style={{ background: 'var(--color-background)', border: '1px solid var(--color-border)' }}>
+          {[
+            { id: 'company', label: 'أدوار الشركة', icon: FaBuilding,           hint: 'الإدارة والعمليات' },
+            { id: 'page',    label: 'أدوار المحتوى', icon: FaWandMagicSparkles, hint: 'الصفحات والوسائط' },
+          ].map(t => {
+            const Icon = t.icon;
+            const active = scopeTab === t.id;
+            return (
+              <button key={t.id} onClick={() => setScopeTab(t.id)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  backgroundColor: active ? 'var(--color-surface)' : 'transparent',
+                  color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  cursor: 'pointer', border: 'none',
+                }}>
+                <Icon className="text-xs" />
+                {t.label}
+                <span className="text-[10px] opacity-50 font-normal">({t.hint})</span>
+              </button>
+            );
+          })}
         </div>
       )}
 

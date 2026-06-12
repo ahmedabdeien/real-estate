@@ -2,26 +2,54 @@ const Role = require('../models/Role');
 const User = require('../models/User');
 const PERMISSIONS = require('../constants/permissions');
 const PLATFORM_PERMISSIONS = require('../constants/platformPermissions');
+const PAGE_PERMISSIONS = require('../constants/pagePermissions');
 const { success, error } = require('../utils/response');
 
-/* عزل كامل:
-   - مستخدم شركة: يرى ويدير أدوار شركته فقط (scope: company)
-   - سوبر أدمن بدون companyId: يدير أدوار المنصة (scope: platform)
-   - سوبر أدمن مع ?companyId: يطّلع على أدوار شركة محددة */
+/* ─── عزل صارم لـ3 مستويات لا تتداخل إطلاقاً ───
+   platform — أدوار المنصة: السوبر أدمن فقط، companyId دائماً null
+   company  — أدوار الشركة: داخل نطاق الشركة فقط
+   page     — أدوار المحتوى/الصفحات: داخل نطاق الشركة، صلاحيات محتوى فقط */
+
+const PERMS_BY_SCOPE = {
+  platform: PLATFORM_PERMISSIONS,
+  company:  PERMISSIONS,
+  page:     PAGE_PERMISSIONS,
+};
+
+/* الصلاحيات المسموحة لكل نطاق — أي صلاحية خارج قائمة النطاق تُرفض،
+   وهذا ما يمنع تسريب صلاحيات منصة داخل دور شركة والعكس */
+const validPermsFor = (scope) =>
+  new Set((PERMS_BY_SCOPE[scope] || []).map(p => p.name));
+
+const sanitizePermissions = (scope, permissions = []) => {
+  const allowed = validPermsFor(scope);
+  return permissions.filter(p => allowed.has(p));
+};
+
+/* النطاق المسموح طلبه لكل مستخدم */
+const resolveScope = (req) => {
+  const requested = req.query.scope || req.body?.scope;
+  if (req.user.isSuperAdmin) {
+    const cid = req.query.companyId || req.body?.companyId;
+    if (!cid) return 'platform';                      // بدون شركة → منصة فقط
+    return requested === 'page' ? 'page' : 'company'; // داخل شركة → شركة أو محتوى
+  }
+  return requested === 'page' ? 'page' : 'company';   // مستخدم شركة لا يصل للمنصة أبداً
+};
 
 exports.getRoles = async (req, res) => {
   try {
+    const scope = resolveScope(req);
     let filter;
     if (req.user.isSuperAdmin) {
-      filter = req.query.companyId
-        ? { companyId: req.query.companyId }
-        : { scope: 'platform', companyId: null };
+      filter = scope === 'platform'
+        ? { scope: 'platform', companyId: null }
+        : { scope, companyId: req.query.companyId };
     } else {
-      filter = { companyId: req.tenantId };
+      filter = { scope, companyId: req.tenantId };
     }
     const roles = await Role.find(filter).sort('-isSystem createdAt');
 
-    // عدد المستخدمين المرتبطين بكل دور
     const counts = await User.aggregate([
       { $match: { role: { $in: roles.map(r => r._id) } } },
       { $group: { _id: '$role', count: { $sum: 1 } } },
@@ -36,10 +64,8 @@ exports.getRoles = async (req, res) => {
 };
 
 exports.getPermissions = async (req, res) => {
-  // السوبر أدمن في وضع المنصة يرى صلاحيات المنصة، غير ذلك صلاحيات الشركة
-  const list = (req.user.isSuperAdmin && !req.query.companyId)
-    ? PLATFORM_PERMISSIONS
-    : PERMISSIONS;
+  const scope = resolveScope(req);
+  const list = PERMS_BY_SCOPE[scope] || PERMISSIONS;
   const grouped = list.reduce((acc, p) => {
     if (!acc[p.module]) acc[p.module] = [];
     acc[p.module].push(p);
@@ -50,20 +76,20 @@ exports.getPermissions = async (req, res) => {
 
 exports.createRole = async (req, res) => {
   try {
+    const scope = resolveScope(req);
     const data = { ...req.body };
-    delete data.isSystem; // لا يُنشأ دور نظام من الـ API
+    delete data.isSystem;
 
-    if (req.user.isSuperAdmin) {
-      if (data.companyId) {
-        data.scope = 'company';
-      } else {
-        data.companyId = null;
-        data.scope = 'platform';
-      }
+    data.scope = scope;
+    if (scope === 'platform') {
+      data.companyId = null;
+    } else if (req.user.isSuperAdmin) {
+      data.companyId = req.body.companyId; // محددة مسبقاً في resolveScope
     } else {
       data.companyId = req.tenantId;
-      data.scope = 'company';
     }
+    // فلترة الصلاحيات على نطاق الدور — لا تسريب بين المستويات
+    data.permissions = sanitizePermissions(scope, data.permissions);
 
     const role = await Role.create(data);
     return success(res, role, 'تم إنشاء الدور بنجاح', 201);
@@ -73,9 +99,9 @@ exports.createRole = async (req, res) => {
   }
 };
 
-/* تحقق الملكية قبل التعديل/الحذف */
 const canManage = (user, tenantId, role) => {
   if (user.isSuperAdmin) return true;
+  if (role.scope === 'platform') return false; // أدوار المنصة لا يلمسها غير السوبر أدمن
   return role.companyId && String(role.companyId) === String(tenantId);
 };
 
@@ -88,8 +114,9 @@ exports.updateRole = async (req, res) => {
 
     const data = { ...req.body };
     delete data.isSystem;
-    delete data.companyId; // لا يُنقل دور بين الشركات
-    delete data.scope;
+    delete data.companyId; // لا نقل بين الشركات
+    delete data.scope;     // لا نقل بين المستويات
+    if (data.permissions) data.permissions = sanitizePermissions(role.scope, data.permissions);
 
     Object.assign(role, data);
     await role.save();
@@ -116,7 +143,6 @@ exports.deleteRole = async (req, res) => {
   }
 };
 
-/* نسخ دور (داخل نفس النطاق) */
 exports.duplicateRole = async (req, res) => {
   try {
     const src = await Role.findById(req.params.id);

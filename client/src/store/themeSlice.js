@@ -113,19 +113,66 @@ const applyTheme = (theme) => {
     rules.push('tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 4%, transparent); }');
   }
   behaviorEl.textContent = rules.join('\n');
+
+  /* الوضع الليلي — يتفوق على كل الألوان (آخر ما يُطبق) */
+  if (theme.darkMode) {
+    r.setProperty('--color-background', '#151213');
+    r.setProperty('--color-surface', '#211d1e');
+    r.setProperty('--color-text-dark', '#f3f4f6');
+    r.setProperty('--color-text-muted', '#9ca3af');
+    r.setProperty('--color-border', '#373132');
+    r.setProperty('--navbar-bg', '#211d1e');
+    r.setProperty('--navbar-text', '#f3f4f6');
+    r.setProperty('--navbar-border', '#373132');
+    document.documentElement.classList.add('dark-mode');
+  } else {
+    document.documentElement.classList.remove('dark-mode');
+  }
 };
+
+/* تفضيلات المستخدم الشخصية — تُحفظ في المتصفح وتتفوق على ثيم الشركة
+   وتُسترجع تلقائياً عند تحديث الصفحة أو إعادة الدخول */
+const USER_THEME_KEY = 'egyestate-user-theme';
+
+const loadUserOverrides = () => {
+  try { return JSON.parse(localStorage.getItem(USER_THEME_KEY)) || {}; }
+  catch { return {}; }
+};
+
+const initialOverrides = loadUserOverrides();
 
 const themeSlice = createSlice({
   name: 'theme',
-  initialState: defaults,
+  initialState: { ...defaults, ...initialOverrides, userOverrides: initialOverrides },
   reducers: {
+    /* ثيم الشركة من السيرفر — تفضيلات المستخدم تبقى فوقه دائماً */
     setTheme: (state, { payload }) => {
+      Object.assign(state, payload, state.userOverrides);
+      applyTheme({ ...state });
+    },
+    /* تفضيل شخصي — يُحفظ فوراً في localStorage */
+    setUserTheme: (state, { payload }) => {
+      state.userOverrides = { ...state.userOverrides, ...payload };
+      try { localStorage.setItem(USER_THEME_KEY, JSON.stringify(state.userOverrides)); } catch { /* تجاهل امتلاء التخزين */ }
       Object.assign(state, payload);
-      applyTheme({ ...state, ...payload });
+      applyTheme({ ...state });
+    },
+    /* استعادة ثيم الشركة الافتراضي */
+    resetUserTheme: (state) => {
+      try { localStorage.removeItem(USER_THEME_KEY); } catch { /* */ }
+      state.userOverrides = {};
+      state.darkMode = false;
+      applyTheme({ ...state });
     },
   },
 });
 
-export const { setTheme } = themeSlice.actions;
+export const { setTheme, setUserTheme, resetUserTheme } = themeSlice.actions;
 export { applyTheme };
+
+/* تطبيق التفضيلات المحفوظة فور تحميل التطبيق — قبل وصول ثيم السيرفر */
+if (typeof document !== 'undefined') {
+  applyTheme({ ...defaults, ...initialOverrides });
+}
+
 export default themeSlice.reducer;

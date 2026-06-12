@@ -34,3 +34,13 @@ exports.hasPermission = (...permissions) => (req, res, next) => {
   if (!hasAll) return res.status(403).json({ success: false, message: 'ليس لديك صلاحية لهذا الإجراء' });
   next();
 };
+
+/* يكفي امتلاك صلاحية واحدة من القائمة — يُستخدم للتوافق بين
+   صلاحيات الشركة وصلاحيات المحتوى (مثل pages.update أو theme.update) */
+exports.hasAnyPermission = (...permissions) => (req, res, next) => {
+  if (req.user?.isSuperAdmin) return next();
+  const userPerms = req.user?.role?.permissions || [];
+  const hasOne = permissions.some(p => userPerms.includes(p));
+  if (!hasOne) return res.status(403).json({ success: false, message: 'ليس لديك صلاحية لهذا الإجراء' });
+  next();
+};

@@ -16,7 +16,7 @@ import {
 import {
   FaArrowRight, FaFloppyDisk, FaEye, FaEyeSlash, FaCircleCheck,
   FaDesktop, FaTabletScreenButton, FaMobileScreen, FaPen, FaPlay,
-  FaRotateLeft, FaRotateRight,
+  FaRotateLeft, FaRotateRight, FaGear, FaXmark, FaMagnifyingGlass, FaSliders,
 } from 'react-icons/fa6';
 
 const RESOLVER = {
@@ -28,12 +28,33 @@ const RESOLVER = {
   NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
 };
 
-/* craftJson must contain a ROOT node, otherwise Craft.js throws "Invariant failed" */
-export const validCraftJson = (json) => {
+/* craftJson must contain a ROOT node, otherwise Craft.js throws "Invariant failed".
+   كما نحذف أي عقدة مكوّنها غير مسجل في الـ resolver (بلوكات قديمة/محذوفة)
+   حتى لا تكسر الصفحة بالكامل */
+export const validCraftJson = (json, resolver = RESOLVER) => {
   if (!json || typeof json !== 'string') return undefined;
   try {
     const parsed = JSON.parse(json);
-    return parsed && parsed.ROOT ? json : undefined;
+    if (!parsed || !parsed.ROOT) return undefined;
+
+    const known = new Set(Object.keys(resolver));
+    const bad = new Set(
+      Object.entries(parsed)
+        .filter(([id, n]) => id !== 'ROOT' && n?.type?.resolvedName && !known.has(n.type.resolvedName))
+        .map(([id]) => id)
+    );
+    if (bad.size === 0) return json;
+
+    const clean = {};
+    for (const [id, n] of Object.entries(parsed)) {
+      if (bad.has(id)) continue;
+      clean[id] = {
+        ...n,
+        nodes: (n.nodes || []).filter(c => !bad.has(c)),
+        linkedNodes: Object.fromEntries(Object.entries(n.linkedNodes || {}).filter(([, v]) => !bad.has(v))),
+      };
+    }
+    return JSON.stringify(clean);
   } catch { return undefined; }
 };
 
@@ -184,6 +205,10 @@ export default function PageBuilderPage() {
   const [viewport, setViewport] = useState('desktop');
   const [previewMode, setPreviewMode] = useState(false);
   const [errMsg, setErrMsg] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState('seo');
+  const [seo, setSeo] = useState({});
+  const [pageSettings, setPageSettings] = useState({});
 
   const { data: page } = useQuery({
     queryKey: ['page', id],
@@ -197,6 +222,8 @@ export default function PageBuilderPage() {
       setSlug(page.slug);
       setType(page.type);
       setIsPublished(page.isPublished);
+      setSeo(page.seo || {});
+      setPageSettings(page.settings || {});
     }
   }, [page]);
 
@@ -217,7 +244,7 @@ export default function PageBuilderPage() {
 
   const handleSave = (craftJson) => {
     if (!slug.trim()) { setErrMsg('أدخل رابط (slug) للصفحة قبل الحفظ'); return; }
-    saveMut.mutate({ title, slug: slug.trim(), type, isPublished, craftJson });
+    saveMut.mutate({ title, slug: slug.trim(), type, isPublished, craftJson, seo, settings: pageSettings });
   };
 
   const autoSlug = (val) => {
@@ -266,6 +293,12 @@ export default function PageBuilderPage() {
           })}
         </div>
 
+        {/* Page settings */}
+        <button onClick={() => setShowSettings(true)} title="إعدادات الصفحة"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#3a3435', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 12px', fontSize: 13, cursor: 'pointer' }}>
+          <FaGear size={12} />
+        </button>
+
         {/* Preview toggle */}
         <button onClick={() => setPreviewMode(p => !p)}
           style={{
@@ -303,6 +336,162 @@ export default function PageBuilderPage() {
       {errMsg && (
         <div style={{ background: '#fee2e2', color: '#b91c1c', fontSize: 13, padding: '8px 16px', fontWeight: 600 }}>
           {errMsg}
+        </div>
+      )}
+
+      {/* ── Page settings modal ── */}
+      {showSettings && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.55)' }}
+          onClick={() => setShowSettings(false)}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 16, width: 'min(560px, 92vw)', maxHeight: '85vh', overflow: 'auto', direction: 'rtl' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1px solid #e5e7eb' }}>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#231f20', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FaGear size={13} style={{ color: '#da1f27' }} /> إعدادات الصفحة
+              </p>
+              <button onClick={() => setShowSettings(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 6 }}>
+                <FaXmark size={15} />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: 4, padding: '12px 20px 0' }}>
+              {[
+                { id: 'seo',     label: 'SEO',           icon: FaMagnifyingGlass },
+                { id: 'display', label: 'العرض والتخطيط', icon: FaSliders },
+              ].map(t => {
+                const Icon = t.icon;
+                return (
+                  <button key={t.id} onClick={() => setSettingsTab(t.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 700,
+                      background: settingsTab === t.id ? '#da1f27' : '#f3f4f6',
+                      color: settingsTab === t.id ? '#fff' : '#6b7280',
+                      border: 'none', cursor: 'pointer',
+                    }}>
+                    <Icon size={11} /> {t.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ padding: 20 }}>
+              {settingsTab === 'seo' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  <div>
+                    <label className="label">عنوان SEO (يظهر في تبويب المتصفح ونتائج البحث)</label>
+                    <input className="input" value={seo.title || ''} placeholder={title}
+                      onChange={e => setSeo(s => ({ ...s, title: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">وصف الصفحة (Meta Description)</label>
+                    <textarea className="input resize-none" rows={3} value={seo.description || ''}
+                      placeholder="وصف مختصر يظهر في نتائج البحث (يفضل أقل من 160 حرف)"
+                      onChange={e => setSeo(s => ({ ...s, description: e.target.value }))} />
+                    <p style={{ fontSize: 11, color: (seo.description?.length || 0) > 160 ? '#dc2626' : '#9ca3af', margin: '4px 0 0' }}>
+                      {seo.description?.length || 0} / 160
+                    </p>
+                  </div>
+                  <div>
+                    <label className="label">كلمات مفتاحية (مفصولة بفاصلة)</label>
+                    <input className="input" value={seo.keywords || ''} placeholder="عقارات, شقق, القاهرة"
+                      onChange={e => setSeo(s => ({ ...s, keywords: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">صورة المشاركة (OG Image)</label>
+                    <input className="input" dir="ltr" value={seo.ogImage || ''} placeholder="https://..."
+                      onChange={e => setSeo(s => ({ ...s, ogImage: e.target.value }))} />
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={!!seo.noIndex}
+                      onChange={e => setSeo(s => ({ ...s, noIndex: e.target.checked }))}
+                      style={{ width: 16, height: 16, accentColor: '#da1f27' }} />
+                    إخفاء الصفحة من محركات البحث (noindex)
+                  </label>
+                </div>
+              )}
+
+              {settingsTab === 'display' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label className="label">لون خلفية الصفحة</label>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input type="color" value={pageSettings.bgColor || '#ffffff'}
+                        onChange={e => setPageSettings(s => ({ ...s, bgColor: e.target.value }))}
+                        style={{ width: 42, height: 38, borderRadius: 8, border: '1px solid #e5e7eb', cursor: 'pointer' }} />
+                      <input className="input" dir="ltr" style={{ flex: 1 }} value={pageSettings.bgColor || '#ffffff'}
+                        onChange={e => setPageSettings(s => ({ ...s, bgColor: e.target.value }))} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label">عرض المحتوى</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      {[
+                        { value: 'full',  label: 'كامل العرض' },
+                        { value: 'boxed', label: 'صندوق محدود (1200px)' },
+                      ].map(o => (
+                        <button key={o.value} onClick={() => setPageSettings(s => ({ ...s, maxWidth: o.value }))}
+                          style={{
+                            padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 700,
+                            border: '2px solid', cursor: 'pointer',
+                            borderColor: (pageSettings.maxWidth || 'full') === o.value ? '#da1f27' : '#e5e7eb',
+                            background: (pageSettings.maxWidth || 'full') === o.value ? '#fef2f2' : '#fff',
+                            color: (pageSettings.maxWidth || 'full') === o.value ? '#da1f27' : '#6b7280',
+                          }}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label">اتجاه الصفحة</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                      {[
+                        { value: 'rtl', label: 'يمين ← يسار (عربي)' },
+                        { value: 'ltr', label: 'يسار ← يمين (English)' },
+                      ].map(o => (
+                        <button key={o.value} onClick={() => setPageSettings(s => ({ ...s, direction: o.value }))}
+                          style={{
+                            padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 700,
+                            border: '2px solid', cursor: 'pointer',
+                            borderColor: (pageSettings.direction || 'rtl') === o.value ? '#da1f27' : '#e5e7eb',
+                            background: (pageSettings.direction || 'rtl') === o.value ? '#fef2f2' : '#fff',
+                            color: (pageSettings.direction || 'rtl') === o.value ? '#da1f27' : '#6b7280',
+                          }}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label">CSS مخصص لهذه الصفحة فقط</label>
+                    <textarea className="input resize-none" rows={5} dir="ltr"
+                      style={{ fontFamily: 'monospace', fontSize: 12 }}
+                      placeholder=".my-section { padding: 40px; }"
+                      value={pageSettings.customCss || ''}
+                      onChange={e => setPageSettings(s => ({ ...s, customCss: e.target.value }))} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ padding: '14px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setShowSettings(false)}
+                style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#f3f4f6', color: '#374151', border: 'none', cursor: 'pointer' }}>
+                إغلاق
+              </button>
+              <button onClick={() => { setShowSettings(false); document.getElementById('__craft_save')?.click(); }}
+                style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: '#da1f27', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                حفظ الإعدادات
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
