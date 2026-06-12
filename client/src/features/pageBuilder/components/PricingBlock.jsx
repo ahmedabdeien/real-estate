@@ -54,8 +54,8 @@ export function PricingBlock({ heading = 'باقات الأسعار', plans = de
     <div ref={ref => connect(drag(ref))}
       style={{ padding: '60px 24px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
       <div style={{ maxWidth: 1050, margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', fontSize: 32, fontWeight: 800, color: '#231f20', marginBottom: 40 }}>{heading}</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(plans.length, 3)}, 1fr)`, gap: 20, alignItems: 'start' }}>
+        <h2 style={{ textAlign: 'center', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 800, color: '#231f20', marginBottom: 40 }}>{heading}</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, alignItems: 'start' }}>
           {plans.map((pl, i) => (
             <div key={i} style={{
               background: '#fff', borderRadius: 16, padding: 28,

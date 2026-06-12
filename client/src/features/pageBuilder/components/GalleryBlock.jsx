@@ -46,7 +46,7 @@ export function GalleryBlock({ images = ['', '', ''], cols = 3, gap = 12, border
   return (
     <div ref={ref => connect(drag(ref))}
       style={{ padding: '24px 16px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap, maxWidth: 1100, margin: '0 auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(min(${Math.max(160, Math.floor(1100 / cols) - 40)}px, 100%), 1fr))`, gap, maxWidth: 1100, margin: '0 auto' }}>
         {images.map((src, i) => src ? (
           <img key={i} src={src} alt="" style={{ width: '100%', height: 220, objectFit: 'cover', borderRadius }} />
         ) : (

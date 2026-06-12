@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { themeAPI } from '../../api/services';
@@ -9,7 +9,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import {
   FaPalette, FaFloppyDisk, FaFont, FaLayerGroup, FaBullhorn,
   FaRotateLeft, FaCheck, FaArrowUpRightFromSquare, FaTableCellsLarge, FaBars,
-  FaWindowMaximize, FaRightToBracket, FaSliders, FaTable,
+  FaWindowMaximize, FaRightToBracket, FaSliders, FaTable, FaXmark,
 } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
@@ -93,14 +93,35 @@ const ThemePage = () => {
     onError: (e) => toast.error(e.response?.data?.message || 'حدث خطأ'),
   });
 
+  /* الـ dispatch مع كل حرف كان يسبب لاج (applyTheme يعدّل الـ DOM) —
+     الفورم يتحدث فوراً والمعاينة الحية تتأجل 200ms */
+  const debounceRef = useRef(null);
+  const pendingRef  = useRef({});
+
+  const flushTheme = () => {
+    dispatch(setTheme(pendingRef.current));
+    pendingRef.current = {};
+  };
+
+  const queueTheme = (patch) => {
+    pendingRef.current = { ...pendingRef.current, ...patch };
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(flushTheme, 200);
+  };
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
+
   const set = (k, v) => {
     setForm(f => ({ ...f, [k]: v }));
-    dispatch(setTheme({ [k]: v }));
+    queueTheme({ [k]: v });
   };
 
   const setNested = (parent, k, v) => {
-    setForm(f => ({ ...f, [parent]: { ...f[parent], [k]: v } }));
-    dispatch(setTheme({ [parent]: { ...form[parent], [k]: v } }));
+    setForm(f => {
+      const next = { ...f[parent], [k]: v };
+      queueTheme({ [parent]: next });
+      return { ...f, [parent]: next };
+    });
   };
 
   const applyPreset = (preset) => {
@@ -648,7 +669,7 @@ const ThemePage = () => {
                     style={{ backgroundColor: ann.bgColor || '#da1f27', color: ann.textColor || '#ffffff' }}>
                     <span>{ann.text}</span>
                     {ann.dismissible && (
-                      <span className="absolute left-3 opacity-60 text-xs">✕</span>
+                      <FaXmark className="absolute left-3 opacity-60 text-xs" />
                     )}
                   </div>
                 ) : (

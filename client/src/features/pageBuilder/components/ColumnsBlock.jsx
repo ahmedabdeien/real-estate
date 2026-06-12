@@ -37,7 +37,7 @@ export function ColumnsBlock({ cols = 2, gap = 24, children }) {
     <div ref={ref => connect(drag(ref))}
       style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateColumns: `repeat(auto-fit, minmax(min(240px, 100%), 1fr))`,
         gap,
         outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent',
         padding: 8,

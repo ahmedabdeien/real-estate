@@ -46,7 +46,7 @@ export function FaqBlock({ heading = 'الأسئلة الشائعة', items = de
     <div ref={ref => connect(drag(ref))}
       style={{ padding: '60px 24px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
       <div style={{ maxWidth: 760, margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', fontSize: 32, fontWeight: 800, color: '#231f20', marginBottom: 36 }}>{heading}</h2>
+        <h2 style={{ textAlign: 'center', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 800, color: '#231f20', marginBottom: 36 }}>{heading}</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.map((it, i) => (
             <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden', background: '#fff' }}>

@@ -21,3 +21,7 @@ export { MapBlock }           from './MapBlock';
 export { SocialBlock }        from './SocialBlock';
 export { CountdownBlock }     from './CountdownBlock';
 export { StepsBlock }         from './StepsBlock';
+export { NavbarBlock }        from './NavbarBlock';
+export { FooterBlock }        from './FooterBlock';
+export { IconBoxBlock }       from './IconBoxBlock';
+export { QuoteBlock }         from './QuoteBlock';

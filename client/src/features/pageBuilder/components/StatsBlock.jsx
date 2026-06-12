@@ -46,10 +46,10 @@ export function StatsBlock({ stats = defaultStats, bg = '#231f20', numColor = '#
   return (
     <div ref={ref => connect(drag(ref))}
       style={{ background: bg, padding: '48px 24px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
-      <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${Math.min(stats.length, 4)}, 1fr)`, gap: 24 }}>
+      <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 24 }}>
         {stats.map((s, i) => (
           <div key={i} style={{ textAlign: 'center' }}>
-            <p style={{ fontSize: 36, fontWeight: 900, color: numColor, margin: 0 }}>{s.value}</p>
+            <p style={{ fontSize: 'clamp(26px, 4.5vw, 36px)', fontWeight: 900, color: numColor, margin: 0 }}>{s.value}</p>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,.6)', margin: '6px 0 0' }}>{s.label}</p>
           </div>
         ))}

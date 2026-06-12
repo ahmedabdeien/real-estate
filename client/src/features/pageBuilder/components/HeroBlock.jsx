@@ -39,13 +39,13 @@ export function HeroBlock({ title = 'عنوان القسم الرئيسي', subt
     <div ref={ref => connect(drag(ref))}
       style={{
         background: bg,
-        padding: `${paddingY}px 40px`,
+        padding: `${paddingY}px clamp(16px, 5vw, 40px)`,
         textAlign: 'center',
         outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent',
       }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <h1 style={{ color: textColor, fontSize: 42, fontWeight: 900, margin: '0 0 16px', lineHeight: 1.3 }}>{title}</h1>
-        <p style={{ color: textColor, fontSize: 18, margin: '0 0 32px', opacity: 0.85, lineHeight: 1.8 }}>{subtitle}</p>
+        <h1 style={{ color: textColor, fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: 900, margin: '0 0 16px', lineHeight: 1.3 }}>{title}</h1>
+        <p style={{ color: textColor, fontSize: 'clamp(14px, 2.4vw, 18px)', margin: '0 0 32px', opacity: 0.85, lineHeight: 1.8 }}>{subtitle}</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="#" onClick={e => e.preventDefault()} style={{ background: '#c8161d', color: '#fff', padding: '14px 36px', borderRadius: 10, fontWeight: 700, fontSize: 16, textDecoration: 'none', display: 'inline-block' }}>ابدأ الآن</a>
           <a href="#" onClick={e => e.preventDefault()} style={{ background: 'transparent', color: textColor, padding: '14px 36px', borderRadius: 10, fontWeight: 700, fontSize: 16, textDecoration: 'none', display: 'inline-block', border: `2px solid ${textColor}` }}>اعرف أكثر</a>

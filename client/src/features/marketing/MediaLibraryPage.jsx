@@ -231,7 +231,7 @@ function DetailPanel({ item, onClose, onCopy, onDelete }) {
         <button onClick={handleCopy}
           className="flex-1 py-2 rounded-xl text-sm font-medium text-white transition-colors"
           style={{ background: PRIMARY }}>
-          {copied ? 'تم النسخ ✓' : 'نسخ الرابط'}
+          {copied ? 'تم النسخ' : 'نسخ الرابط'}
         </button>
         <button onClick={() => onDelete(item._id)}
           className="px-4 py-2 rounded-xl text-sm font-medium text-red-600 border border-red-100 hover:bg-red-50 transition-colors">

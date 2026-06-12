@@ -26,6 +26,7 @@ import {
   FeatureGrid, ContactSection, VideoBlock, GalleryBlock,
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
+  NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
 } from './components';
 
 const RESOLVER = {
@@ -34,6 +35,7 @@ const RESOLVER = {
   VideoBlock, GalleryBlock, FaqBlock, CtaBlock, StatsBlock,
   TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
+  NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
 };
 
 export default function PublicPage() {

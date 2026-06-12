@@ -46,8 +46,8 @@ export function TeamBlock({ title = 'فريق العمل', members = defaultMemb
   return (
     <div ref={ref => connect(drag(ref))}
       style={{ background: bg, padding: '56px 24px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
-      <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 900, color: '#231f20', margin: '0 0 40px' }}>{title}</h2>
-      <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${Math.min(members.length, 4)}, 1fr)`, gap: 28 }}>
+      <h2 style={{ textAlign: 'center', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 900, color: '#231f20', margin: '0 0 40px' }}>{title}</h2>
+      <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 28 }}>
         {members.map((m, i) => (
           <div key={i} style={{ textAlign: 'center' }}>
             {m.image ? (

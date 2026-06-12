@@ -45,10 +45,10 @@ export function ContactSection({ heading = 'تواصل معنا', phone = '01000
   ];
   return (
     <div ref={ref => connect(drag(ref))}
-      style={{ background: bg, padding: '60px 40px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
+      style={{ background: bg, padding: '60px clamp(16px, 5vw, 40px)', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        <h2 style={{ textAlign: 'center', fontSize: 32, fontWeight: 800, color: '#231f20', marginBottom: 40 }}>{heading}</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <h2 style={{ textAlign: 'center', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 800, color: '#231f20', marginBottom: 40 }}>{heading}</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
           {items.map(({ icon: Icon, label, value }, i) => (
             <div key={i} style={{ textAlign: 'center', padding: 24, borderRadius: 12, border: '1px solid #f3f4f6' }}>
               <div style={{ width: 56, height: 56, background: `${iconColor}15`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
@@ -60,7 +60,7 @@ export function ContactSection({ heading = 'تواصل معنا', phone = '01000
           ))}
         </div>
         <div style={{ marginTop: 40, background: '#f9fafb', borderRadius: 12, padding: 32 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 16 }}>
             <input disabled placeholder="الاسم الكامل" style={{ padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#fff', width: '100%' }} />
             <input disabled placeholder="رقم الهاتف" style={{ padding: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#fff', width: '100%' }} />
           </div>

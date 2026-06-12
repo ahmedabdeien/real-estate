@@ -6,13 +6,15 @@ import {
   FeatureGrid, ContactSection, VideoBlock, GalleryBlock,
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
+  NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
 } from './components';
 import {
   FaFont, FaArrowPointer, FaSquare, FaImage, FaRocket,
   FaMinus, FaTableColumns, FaGripLines, FaStar, FaAddressCard,
   FaVideo, FaImages, FaCircleQuestion, FaBullhorn, FaChartSimple,
   FaQuoteRight, FaTags, FaUserGroup, FaBuilding, FaLocationDot,
-  FaShareNodes, FaClock, FaListOl,
+  FaShareNodes, FaClock, FaListOl, FaWindowMaximize, FaWindowMinimize,
+  FaCube,
 } from 'react-icons/fa6';
 
 const CATEGORIES = [
@@ -44,8 +46,17 @@ const CATEGORIES = [
     ],
   },
   {
+    label: 'هيكل الصفحة',
+    tools: [
+      { label: 'شريط تنقل',  component: NavbarBlock, icon: FaWindowMaximize },
+      { label: 'فوتر',        component: FooterBlock, icon: FaWindowMinimize },
+    ],
+  },
+  {
     label: 'أقسام متقدمة',
     tools: [
+      { label: 'صندوق أيقونة', component: IconBoxBlock,   icon: FaCube },
+      { label: 'اقتباس',        component: QuoteBlock,     icon: FaQuoteRight },
       { label: 'فريق العمل',    component: TeamBlock,      icon: FaUserGroup },
       { label: 'شعارات عملاء',  component: LogosBlock,     icon: FaBuilding },
       { label: 'خطوات العمل',   component: StepsBlock,     icon: FaListOl },

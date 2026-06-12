@@ -45,7 +45,7 @@ export function CtaBlock({
   return (
     <div ref={ref => connect(drag(ref))}
       style={{ background: bg, padding: '56px 24px', textAlign: 'center', outline: isSelected ? '2px dashed #fbb140' : '2px dashed transparent' }}>
-      <h2 style={{ color: '#fff', fontSize: 32, fontWeight: 900, margin: '0 0 10px' }}>{title}</h2>
+      <h2 style={{ color: '#fff', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 900, margin: '0 0 10px' }}>{title}</h2>
       <p style={{ color: 'rgba(255,255,255,.85)', fontSize: 16, margin: '0 0 28px' }}>{subtitle}</p>
       <a href={btnHref} onClick={e => e.preventDefault()}
         style={{ background: btnBg, color: bg, padding: '14px 40px', borderRadius: 12, fontWeight: 800, fontSize: 16, textDecoration: 'none', display: 'inline-block' }}>

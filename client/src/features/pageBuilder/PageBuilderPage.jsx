@@ -11,6 +11,7 @@ import {
   FeatureGrid, ContactSection, VideoBlock, GalleryBlock,
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
+  NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
 } from './components';
 import {
   FaArrowRight, FaFloppyDisk, FaEye, FaEyeSlash, FaCircleCheck,
@@ -24,6 +25,7 @@ const RESOLVER = {
   VideoBlock, GalleryBlock, FaqBlock, CtaBlock, StatsBlock,
   TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
+  NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
 };
 
 /* craftJson must contain a ROOT node, otherwise Craft.js throws "Invariant failed" */

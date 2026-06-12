@@ -51,8 +51,8 @@ export function StepsBlock({ title = 'كيف يعمل النظام؟', steps = d
   return (
     <div ref={ref => connect(drag(ref))}
       style={{ background: bg, padding: '56px 24px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
-      <h2 style={{ textAlign: 'center', fontSize: 30, fontWeight: 900, color: '#231f20', margin: '0 0 44px' }}>{title}</h2>
-      <div style={{ maxWidth: 960, margin: '0 auto', display: 'grid', gridTemplateColumns: `repeat(${Math.min(steps.length, 4)}, 1fr)`, gap: 28 }}>
+      <h2 style={{ textAlign: 'center', fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 900, color: '#231f20', margin: '0 0 44px' }}>{title}</h2>
+      <div style={{ maxWidth: 960, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 28 }}>
         {steps.map((s, i) => (
           <div key={i} style={{ textAlign: 'center', position: 'relative' }}>
             <div style={{

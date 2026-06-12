@@ -77,10 +77,10 @@ export function FeatureGrid({ heading = 'مميزاتنا', features = defaultFe
   const { connectors: { connect, drag }, isSelected } = useNode(s => ({ isSelected: s.events.selected }));
   return (
     <div ref={ref => connect(drag(ref))}
-      style={{ background: bg, padding: '60px 40px', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
+      style={{ background: bg, padding: '60px clamp(16px, 5vw, 40px)', outline: isSelected ? '2px dashed #c8161d' : '2px dashed transparent' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        {heading && <h2 style={{ textAlign: 'center', fontSize: 32, fontWeight: 800, color: '#231f20', marginBottom: 40 }}>{heading}</h2>}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 24 }}>
+        {heading && <h2 style={{ textAlign: 'center', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 800, color: '#231f20', marginBottom: 40 }}>{heading}</h2>}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${Math.max(180, Math.floor(1100 / cols) - 60)}px, 1fr))`, gap: 24 }}>
           {features.map((f, i) => {
             const Icon = ICONS[f.icon] || FaStar;
             return (

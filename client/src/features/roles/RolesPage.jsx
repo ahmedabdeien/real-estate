@@ -139,7 +139,7 @@ const RolesPage = () => {
                 className="input text-sm py-2"
                 style={{ minWidth: 180 }}
               >
-                <option value="">🏛 أدوار المنصة</option>
+                <option value="">أدوار المنصة</option>
                 {(companies || []).map(c => (
                   <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
