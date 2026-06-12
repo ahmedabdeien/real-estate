@@ -25,8 +25,8 @@ const exportToExcel = async (data, columns, filename = 'export') => {
 
 /* Convert legacy {header, accessor, render} → TanStack column def */
 const buildColumns = (cols) =>
-  cols.map((col) => ({
-    id:     col.key || col.header,
+  cols.map((col, i) => ({
+    id:     col.key || col.header || `col-${i}`,
     header: col.header,
     enableSorting: !!col.sortable,
     size:   col.width ? parseInt(col.width) : undefined,
