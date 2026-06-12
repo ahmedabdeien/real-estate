@@ -4,6 +4,7 @@ import { Editor, Frame } from '@craftjs/core';
 import { useQuery } from '@tanstack/react-query';
 import { pagesAPI } from '../../api/services';
 import { validCraftJson } from './PageBuilderPage';
+import { PublicNav, PublicFooter } from '../public/PublicLayout';
 
 class RenderBoundary extends React.Component {
   state = { hasError: false };
@@ -27,6 +28,7 @@ import {
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
   NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
+  ImageTextBlock, TimelineBlock,
 } from './components';
 
 const RESOLVER = {
@@ -36,6 +38,7 @@ const RESOLVER = {
   TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
   NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
+  ImageTextBlock, TimelineBlock,
 };
 
 export default function PublicPage() {
@@ -103,6 +106,7 @@ export default function PublicPage() {
   const settings = page.settings || {};
   return (
     <div dir={settings.direction || 'rtl'} style={{ background: settings.bgColor || '#ffffff', minHeight: '100vh' }}>
+      {settings.showNavbar && <PublicNav />}
       <div style={settings.maxWidth === 'boxed' ? { maxWidth: 1200, margin: '0 auto', boxShadow: '0 0 30px rgba(0,0,0,0.06)' } : undefined}>
         <RenderBoundary>
           <Editor resolver={RESOLVER} enabled={false}>
@@ -110,6 +114,7 @@ export default function PublicPage() {
           </Editor>
         </RenderBoundary>
       </div>
+      {settings.showFooter && <PublicFooter />}
     </div>
   );
 }

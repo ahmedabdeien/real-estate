@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const pageSchema = new mongoose.Schema({
-  companyId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Company', required: true },
+  /* null = صفحة منصة (موقع المنصة التسويقي) — قيمة = صفحة شركة */
+  companyId:   { type: mongoose.Schema.Types.ObjectId, ref: 'Company', default: null },
   title:       { type: String, required: true },
   slug:        { type: String, required: true },
   type:        { type: String, enum: ['landing', 'about', 'contact', 'features', 'pricing', 'custom'], default: 'custom' },
@@ -19,7 +20,9 @@ const pageSchema = new mongoose.Schema({
     maxWidth:  { type: String, enum: ['full', 'boxed'], default: 'full' },
     direction: { type: String, enum: ['rtl', 'ltr'], default: 'rtl' },
     customCss: String,
-    showInNav: { type: Boolean, default: false },
+    showInNav:  { type: Boolean, default: false },
+    showNavbar: { type: Boolean, default: false },
+    showFooter: { type: Boolean, default: false },
   },
 }, { timestamps: true });
 

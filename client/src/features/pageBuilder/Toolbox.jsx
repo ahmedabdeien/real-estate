@@ -7,6 +7,7 @@ import {
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
   NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
+  ImageTextBlock, TimelineBlock,
 } from './components';
 import {
   FaFont, FaArrowPointer, FaSquare, FaImage, FaRocket,
@@ -14,7 +15,7 @@ import {
   FaVideo, FaImages, FaCircleQuestion, FaBullhorn, FaChartSimple,
   FaQuoteRight, FaTags, FaUserGroup, FaBuilding, FaLocationDot,
   FaShareNodes, FaClock, FaListOl, FaWindowMaximize, FaWindowMinimize,
-  FaCube,
+  FaCube, FaImagePortrait, FaTimeline,
 } from 'react-icons/fa6';
 
 const CATEGORIES = [
@@ -55,6 +56,8 @@ const CATEGORIES = [
   {
     label: 'أقسام متقدمة',
     tools: [
+      { label: 'صورة ونص',     component: ImageTextBlock, icon: FaImagePortrait },
+      { label: 'خط زمني',       component: TimelineBlock,  icon: FaTimeline },
       { label: 'صندوق أيقونة', component: IconBoxBlock,   icon: FaCube },
       { label: 'اقتباس',        component: QuoteBlock,     icon: FaQuoteRight },
       { label: 'فريق العمل',    component: TeamBlock,      icon: FaUserGroup },

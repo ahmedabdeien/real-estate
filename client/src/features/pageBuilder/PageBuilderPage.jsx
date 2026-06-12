@@ -12,6 +12,7 @@ import {
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
   NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
+  ImageTextBlock, TimelineBlock,
 } from './components';
 import {
   FaArrowRight, FaFloppyDisk, FaEye, FaEyeSlash, FaCircleCheck,
@@ -26,6 +27,7 @@ const RESOLVER = {
   TestimonialsBlock, PricingBlock,
   TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
   NavbarBlock, FooterBlock, IconBoxBlock, QuoteBlock,
+  ImageTextBlock, TimelineBlock,
 };
 
 /* craftJson must contain a ROOT node, otherwise Craft.js throws "Invariant failed".
@@ -416,6 +418,21 @@ export default function PageBuilderPage() {
 
               {settingsTab === 'display' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+                  {/* إظهار شريط التنقل والفوتر الرسميين للموقع */}
+                  {[
+                    ['showNavbar', 'إظهار شريط التنقل (Navbar) أعلى الصفحة'],
+                    ['showFooter', 'إظهار الفوتر أسفل الصفحة'],
+                  ].map(([key, label]) => (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{label}</span>
+                      <button onClick={() => setPageSettings(s => ({ ...s, [key]: !s[key] }))}
+                        style={{ position: 'relative', width: 40, height: 22, borderRadius: 99, border: 'none', cursor: 'pointer', background: pageSettings[key] ? '#da1f27' : '#e5e7eb', transition: 'background .15s' }}>
+                        <span style={{ position: 'absolute', top: 2, left: pageSettings[key] ? 20 : 2, width: 18, height: 18, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.2)', transition: 'left .15s' }} />
+                      </button>
+                    </div>
+                  ))}
+
                   <div>
                     <label className="label">لون خلفية الصفحة</label>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

@@ -25,3 +25,5 @@ export { NavbarBlock }        from './NavbarBlock';
 export { FooterBlock }        from './FooterBlock';
 export { IconBoxBlock }       from './IconBoxBlock';
 export { QuoteBlock }         from './QuoteBlock';
+export { ImageTextBlock }     from './ImageTextBlock';
+export { TimelineBlock }      from './TimelineBlock';

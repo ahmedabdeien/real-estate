@@ -78,7 +78,7 @@ const menuGroups = [
   {
     label: 'الإعدادات',
     items: [
-      { label: 'الثيم والمظهر',    icon: FaPalette,    path: '/theme',    module: 'theme' },
+      // الثيم والمظهر للمنصة فقط — الشركات تستخدم «مظهري الشخصي» من الشريط العلوي
       { label: 'الإعدادات',       icon: FaGear,       path: '/settings' },
       { label: 'سجل التحديثات',   icon: FaCodeBranch, path: '/updates' },
     ],

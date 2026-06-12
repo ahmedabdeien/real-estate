@@ -4,10 +4,13 @@ const { success, paginated, error } = require('../utils/response');
 
 exports.getUsers = async (req, res) => {
   try {
-    // عزل: السوبر أدمن بدون فلتر يرى فريق المنصة فقط — مع ?companyId يرى مستخدمي شركة محددة
+    // عزل: السوبر أدمن بدون فلتر يرى فريق المنصة — مع ?companyId يرى مستخدمي شركة محددة
+    // حسابات السوبر أدمن لا تظهر أبداً في قوائم الشركات
     const filter = req.user.isSuperAdmin
-      ? (req.query.companyId ? { companyId: req.query.companyId } : { companyId: null })
-      : { companyId: req.tenantId };
+      ? (req.query.companyId
+          ? { companyId: req.query.companyId, isSuperAdmin: { $ne: true } }
+          : { $or: [{ companyId: null }, { isSuperAdmin: true }] })
+      : { companyId: req.tenantId, isSuperAdmin: { $ne: true } };
     const features = new APIFeatures(User.find(filter), req.query)
       .search(['name', 'email', 'phone'])
       .filter()

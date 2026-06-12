@@ -69,6 +69,7 @@ const ThemePage = () => {
   const [tab, setTab] = useState('colors');
   const [form, setForm] = useState({});
   const currentTheme = useSelector(s => s.theme);
+  const { user } = useSelector(s => s.auth);
 
   const { data, isLoading } = useQuery({
     queryKey: ['theme'],
@@ -142,6 +143,20 @@ const ThemePage = () => {
     dispatch(setTheme(defaults));
     toast('تم استعادة الألوان الافتراضية');
   };
+
+  /* الثيم العام للمنصة فقط — مستخدمو الشركات لهم «مظهري الشخصي» في الشريط العلوي */
+  if (user && !user.isSuperAdmin) {
+    return (
+      <div className="card p-10 text-center max-w-md mx-auto mt-12">
+        <FaPalette className="mx-auto mb-4 text-3xl" style={{ color: 'var(--color-primary)' }} />
+        <h2 className="font-bold text-lg mb-2">الثيم العام تديره المنصة</h2>
+        <p className="text-sm opacity-60 leading-relaxed">
+          لتخصيص ألوانك الشخصية استخدم أيقونة «مظهري الشخصي» في الشريط العلوي —
+          اختياراتك تُحفظ في متصفحك تلقائياً.
+        </p>
+      </div>
+    );
+  }
 
   if (isLoading) return <LoadingSpinner />;
 
