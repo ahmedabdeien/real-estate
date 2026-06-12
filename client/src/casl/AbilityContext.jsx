@@ -4,6 +4,13 @@ import { buildAbility } from './ability';
 
 const AbilityContext = createContext(null);
 
+// Singleton empty ability used as fallback when context is not available
+let _emptyAbility = null;
+const getEmptyAbility = () => {
+  if (!_emptyAbility) _emptyAbility = buildAbility(null);
+  return _emptyAbility;
+};
+
 export function AbilityProvider({ children }) {
   const { user } = useSelector(s => s.auth);
   const ability = useMemo(() => buildAbility(user), [user]);
@@ -12,8 +19,8 @@ export function AbilityProvider({ children }) {
 
 export function useAbility() {
   const ability = useContext(AbilityContext);
-  if (!ability) throw new Error('useAbility must be used inside AbilityProvider');
-  return ability;
+  // Return empty ability (allows nothing for non-SuperAdmin) instead of throwing
+  return ability || getEmptyAbility();
 }
 
 export function useCan(action, subject) {

@@ -11,10 +11,10 @@ import {
   FaArrowUp, FaArrowDown, FaArrowsUpDown,
   FaSliders, FaFileExcel,
 } from 'react-icons/fa6';
-import * as XLSX from 'xlsx';
 import Pagination from './Pagination';
 
-const exportToExcel = (data, columns, filename = 'export') => {
+const exportToExcel = async (data, columns, filename = 'export') => {
+  const XLSX = await import('xlsx');
   const headers = columns.filter(c => c.accessor).map(c => c.header);
   const rows = data.map(row => columns.filter(c => c.accessor).map(c => row[c.accessor] ?? ''));
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);

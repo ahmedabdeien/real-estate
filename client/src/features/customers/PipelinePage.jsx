@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -179,9 +179,11 @@ export default function PipelinePage() {
   const { data, isLoading } = useQuery({
     queryKey: ['pipeline'],
     queryFn: () => customersAPI.getPipeline().then(r => r.data.data),
-    onSuccess: (d) => setGrouped(d.grouped),
-    select: (d) => d,
   });
+
+  useEffect(() => {
+    if (data?.grouped) setGrouped(data.grouped);
+  }, [data]);
 
   // keep local copy for optimistic DnD
   const currentGrouped = grouped || data?.grouped || Object.fromEntries(STAGES.map(s => [s.id, []]));
