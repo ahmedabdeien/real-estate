@@ -10,7 +10,7 @@ import {
   FaLayerGroup, FaUserTie, FaChevronLeft, FaChevronRight,
   FaFolderOpen, FaChartBar, FaShield, FaCalendarCheck,
   FaBullhorn, FaNewspaper, FaWandMagicSparkles, FaImages, FaLock,
-  FaCodeBranch,
+  FaCodeBranch, FaArrowsLeftRight,
 } from 'react-icons/fa6';
 import { logout } from '../../store/authSlice';
 import { toggleSidebar, setSidebarMobile } from '../../store/uiSlice';
@@ -34,9 +34,10 @@ const menuGroups = [
   {
     label: 'العقارات',
     items: [
-      { label: 'المشاريع',  icon: FaCity,    path: '/properties', perm: 'properties.view' },
-      { label: 'الوحدات',   icon: FaBuilding, path: '/units',      perm: 'units.view' },
-      { label: 'العملاء',   icon: FaUserTie,  path: '/customers',  perm: 'customers.view' },
+      { label: 'المشاريع',       icon: FaCity,            path: '/properties',          perm: 'properties.view' },
+      { label: 'الوحدات',        icon: FaBuilding,         path: '/units',               perm: 'units.view' },
+      { label: 'العملاء',        icon: FaUserTie,          path: '/customers',           perm: 'customers.view' },
+      { label: 'مسار المبيعات', icon: FaArrowsLeftRight, path: '/customers/pipeline',  perm: 'customers.view' },
     ],
   },
   {

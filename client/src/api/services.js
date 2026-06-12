@@ -33,7 +33,13 @@ export const rolesAPI = {
 
 export const propertiesAPI = crud('/properties');
 export const unitsAPI = crud('/units');
-export const customersAPI = crud('/customers');
+export const customersAPI = {
+  ...crud('/customers'),
+  getPipeline:    ()          => api.get('/customers/pipeline'),
+  updateStage:    (id, stage) => api.patch(`/customers/${id}/stage`, { pipelineStage: stage }),
+  addActivity:    (id, data)  => api.post(`/customers/${id}/activities`, data),
+  deleteActivity: (id, actId) => api.delete(`/customers/${id}/activities/${actId}`),
+};
 export const contractsAPI = crud('/contracts');
 export const invoicesAPI = crud('/invoices');
 export const paymentsAPI = {

@@ -16,6 +16,7 @@ import PropertyDetailPage from './features/properties/PropertyDetailPage';
 import UnitsPage from './features/units/UnitsPage';
 import CustomersPage from './features/customers/CustomersPage';
 import CustomerDetailPage from './features/customers/CustomerDetailPage';
+import PipelinePage from './features/customers/PipelinePage';
 import ContractsPage from './features/contracts/ContractsPage';
 import InvoicesPage from './features/invoices/InvoicesPage';
 import PaymentsPage from './features/payments/PaymentsPage';
@@ -90,8 +91,9 @@ const App = () => {
           <Route path="/properties"    element={<PropertiesPage />} />
           <Route path="/properties/:id" element={<PropertyDetailPage />} />
           <Route path="/units"         element={<UnitsPage />} />
-          <Route path="/customers"     element={<CustomersPage />} />
-          <Route path="/customers/:id" element={<CustomerDetailPage />} />
+          <Route path="/customers"          element={<CustomersPage />} />
+          <Route path="/customers/pipeline" element={<PipelinePage />} />
+          <Route path="/customers/:id"      element={<CustomerDetailPage />} />
           <Route path="/contracts"     element={<ContractsPage />} />
           <Route path="/invoices"      element={<InvoicesPage />} />
           <Route path="/payments"      element={<PaymentsPage />} />

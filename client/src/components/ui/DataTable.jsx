@@ -9,9 +9,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaMagnifyingGlass, FaXmark, FaTableCells,
   FaArrowUp, FaArrowDown, FaArrowsUpDown,
-  FaSliders,
+  FaSliders, FaFileExcel,
 } from 'react-icons/fa6';
+import * as XLSX from 'xlsx';
 import Pagination from './Pagination';
+
+const exportToExcel = (data, columns, filename = 'export') => {
+  const headers = columns.filter(c => c.accessor).map(c => c.header);
+  const rows = data.map(row => columns.filter(c => c.accessor).map(c => row[c.accessor] ?? ''));
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  XLSX.writeFile(wb, `${filename}.xlsx`);
+};
 
 /* Convert legacy {header, accessor, render} → TanStack column def */
 const buildColumns = (cols) =>
@@ -57,6 +67,7 @@ const DataTable = ({
   actions,
   title,
   density = 'normal',
+  exportFilename,
 }) => {
   const [searchVal, setSearchVal]   = useState('');
   const [sorting,   setSorting]     = useState([]);
@@ -119,6 +130,17 @@ const DataTable = ({
                   )}
                 </AnimatePresence>
               </div>
+            )}
+
+            {/* Export to Excel */}
+            {exportFilename && (
+              <button
+                onClick={() => exportToExcel(data, rawColumns, exportFilename)}
+                className="btn btn-ghost btn-icon-sm"
+                title="تصدير Excel"
+                style={{ color: '#16a34a' }}>
+                <FaFileExcel className="text-xs" />
+              </button>
             )}
 
             {/* Column visibility toggle */}

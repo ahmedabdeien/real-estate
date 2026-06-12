@@ -21,6 +21,18 @@ const customerSchema = new mongoose.Schema({
   totalPurchases: { type: Number, default: 0 },
   totalPaid: { type: Number, default: 0 },
   totalBalance: { type: Number, default: 0 },
+  pipelineStage: {
+    type: String,
+    enum: ['new_lead', 'contacted', 'interested', 'negotiating', 'contracted', 'lost'],
+    default: 'new_lead',
+  },
+  followUpDate: { type: Date },
+  activities: [{
+    type:      { type: String, enum: ['call', 'visit', 'note', 'meeting', 'whatsapp', 'email'], default: 'note' },
+    content:   { type: String, required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now },
+  }],
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
