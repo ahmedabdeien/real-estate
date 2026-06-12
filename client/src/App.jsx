@@ -36,6 +36,7 @@ import AdminChangelogPage from './features/pages/ChangelogPage';
 import DocumentsPage from './features/documents/DocumentsPage';
 import NotFoundPage from './features/errors/NotFoundPage';
 import UnauthorizedPage from './features/errors/UnauthorizedPage';
+import ErrorBoundary from './components/ErrorBoundary';
 // Lazy-loaded to keep main bundle small
 
 const MediaLibraryPage   = lazy(() => import('./features/marketing/MediaLibraryPage'));
@@ -78,6 +79,7 @@ const App = () => {
       <AbilityProvider>
       <ThemeLoader />
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin" style={{borderColor:'#da1f27',borderTopColor:'transparent'}}></div></div>}>
+      <ErrorBoundary>
       <Routes>
         {/* Public */}
         <Route path="/"            element={<LandingPage />} />        <Route path="/terms"       element={<TermsPage />} />
@@ -120,6 +122,7 @@ const App = () => {
         <Route path="/404"  element={<NotFoundPage />} />
         <Route path="*"     element={<NotFoundPage />} />
       </Routes>
+      </ErrorBoundary>
       </Suspense>
       </AbilityProvider>
     </BrowserRouter>
