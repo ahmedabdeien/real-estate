@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { rolesAPI } from '../../api/services';
+import { useSelector } from 'react-redux';
+import { rolesAPI, companiesAPI } from '../../api/services';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -8,7 +9,11 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { FaPlus, FaPen, FaTrash, FaShield, FaUsers, FaBuilding, FaFileContract, FaChartBar, FaBell, FaWhatsapp, FaGear, FaWarehouse, FaImages, FaCopy } from 'react-icons/fa6';
+import {
+  FaPlus, FaPen, FaTrash, FaShield, FaUsers, FaBuilding, FaFileContract,
+  FaChartBar, FaBell, FaWhatsapp, FaGear, FaWarehouse, FaImages, FaCopy,
+  FaCrown, FaLayerGroup, FaCreditCard, FaWandMagicSparkles, FaUserGroup,
+} from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
 const MODULE_LABELS = {
@@ -20,6 +25,10 @@ const MODULE_LABELS = {
   warehouse: 'المستودع', purchasing: 'المشتريات', settings: 'الإعدادات',
   theme: 'المظهر', documents: 'الوثائق', audit: 'سجل العمليات',
   activity: 'سجل النشاط',
+  // platform modules
+  companies: 'الشركات', plans: 'خطط الاشتراك', billing: 'الاشتراكات والفوترة',
+  platformRoles: 'أدوار المنصة', team: 'فريق المنصة', sitePages: 'صفحات الموقع',
+  platformSettings: 'إعدادات المنصة', platformReports: 'تقارير المنصة',
 };
 
 const MODULE_ICONS = {
@@ -30,44 +39,63 @@ const MODULE_ICONS = {
   whatsapp: FaWhatsapp, media: FaImages, warehouse: FaWarehouse,
   purchasing: FaWarehouse, settings: FaGear, theme: FaGear,
   documents: FaImages, audit: FaGear, activity: FaGear,
+  companies: FaLayerGroup, plans: FaCreditCard, billing: FaCreditCard,
+  platformRoles: FaCrown, team: FaUserGroup, sitePages: FaWandMagicSparkles,
+  platformSettings: FaGear, platformReports: FaChartBar,
 };
 
-const defaultForm = { name: '', label: '', description: '', permissions: [] };
+const ROLE_COLORS = ['#da1f27', '#009756', '#fbb140', '#2563eb', '#7c3aed', '#0d9488', '#db2777', '#231f20'];
+
+const defaultForm = { name: '', label: '', description: '', permissions: [], color: '#da1f27' };
 
 const RolesPage = () => {
   const qc = useQueryClient();
+  const { user } = useSelector(s => s.auth);
+  const isSuper = !!user?.isSuperAdmin;
+
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [delId, setDelId] = useState(null);
+  // '' = أدوار المنصة (للسوبر أدمن) — أو companyId محدد
+  const [companyFilter, setCompanyFilter] = useState('');
 
-  const { data: roles, isLoading } = useQuery({ queryKey: ['roles'], queryFn: () => rolesAPI.getAll().then(r => r.data.data) });
-  const { data: permsData } = useQuery({ queryKey: ['permissions'], queryFn: () => rolesAPI.getPermissions().then(r => r.data.data) });
+  const params = isSuper && companyFilter ? { companyId: companyFilter } : undefined;
+
+  const { data: roles, isLoading } = useQuery({
+    queryKey: ['roles', companyFilter],
+    queryFn: () => rolesAPI.getAll(params).then(r => r.data.data),
+  });
+  const { data: permsData } = useQuery({
+    queryKey: ['permissions', companyFilter],
+    queryFn: () => rolesAPI.getPermissions(params).then(r => r.data.data),
+  });
+  const { data: companies } = useQuery({
+    queryKey: ['companies-list'],
+    queryFn: () => companiesAPI.getAll().then(r => r.data.data),
+    enabled: isSuper,
+  });
 
   const save = useMutation({
-    mutationFn: (d) => editing ? rolesAPI.update(editing._id, d) : rolesAPI.create(d),
-    onSuccess: () => { qc.invalidateQueries(['roles']); toast.success(editing ? 'تم التحديث' : 'تم الإنشاء'); closeModal(); },
+    mutationFn: (d) => editing ? rolesAPI.update(editing._id, d) : rolesAPI.create(companyFilter ? { ...d, companyId: companyFilter } : d),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['roles'] }); toast.success(editing ? 'تم التحديث' : 'تم الإنشاء'); closeModal(); },
     onError: (e) => toast.error(e.response?.data?.message || 'حدث خطأ'),
   });
 
   const del = useMutation({
     mutationFn: rolesAPI.remove,
-    onSuccess: () => { qc.invalidateQueries(['roles']); toast.success('تم الحذف'); setDelId(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['roles'] }); toast.success('تم الحذف'); setDelId(null); },
+    onError: (e) => { toast.error(e.response?.data?.message || 'حدث خطأ'); setDelId(null); },
+  });
+
+  const duplicate = useMutation({
+    mutationFn: rolesAPI.duplicate,
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['roles'] }); toast.success('تم نسخ الدور'); },
     onError: (e) => toast.error(e.response?.data?.message || 'حدث خطأ'),
   });
 
   const openCreate = () => { setEditing(null); setForm(defaultForm); setModal(true); };
   const openEdit = (row) => { setEditing(row); setForm({ ...defaultForm, ...row }); setModal(true); };
-  const openDuplicate = (row) => {
-    setEditing(null);
-    setForm({
-      name: `${row.name}_copy`,
-      label: `${row.label} (نسخة)`,
-      description: row.description || '',
-      permissions: [...(row.permissions || [])],
-    });
-    setModal(true);
-  };
   const closeModal = () => { setModal(false); setEditing(null); };
 
   const togglePerm = (perm) => {
@@ -86,12 +114,49 @@ const RolesPage = () => {
     }
   };
 
+  const selectAll = () => {
+    const all = Object.values(permsData || {}).flatMap(ps => ps.map(p => p.name));
+    setForm(f => ({ ...f, permissions: f.permissions.length === all.length ? [] : all }));
+  };
+
   if (isLoading) return <LoadingSpinner />;
+
+  const isPlatformMode = isSuper && !companyFilter;
 
   return (
     <div>
-      <PageHeader title="الأدوار والصلاحيات" subtitle="إدارة أدوار المستخدمين وصلاحياتهم"
-        actions={<Button onClick={openCreate}><FaPlus /> إضافة دور</Button>} />
+      <PageHeader
+        title={isPlatformMode ? 'أدوار المنصة' : 'الأدوار والصلاحيات'}
+        subtitle={isPlatformMode
+          ? 'أدوار فريق إدارة المنصة — منفصلة تماماً عن أدوار الشركات'
+          : 'إدارة أدوار المستخدمين وصلاحياتهم'}
+        actions={
+          <div className="flex items-center gap-2">
+            {isSuper && (
+              <select
+                value={companyFilter}
+                onChange={e => setCompanyFilter(e.target.value)}
+                className="input text-sm py-2"
+                style={{ minWidth: 180 }}
+              >
+                <option value="">🏛 أدوار المنصة</option>
+                {(companies || []).map(c => (
+                  <option key={c._id} value={c._id}>{c.name}</option>
+                ))}
+              </select>
+            )}
+            <Button onClick={openCreate}><FaPlus /> إضافة دور</Button>
+          </div>
+        }
+      />
+
+      {isPlatformMode && (
+        <div className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl text-sm font-semibold"
+          style={{ background: 'rgba(251,177,64,0.12)', color: '#92400e', border: '1px solid rgba(251,177,64,0.35)' }}>
+          <FaCrown />
+          أنت في وضع المنصة — هذه الأدوار لفريقك أنت (مالك المشروع)، ولا تظهر لأي شركة.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {(roles || []).map((role) => (
@@ -99,8 +164,8 @@ const RolesPage = () => {
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
-                  style={{ backgroundColor: 'var(--color-primary)' }}>
-                  <FaShield />
+                  style={{ backgroundColor: role.color || 'var(--color-primary)' }}>
+                  {role.scope === 'platform' ? <FaCrown /> : <FaShield />}
                 </div>
                 <div>
                   <h3 className="font-semibold">{role.label}</h3>
@@ -108,7 +173,7 @@ const RolesPage = () => {
                 </div>
               </div>
               <div className="flex gap-1 items-center">
-                <Button variant="ghost" size="icon" title="نسخ الدور" onClick={() => openDuplicate(role)} className="text-blue-600 hover:bg-blue-50"><FaCopy /></Button>
+                <Button variant="ghost" size="icon" title="نسخ الدور" onClick={() => duplicate.mutate(role._id)} className="text-blue-600 hover:bg-blue-50"><FaCopy /></Button>
                 {!role.isSystem && (
                   <>
                     <Button variant="ghost" size="icon" title="تعديل" onClick={() => openEdit(role)}><FaPen /></Button>
@@ -119,6 +184,21 @@ const RolesPage = () => {
               </div>
             </div>
             <p className="text-sm opacity-60 mb-3">{role.description || 'لا يوجد وصف'}</p>
+
+            <div className="flex items-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+                style={{ background: 'var(--color-background)', color: 'var(--color-text-muted, #6b7280)' }}>
+                <FaUsers className="text-[10px]" />
+                {role.usersCount ?? 0} مستخدم
+              </span>
+              {role.scope === 'platform' && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full"
+                  style={{ background: 'rgba(251,177,64,0.15)', color: '#92400e' }}>
+                  <FaCrown className="text-[10px]" /> منصة
+                </span>
+              )}
+            </div>
+
             {(() => {
               const total = Object.values(permsData || {}).reduce((a, perms) => a + perms.length, 0);
               const count = role.permissions?.length || 0;
@@ -130,16 +210,23 @@ const RolesPage = () => {
                     <p className="text-[10px] opacity-50">{pct}%</p>
                   </div>
                   <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: 'var(--color-primary)' }} />
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: role.color || 'var(--color-primary)' }} />
                   </div>
                 </div>
               );
             })()}
           </div>
         ))}
+
+        {(roles || []).length === 0 && (
+          <div className="col-span-full text-center py-16 opacity-50 text-sm">
+            لا توجد أدوار بعد — أنشئ أول دور من زر «إضافة دور»
+          </div>
+        )}
       </div>
 
-      <Modal open={modal} onClose={closeModal} title={editing ? 'تعديل الدور' : 'إضافة دور جديد'} size="xl"
+      <Modal open={modal} onClose={closeModal}
+        title={editing ? 'تعديل الدور' : isPlatformMode ? 'إضافة دور منصة جديد' : 'إضافة دور جديد'} size="xl"
         footer={<>
           <Button variant="outline" onClick={closeModal}>إلغاء</Button>
           <Button onClick={() => save.mutate(form)} loading={save.isPending}>حفظ</Button>
@@ -150,8 +237,34 @@ const RolesPage = () => {
             <Input label="اسم الدور (بالإنجليزية)" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="company_manager" required />
             <Input label="اسم الدور (بالعربية)" value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} placeholder="مدير الشركة" required />
           </div>
+          <Input label="الوصف" value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="وصف مختصر لمهام هذا الدور" />
+
           <div>
-            <label className="label">الصلاحيات</label>
+            <label className="label">لون الدور</label>
+            <div className="flex gap-2">
+              {ROLE_COLORS.map(c => (
+                <button key={c} type="button" onClick={() => setForm(f => ({ ...f, color: c }))}
+                  className="w-8 h-8 rounded-full transition-transform"
+                  style={{
+                    background: c,
+                    transform: form.color === c ? 'scale(1.2)' : 'scale(1)',
+                    border: form.color === c ? '3px solid #fff' : '2px solid transparent',
+                    boxShadow: form.color === c ? `0 0 0 2px ${c}` : 'none',
+                    cursor: 'pointer',
+                  }} />
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="label mb-0">الصلاحيات</label>
+              <button type="button" onClick={selectAll}
+                className="text-xs font-bold cursor-pointer bg-transparent border-none"
+                style={{ color: 'var(--color-primary)' }}>
+                تحديد / إلغاء الكل
+              </button>
+            </div>
             <div className="space-y-4 max-h-96 overflow-y-auto border rounded-lg p-4" style={{ borderColor: 'var(--color-border)' }}>
               {Object.entries(permsData || {}).map(([module, perms]) => {
                 const allSelected = perms.every(p => form.permissions.includes(p.name));

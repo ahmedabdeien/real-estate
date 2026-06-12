@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, permission }) => {
   if (permission) {
     const [subject, action] = permission.split('.');
     if (!ability.can(action, subject)) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/unauthorized" replace />;
     }
   }
 

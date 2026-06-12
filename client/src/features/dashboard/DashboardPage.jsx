@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import SuperAdminDashboard from './SuperAdminDashboard';
 import { motion } from 'framer-motion';
 import ReactApexChart from 'react-apexcharts';
 import { reportsAPI } from '../../api/services';
@@ -35,8 +36,25 @@ const QuickBtn = ({ label, icon: Icon, to, color }) => (
   </Link>
 );
 
+/* Error boundary to protect charts from crashing the whole page */
+class ChartBoundary extends React.Component {
+  state = { err: false };
+  static getDerivedStateFromError() { return { err: true }; }
+  render() {
+    if (this.state.err) return (
+      <div className="flex items-center justify-center h-40 rounded-xl"
+        style={{ background: 'var(--color-background)', color: 'var(--color-text-muted)', fontSize: 13 }}>
+        تعذّر تحميل الرسم البياني
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
 export default function DashboardPage() {
   const { user, company } = useSelector(s => s.auth);
+
+  if (user?.isSuperAdmin) return <SuperAdminDashboard />;
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard'],
@@ -165,11 +183,13 @@ export default function DashboardPage() {
               تقرير مفصل <FaArrowLeft className="text-[9px]" />
             </Link>
           </div>
-          <ReactApexChart
-            options={areaOptions}
-            series={[{ name: 'الإيرادات', data: revData }, { name: 'المصروفات', data: expData }]}
-            type="area" height={200}
-          />
+          <ChartBoundary>
+            <ReactApexChart
+              options={areaOptions}
+              series={[{ name: 'الإيرادات', data: revData }, { name: 'المصروفات', data: expData }]}
+              type="area" height={200}
+            />
+          </ChartBoundary>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26 }}
@@ -178,7 +198,9 @@ export default function DashboardPage() {
           <h3 className="font-bold text-sm mb-1" style={{ color: 'var(--color-text-dark)' }}>حالة الوحدات</h3>
           <p className="text-xs mb-4" style={{ color: 'var(--color-text-muted)' }}>توزيع الوحدات بالحالة</p>
           {unitData.some(v => v > 0) ? (
-            <ReactApexChart options={donutOptions} series={unitData} type="donut" height={200} />
+            <ChartBoundary>
+              <ReactApexChart options={donutOptions} series={unitData} type="donut" height={200} />
+            </ChartBoundary>
           ) : (
             <div className="space-y-2 mt-2">
               {unitStatuses.map((st, i) => (

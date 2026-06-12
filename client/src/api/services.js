@@ -27,7 +27,8 @@ export const usersAPI = {
 
 export const rolesAPI = {
   ...crud('/roles'),
-  getPermissions: () => api.get('/roles/permissions'),
+  getPermissions: (params) => api.get('/roles/permissions', { params }),
+  duplicate: (id) => api.post(`/roles/${id}/duplicate`),
 };
 
 export const propertiesAPI = crud('/properties');
@@ -45,6 +46,7 @@ export const expensesAPI = crud('/expenses');
 export const reportsAPI = {
   getDashboard: (params) => api.get('/reports/dashboard', { params }),
   getFinancial: (params) => api.get('/reports/financial', { params }),
+  getSuperStats: () => api.get('/reports/super-stats'),
 };
 
 export const themeAPI = {

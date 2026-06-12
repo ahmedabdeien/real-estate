@@ -28,6 +28,24 @@ const themeSchema = new mongoose.Schema({
   sidebarGroupColor:  { type: String, default: 'rgba(255,255,255,0.28)' },
   footerContent: { type: String },
   customCss: { type: String },
+  // الشريط العلوي
+  navbarBg:     { type: String, default: '#ffffff' },
+  navbarText:   { type: String, default: '#231f20' },
+  navbarBorder: { type: String, default: '#ededed' },
+  // الجداول والكثافة
+  tableStriped: { type: Boolean, default: false },
+  tableHover:   { type: Boolean, default: true },
+  density:      { type: String, enum: ['comfortable', 'compact'], default: 'comfortable' },
+  // صفحة تسجيل الدخول
+  loginTitle:    { type: String, default: 'مرحباً بعودتك' },
+  loginSubtitle: { type: String, default: 'سجّل دخولك للمتابعة إلى لوحة التحكم' },
+  loginBg:       { type: String, default: '#fafafc' },
+  // متقدم
+  reduceMotion:   { type: Boolean, default: false },
+  scrollbarStyle: { type: String, enum: ['default', 'thin', 'hidden'], default: 'thin' },
+  successColor:   { type: String, default: '#009756' },
+  warningColor:   { type: String, default: '#fbb140' },
+  dangerColor:    { type: String, default: '#dc2626' },
   announcementBar: {
     enabled:  { type: Boolean, default: false },
     text:     { type: String, default: '' },

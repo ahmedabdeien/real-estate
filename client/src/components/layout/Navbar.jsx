@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
-import { FaBars, FaBell, FaChevronDown, FaUser, FaGear, FaPalette, FaArrowRightFromBracket } from 'react-icons/fa6';
+import { FaBars, FaBell, FaChevronDown, FaGear, FaPalette, FaArrowRightFromBracket, FaCrown } from 'react-icons/fa6';
 import { toggleSidebar, setSidebarMobile } from '../../store/uiSlice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { logout } from '../../store/authSlice';
+import { logout, exitImpersonation } from '../../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 import NotificationsDropdown from '../dashboard/NotificationsDropdown';
 import CommandPalette from '../ui/CommandPalette';
@@ -17,7 +17,9 @@ const Navbar = () => {
   const [showNotifs, setShowNotifs]   = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
+  const { isImpersonating } = useSelector(s => s.auth);
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
+  const handleExitImpersonation = () => { dispatch(exitImpersonation()); navigate('/dashboard'); };
 
   return (
     <header
@@ -31,6 +33,20 @@ const Navbar = () => {
       >
         <FaBars className="text-base" style={{ color: 'var(--color-text-muted)' }} />
       </button>
+
+      {/* Impersonation banner */}
+      {isImpersonating && (
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold"
+          style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fbbf24' }}>
+          <FaCrown className="text-[10px]" style={{ color: '#f59e0b' }} />
+          <span>تعمل كمدير شركة</span>
+          <button onClick={handleExitImpersonation}
+            className="mr-1 px-2 py-0.5 rounded font-bold transition-colors hover:bg-amber-200"
+            style={{ color: '#92400e' }}>
+            العودة ←
+          </button>
+        </div>
+      )}
 
       {/* Search / Command Palette trigger */}
       <div className="flex-1">
@@ -80,7 +96,8 @@ const Navbar = () => {
               <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--color-text-dark)' }}>
                 {user?.name}
               </p>
-              <p className="text-[10px] leading-tight" style={{ color: 'var(--color-text-muted)' }}>
+              <p className="text-[10px] leading-tight flex items-center gap-1" style={{ color: user?.isSuperAdmin ? '#b8860b' : 'var(--color-text-muted)' }}>
+                {user?.isSuperAdmin && <FaCrown className="text-[9px]" style={{ color: '#fbb140' }} />}
                 {user?.isSuperAdmin ? 'مشرف عام' : user?.role?.label || 'مستخدم'}
               </p>
             </div>

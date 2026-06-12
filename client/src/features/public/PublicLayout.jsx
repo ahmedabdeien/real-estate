@@ -127,24 +127,38 @@ export const PublicNav = () => {
   );
 };
 
-/* ─── FOOTER (dark) ─── */
+/* ─── FOOTER ─── */
 export const PublicFooter = () => {
   const [email, setEmail] = useState('');
   const [done, setDone]   = useState(false);
 
+  const SOCIAL = [
+    { Icon: FaInstagram,  color: '#e1306c' },
+    { Icon: FaYoutube,    color: '#ff0000' },
+    { Icon: FaXTwitter,   color: '#fff' },
+    { Icon: FaLinkedin,   color: '#0a66c2' },
+  ];
+
   return (
-    <footer style={{ background: DARK }}>
+    <footer style={{ background: DARK, direction: 'rtl' }}>
+
+      {/* Top color bar — 4 brand stripes */}
+      <div style={{ display: 'flex', height: 4 }}>
+        {[RED, YELLOW, GREEN, DARK].map((c, i) => (
+          <div key={i} style={{ flex: 1, background: i === 3 ? 'rgba(255,255,255,0.12)' : c }} />
+        ))}
+      </div>
 
       {/* Newsletter strip */}
-      <div style={{ background: `${RED}12`, borderTop: `1px solid ${RED}25`, borderBottom: `1px solid ${RED}25` }}>
-        <div className="max-w-7xl mx-auto px-5 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-5">
+      <div style={{ background: `${RED}18`, borderBottom: `1px solid ${RED}30` }}>
+        <div className="max-w-7xl mx-auto px-5 md:px-8 py-7 flex flex-col md:flex-row items-center justify-between gap-5">
           <div>
-            <p className="text-white font-black text-base">ابقَ على اطلاع دائم</p>
-            <p className="text-white/45 text-sm mt-0.5">تحديثات المنتج ونصائح عقارية حصرية</p>
+            <p className="font-black text-base" style={{ color: '#fff' }}>ابقَ على اطلاع دائم</p>
+            <p className="text-sm mt-0.5" style={{ color: 'rgba(255,255,255,0.5)' }}>تحديثات المنتج ونصائح عقارية حصرية</p>
           </div>
           {done ? (
-            <div className="flex items-center gap-2 font-semibold text-sm" style={{ color: GREEN }}>
-              <FaCircleCheck />  تم الاشتراك، شكراً!
+            <div className="flex items-center gap-2 font-bold text-sm" style={{ color: GREEN }}>
+              <FaCircleCheck /> تم الاشتراك، شكراً!
             </div>
           ) : (
             <form onSubmit={e => { e.preventDefault(); email && setDone(true); }}
@@ -153,10 +167,10 @@ export const PublicFooter = () => {
                 type="email" required value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="بريدك الإلكتروني..."
                 className="flex-1 md:w-64 px-4 py-2.5 rounded-xl text-sm text-white outline-none"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                style={{ background: 'rgba(255,255,255,0.06)', border: `1px solid ${RED}50` }}
               />
               <button type="submit"
-                className="px-5 py-2.5 rounded-xl font-bold text-white text-sm transition-opacity hover:opacity-90 flex-shrink-0"
+                className="px-5 py-2.5 rounded-xl font-bold text-white text-sm flex-shrink-0"
                 style={{ background: RED }}>
                 اشترك
               </button>
@@ -167,53 +181,96 @@ export const PublicFooter = () => {
 
       {/* Main grid */}
       <div className="max-w-7xl mx-auto px-5 md:px-8 py-14 grid grid-cols-1 md:grid-cols-5 gap-10">
+
+        {/* Brand column */}
         <div className="md:col-span-2 space-y-5">
-          <img src={logoWhite} alt="EgyEstate" className="h-8 object-contain" />
-          <p className="text-white/40 text-sm leading-relaxed max-w-xs">
+          <img src={logoWhite} alt="EgyEstate" className="h-9 object-contain" />
+          <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
             منصة SaaS متكاملة لإدارة الشركات العقارية في العالم العربي — المشاريع والعقود والمحاسبة والتقارير.
           </p>
+
+          {/* Status badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-            style={{ background: 'rgba(0,151,86,0.1)', border: '1px solid rgba(0,151,86,0.3)' }}>
+            style={{ background: `${GREEN}15`, border: `1px solid ${GREEN}40` }}>
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: GREEN }} />
-            <span className="text-xs font-medium" style={{ color: '#34d399' }}>جميع الأنظمة تعمل</span>
+            <span className="text-xs font-semibold" style={{ color: GREEN }}>جميع الأنظمة تعمل</span>
           </div>
-          <div className="flex gap-2 pt-1">
-            {[FaLinkedin, FaXTwitter, FaYoutube, FaInstagram].map((Icon, i) => (
+
+          {/* Social icons */}
+          <div className="flex gap-2.5 pt-1">
+            {SOCIAL.map(({ Icon, color }, i) => (
               <a key={i} href="#"
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white/30 hover:text-white hover:bg-white/8 transition-all"
-                style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: 'rgba(255,255,255,0.45)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = `${color}22`; e.currentTarget.style.color = color; e.currentTarget.style.borderColor = `${color}50`; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+              >
                 <Icon className="text-sm" />
               </a>
             ))}
           </div>
         </div>
 
-        {FOOTER_COLS.map(col => (
-          <div key={col.title}>
-            <p className="text-white font-black text-sm mb-5 tracking-wide">{col.title}</p>
-            <ul className="space-y-3">
-              {col.links.map(l => (
-                <li key={l.to}>
-                  <Link to={l.to} className="text-sm text-white/38 hover:text-white/80 transition-colors">
-                    {l.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {/* Link columns */}
+        {FOOTER_COLS.map((col, ci) => {
+          const accent = [RED, YELLOW, GREEN][ci] || RED;
+          return (
+            <div key={col.title}>
+              <div className="flex items-center gap-2 mb-5">
+                <span className="w-1 h-4 rounded-full flex-shrink-0" style={{ background: accent }} />
+                <p className="font-black text-sm text-white tracking-wide">{col.title}</p>
+              </div>
+              <ul className="space-y-3">
+                {col.links.map(l => (
+                  <li key={l.to}>
+                    <Link to={l.to}
+                      className="text-sm transition-colors"
+                      style={{ color: 'rgba(255,255,255,0.42)' }}
+                      onMouseEnter={e => { e.currentTarget.style.color = accent; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.42)'; }}
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </div>
 
       {/* Bottom bar */}
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-white/28">
-            <span className="flex items-center gap-1.5"><FaPhone className="text-[10px]" />+20 100 000 0000</span>
-            <span className="flex items-center gap-1.5"><FaEnvelope className="text-[10px]" />hello@egyestate.com</span>
-            <span className="flex items-center gap-1.5"><FaLocationDot className="text-[10px]" />القاهرة، مصر</span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            <span className="flex items-center gap-1.5">
+              <FaPhone className="text-[10px]" style={{ color: RED }} />
+              +20 100 000 0000
+            </span>
+            <span className="flex items-center gap-1.5">
+              <FaEnvelope className="text-[10px]" style={{ color: YELLOW }} />
+              hello@egyestate.com
+            </span>
+            <span className="flex items-center gap-1.5">
+              <FaLocationDot className="text-[10px]" style={{ color: GREEN }} />
+              القاهرة، مصر
+            </span>
           </div>
-          <p className="text-xs text-white/22">© {new Date().getFullYear()} EgyEstate · صُنع في مصر</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            © {new Date().getFullYear()} EgyEstate · صُنع في مصر
+          </p>
         </div>
+      </div>
+
+      {/* Bottom color bar */}
+      <div style={{ display: 'flex', height: 3 }}>
+        {[GREEN, YELLOW, RED, DARK].map((c, i) => (
+          <div key={i} style={{ flex: 1, background: i === 3 ? 'rgba(255,255,255,0.08)' : c }} />
+        ))}
       </div>
     </footer>
   );

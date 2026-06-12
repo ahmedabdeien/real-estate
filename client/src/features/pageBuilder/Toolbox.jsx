@@ -5,12 +5,14 @@ import {
   HeroBlock, SpacerBlock, ColumnsBlock, DividerBlock,
   FeatureGrid, ContactSection, VideoBlock, GalleryBlock,
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
+  TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
 } from './components';
 import {
   FaFont, FaArrowPointer, FaSquare, FaImage, FaRocket,
   FaMinus, FaTableColumns, FaGripLines, FaStar, FaAddressCard,
   FaVideo, FaImages, FaCircleQuestion, FaBullhorn, FaChartSimple,
-  FaQuoteRight, FaTags,
+  FaQuoteRight, FaTags, FaUserGroup, FaBuilding, FaLocationDot,
+  FaShareNodes, FaClock, FaListOl,
 } from 'react-icons/fa6';
 
 const CATEGORIES = [
@@ -39,6 +41,17 @@ const CATEGORIES = [
       { label: 'معرض صور',     component: GalleryBlock,      icon: FaImages },
       { label: 'دعوة لإجراء',  component: CtaBlock,          icon: FaBullhorn },
       { label: 'تواصل معنا',   component: ContactSection,    icon: FaAddressCard },
+    ],
+  },
+  {
+    label: 'أقسام متقدمة',
+    tools: [
+      { label: 'فريق العمل',    component: TeamBlock,      icon: FaUserGroup },
+      { label: 'شعارات عملاء',  component: LogosBlock,     icon: FaBuilding },
+      { label: 'خطوات العمل',   component: StepsBlock,     icon: FaListOl },
+      { label: 'خريطة',          component: MapBlock,       icon: FaLocationDot },
+      { label: 'روابط تواصل',   component: SocialBlock,    icon: FaShareNodes },
+      { label: 'عداد تنازلي',   component: CountdownBlock, icon: FaClock },
     ],
   },
 ];

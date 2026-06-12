@@ -10,6 +10,7 @@ import {
   HeroBlock, SpacerBlock, ColumnsBlock, DividerBlock,
   FeatureGrid, ContactSection, VideoBlock, GalleryBlock,
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
+  TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
 } from './components';
 import {
   FaArrowRight, FaFloppyDisk, FaEye, FaEyeSlash, FaCircleCheck,
@@ -22,6 +23,7 @@ const RESOLVER = {
   SpacerBlock, ColumnsBlock, DividerBlock, FeatureGrid, ContactSection,
   VideoBlock, GalleryBlock, FaqBlock, CtaBlock, StatsBlock,
   TestimonialsBlock, PricingBlock,
+  TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
 };
 
 /* craftJson must contain a ROOT node, otherwise Craft.js throws "Invariant failed" */
@@ -39,48 +41,72 @@ const VIEWPORTS = [
   { key: 'mobile',  label: 'موبايل',  icon: FaMobileScreen,       width: 390 },
 ];
 
-/* Seed content per page type for brand-new pages */
-function TemplateSeed({ type }) {
-  switch (type) {
-    case 'landing':
-      return (<>
-        <HeroBlock />
-        <StatsBlock />
-        <FeatureGrid />
-        <TestimonialsBlock />
-        <PricingBlock />
-        <FaqBlock />
-        <CtaBlock />
-      </>);
-    case 'about':
-      return (<>
-        <HeroBlock title="من نحن" subtitle="تعرف على قصتنا وفريقنا وقيمنا التي نعمل بها." />
-        <TextBlock text="نحن شركة متخصصة في تقديم حلول عقارية متكاملة، نسعى دائمًا لتقديم أفضل خدمة لعملائنا." fontSize={17} textAlign="center" />
-        <StatsBlock />
-        <CtaBlock />
-      </>);
-    case 'contact':
-      return (<>
-        <HeroBlock title="تواصل معنا" subtitle="فريقنا جاهز للرد على استفساراتك في أي وقت." paddingY={56} />
-        <ContactSection />
-      </>);
-    case 'features':
-      return (<>
-        <HeroBlock title="مميزات المنصة" subtitle="اكتشف كل ما تقدمه منصتنا لإدارة أعمالك العقارية." paddingY={56} />
-        <FeatureGrid />
-        <FaqBlock />
-        <CtaBlock />
-      </>);
-    case 'pricing':
-      return (<>
-        <HeroBlock title="باقات الأسعار" subtitle="اختر الباقة المناسبة لحجم أعمالك." paddingY={56} />
-        <PricingBlock />
-        <FaqBlock />
-      </>);
-    default:
-      return <HeroBlock />;
-  }
-}
+/* Build a craftJson seed from a list of block descriptors.
+   Passing JSX Fragments inside <Frame> causes "Invariant failed" because
+   React.Fragment is not in the resolver — using the data prop avoids this. */
+const buildSeed = (blocks) => {
+  const ids = blocks.map((_, i) => `n${i}`);
+  const nodes = {
+    ROOT: {
+      type: { resolvedName: 'ContainerBlock' },
+      isCanvas: true,
+      props: { bg: '#ffffff', padding: 0, maxWidth: '100%' },
+      displayName: 'ContainerBlock',
+      custom: {},
+      hidden: false,
+      nodes: ids,
+      linkedNodes: {},
+    },
+  };
+  blocks.forEach((b, i) => {
+    nodes[ids[i]] = {
+      type: { resolvedName: b.name },
+      isCanvas: false,
+      props: b.props || {},
+      displayName: b.name,
+      custom: {},
+      hidden: false,
+      nodes: [],
+      linkedNodes: {},
+      parent: 'ROOT',
+    };
+  });
+  return JSON.stringify(nodes);
+};
+
+const SEED_JSON = {
+  landing: buildSeed([
+    { name: 'HeroBlock' },
+    { name: 'StatsBlock' },
+    { name: 'FeatureGrid' },
+    { name: 'TestimonialsBlock' },
+    { name: 'PricingBlock' },
+    { name: 'FaqBlock' },
+    { name: 'CtaBlock' },
+  ]),
+  about: buildSeed([
+    { name: 'HeroBlock', props: { title: 'من نحن', subtitle: 'تعرف على قصتنا وفريقنا وقيمنا التي نعمل بها.' } },
+    { name: 'TextBlock', props: { text: 'نحن شركة متخصصة في تقديم حلول عقارية متكاملة، نسعى دائمًا لتقديم أفضل خدمة لعملائنا.', fontSize: 17, textAlign: 'center' } },
+    { name: 'StatsBlock' },
+    { name: 'CtaBlock' },
+  ]),
+  contact: buildSeed([
+    { name: 'HeroBlock', props: { title: 'تواصل معنا', subtitle: 'فريقنا جاهز للرد على استفساراتك في أي وقت.', paddingY: 56 } },
+    { name: 'ContactSection' },
+  ]),
+  features: buildSeed([
+    { name: 'HeroBlock', props: { title: 'مميزات المنصة', subtitle: 'اكتشف كل ما تقدمه منصتنا لإدارة أعمالك العقارية.', paddingY: 56 } },
+    { name: 'FeatureGrid' },
+    { name: 'FaqBlock' },
+    { name: 'CtaBlock' },
+  ]),
+  pricing: buildSeed([
+    { name: 'HeroBlock', props: { title: 'باقات الأسعار', subtitle: 'اختر الباقة المناسبة لحجم أعمالك.', paddingY: 56 } },
+    { name: 'PricingBlock' },
+    { name: 'FaqBlock' },
+  ]),
+};
+const DEFAULT_SEED = buildSeed([{ name: 'HeroBlock' }]);
 
 function EditorShell({ page, isNew, type, onSave, viewport, previewMode }) {
   const { actions, query, enabled } = useEditor(s => ({ enabled: s.options.enabled }));
@@ -109,9 +135,9 @@ function EditorShell({ page, isNew, type, onSave, viewport, previewMode }) {
           boxShadow: '0 1px 4px rgba(0,0,0,.12)', overflow: 'hidden',
           maxWidth: vp.width, margin: '0 auto', transition: 'max-width .25s ease',
         }}>
-          <Frame data={!isNew ? validCraftJson(page?.craftJson) : undefined}>
+          <Frame data={isNew ? (SEED_JSON[type] ?? DEFAULT_SEED) : validCraftJson(page?.craftJson)}>
             <Element is={ContainerBlock} canvas id="root" bg="#ffffff" padding={0} maxWidth="100%">
-              {isNew && <TemplateSeed type={type} />}
+              <HeroBlock />
             </Element>
           </Frame>
         </div>

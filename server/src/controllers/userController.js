@@ -4,7 +4,10 @@ const { success, paginated, error } = require('../utils/response');
 
 exports.getUsers = async (req, res) => {
   try {
-    const filter = req.user.isSuperAdmin ? {} : { companyId: req.tenantId };
+    // عزل: السوبر أدمن بدون فلتر يرى فريق المنصة فقط — مع ?companyId يرى مستخدمي شركة محددة
+    const filter = req.user.isSuperAdmin
+      ? (req.query.companyId ? { companyId: req.query.companyId } : { companyId: null })
+      : { companyId: req.tenantId };
     const features = new APIFeatures(User.find(filter), req.query)
       .search(['name', 'email', 'phone'])
       .filter()

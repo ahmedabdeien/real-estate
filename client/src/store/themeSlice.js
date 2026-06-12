@@ -22,6 +22,20 @@ const defaults = {
   logo: null,
   logoWhite: null,
   loginImage: null,
+  navbarBg: '#ffffff',
+  navbarText: '#231f20',
+  navbarBorder: '#ededed',
+  tableStriped: false,
+  tableHover: true,
+  density: 'comfortable',
+  loginTitle: 'مرحباً بعودتك',
+  loginSubtitle: 'سجّل دخولك للمتابعة إلى لوحة التحكم',
+  loginBg: '#fafafc',
+  reduceMotion: false,
+  scrollbarStyle: 'thin',
+  successColor: '#009756',
+  warningColor: '#fbb140',
+  dangerColor: '#dc2626',
   announcementBar: {
     enabled: false,
     text: '',
@@ -65,6 +79,40 @@ const applyTheme = (theme) => {
     if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'custom-theme-css'; document.head.appendChild(styleEl); }
     styleEl.textContent = theme.customCss;
   }
+
+  // الشريط العلوي
+  if (theme.navbarBg)     r.setProperty('--navbar-bg', theme.navbarBg);
+  if (theme.navbarText)   r.setProperty('--navbar-text', theme.navbarText);
+  if (theme.navbarBorder) r.setProperty('--navbar-border', theme.navbarBorder);
+
+  // ألوان الحالات
+  if (theme.successColor) r.setProperty('--color-success', theme.successColor);
+  if (theme.warningColor) r.setProperty('--color-warning', theme.warningColor);
+  if (theme.dangerColor)  r.setProperty('--color-danger', theme.dangerColor);
+
+  // كثافة العرض
+  r.setProperty('--row-py', theme.density === 'compact' ? '6px' : '12px');
+  r.setProperty('--card-p', theme.density === 'compact' ? '12px' : '20px');
+
+  // إعدادات سلوكية تُطبق عبر <style> ديناميكي
+  let behaviorEl = document.getElementById('theme-behavior-css');
+  if (!behaviorEl) { behaviorEl = document.createElement('style'); behaviorEl.id = 'theme-behavior-css'; document.head.appendChild(behaviorEl); }
+  const rules = [];
+  if (theme.reduceMotion) {
+    rules.push('*, *::before, *::after { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }');
+  }
+  if (theme.scrollbarStyle === 'thin') {
+    rules.push('::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 99px; } ::-webkit-scrollbar-track { background: transparent; }');
+  } else if (theme.scrollbarStyle === 'hidden') {
+    rules.push('::-webkit-scrollbar { width: 0; height: 0; }');
+  }
+  if (theme.tableStriped) {
+    rules.push('tbody tr:nth-child(even) { background: rgba(0,0,0,0.022); }');
+  }
+  if (theme.tableHover !== false) {
+    rules.push('tbody tr:hover { background: color-mix(in srgb, var(--color-primary) 4%, transparent); }');
+  }
+  behaviorEl.textContent = rules.join('\n');
 };
 
 const themeSlice = createSlice({

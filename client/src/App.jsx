@@ -33,6 +33,8 @@ import PlansPage from './features/plans/PlansPage';
 import InstallmentsPage from './features/installments/InstallmentsPage';
 import AdminChangelogPage from './features/pages/ChangelogPage';
 import DocumentsPage from './features/documents/DocumentsPage';
+import NotFoundPage from './features/errors/NotFoundPage';
+import UnauthorizedPage from './features/errors/UnauthorizedPage';
 // Lazy-loaded to keep main bundle small
 
 const MediaLibraryPage   = lazy(() => import('./features/marketing/MediaLibraryPage'));
@@ -110,9 +112,11 @@ const App = () => {
           <Route path="/super/companies" element={<CompaniesPage />} />
           <Route path="/super/plans"      element={<PlansPage />} />
           <Route path="/updates"          element={<AdminChangelogPage />} />
+          <Route path="/unauthorized"     element={<UnauthorizedPage />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="/404"  element={<NotFoundPage />} />
+        <Route path="*"     element={<NotFoundPage />} />
       </Routes>
       </Suspense>
       </AbilityProvider>

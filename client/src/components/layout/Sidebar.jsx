@@ -90,6 +90,8 @@ const superAdminGroup = {
   items: [
     { label: 'إدارة الشركات', icon: FaLayerGroup, path: '/super/companies' },
     { label: 'خطط الاشتراك',  icon: FaFolderOpen,  path: '/super/plans' },
+    { label: 'أدوار المنصة',  icon: FaShield,      path: '/roles' },
+    { label: 'فريق المنصة',   icon: FaUsers,       path: '/users' },
   ],
 };
 
@@ -153,8 +155,28 @@ const SidebarContent = ({ collapsed }) => {
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
   const toggle = (label) => setOpenGroups(p => ({ ...p, [label]: !p[label] }));
 
+  const superOnlyGroups = [
+    { label: 'الرئيسية', items: [{ label: 'لوحة التحكم', icon: FaGauge, path: '/dashboard' }] },
+    superAdminGroup,
+    {
+      label: 'التسويق',
+      items: [
+        { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder' },
+        { label: 'مكتبة الصور',  icon: FaImages,             path: '/marketing/media' },
+      ],
+    },
+    {
+      label: 'الإعدادات',
+      items: [
+        { label: 'الثيم والمظهر',  icon: FaPalette,    path: '/theme' },
+        { label: 'الإعدادات',      icon: FaGear,       path: '/settings' },
+        { label: 'سجل التحديثات', icon: FaCodeBranch, path: '/updates' },
+      ],
+    },
+  ];
+
   const allGroups = user?.isSuperAdmin
-    ? [superAdminGroup, ...menuGroups]
+    ? superOnlyGroups
     : menuGroups.filter(g => g.label !== 'التسويق');
 
   return (
@@ -271,18 +293,21 @@ const Sidebar = () => {
       {/* Toggle button */}
       <button
         onClick={() => dispatch(toggleSidebar())}
-        className="hidden lg:flex fixed z-40 items-center justify-center w-5 h-8 rounded-full shadow-md"
+        className="hidden lg:flex fixed z-40 items-center justify-center w-7 h-7 rounded-full shadow-xl"
         style={{
-          right: sidebarCollapsed ? 50 : 250,
+          right: sidebarCollapsed ? 48 : 248,
           top: '50%',
-          transform: 'translateY(-50%)',
-          backgroundColor: 'var(--color-primary)',
-          color: '#fff',
+          transform: 'translateY(-50%) translateX(50%)',
+          backgroundColor: '#2a2627',
+          color: 'rgba(255,255,255,0.75)',
           transition: 'right 0.3s cubic-bezier(.4,0,.2,1)',
-          border: 'none',
+          border: '2px solid rgba(255,255,255,0.08)',
+          cursor: 'pointer',
         }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#3a3536'; e.currentTarget.style.color = '#fff'; }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#2a2627'; e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; }}
       >
-        {sidebarCollapsed ? <FaChevronLeft className="text-[10px]" /> : <FaChevronRight className="text-[10px]" />}
+        {sidebarCollapsed ? <FaChevronLeft className="text-[9px]" /> : <FaChevronRight className="text-[9px]" />}
       </button>
 
       {/* Mobile overlay */}

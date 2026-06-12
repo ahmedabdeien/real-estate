@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { companiesAPI, plansAPI } from '../../api/services';
 import { useDispatch } from 'react-redux';
-import { setCredentials } from '../../store/authSlice';
+import { impersonateCompany } from '../../store/authSlice';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
 import DataTable from '../../components/ui/DataTable';
@@ -56,7 +56,7 @@ const CompaniesPage = () => {
   const impersonate = useMutation({
     mutationFn: companiesAPI.impersonate,
     onSuccess: (res) => {
-      dispatch(setCredentials(res.data.data));
+      dispatch(impersonateCompany({ token: res.data.data.token, user: res.data.data.user }));
       toast.success('تم الدخول كمدير الشركة');
       navigate('/dashboard');
     },

@@ -25,6 +25,7 @@ import {
   HeroBlock, SpacerBlock, ColumnsBlock, DividerBlock,
   FeatureGrid, ContactSection, VideoBlock, GalleryBlock,
   FaqBlock, CtaBlock, StatsBlock, TestimonialsBlock, PricingBlock,
+  TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
 } from './components';
 
 const RESOLVER = {
@@ -32,6 +33,7 @@ const RESOLVER = {
   SpacerBlock, ColumnsBlock, DividerBlock, FeatureGrid, ContactSection,
   VideoBlock, GalleryBlock, FaqBlock, CtaBlock, StatsBlock,
   TestimonialsBlock, PricingBlock,
+  TeamBlock, LogosBlock, MapBlock, SocialBlock, CountdownBlock, StepsBlock,
 };
 
 export default function PublicPage() {

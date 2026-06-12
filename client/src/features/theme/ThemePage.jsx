@@ -9,6 +9,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import {
   FaPalette, FaFloppyDisk, FaFont, FaLayerGroup, FaBullhorn,
   FaRotateLeft, FaCheck, FaArrowUpRightFromSquare, FaTableCellsLarge, FaBars,
+  FaWindowMaximize, FaRightToBracket, FaSliders, FaTable,
 } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
@@ -26,9 +27,12 @@ const COLOR_PRESETS = [
 const TABS = [
   { id: 'colors',       label: 'الألوان',          icon: FaPalette },
   { id: 'sidebar',      label: 'الشريط الجانبي',   icon: FaBars },
+  { id: 'navbar',       label: 'الشريط العلوي',    icon: FaWindowMaximize },
   { id: 'typography',   label: 'التصميم',           icon: FaTableCellsLarge },
   { id: 'fonts',        label: 'الخط',              icon: FaFont },
+  { id: 'login',        label: 'صفحة الدخول',       icon: FaRightToBracket },
   { id: 'announcement', label: 'الشريط الإعلاني',   icon: FaBullhorn },
+  { id: 'advanced',     label: 'متقدم',             icon: FaSliders },
 ];
 
 const ColorRow = ({ label, field, form, onChange }) => (
@@ -533,6 +537,10 @@ const ThemePage = () => {
               { value: 'Cairo', sample: 'نظام إدارة العقارات — Cairo' },
               { value: 'Almarai', sample: 'نظام إدارة العقارات — Almarai' },
               { value: 'Noto Sans Arabic', sample: 'نظام إدارة العقارات — Noto' },
+              { value: 'IBM Plex Sans Arabic', sample: 'نظام إدارة العقارات — IBM Plex' },
+              { value: 'Rubik', sample: 'نظام إدارة العقارات — Rubik' },
+              { value: 'Changa', sample: 'نظام إدارة العقارات — Changa' },
+              { value: 'El Messiri', sample: 'نظام إدارة العقارات — El Messiri' },
             ].map(f => (
               <button key={f.value} onClick={() => set('fontFamily', f.value)}
                 className="w-full flex items-center justify-between p-4 rounded-xl border-2 text-right transition-all"
@@ -658,6 +666,218 @@ const ThemePage = () => {
               <p>• تنبيهات انتهاء الاشتراك</p>
               <p>• رسائل ترحيب بالمستخدمين الجدد</p>
               <p>• روابط لوثائق أو صفحات مهمة</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Navbar ── */}
+      {tab === 'navbar' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card p-5">
+            <h3 className="font-semibold mb-1">ألوان الشريط العلوي</h3>
+            <p className="text-xs opacity-50 mb-4">شريط التنقل أعلى لوحة التحكم</p>
+            {[
+              ['navbarBg',     'لون الخلفية'],
+              ['navbarText',   'لون النص والأيقونات'],
+              ['navbarBorder', 'لون الحد السفلي'],
+            ].map(([k, l]) => <ColorRow key={k} label={l} field={k} form={form} onChange={set} />)}
+
+            <div className="mt-5">
+              <p className="text-sm font-semibold mb-3">قوالب جاهزة</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: 'أبيض (افتراضي)', navbarBg: '#ffffff', navbarText: '#231f20', navbarBorder: '#ededed' },
+                  { label: 'داكن',           navbarBg: '#231f20', navbarText: '#ffffff', navbarBorder: '#3a3536' },
+                  { label: 'أسود فحمي',      navbarBg: '#0F0E0E', navbarText: '#ffffff', navbarBorder: '#262223' },
+                  { label: 'بلون العلامة',   navbarBg: form.primaryColor || '#da1f27', navbarText: '#ffffff', navbarBorder: 'rgba(255,255,255,0.15)' },
+                ].map(p => {
+                  const { label, ...colors } = p;
+                  return (
+                    <button key={label} onClick={() => { Object.entries(colors).forEach(([k, v]) => set(k, v)); toast.success(`قالب "${label}"`); }}
+                      className="flex items-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition-all hover:shadow-md"
+                      style={{ borderColor: 'var(--color-border)' }}>
+                      <div className="w-10 h-5 rounded flex-shrink-0 border" style={{ background: colors.navbarBg, borderColor: colors.navbarBorder }} />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h3 className="font-semibold mb-4 text-sm">معاينة</h3>
+            <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
+              <div className="flex items-center justify-between px-4 py-3"
+                style={{ background: form.navbarBg || '#fff', borderBottom: `1px solid ${form.navbarBorder || '#ededed'}` }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg" style={{ background: 'var(--color-primary)' }} />
+                  <span className="text-sm font-bold" style={{ color: form.navbarText || '#231f20' }}>لوحة التحكم</span>
+                </div>
+                <div className="flex items-center gap-3" style={{ color: form.navbarText || '#231f20' }}>
+                  <FaBars className="text-xs opacity-60" />
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                    style={{ background: 'var(--color-primary)' }}>أ</div>
+                </div>
+              </div>
+              <div className="p-6 text-center text-xs opacity-40" style={{ background: 'var(--color-background)' }}>
+                محتوى الصفحة
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Login page ── */}
+      {tab === 'login' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="card p-6 space-y-4">
+            <h3 className="font-semibold">تخصيص صفحة تسجيل الدخول</h3>
+            <div>
+              <label className="label">عنوان الترحيب</label>
+              <input className="input" value={form.loginTitle || ''} placeholder="مرحباً بعودتك"
+                onChange={e => set('loginTitle', e.target.value)} />
+            </div>
+            <div>
+              <label className="label">النص الفرعي</label>
+              <input className="input" value={form.loginSubtitle || ''} placeholder="سجّل دخولك للمتابعة إلى لوحة التحكم"
+                onChange={e => set('loginSubtitle', e.target.value)} />
+            </div>
+            <ColorRow label="لون خلفية الصفحة" field="loginBg" form={form} onChange={set} />
+            <div>
+              <label className="label">رابط صورة جانبية (اختياري)</label>
+              <input className="input" dir="ltr" value={form.loginImage || ''} placeholder="https://..."
+                onChange={e => set('loginImage', e.target.value)} />
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h3 className="font-semibold mb-4 text-sm">معاينة</h3>
+            <div className="rounded-xl border p-6 flex flex-col items-center text-center"
+              style={{ borderColor: 'var(--color-border)', background: form.loginBg || '#fafafc' }}>
+              <div className="w-10 h-10 rounded-xl mb-3" style={{ background: 'var(--color-primary)' }} />
+              <p className="font-black text-base" style={{ color: 'var(--color-text-dark)' }}>{form.loginTitle || 'مرحباً بعودتك'}</p>
+              <p className="text-xs opacity-50 mt-1">{form.loginSubtitle || 'سجّل دخولك للمتابعة إلى لوحة التحكم'}</p>
+              <div className="w-full mt-4 space-y-2">
+                <div className="h-9 rounded-lg border bg-white" style={{ borderColor: 'var(--color-border)' }} />
+                <div className="h-9 rounded-lg border bg-white" style={{ borderColor: 'var(--color-border)' }} />
+                <div className="h-9 rounded-lg text-white text-xs font-bold flex items-center justify-center"
+                  style={{ background: 'var(--color-primary)', borderRadius: 'var(--btn-radius)' }}>
+                  تسجيل الدخول
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Advanced ── */}
+      {tab === 'advanced' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {/* Density + tables */}
+            <div className="card p-6 space-y-5">
+              <h3 className="font-semibold flex items-center gap-2"><FaTable className="text-xs" style={{ color: 'var(--color-primary)' }} /> الجداول والكثافة</h3>
+
+              <div>
+                <label className="label">كثافة العرض</label>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  {[
+                    { value: 'comfortable', label: 'مريح' },
+                    { value: 'compact',     label: 'مضغوط' },
+                  ].map(o => (
+                    <button key={o.value} onClick={() => set('density', o.value)}
+                      className="py-2.5 rounded-xl border text-sm font-semibold transition-all"
+                      style={{
+                        borderColor: (form.density || 'comfortable') === o.value ? 'var(--color-primary)' : 'var(--color-border)',
+                        backgroundColor: (form.density || 'comfortable') === o.value ? 'var(--color-primary)' : 'transparent',
+                        color: (form.density || 'comfortable') === o.value ? '#fff' : 'var(--color-text-dark)',
+                      }}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {[
+                ['tableStriped', 'صفوف الجداول مخططة (Striped)'],
+                ['tableHover',   'تمييز الصف عند المرور (Hover)'],
+              ].map(([k, l]) => (
+                <div key={k} className="flex items-center justify-between py-1">
+                  <span className="text-sm">{l}</span>
+                  <button onClick={() => set(k, !form[k])}
+                    className="relative w-11 h-6 rounded-full transition-all"
+                    style={{ backgroundColor: form[k] ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                    <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${form[k] ? 'left-[22px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Status colors */}
+            <div className="card p-5">
+              <h3 className="font-semibold mb-1">ألوان الحالات</h3>
+              <p className="text-xs opacity-50 mb-4">ألوان النجاح والتحذير والخطر في الرسائل والشارات</p>
+              {[
+                ['successColor', 'لون النجاح'],
+                ['warningColor', 'لون التحذير'],
+                ['dangerColor',  'لون الخطر'],
+              ].map(([k, l]) => <ColorRow key={k} label={l} field={k} form={form} onChange={set} />)}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {/* Behavior */}
+            <div className="card p-6 space-y-5">
+              <h3 className="font-semibold">السلوك</h3>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">تقليل الحركة</p>
+                  <p className="text-xs opacity-50">إيقاف الأنيميشن لتحسين الأداء وإمكانية الوصول</p>
+                </div>
+                <button onClick={() => set('reduceMotion', !form.reduceMotion)}
+                  className="relative w-11 h-6 rounded-full transition-all flex-shrink-0"
+                  style={{ backgroundColor: form.reduceMotion ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${form.reduceMotion ? 'left-[22px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+
+              <div>
+                <label className="label">شريط التمرير (Scrollbar)</label>
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  {[
+                    { value: 'default', label: 'افتراضي' },
+                    { value: 'thin',    label: 'رفيع' },
+                    { value: 'hidden',  label: 'مخفي' },
+                  ].map(o => (
+                    <button key={o.value} onClick={() => set('scrollbarStyle', o.value)}
+                      className="py-2.5 rounded-xl border text-sm font-semibold transition-all"
+                      style={{
+                        borderColor: (form.scrollbarStyle || 'thin') === o.value ? 'var(--color-primary)' : 'var(--color-border)',
+                        backgroundColor: (form.scrollbarStyle || 'thin') === o.value ? 'var(--color-primary)' : 'transparent',
+                        color: (form.scrollbarStyle || 'thin') === o.value ? '#fff' : 'var(--color-text-dark)',
+                      }}>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Custom CSS */}
+            <div className="card p-6">
+              <label className="label">CSS مخصص (متقدم)</label>
+              <textarea
+                className="input font-mono text-xs leading-relaxed"
+                rows={8}
+                dir="ltr"
+                placeholder="/* أضف CSS مخصص هنا */&#10;.card { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }"
+                value={form.customCss || ''}
+                onChange={e => set('customCss', e.target.value)}
+              />
+              <p className="text-xs opacity-40 mt-2">يُطبق على جميع صفحات لوحة التحكم لمستخدمي شركتك فقط.</p>
             </div>
           </div>
         </div>
