@@ -2,17 +2,18 @@ import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import ReactApexChart from 'react-apexcharts';
-import { reportsAPI } from '../../api/services';
-import PageHeader from '../../components/ui/PageHeader';
-import StatCard from '../../components/ui/StatCard';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Badge from '../../components/ui/Badge';
+import { reportsAPI, aiAPI } from '../../api/services';
+import PageHeader from '../../components/UI/PageHeader';
+import StatCard from '../../components/UI/StatCard';
+import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import Button from '../../components/UI/Button';
+import Input from '../../components/UI/Input';
+import Badge from '../../components/UI/Badge';
 import {
   FaMoneyBillWave, FaChartLine, FaArrowTrendUp, FaFileExport, FaFilePdf,
-  FaChartBar, FaCircleCheck, FaArrowDown, FaArrowUp,
+  FaChartBar, FaCircleCheck, FaArrowDown, FaArrowUp, FaWandMagicSparkles,
 } from 'react-icons/fa6';
+import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
 import { exportFinancialReportPDF } from '../../utils/pdfExport';
 
@@ -22,9 +23,11 @@ const ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','ما
 
 const ReportsPage = () => {
   const company  = useSelector(s => s.auth.company);
-  const [startDate, setStartDate] = useState('');
-  const [endDate,   setEndDate]   = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [startDate, setStartDate]   = useState('');
+  const [endDate,   setEndDate]     = useState('');
+  const [activeTab, setActiveTab]   = useState('overview');
+  const [aiInsight, setAiInsight]   = useState('');
+  const [aiLoading, setAiLoading]   = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ['financial-report', startDate, endDate],
@@ -122,6 +125,40 @@ const ReportsPage = () => {
   const profit = data?.netProfit || 0;
   const profitPositive = profit >= 0;
 
+  const analyzeFinancials = async () => {
+    if (!data) return toast.error('لا توجد بيانات لتحليلها');
+    setAiLoading(true);
+    setAiInsight('');
+    try {
+      const summary = `
+إجمالي الإيرادات: ${data.totalRevenue?.toLocaleString()} ج.م
+إجمالي المصروفات: ${data.totalExpenses?.toLocaleString()} ج.م
+صافي الربح: ${profit?.toLocaleString()} ج.م
+عدد المدفوعات: ${data.payments?.length || 0}
+عدد المصروفات: ${data.expenses?.length || 0}
+عدد العقود: ${data.contractsCount || 0}
+`.trim();
+      const res = await aiAPI.chat({
+        messages: [{
+          role: 'user',
+          content: `أنت محلل مالي عقاري. حلّل هذه البيانات المالية وقدّم:
+1. تقييم الأداء المالي العام
+2. أبرز 3 نقاط قوة
+3. أبرز 3 نقاط تحتاج تحسين
+4. توصيات عملية للشهر القادم
+
+البيانات:
+${summary}`
+        }],
+      });
+      setAiInsight(res.data.reply);
+    } catch {
+      toast.error('فشل تحليل البيانات');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const TABS = [
     { id: 'overview', label: 'نظرة عامة' },
     { id: 'payments', label: `المدفوعات (${data?.payments?.length || 0})` },
@@ -142,6 +179,12 @@ const ReportsPage = () => {
         ]}
         actions={
           <div className="flex gap-2">
+            <button onClick={analyzeFinancials} disabled={aiLoading || !data}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40"
+              style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff' }}>
+              <FaWandMagicSparkles className={aiLoading ? 'animate-spin' : ''} />
+              {aiLoading ? 'جاري التحليل...' : 'تحليل AI'}
+            </button>
             <Button variant="outline" size="sm" onClick={exportExcel}><FaFileExport /> Excel</Button>
             <Button variant="outline" size="sm" onClick={() => exportFinancialReportPDF(data || {}, startDate && endDate ? { start: startDate, end: endDate } : null, company)}>
               <FaFilePdf className="text-red-600" /> PDF
@@ -165,6 +208,18 @@ const ReportsPage = () => {
         <StatCard title="إجمالي المصروفات" value={data?.totalExpenses || 0} icon={<FaArrowDown />} color="primary" suffix="ج.م" delay={0.07} />
         <StatCard title="صافي الربح"        value={Math.abs(profit)}        icon={profitPositive ? <FaArrowTrendUp /> : <FaChartLine />} color={profitPositive ? 'success' : 'primary'} suffix="ج.م" sub={profitPositive ? 'ربح' : 'خسارة'} delay={0.14} />
       </div>
+
+      {/* AI Insight */}
+      {aiInsight && (
+        <div className="card p-4 mb-5" style={{ background: 'linear-gradient(135deg,#f5f3ff,#eff6ff)', border: '1px solid #c4b5fd' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <FaWandMagicSparkles className="text-purple-600" />
+            <span className="font-bold text-sm text-purple-700">تحليل الذكاء الاصطناعي</span>
+            <button onClick={() => setAiInsight('')} className="mr-auto text-xs text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+          <p className="text-sm leading-relaxed whitespace-pre-line text-gray-800">{aiInsight}</p>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-5 border-b" style={{ borderColor: 'var(--color-border)' }}>

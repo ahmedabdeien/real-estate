@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { customersAPI, contractsAPI, invoicesAPI, documentsAPI } from '../../api/services';
-import PageHeader from '../../components/ui/PageHeader';
-import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { Avatar } from '../../components/ui/Avatar';
+import { customersAPI, contractsAPI, invoicesAPI, documentsAPI, aiAPI } from '../../api/services';
+import PageHeader from '../../components/UI/PageHeader';
+import Button from '../../components/UI/Button';
+import Badge from '../../components/UI/Badge';
+import LoadingSpinner from '../../components/UI/LoadingSpinner';
+import { Avatar } from '../../components/UI/Avatar';
 import toast from 'react-hot-toast';
 import {
-  FaArrowRight, FaPhone, FaEnvelope, FaLocationDot, FaIdCard,
+  FaArrowRight, FaPhone, FaEnvelope, FaLocationDot, FaIdCard, FaWandMagicSparkles,
   FaFileContract, FaFileInvoice, FaFolder, FaDownload,
   FaFileLines, FaFileImage, FaFile, FaMoneyBillWave,
   FaPlus, FaTrash, FaPhone as FaPhoneAlt, FaLocationPin,
@@ -83,9 +83,11 @@ export default function CustomerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [tab, setTab] = useState('overview');
-  const [actType, setActType] = useState('note');
+  const [tab, setTab]           = useState('overview');
+  const [actType, setActType]   = useState('note');
   const [actContent, setActContent] = useState('');
+  const [aiProfile, setAiProfile]   = useState('');
+  const [aiLoading, setAiLoading]   = useState(false);
 
   const { data: custData, isLoading } = useQuery({
     queryKey: ['customer', id],
@@ -130,6 +132,43 @@ export default function CustomerDetailPage() {
   if (isLoading) return <LoadingSpinner />;
 
   const c = custData || {};
+
+  const analyzeCustomer = async () => {
+    setAiLoading(true);
+    setAiProfile('');
+    try {
+      const stage = PIPELINE_STAGES.find(s => s.id === c.pipelineStage)?.label || 'جديد';
+      const lastActivity = c.activities?.slice(-1)[0];
+      const summary = `
+العميل: ${c.name}
+النوع: ${c.type === 'company' ? 'شركة' : 'فرد'}
+مرحلة المبيعات: ${stage}
+عدد العقود: ${contracts.length}
+عدد الفواتير: ${invoices.length}
+آخر نشاط: ${lastActivity ? `${lastActivity.type} - ${fmtAgo(lastActivity.createdAt)}` : 'لا يوجد'}
+عدد الأنشطة: ${c.activities?.length || 0}
+`.trim();
+      const res = await aiAPI.chat({
+        messages: [{
+          role: 'user',
+          content: `أنت مستشار مبيعات عقارية. حلّل ملف هذا العميل وقدّم:
+1. تقييم احتمالية الإغلاق (مرتفع/متوسط/منخفض) مع السبب
+2. الخطوة التالية الموصى بها
+3. أسلوب التواصل المناسب معه
+4. تحذيرات أو مخاطر
+
+البيانات:
+${summary}`
+        }],
+        context: `شركة عقارية تبيع وحدات سكنية وتجارية`,
+      });
+      setAiProfile(res.data.reply);
+    } catch {
+      toast.error('فشل التحليل');
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const contracts  = contractsData?.data  || [];
   const invoices   = invoicesData?.data   || [];
   const docs       = docsData?.data       || [];
@@ -144,11 +183,30 @@ export default function CustomerDetailPage() {
         title={c.name || 'ملف العميل'}
         subtitle="ملف العميل الكامل"
         actions={
-          <Button variant="outline" onClick={() => navigate('/customers')}>
-            <FaArrowRight /> رجوع
-          </Button>
+          <div className="flex gap-2">
+            <button onClick={analyzeCustomer} disabled={aiLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40"
+              style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff' }}>
+              <FaWandMagicSparkles className={aiLoading ? 'animate-spin' : ''} />
+              {aiLoading ? 'جاري التحليل...' : 'تحليل AI'}
+            </button>
+            <Button variant="outline" onClick={() => navigate('/customers')}>
+              <FaArrowRight /> رجوع
+            </Button>
+          </div>
         }
       />
+
+      {aiProfile && (
+        <div className="card p-4" style={{ background: 'linear-gradient(135deg,#f5f3ff,#eff6ff)', border: '1px solid #c4b5fd' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <FaWandMagicSparkles className="text-purple-600" />
+            <span className="font-bold text-sm text-purple-700">تحليل AI للعميل</span>
+            <button onClick={() => setAiProfile('')} className="mr-auto text-xs text-gray-400 hover:text-gray-600">✕</button>
+          </div>
+          <p className="text-sm leading-relaxed whitespace-pre-line text-gray-800">{aiProfile}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
 
