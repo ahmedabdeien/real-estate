@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { themeAPI } from '../../api/services';
-import { setTheme } from '../../store/themeSlice';
+import { setTheme, setUserTheme, resetUserTheme } from '../../store/themeSlice';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -10,6 +10,7 @@ import {
   FaPalette, FaFloppyDisk, FaFont, FaLayerGroup, FaBullhorn,
   FaRotateLeft, FaCheck, FaArrowUpRightFromSquare, FaTableCellsLarge, FaBars,
   FaWindowMaximize, FaRightToBracket, FaSliders, FaTable, FaXmark,
+  FaImage, FaTriangleExclamation,
 } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
@@ -26,6 +27,7 @@ const COLOR_PRESETS = [
 
 const TABS = [
   { id: 'colors',       label: 'الألوان',          icon: FaPalette },
+  { id: 'logo',         label: 'الشعار',            icon: FaLayerGroup },
   { id: 'sidebar',      label: 'الشريط الجانبي',   icon: FaBars },
   { id: 'navbar',       label: 'الشريط العلوي',    icon: FaWindowMaximize },
   { id: 'typography',   label: 'التصميم',           icon: FaTableCellsLarge },
@@ -89,10 +91,21 @@ const ThemePage = () => {
     onSuccess: (res) => {
       qc.invalidateQueries(['theme']);
       dispatch(setTheme(res.data.data));
-      toast.success('تم حفظ الثيم بنجاح');
+      toast.success('تم حفظ الثيم لجميع المستخدمين');
     },
     onError: (e) => toast.error(e.response?.data?.message || 'حدث خطأ'),
   });
+
+  const savePersonal = () => {
+    dispatch(setUserTheme(form));
+    toast.success('تم حفظ ثيمك الشخصي — لن يتأثر باقي المستخدمين');
+  };
+
+  const resetPersonal = () => {
+    dispatch(resetUserTheme());
+    if (data) { setForm(data); dispatch(setTheme(data)); }
+    toast('تم استعادة الثيم العام');
+  };
 
   /* الـ dispatch مع كل حرف كان يسبب لاج (applyTheme يعدّل الـ DOM) —
      الفورم يتحدث فوراً والمعاينة الحية تتأجل 200ms */
@@ -144,8 +157,13 @@ const ThemePage = () => {
     toast('تم استعادة الألوان الافتراضية');
   };
 
-  /* الثيم العام للمنصة فقط — مستخدمو الشركات لهم «مظهري الشخصي» في الشريط العلوي */
-  if (user && !user.isSuperAdmin) {
+  /* مستخدمو الشركة العاديون: أظهر رسالة الثيم الشخصي
+     مستخدمو المنصة (scope=platform) ذوو صلاحية theme.update: اسمح بالدخول */
+  const isPlatformThemeUser = !user?.isSuperAdmin &&
+    user?.role?.scope === 'platform' &&
+    user?.role?.permissions?.includes('platform.theme.update');
+
+  if (user && !user.isSuperAdmin && !isPlatformThemeUser) {
     return (
       <div className="card p-10 text-center max-w-md mx-auto mt-12">
         <FaPalette className="mx-auto mb-4 text-3xl" style={{ color: 'var(--color-primary)' }} />
@@ -169,11 +187,32 @@ const ThemePage = () => {
         subtitle="تخصيص كامل لمظهر النظام — التغييرات تُطبق فوراً على جميع الصفحات"
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" onClick={resetDefaults}><FaRotateLeft /> استعادة</Button>
-            <Button onClick={() => save.mutate(form)} loading={save.isPending}><FaFloppyDisk /> حفظ التغييرات</Button>
+            {isPlatformThemeUser ? (
+              <>
+                <Button variant="outline" onClick={resetPersonal}><FaRotateLeft /> استعادة</Button>
+                <Button onClick={savePersonal}><FaFloppyDisk /> حفظ شخصي</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={resetDefaults}><FaRotateLeft /> استعادة</Button>
+                <Button onClick={() => save.mutate(form)} loading={save.isPending}><FaFloppyDisk /> حفظ للجميع</Button>
+              </>
+            )}
           </div>
         }
       />
+
+      {/* بانر للمستخدمين الشخصيين */}
+      {isPlatformThemeUser && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl mb-5 text-sm font-medium"
+          style={{ background: 'rgba(251,177,64,0.10)', border: '1px solid rgba(251,177,64,0.35)', color: '#92400e' }}>
+          <FaTriangleExclamation className="text-base flex-shrink-0" style={{ color: '#d97706' }} />
+          <span>
+            التغييرات <strong>شخصية بالكامل</strong> — تُحفظ في متصفحك فقط ولن تؤثر على باقي المستخدمين.
+            لتغيير الثيم العام للمنصة يجب أن تكون مشرفاً عاماً.
+          </span>
+        </div>
+      )}
 
       {/* Live preview bar */}
       <div className="card p-4 mb-6 flex items-center gap-4 flex-wrap">
@@ -299,6 +338,122 @@ const ThemePage = () => {
               <p>التغييرات تُطبق فوراً على الصفحة الحالية.</p>
               <p>اضغط حفظ ليراها جميع المستخدمين في الشركة.</p>
               <p>كل شركة لها إعداداتها المستقلة تماماً.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Logo ── */}
+      {tab === 'logo' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div className="card p-6 space-y-5">
+              <div>
+                <h3 className="font-semibold mb-1">شعار النظام (اللون الفاتح)</h3>
+                <p className="text-xs opacity-50 mb-3">يظهر على الخلفيات الفاتحة — الصفحة الرئيسية وصفحة الدخول</p>
+                <input className="input font-mono text-sm" dir="ltr"
+                  placeholder="https://example.com/logo.png"
+                  value={form.logo || ''}
+                  onChange={e => set('logo', e.target.value)} />
+                {form.logo && (
+                  <div className="mt-3 p-4 rounded-xl border flex items-center justify-center"
+                    style={{ borderColor: 'var(--color-border)', background: 'var(--color-background)', minHeight: 80 }}>
+                    <img src={form.logo} alt="logo preview" className="max-h-14 object-contain"
+                      onError={e => { e.target.style.display='none'; }} />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-1">شعار النظام (الأبيض)</h3>
+                <p className="text-xs opacity-50 mb-3">يظهر على الشريط الجانبي الداكن وأي خلفية ملونة</p>
+                <input className="input font-mono text-sm" dir="ltr"
+                  placeholder="https://example.com/logo-white.png"
+                  value={form.logoWhite || ''}
+                  onChange={e => set('logoWhite', e.target.value)} />
+                {form.logoWhite && (
+                  <div className="mt-3 p-4 rounded-xl flex items-center justify-center"
+                    style={{ background: '#1a1a1a', minHeight: 80, borderRadius: 12 }}>
+                    <img src={form.logoWhite} alt="logo white preview" className="max-h-14 object-contain"
+                      onError={e => { e.target.style.display='none'; }} />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-1">أيقونة النظام (Favicon)</h3>
+                <p className="text-xs opacity-50 mb-3">تظهر في تبويب المتصفح — مربعة أو دائرية، 32×32 أو 64×64</p>
+                <input className="input font-mono text-sm" dir="ltr"
+                  placeholder="https://example.com/favicon.png"
+                  value={form.favicon || ''}
+                  onChange={e => set('favicon', e.target.value)} />
+                {form.favicon && (
+                  <div className="mt-3 flex items-center gap-3">
+                    <img src={form.favicon} alt="favicon" className="w-8 h-8 object-contain rounded"
+                      onError={e => { e.target.style.display='none'; }} />
+                    <span className="text-xs opacity-50">معاينة الفافيكون</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="card p-5 flex items-start gap-3 text-sm"
+              style={{ background: 'rgba(251,177,64,0.08)', border: '1px solid rgba(251,177,64,0.3)' }}>
+              <FaTriangleExclamation className="text-base flex-shrink-0 mt-0.5" style={{ color: '#d97706' }} />
+              <div style={{ color: '#92400e' }}>
+                <p className="font-semibold mb-1">ملاحظة حول الشعار</p>
+                <p className="text-xs leading-relaxed opacity-80">
+                  أدخل رابطاً مباشراً للصورة (URL). يُنصح بصيغة SVG أو PNG بخلفية شفافة.
+                  للأبعاد المثالية: عرض ≤ 220px وارتفاع ≤ 60px.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Preview */}
+          <div className="space-y-4">
+            <div className="card p-5">
+              <h3 className="font-semibold mb-4 text-sm">معاينة في الشريط الجانبي</h3>
+              <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="p-4 flex items-center gap-3"
+                  style={{ background: form.sidebarBg || '#0F0E0E' }}>
+                  {form.logoWhite ? (
+                    <img src={form.logoWhite} alt="logo" className="h-8 object-contain"
+                      onError={e => { e.target.style.display='none'; }} />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                        style={{ background: 'var(--color-primary)' }}>
+                        <FaImage className="text-white text-xs" />
+                      </div>
+                      <span className="text-white text-sm font-bold opacity-60">شعارك هنا</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3" style={{ background: 'var(--color-background)' }}>
+                  <div className="h-3 rounded mb-2" style={{ background: 'var(--color-border)', width: '70%' }} />
+                  <div className="h-3 rounded mb-2" style={{ background: 'var(--color-border)', width: '55%' }} />
+                  <div className="h-3 rounded" style={{ background: 'var(--color-border)', width: '60%' }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="card p-5">
+              <h3 className="font-semibold mb-4 text-sm">معاينة في صفحة الدخول</h3>
+              <div className="rounded-xl border p-6 flex flex-col items-center text-center"
+                style={{ borderColor: 'var(--color-border)', background: form.loginBg || '#fafafc' }}>
+                {form.logo ? (
+                  <img src={form.logo} alt="logo" className="h-10 object-contain mb-3"
+                    onError={e => { e.target.style.display='none'; }} />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center"
+                    style={{ background: 'var(--color-primary)' }}>
+                    <FaImage className="text-white text-sm" />
+                  </div>
+                )}
+                <p className="font-black text-base" style={{ color: 'var(--color-text-dark)' }}>{form.loginTitle || 'مرحباً بعودتك'}</p>
+                <p className="text-xs opacity-50 mt-1">{form.loginSubtitle || 'سجّل دخولك للمتابعة'}</p>
+              </div>
             </div>
           </div>
         </div>

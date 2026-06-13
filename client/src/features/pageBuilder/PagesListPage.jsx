@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { pagesAPI } from '../../api/services';
-import { FaPlus, FaPenToSquare, FaTrash, FaEye, FaEyeSlash, FaGlobe, FaCopy, FaMagnifyingGlass, FaArrowUpRightFromSquare } from 'react-icons/fa6';
+import { FaPlus, FaPenToSquare, FaTrash, FaEye, FaEyeSlash, FaGlobe, FaCopy, FaMagnifyingGlass, FaArrowUpRightFromSquare, FaBars } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
 const TYPE_LABELS = {
@@ -54,6 +54,11 @@ export default function PagesListPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pages'] }),
   });
 
+  const toggleNavMut = useMutation({
+    mutationFn: ({ id, showInNav }) => pagesAPI.update(id, { settings: { showInNav } }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['pages'] }); toast.success('تم التحديث'); },
+  });
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -99,10 +104,15 @@ export default function PagesListPage() {
                   {page.isPublished ? 'منشور' : 'مسودة'}
                 </span>
               </div>
-              <div className="flex items-center gap-1 mb-3">
+              <div className="flex items-center gap-1 mb-3 flex-wrap">
                 <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 4, background: '#f3f4f6', color: '#6b7280' }}>
                   {TYPE_LABELS[page.type] || page.type}
                 </span>
+                {page.settings?.showInNav && (
+                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#dbeafe', color: '#1d4ed8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <FaBars size={9} /> في القائمة
+                  </span>
+                )}
                 <span style={{ fontSize: 11, color: '#9ca3af' }}>
                   {new Date(page.updatedAt).toLocaleDateString('ar-EG-u-nu-latn', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </span>
@@ -115,6 +125,13 @@ export default function PagesListPage() {
                 <button onClick={() => togglePublish.mutate({ id: page._id, isPublished: !page.isPublished })}
                   className="btn btn-sm btn-outline p-2" title={page.isPublished ? 'إلغاء النشر' : 'نشر'}>
                   {page.isPublished ? <FaEyeSlash size={13} /> : <FaEye size={13} />}
+                </button>
+                <button
+                  onClick={() => toggleNavMut.mutate({ id: page._id, showInNav: !page.settings?.showInNav })}
+                  className="btn btn-sm btn-outline p-2"
+                  title={page.settings?.showInNav ? 'إخفاء من القائمة' : 'إظهار في القائمة'}
+                  style={page.settings?.showInNav ? { background: '#dbeafe', borderColor: '#93c5fd', color: '#1d4ed8' } : {}}>
+                  <FaBars size={13} />
                 </button>
                 <button onClick={() => duplicateMut.mutate(page._id)} disabled={duplicateMut.isPending}
                   className="btn btn-sm btn-outline p-2" title="نسخ الصفحة">

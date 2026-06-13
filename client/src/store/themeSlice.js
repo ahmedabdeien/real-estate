@@ -21,6 +21,7 @@ const defaults = {
   sidebarGroupColor: 'rgba(255,255,255,0.28)',
   logo: null,
   logoWhite: null,
+  favicon: null,
   loginImage: null,
   navbarBg: '#ffffff',
   navbarText: '#231f20',
@@ -80,6 +81,13 @@ const applyTheme = (theme) => {
     styleEl.textContent = theme.customCss;
   }
 
+  // الفافيكون الديناميكي
+  if (theme.favicon) {
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+    link.href = theme.favicon;
+  }
+
   // الشريط العلوي
   if (theme.navbarBg)     r.setProperty('--navbar-bg', theme.navbarBg);
   if (theme.navbarText)   r.setProperty('--navbar-text', theme.navbarText);
@@ -132,21 +140,29 @@ const applyTheme = (theme) => {
 
 /* تفضيلات المستخدم الشخصية — تُحفظ في المتصفح وتتفوق على ثيم الشركة
    وتُسترجع تلقائياً عند تحديث الصفحة أو إعادة الدخول */
-const USER_THEME_KEY = 'egyestate-user-theme';
+const USER_THEME_KEY  = 'egyestate-user-theme';
+const SERVER_THEME_KEY = 'egyestate-server-theme'; // cache ثيم السيرفر لحل خلل الريفرش
 
 const loadUserOverrides = () => {
   try { return JSON.parse(localStorage.getItem(USER_THEME_KEY)) || {}; }
   catch { return {}; }
 };
 
-const initialOverrides = loadUserOverrides();
+const loadServerCache = () => {
+  try { return JSON.parse(localStorage.getItem(SERVER_THEME_KEY)) || {}; }
+  catch { return {}; }
+};
+
+const initialOverrides  = loadUserOverrides();
+const initialServerCache = loadServerCache();
 
 const themeSlice = createSlice({
   name: 'theme',
-  initialState: { ...defaults, ...initialOverrides, userOverrides: initialOverrides },
+  initialState: { ...defaults, ...initialServerCache, ...initialOverrides, userOverrides: initialOverrides },
   reducers: {
-    /* ثيم الشركة من السيرفر — تفضيلات المستخدم تبقى فوقه دائماً */
+    /* ثيم الشركة من السيرفر — يُخزن في cache ثم تُطبق فوق تفضيلات المستخدم */
     setTheme: (state, { payload }) => {
+      try { localStorage.setItem(SERVER_THEME_KEY, JSON.stringify(payload)); } catch { /* ignore */ }
       Object.assign(state, payload, state.userOverrides);
       applyTheme({ ...state });
     },
@@ -170,9 +186,9 @@ const themeSlice = createSlice({
 export const { setTheme, setUserTheme, resetUserTheme } = themeSlice.actions;
 export { applyTheme };
 
-/* تطبيق التفضيلات المحفوظة فور تحميل التطبيق — قبل وصول ثيم السيرفر */
+/* تطبيق الثيم المحفوظ فور تحميل التطبيق — يمنع خلل الألوان عند الريفرش */
 if (typeof document !== 'undefined') {
-  applyTheme({ ...defaults, ...initialOverrides });
+  applyTheme({ ...defaults, ...initialServerCache, ...initialOverrides });
 }
 
 export default themeSlice.reducer;

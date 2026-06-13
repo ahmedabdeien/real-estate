@@ -13,8 +13,13 @@ export function buildAbility(user) {
   const permissions = user?.role?.permissions || [];
 
   permissions.forEach(perm => {
-    const [subject, action] = perm.split('.');
-    if (subject && action) can(action, subject);
+    const parts = perm.split('.');
+    if (parts.length === 3) {
+      // platform.companies.view → can('view', 'platform.companies')
+      can(parts[2], `${parts[0]}.${parts[1]}`);
+    } else if (parts.length === 2) {
+      can(parts[1], parts[0]);
+    }
   });
 
   return build();

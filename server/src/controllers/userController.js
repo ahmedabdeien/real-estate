@@ -2,11 +2,13 @@ const User = require('../models/User');
 const APIFeatures = require('../utils/apiFeatures');
 const { success, paginated, error } = require('../utils/response');
 
+const isPlatformUser = (req) =>
+  req.user?.isSuperAdmin || req.user?.role?.scope === 'platform';
+
 exports.getUsers = async (req, res) => {
   try {
-    // عزل: السوبر أدمن بدون فلتر يرى فريق المنصة — مع ?companyId يرى مستخدمي شركة محددة
-    // حسابات السوبر أدمن لا تظهر أبداً في قوائم الشركات
-    const filter = req.user.isSuperAdmin
+    // عزل: مستخدمو المنصة يرون فريق المنصة — مع ?companyId يرون مستخدمي شركة محددة
+    const filter = isPlatformUser(req)
       ? (req.query.companyId
           ? { companyId: req.query.companyId, isSuperAdmin: { $ne: true } }
           : { $or: [{ companyId: null }, { isSuperAdmin: true }] })
@@ -39,7 +41,7 @@ exports.getUser = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const data = { ...req.body };
-    if (!req.user.isSuperAdmin) data.companyId = req.tenantId;
+    if (!isPlatformUser(req)) data.companyId = req.tenantId;
     const user = await User.create(data);
     const populated = await User.findById(user._id).populate('role').populate('companyId');
     return success(res, populated, 'تم إنشاء المستخدم بنجاح', 201);

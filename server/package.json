@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "seed": "node src/utils/seeder.js"
+    "seed": "node src/utils/seeder.js",
+    "seed:platform-roles": "node src/utils/seedPlatformRoles.js",
+    "seed:company-roles": "node src/utils/seedCompanyRoles.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

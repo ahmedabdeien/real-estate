@@ -26,22 +26,25 @@ const sanitizePermissions = (scope, permissions = []) => {
   return permissions.filter(p => allowed.has(p));
 };
 
+const isPlatformUser = (req) =>
+  req.user?.isSuperAdmin || req.user?.role?.scope === 'platform';
+
 /* النطاق المسموح طلبه لكل مستخدم */
 const resolveScope = (req) => {
   const requested = req.query.scope || req.body?.scope;
-  if (req.user.isSuperAdmin) {
+  if (isPlatformUser(req)) {
     const cid = req.query.companyId || req.body?.companyId;
-    if (!cid) return 'platform';                      // بدون شركة → منصة فقط
-    return requested === 'page' ? 'page' : 'company'; // داخل شركة → شركة أو محتوى
+    if (!cid) return 'platform';
+    return requested === 'page' ? 'page' : 'company';
   }
-  return requested === 'page' ? 'page' : 'company';   // مستخدم شركة لا يصل للمنصة أبداً
+  return requested === 'page' ? 'page' : 'company';
 };
 
 exports.getRoles = async (req, res) => {
   try {
     const scope = resolveScope(req);
     let filter;
-    if (req.user.isSuperAdmin) {
+    if (isPlatformUser(req)) {
       filter = scope === 'platform'
         ? { scope: 'platform', companyId: null }
         : { scope, companyId: req.query.companyId };
@@ -83,8 +86,8 @@ exports.createRole = async (req, res) => {
     data.scope = scope;
     if (scope === 'platform') {
       data.companyId = null;
-    } else if (req.user.isSuperAdmin) {
-      data.companyId = req.body.companyId; // محددة مسبقاً في resolveScope
+    } else if (isPlatformUser(req)) {
+      data.companyId = req.body.companyId;
     } else {
       data.companyId = req.tenantId;
     }
@@ -100,7 +103,7 @@ exports.createRole = async (req, res) => {
 };
 
 const canManage = (user, tenantId, role) => {
-  if (user.isSuperAdmin) return true;
+  if (user.isSuperAdmin || user?.role?.scope === 'platform') return true;
   if (role.scope === 'platform') return false; // أدوار المنصة لا يلمسها غير السوبر أدمن
   return role.companyId && String(role.companyId) === String(tenantId);
 };

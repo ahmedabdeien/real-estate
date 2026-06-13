@@ -89,10 +89,10 @@ const menuGroups = [
 const superAdminGroup = {
   label: 'المشرف العام',
   items: [
-    { label: 'إدارة الشركات', icon: FaLayerGroup, path: '/super/companies' },
-    { label: 'خطط الاشتراك',  icon: FaFolderOpen,  path: '/super/plans' },
-    { label: 'أدوار المنصة',  icon: FaShield,      path: '/roles' },
-    { label: 'فريق المنصة',   icon: FaUsers,       path: '/users' },
+    { label: 'إدارة الشركات', icon: FaLayerGroup, path: '/super/companies', perm: 'platform.companies.view' },
+    { label: 'خطط الاشتراك',  icon: FaFolderOpen,  path: '/super/plans',    perm: 'platform.plans.view' },
+    { label: 'أدوار المنصة',  icon: FaShield,      path: '/roles',          perm: 'platform.roles.view' },
+    { label: 'فريق المنصة',   icon: FaUsers,       path: '/users',          perm: 'platform.team.view' },
   ],
 };
 
@@ -104,9 +104,15 @@ const SidebarItem = ({ item, collapsed }) => {
 
   // CASL: hide items the user's role has no permission for (SuperAdmin can('manage','all') always passes)
   if (item.perm) {
-    const dotIdx = item.perm.indexOf('.');
-    const subject = item.perm.slice(0, dotIdx);
-    const action  = item.perm.slice(dotIdx + 1);
+    const parts = item.perm.split('.');
+    let subject, action;
+    if (parts.length === 3) {
+      subject = `${parts[0]}.${parts[1]}`;
+      action  = parts[2];
+    } else {
+      subject = parts[0];
+      action  = parts[1];
+    }
     if (!ability.can(action, subject)) return null;
   }
 
@@ -171,21 +177,23 @@ const SidebarContent = ({ collapsed }) => {
     {
       label: 'التسويق',
       items: [
-        { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder' },
-        { label: 'مكتبة الصور',  icon: FaImages,             path: '/marketing/media' },
+        { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder',    perm: 'platform.pages.view' },
+        { label: 'مكتبة الصور',  icon: FaImages,             path: '/marketing/media', perm: 'platform.media.manage' },
       ],
     },
     {
       label: 'الإعدادات',
       items: [
-        { label: 'الثيم والمظهر',  icon: FaPalette,    path: '/theme' },
-        { label: 'الإعدادات',      icon: FaGear,       path: '/settings' },
-        { label: 'سجل التحديثات', icon: FaCodeBranch, path: '/updates' },
+        { label: 'الثيم والمظهر',  icon: FaPalette,    path: '/theme',    perm: 'platform.theme.update' },
+        { label: 'الإعدادات',      icon: FaGear,       path: '/settings', perm: 'platform.settings.update' },
+        { label: 'سجل التحديثات', icon: FaCodeBranch, path: '/updates',  perm: 'platform.changelog.manage' },
       ],
     },
   ];
 
-  const allGroups = user?.isSuperAdmin
+  const isPlatformUser = !user?.isSuperAdmin && user?.role?.scope === 'platform';
+
+  const allGroups = (user?.isSuperAdmin || isPlatformUser)
     ? superOnlyGroups
     : menuGroups.filter(g => g.label !== 'التسويق');
 

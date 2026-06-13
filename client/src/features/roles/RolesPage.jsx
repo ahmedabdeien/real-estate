@@ -158,7 +158,9 @@ const RolesPage = () => {
                 ))}
               </select>
             )}
-            <Button onClick={openCreate}><FaPlus /> إضافة دور</Button>
+            {!isPlatformMode && (
+              <Button onClick={openCreate}><FaPlus /> إضافة دور</Button>
+            )}
           </div>
         }
       />
@@ -167,35 +169,7 @@ const RolesPage = () => {
         <div className="flex items-center gap-2 mb-4 px-4 py-3 rounded-xl text-sm font-semibold"
           style={{ background: 'rgba(251,177,64,0.12)', color: '#92400e', border: '1px solid rgba(251,177,64,0.35)' }}>
           <FaCrown />
-          أنت في وضع المنصة — هذه الأدوار لفريقك أنت (مالك المشروع)، ولا تظهر لأي شركة.
-        </div>
-      )}
-
-      {/* تبويبات النطاق داخل الشركة: إدارة / محتوى */}
-      {inCompanyContext && (
-        <div className="flex gap-1 mb-5 p-1 rounded-xl w-fit"
-          style={{ background: 'var(--color-background)', border: '1px solid var(--color-border)' }}>
-          {[
-            { id: 'company', label: 'أدوار الشركة', icon: FaBuilding,           hint: 'الإدارة والعمليات' },
-            { id: 'page',    label: 'أدوار المحتوى', icon: FaWandMagicSparkles, hint: 'الصفحات والوسائط' },
-          ].map(t => {
-            const Icon = t.icon;
-            const active = scopeTab === t.id;
-            return (
-              <button key={t.id} onClick={() => setScopeTab(t.id)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all"
-                style={{
-                  backgroundColor: active ? 'var(--color-surface)' : 'transparent',
-                  color: active ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  cursor: 'pointer', border: 'none',
-                }}>
-                <Icon className="text-xs" />
-                {t.label}
-                <span className="text-[10px] opacity-50 font-normal">({t.hint})</span>
-              </button>
-            );
-          })}
+          أدوار المنصة ثابتة ومُدارة بالكود — لا يمكن إضافتها أو تعديلها من هنا. لإضافة دور جديد تواصل مع المطور.
         </div>
       )}
 
@@ -214,14 +188,20 @@ const RolesPage = () => {
                 </div>
               </div>
               <div className="flex gap-1 items-center">
-                <Button variant="ghost" size="icon" title="نسخ الدور" onClick={() => duplicate.mutate(role._id)} className="text-blue-600 hover:bg-blue-50"><FaCopy /></Button>
-                {!role.isSystem && (
+                {isPlatformMode ? (
+                  <Badge color="primary">نظام</Badge>
+                ) : (
                   <>
-                    <Button variant="ghost" size="icon" title="تعديل" onClick={() => openEdit(role)}><FaPen /></Button>
-                    <Button variant="ghost" size="icon" title="حذف" onClick={() => setDelId(role._id)} className="text-red-600 hover:bg-red-50"><FaTrash /></Button>
+                    <Button variant="ghost" size="icon" title="نسخ الدور" onClick={() => duplicate.mutate(role._id)} className="text-blue-600 hover:bg-blue-50"><FaCopy /></Button>
+                    {!role.isSystem && (
+                      <>
+                        <Button variant="ghost" size="icon" title="تعديل" onClick={() => openEdit(role)}><FaPen /></Button>
+                        <Button variant="ghost" size="icon" title="حذف" onClick={() => setDelId(role._id)} className="text-red-600 hover:bg-red-50"><FaTrash /></Button>
+                      </>
+                    )}
+                    {role.isSystem && <Badge color="primary">نظام</Badge>}
                   </>
                 )}
-                {role.isSystem && <Badge color="primary">نظام</Badge>}
               </div>
             </div>
             <p className="text-sm opacity-60 mb-3">{role.description || 'لا يوجد وصف'}</p>

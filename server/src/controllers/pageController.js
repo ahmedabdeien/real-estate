@@ -65,7 +65,7 @@ exports.updatePage = async (req, res) => {
     if (craftJson !== undefined) page.craftJson = craftJson;
     if (isPublished !== undefined) page.isPublished = isPublished;
     if (seo !== undefined) page.seo = seo;
-    if (settings !== undefined) page.settings = settings;
+    if (settings !== undefined) page.settings = { ...(page.settings || {}), ...settings };
     await page.save();
     return success(res, page);
   } catch (err) { return error(res, err.message); }
