@@ -5,7 +5,7 @@ const Role = require('../models/Role');
 const APIFeatures = require('../utils/apiFeatures');
 const { success, paginated, error } = require('../utils/response');
 const generateToken = require('../utils/generateToken');
-const PERMISSIONS = require('../constants/permissions');
+const buildDefaultCompanyRoles = require('../constants/defaultCompanyRoles');
 
 exports.getCompanies = async (req, res) => {
   try {
@@ -47,70 +47,11 @@ exports.createCompany = async (req, res) => {
     company.theme = theme._id;
     await company.save();
 
-    const all = PERMISSIONS.map(p => p.name);
-    const perms = (modules) => all.filter(p => modules.some(m => p.startsWith(m + '.')));
-
-    const defaultRoles = [
-      {
-        name: 'company_admin',
-        label: 'مدير الشركة',
-        color: '#da1f27',
-        description: 'صلاحيات كاملة على جميع أقسام الشركة',
-        permissions: all,
-      },
-      {
-        name: 'sales_manager',
-        label: 'مدير المبيعات',
-        color: '#009756',
-        description: 'إدارة المشاريع والوحدات والعملاء والعقود والأقساط والتقارير',
-        permissions: perms([
-          'properties', 'units', 'customers',
-          'contracts', 'installments', 'invoices', 'payments',
-          'tasks', 'notifications', 'reports', 'documents', 'media',
-        ]),
-      },
-      {
-        name: 'accountant',
-        label: 'المحاسب',
-        color: '#2563eb',
-        description: 'العقود والأقساط والفواتير والمدفوعات والمصروفات والتقارير المالية',
-        permissions: perms([
-          'contracts', 'installments', 'invoices', 'payments', 'expenses',
-          'reports', 'documents', 'customers', 'notifications',
-        ]),
-      },
-      {
-        name: 'sales_rep',
-        label: 'مندوب المبيعات',
-        color: '#fbb140',
-        description: 'عرض المشاريع والوحدات وإدارة العملاء والمهام',
-        permissions: perms(['customers', 'tasks', 'notifications']).concat(
-          all.filter(p => ['properties.view', 'units.view', 'contracts.view', 'installments.view', 'invoices.view', 'documents.view', 'media.view'].includes(p))
-        ),
-      },
-      {
-        name: 'marketing_manager',
-        label: 'مدير التسويق',
-        color: '#7c3aed',
-        description: 'مكتبة الصور وصفحات الموقع والعملاء والإشعارات',
-        permissions: perms(['media', 'notifications', 'tasks']).concat(
-          all.filter(p => ['properties.view', 'units.view', 'customers.view', 'customers.create', 'customers.update', 'reports.view'].includes(p))
-        ),
-      },
-      {
-        name: 'hr_admin',
-        label: 'المشرف الإداري',
-        color: '#0d9488',
-        description: 'إدارة المستخدمين والأدوار والإعدادات والوثائق وسجل العمليات',
-        permissions: perms(['users', 'tasks', 'documents', 'notifications']).concat(
-          all.filter(p => ['roles.view', 'settings.view', 'settings.update', 'audit.view', 'activity.view', 'reports.view'].includes(p))
-        ),
-      },
-    ];
-
+    // ── إنشاء الأدوار الافتراضية للشركة تلقائياً ─────────────────────────
+    const defaultRoles = buildDefaultCompanyRoles(company._id);
     const createdRoles = {};
     for (const r of defaultRoles) {
-      const role = await Role.create({ ...r, companyId: company._id, scope: 'company', isSystem: true });
+      const role = await Role.create(r);
       createdRoles[r.name] = role._id;
     }
 
@@ -120,6 +61,7 @@ exports.createCompany = async (req, res) => {
       password: adminPassword || 'Admin@123',
       companyId: company._id,
       role: createdRoles['company_admin'],
+      status: 'active',
     });
 
     return success(res, company, 'تم إنشاء الشركة بنجاح', 201);
