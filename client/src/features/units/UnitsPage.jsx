@@ -6,22 +6,22 @@ import toast from 'react-hot-toast';
 import {
   FaPlus, FaPen, FaTrash, FaDoorOpen, FaDoorClosed,
   FaLayerGroup, FaTableCells, FaList, FaBed, FaBath,
-  FaRulerCombined, FaBuilding, FaMagnifyingGlass,
+  FaRulerCombined, FaBuilding, FaMagnifyingGlass, FaWandMagicSparkles,
 } from 'react-icons/fa6';
-import { unitsAPI, propertiesAPI } from '../../api/services';
+import { unitsAPI, propertiesAPI, aiAPI } from '../../api/services';
 import { setView } from '../../store/viewSlice';
-import PageHeader from '../../components/ui/PageHeader';
-import DataTable from '../../components/ui/DataTable';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
-import Textarea from '../../components/ui/Textarea';
-import { StatusBadge } from '../../components/ui/StatusBadge';
-import { KpiCard } from '../../components/ui/KpiCard';
-import { FilterBar, SearchInput, FilterSelect, ViewToggle } from '../../components/ui/FilterBar';
-import { SkeletonCard } from '../../components/ui/Skeleton';
+import PageHeader from '../../components/UI/PageHeader';
+import DataTable from '../../components/UI/DataTable';
+import Button from '../../components/UI/Button';
+import Modal from '../../components/UI/Modal';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
+import Input from '../../components/UI/Input';
+import Select from '../../components/UI/Select';
+import Textarea from '../../components/UI/Textarea';
+import { StatusBadge } from '../../components/UI/StatusBadge';
+import { KpiCard } from '../../components/UI/KpiCard';
+import { FilterBar, SearchInput, FilterSelect, ViewToggle } from '../../components/UI/FilterBar';
+import { SkeletonCard } from '../../components/UI/Skeleton';
 import { usePagination } from '../../hooks/usePagination';
 
 const STATUS_LABELS = { available: 'متاحة', reserved: 'محجوزة', sold: 'مباعة', rented: 'مؤجرة', maintenance: 'صيانة' };
@@ -127,6 +127,7 @@ export default function UnitsPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [delId, setDelId] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const activeFilters = [statusFilter, typeFilter, propertyFilter].filter(Boolean).length;
 
@@ -164,6 +165,30 @@ export default function UnitsPage() {
   const openEdit   = (row) => { setEditing(row); setForm({ ...defaultForm, ...row, propertyId: row.propertyId?._id || row.propertyId }); setModal(true); };
   const closeModal = () => { setModal(false); setEditing(null); };
   const setF = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
+
+  const generateDescription = async () => {
+    if (!form.area) return toast.error('أدخل المساحة أولاً');
+    setAiLoading(true);
+    try {
+      const prop = (pData?.data || []).find(p => p._id === form.propertyId);
+      const res = await aiAPI.describe({
+        name: form.unitNumber || 'الوحدة',
+        type: TYPE_LABELS[form.type] || form.type,
+        area: Number(form.area),
+        rooms: Number(form.rooms) || 0,
+        bathrooms: Number(form.bathrooms) || 0,
+        floor: Number(form.floor) || 0,
+        location: prop?.address || prop?.name || '',
+        price: Number(form.price) || 0,
+      });
+      setF('description')(res.data.description);
+      toast.success('تم توليد الوصف بالذكاء الاصطناعي ✨');
+    } catch {
+      toast.error('فشل توليد الوصف');
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const clearFilters = () => { setSearch(''); setStatusFilter(''); setTypeFilter(''); setPropertyFilter(''); };
 
   const units = data?.data || [];
@@ -354,8 +379,18 @@ export default function UnitsPage() {
           <Select label="الحالة" value={form.status}
             onChange={e => setF('status')(e.target.value)}
             options={Object.entries(STATUS_LABELS).map(([v, l]) => ({ value: v, label: l }))} />
-          <Textarea label="الوصف" value={form.description}
-            onChange={e => setF('description')(e.target.value)} className="col-span-2" />
+          <div className="col-span-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>الوصف</span>
+              <button type="button" onClick={generateDescription} disabled={aiLoading}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-lg transition-all disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff' }}>
+                <FaWandMagicSparkles className={aiLoading ? 'animate-spin' : ''} />
+                {aiLoading ? 'جاري التوليد...' : 'وصف تلقائي بالذكاء الاصطناعي'}
+              </button>
+            </div>
+            <Textarea value={form.description} onChange={e => setF('description')(e.target.value)} rows={4} />
+          </div>
         </div>
       </Modal>
 

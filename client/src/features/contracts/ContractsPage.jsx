@@ -1,25 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { contractsAPI, customersAPI, propertiesAPI, unitsAPI } from '../../api/services';
+import { contractsAPI, customersAPI, propertiesAPI, unitsAPI, aiAPI } from '../../api/services';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import {
   FaPlus, FaPen, FaTrash, FaFilePdf, FaEye, FaFileContract,
-  FaCircleCheck, FaCircleXmark, FaPenToSquare, FaHourglassHalf,
+  FaCircleCheck, FaCircleXmark, FaPenToSquare, FaHourglassHalf, FaWandMagicSparkles,
 } from 'react-icons/fa6';
-import PageHeader from '../../components/ui/PageHeader';
-import DataTable from '../../components/ui/DataTable';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import ConfirmDialog from '../../components/ui/ConfirmDialog';
-import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
-import Textarea from '../../components/ui/Textarea';
-import { KpiCard } from '../../components/ui/KpiCard';
-import { FilterBar, SearchInput, FilterSelect } from '../../components/ui/FilterBar';
-import { StatusBadge } from '../../components/ui/StatusBadge';
-import { ProgressBar } from '../../components/ui/ProgressBar';
+import PageHeader from '../../components/UI/PageHeader';
+import DataTable from '../../components/UI/DataTable';
+import Button from '../../components/UI/Button';
+import Modal from '../../components/UI/Modal';
+import ConfirmDialog from '../../components/UI/ConfirmDialog';
+import Input from '../../components/UI/Input';
+import Select from '../../components/UI/Select';
+import Textarea from '../../components/UI/Textarea';
+import { KpiCard } from '../../components/UI/KpiCard';
+import { FilterBar, SearchInput, FilterSelect } from '../../components/UI/FilterBar';
+import { StatusBadge } from '../../components/UI/StatusBadge';
+import { ProgressBar } from '../../components/UI/ProgressBar';
 import { exportContractPDF } from '../../utils/pdfExport';
 import { usePagination } from '../../hooks/usePagination';
 
@@ -41,6 +41,8 @@ export default function ContractsPage() {
   const [form, setForm]                 = useState(defaultForm);
   const [delId, setDelId]               = useState(null);
   const [viewContract, setViewContract] = useState(null);
+  const [aiAnalysis, setAiAnalysis]     = useState('');
+  const [aiLoading, setAiLoading]       = useState(false);
 
   const activeFilters = [search, statusFilter, typeFilter].filter(Boolean).length;
 
@@ -98,6 +100,28 @@ export default function ContractsPage() {
     setModal(true);
   };
   const closeModal = () => { setModal(false); setEditing(null); };
+
+  const analyzeContract = async (contract) => {
+    setAiAnalysis('');
+    setAiLoading(true);
+    try {
+      const res = await aiAPI.analyzeContract({
+        type: contract.type === 'sale' ? 'بيع' : 'إيجار',
+        customer_name: contract.customerId?.name || 'العميل',
+        unit_name: `${contract.unitId?.unitNumber || ''} - ${contract.propertyId?.name || ''}`,
+        total_amount: contract.totalPrice || 0,
+        start_date: contract.startDate ? new Date(contract.startDate).toLocaleDateString('ar-EG') : '—',
+        end_date: contract.endDate ? new Date(contract.endDate).toLocaleDateString('ar-EG') : '',
+        installments_count: contract.installments?.length || 0,
+        notes: contract.notes || '',
+      });
+      setAiAnalysis(res.data.analysis);
+    } catch {
+      toast.error('فشل تحليل العقد');
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const contracts = data?.data || [];
@@ -263,10 +287,16 @@ export default function ContractsPage() {
         onConfirm={() => del.mutate(delId)} loading={del.isPending} />
 
       {/* Contract Detail Modal */}
-      <Modal open={!!viewContract} onClose={() => setViewContract(null)}
+      <Modal open={!!viewContract} onClose={() => { setViewContract(null); setAiAnalysis(''); }}
         title={`تفاصيل العقد: ${viewContract?.contractNumber}`} size="xl"
         footer={<>
-          <Button variant="outline" onClick={() => setViewContract(null)}>إغلاق</Button>
+          <Button variant="outline" onClick={() => { setViewContract(null); setAiAnalysis(''); }}>إغلاق</Button>
+          <button type="button" onClick={() => analyzeContract(viewContract)} disabled={aiLoading}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)', color: '#fff' }}>
+            <FaWandMagicSparkles className={aiLoading ? 'animate-spin' : ''} />
+            {aiLoading ? 'جاري التحليل...' : 'تحليل بالذكاء الاصطناعي'}
+          </button>
           <Button onClick={() => exportContractPDF(viewContract, company)}>
             <FaFilePdf className="text-xs" /> تصدير PDF
           </Button>
@@ -302,6 +332,15 @@ export default function ContractsPage() {
                 </div>
               ))}
             </div>
+
+            {aiAnalysis && (
+              <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg,#ede9fe,#dbeafe)', border: '1px solid #c4b5fd' }}>
+                <p className="text-xs font-bold text-purple-700 mb-2 flex items-center gap-1.5">
+                  <FaWandMagicSparkles /> تحليل الذكاء الاصطناعي
+                </p>
+                <p className="text-sm leading-relaxed whitespace-pre-line text-gray-800">{aiAnalysis}</p>
+              </div>
+            )}
 
             {viewContract.installments?.length > 0 && (
               <div>

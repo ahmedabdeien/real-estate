@@ -1,12 +1,17 @@
 require('dotenv').config();
-const express = require('express');
-const http = require('http');
+const express    = require('express');
+const http       = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const connectDB = require('./config/db');
-const { setupSockets } = require('./sockets');
+const cors       = require('cors');
+const helmet     = require('helmet');
+const morgan     = require('morgan');
+const rateLimit  = require('express-rate-limit');
+const connectDB  = require('./config/db');
+const { getRedis }          = require('./config/redis');
+const { setupSockets }      = require('./sockets');
+const { startEmailWorker }  = require('./workers/emailWorker');
+const { startPdfWorker }    = require('./workers/pdfWorker');
+const { startWhatsAppWorker } = require('./workers/whatsappWorker');
 
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
   .split(',')
@@ -19,6 +24,21 @@ const io = new Server(server, {
 });
 
 connectDB();
+getRedis(); // init Redis connection (gracefully skipped if REDIS_URL missing)
+
+/* ─── Rate limiting ─── */
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders:   false,
+  message: { success: false, message: 'طلبات كثيرة جداً، يرجى الانتظار قليلاً' },
+});
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { success: false, message: 'محاولات دخول كثيرة، يرجى الانتظار 15 دقيقة' },
+});
 
 app.use(helmet());
 app.use(cors({
@@ -31,10 +51,11 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use('/api/', limiter);
 
 app.set('io', io);
 
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/roles', require('./routes/roles'));
@@ -56,6 +77,7 @@ app.use('/api/cms',   require('./routes/cms'));
 app.use('/api/media',     require('./routes/media'));
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/pages',     require('./routes/pages'));
+app.use('/api/ai',        require('./routes/ai'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
@@ -65,6 +87,11 @@ app.use((err, req, res, next) => {
 });
 
 setupSockets(io);
+
+/* ─── Background workers ─── */
+startEmailWorker();
+startPdfWorker();
+startWhatsAppWorker();
 
 const { startJobs } = require('./jobs/overdueJob');
 startJobs();

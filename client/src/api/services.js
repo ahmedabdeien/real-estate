@@ -76,6 +76,7 @@ export const documentsAPI = {
   ...crud('/documents'),
   getByRelated: (relatedTo, relatedId, params) =>
     api.get('/documents', { params: { relatedTo, relatedId, ...params } }),
+  upload: (formData) => api.post('/documents/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 export const blogsAPI = {
@@ -98,6 +99,13 @@ export const mediaAPI = {
   upload:  (formData) => api.post('/media/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update:  (id, data) => api.put(`/media/${id}`, data),
   remove:  (id) => api.delete(`/media/${id}`),
+};
+
+export const aiAPI = {
+  describe:        (data) => api.post('/ai/describe', data),
+  analyzeContract: (data) => api.post('/ai/analyze-contract', data),
+  chat:            (data) => api.post('/ai/chat', data),
+  price:           (data) => api.post('/ai/price', data),
 };
 
 export const pagesAPI = {
