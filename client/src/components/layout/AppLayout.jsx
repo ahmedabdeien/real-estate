@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import AnnouncementBar from './AnnouncementBar';
+import AiChatWidget from '../AI/AiChatWidget';
 
 const AppLayout = () => (
   <div className="flex h-screen overflow-hidden" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -14,6 +15,7 @@ const AppLayout = () => (
         <Outlet />
       </main>
     </div>
+    <AiChatWidget />
   </div>
 );
 

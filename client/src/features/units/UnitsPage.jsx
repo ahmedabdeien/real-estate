@@ -127,7 +127,9 @@ export default function UnitsPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [delId, setDelId] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiLoading, setAiLoading]     = useState(false);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceResult, setPriceResult]   = useState('');
 
   const activeFilters = [statusFilter, typeFilter, propertyFilter].filter(Boolean).length;
 
@@ -189,6 +191,29 @@ export default function UnitsPage() {
       setAiLoading(false);
     }
   };
+  const estimatePrice = async () => {
+    if (!form.area) return toast.error('أدخل المساحة أولاً');
+    setPriceLoading(true);
+    setPriceResult('');
+    try {
+      const prop = (pData?.data || []).find(p => p._id === form.propertyId);
+      const res = await aiAPI.price({
+        type: TYPE_LABELS[form.type] || form.type,
+        area: Number(form.area),
+        location: prop?.address || prop?.name || 'غير محدد',
+        rooms: Number(form.rooms) || 0,
+        floor: Number(form.floor) || 0,
+        finishing: FINISH_LABELS[form.finishingType] || form.finishingType,
+      });
+      setPriceResult(res.data.estimate);
+      toast.success('تم تقدير السعر ✨');
+    } catch {
+      toast.error('فشل تقدير السعر');
+    } finally {
+      setPriceLoading(false);
+    }
+  };
+
   const clearFilters = () => { setSearch(''); setStatusFilter(''); setTypeFilter(''); setPropertyFilter(''); };
 
   const units = data?.data || [];
@@ -367,8 +392,24 @@ export default function UnitsPage() {
             onChange={e => setF('floor')(e.target.value)} />
           <Input label="المساحة (م²) *" type="number" value={form.area}
             onChange={e => setF('area')(e.target.value)} />
-          <Input label="السعر (ج.م) *" type="number" value={form.price}
-            onChange={e => setF('price')(e.target.value)} />
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-muted)' }}>السعر (ج.م) *</span>
+              <button type="button" onClick={estimatePrice} disabled={priceLoading}
+                className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-lg disabled:opacity-50"
+                style={{ background: 'linear-gradient(135deg,#059669,#0891b2)', color: '#fff' }}>
+                <FaWandMagicSparkles className={priceLoading ? 'animate-spin' : ''} />
+                {priceLoading ? '...' : 'تقدير AI'}
+              </button>
+            </div>
+            <Input type="number" value={form.price} onChange={e => setF('price')(e.target.value)} />
+            {priceResult && (
+              <div className="mt-2 rounded-lg p-2.5 text-xs leading-relaxed whitespace-pre-line"
+                style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', color: '#065f46' }}>
+                {priceResult}
+              </div>
+            )}
+          </div>
           <Input label="عدد الغرف" type="number" value={form.rooms}
             onChange={e => setF('rooms')(e.target.value)} />
           <Input label="دورات المياه" type="number" value={form.bathrooms}
