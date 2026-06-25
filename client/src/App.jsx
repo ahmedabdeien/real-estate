@@ -40,6 +40,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Lazy-loaded to keep main bundle small
 
 const MediaLibraryPage   = lazy(() => import('./features/marketing/MediaLibraryPage'));
+const FacebookAdsPage    = lazy(() => import('./features/marketing/FacebookAdsPage'));
 
 
 const TermsPage           = lazy(() => import('./features/public/TermsPage'));
@@ -110,7 +111,8 @@ const App = () => {
           <Route path="/documents"     element={<DocumentsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/chat"          element={<ChatPage />} />
-          <Route path="/installments"  element={<InstallmentsPage />} />          <Route path="/marketing/media"  element={<MediaLibraryPage />} />
+          <Route path="/installments"  element={<InstallmentsPage />} />          <Route path="/marketing/media"       element={<MediaLibraryPage />} />
+          <Route path="/marketing/facebook-ads" element={<FacebookAdsPage />} />
           <Route path="/page-builder"     element={<PagesListPage />} />
           <Route path="/page-builder/:id" element={<PageBuilderPage />} />
           <Route path="/super/companies" element={<CompaniesPage />} />

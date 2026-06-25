@@ -1,162 +1,195 @@
 const PERMISSIONS = require('./permissions');
 
 const all = PERMISSIONS.map(p => p.name);
+
+// helper: all permissions for given modules
 const perms = (...modules) => all.filter(p => modules.some(m => p.startsWith(m + '.')));
 
+// helper: specific named permissions
+const only = (...names) => all.filter(p => names.includes(p));
+
 const buildDefaultCompanyRoles = (companyId) => [
+  // ─────────────────────────────────────────────────────────────────────────
+  // 1. مدير العمليات — صلاحيات كاملة
+  // ─────────────────────────────────────────────────────────────────────────
   {
-    name: 'company_admin',
-    label: 'مدير الشركة',
+    name: 'operations_manager',
+    label: 'مدير العمليات',
     color: '#da1f27',
-    description: 'صلاحيات كاملة على جميع أقسام الشركة',
+    description: 'صلاحيات كاملة على جميع أقسام النظام',
     permissions: all,
     companyId, scope: 'company', isSystem: true,
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 2. مدير المبيعات
+  // لوحة التحكم ✅ | مركز القيادة ✅ | مشاريع 👁 | وحدات 👁 | leads ✅ | عملاء ✅
+  // صفقات ✅ | عقود ✅ | فواتير ❌ | مهام ✅ | تقويم ✅ | محادثات ✅ | واتساب ✅
+  // إشعارات ✅ | تقارير ❌ | نشاط ✅ | أتمتة ❌ | تكاملات ❌ | تدقيق ❌ | إعدادات ❌
+  // إدارة فريق ✅ | API ❌
+  // ─────────────────────────────────────────────────────────────────────────
   {
     name: 'sales_manager',
     label: 'مدير المبيعات',
     color: '#009756',
-    description: 'إدارة المشاريع والوحدات والعملاء والعقود والأقساط والتقارير',
-    permissions: perms('properties', 'units', 'customers', 'contracts', 'installments', 'invoices', 'payments', 'tasks', 'notifications', 'reports', 'documents', 'media'),
+    description: 'إدارة العملاء والصفقات والعقود والفريق',
+    permissions: [
+      ...perms('leads', 'customers', 'deals', 'contracts', 'tasks', 'calendar',
+                'notifications', 'whatsapp', 'users'),
+      ...only(
+        'properties.view', 'units.view',
+        'command_center.view',
+        'activity.view',
+        'roles.view',
+      ),
+    ],
     companyId, scope: 'company', isSystem: true,
   },
-  {
-    name: 'accountant',
-    label: 'المحاسب',
-    color: '#2563eb',
-    description: 'العقود والأقساط والفواتير والمدفوعات والمصروفات والتقارير المالية',
-    permissions: perms('contracts', 'installments', 'invoices', 'payments', 'expenses', 'reports', 'documents', 'customers', 'notifications'),
-    companyId, scope: 'company', isSystem: true,
-  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 3. مندوب المبيعات
+  // لوحة التحكم ✅ | مركز القيادة ❌ | مشاريع 👁 | وحدات 👁 | leads ✏ | عملاء ✏
+  // صفقات ✏ | عقود ❌ | فواتير ❌ | مهام ✏ | تقويم ✏ | محادثات ❌ | واتساب ❌
+  // إشعارات ✅ | تقارير ❌ | نشاط ✏ | باقي ❌
+  // ─────────────────────────────────────────────────────────────────────────
   {
     name: 'sales_rep',
     label: 'مندوب المبيعات',
     color: '#fbb140',
-    description: 'عرض المشاريع والوحدات وإدارة العملاء والمهام',
+    description: 'إدارة بياناته الخاصة من عملاء وصفقات ومهام',
     permissions: [
-      ...perms('customers', 'tasks', 'notifications'),
-      ...all.filter(p => ['properties.view','units.view','contracts.view','installments.view','invoices.view','documents.view','media.view'].includes(p)),
-    ],
-    companyId, scope: 'company', isSystem: true,
-  },
-  {
-    name: 'marketing_manager',
-    label: 'مدير التسويق',
-    color: '#7c3aed',
-    description: 'مكتبة الصور والعملاء والإشعارات والتقارير',
-    permissions: [
-      ...perms('media', 'notifications', 'tasks'),
-      ...all.filter(p => ['properties.view','units.view','customers.view','customers.create','customers.update','reports.view'].includes(p)),
-    ],
-    companyId, scope: 'company', isSystem: true,
-  },
-  {
-    name: 'hr_admin',
-    label: 'المشرف الإداري',
-    color: '#0d9488',
-    description: 'إدارة المستخدمين والأدوار والإعدادات والوثائق وسجل العمليات',
-    permissions: [
-      ...perms('users', 'tasks', 'documents', 'notifications'),
-      ...all.filter(p => ['roles.view','settings.view','settings.update','audit.view','activity.view','reports.view'].includes(p)),
+      ...only(
+        'properties.view', 'units.view',
+        // leads - own only
+        'leads.view', 'leads.create', 'leads.update', 'leads.own',
+        // customers - own only
+        'customers.view', 'customers.create', 'customers.update', 'customers.own',
+        // deals - own only
+        'deals.view', 'deals.create', 'deals.update', 'deals.own',
+        // tasks - own only
+        'tasks.view', 'tasks.create', 'tasks.update', 'tasks.own',
+        // calendar - own only
+        'calendar.view', 'calendar.create', 'calendar.update', 'calendar.own',
+        // notifications
+        'notifications.view',
+        // activity - own
+        'activity.view',
+      ),
     ],
     companyId, scope: 'company', isSystem: true,
   },
 
-  // ── أدوار جديدة ─────────────────────────────────────────────────────────
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // 4. مدير العقارات
+  // لوحة التحكم ✅ | مركز القيادة ❌ | مشاريع ✅ | وحدات ✅ | leads ❌ | عملاء 👁
+  // صفقات 👁 | عقود 👁 | فواتير ❌ | مهام ✏ | تقويم ✏ | محادثات ❌ | واتساب ❌
+  // إشعارات ✅ | تقارير ✅ | نشاط ❌ | باقي ❌
+  // ─────────────────────────────────────────────────────────────────────────
   {
-    name: 'project_manager',
-    label: 'مدير المشروع',
+    name: 'real_estate_manager',
+    label: 'مدير العقارات',
     color: '#ea580c',
-    description: 'إدارة المشاريع والوحدات والعملاء والعقود والمهام وتقارير المبيعات',
+    description: 'إدارة المشاريع والوحدات مع قراءة العقود والصفقات',
     permissions: [
-      ...perms('properties', 'units', 'customers', 'contracts', 'installments', 'tasks', 'documents', 'notifications'),
-      ...all.filter(p => ['invoices.view','payments.view','reports.view','reports.export','media.view','media.upload','audit.view'].includes(p)),
+      ...perms('properties', 'units'),
+      ...only(
+        'customers.view',
+        'deals.view',
+        'contracts.view',
+        'tasks.view', 'tasks.create', 'tasks.update', 'tasks.own',
+        'calendar.view', 'calendar.create', 'calendar.update', 'calendar.own',
+        'notifications.view',
+        'reports.view', 'reports.export',
+      ),
     ],
     companyId, scope: 'company', isSystem: true,
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 5. المحاسب
+  // لوحة التحكم ✅ | مركز القيادة ❌ | مشاريع 👁 | وحدات 👁 | leads ❌ | عملاء 👁
+  // صفقات 👁 | عقود ❌ | فواتير ✅ | مهام ✏ | تقويم ✏ | محادثات ❌ | واتساب ✅
+  // إشعارات ✅ | تقارير ✅ | نشاط ❌ | باقي ❌
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    name: 'accountant',
+    label: 'المحاسب',
+    color: '#2563eb',
+    description: 'إدارة الفواتير والمدفوعات والمصروفات والتقارير المالية',
+    permissions: [
+      ...perms('invoices', 'payments', 'expenses', 'installments'),
+      ...only(
+        'properties.view', 'units.view',
+        'customers.view',
+        'deals.view',
+        'tasks.view', 'tasks.create', 'tasks.update', 'tasks.own',
+        'calendar.view', 'calendar.create', 'calendar.update', 'calendar.own',
+        'whatsapp.view', 'whatsapp.send',
+        'notifications.view',
+        'reports.view', 'reports.export', 'reports.advanced',
+      ),
+    ],
+    companyId, scope: 'company', isSystem: true,
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 6. التسويق
+  // لوحة التحكم ✅ | مركز القيادة ❌ | مشاريع 👁 | وحدات 👁 | leads ✅ | عملاء 👁
+  // صفقات ❌ | عقود ❌ | فواتير ❌ | مهام ✏ | تقويم ✏ | محادثات ❌ | واتساب ✅
+  // إشعارات ✅ | تقارير ❌ | نشاط ❌ | أتمتة ✅ | باقي ❌
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    name: 'marketing',
+    label: 'التسويق',
+    color: '#7c3aed',
+    description: 'إدارة العملاء المحتملين والإعلانات والأتمتة التسويقية',
+    permissions: [
+      ...perms('leads', 'media', 'facebook_ads', 'automation'),
+      ...only(
+        'properties.view', 'units.view',
+        'customers.view',
+        'tasks.view', 'tasks.create', 'tasks.update', 'tasks.own',
+        'calendar.view', 'calendar.create', 'calendar.update', 'calendar.own',
+        'whatsapp.view', 'whatsapp.send',
+        'notifications.view',
+      ),
+    ],
+    companyId, scope: 'company', isSystem: true,
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // 7. خدمة العملاء
+  // لوحة التحكم ✅ | مركز القيادة ❌ | مشاريع ❌ | وحدات ❌ | leads 👁 | عملاء 👁
+  // صفقات ❌ | عقود ❌ | فواتير ❌ | مهام ✏ | تقويم ✏ | محادثات ✅ | واتساب ✅
+  // إشعارات ✅ | تقارير ❌ | نشاط ❌ | باقي ❌
+  // ─────────────────────────────────────────────────────────────────────────
   {
     name: 'customer_service',
     label: 'خدمة العملاء',
     color: '#0891b2',
-    description: 'التعامل مع العملاء والرد على الاستفسارات وعرض العقود والأقساط',
+    description: 'التعامل مع العملاء والرد عبر الواتساب والمحادثات',
     permissions: [
-      ...perms('customers', 'tasks', 'notifications', 'whatsapp'),
-      ...all.filter(p => [
-        'properties.view','units.view',
-        'contracts.view','installments.view',
-        'invoices.view','payments.view',
-        'documents.view','media.view',
-      ].includes(p)),
+      ...only(
+        'leads.view',
+        'customers.view',
+        'tasks.view', 'tasks.create', 'tasks.update', 'tasks.own',
+        'calendar.view', 'calendar.create', 'calendar.update', 'calendar.own',
+        'notifications.view', 'notifications.send',
+        'whatsapp.view', 'whatsapp.send',
+      ),
     ],
     companyId, scope: 'company', isSystem: true,
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // أدوار إضافية مساعدة
+  // ─────────────────────────────────────────────────────────────────────────
   {
-    name: 'legal_officer',
-    label: 'المسؤول القانوني',
-    color: '#1e3a5f',
-    description: 'الاطلاع على العقود والوثائق القانونية وإدارتها',
-    permissions: [
-      ...perms('contracts', 'documents'),
-      ...all.filter(p => [
-        'customers.view','properties.view','units.view',
-        'invoices.view','payments.view','audit.view','reports.view',
-      ].includes(p)),
-    ],
-    companyId, scope: 'company', isSystem: true,
-  },
-  {
-    name: 'warehouse_manager',
-    label: 'مسؤول المستودع',
-    color: '#92400e',
-    description: 'إدارة المستودع والمشتريات ومتابعة الطلبات',
-    permissions: [
-      ...perms('warehouse', 'purchasing'),
-      ...all.filter(p => ['tasks.view','tasks.create','tasks.update','documents.view','reports.view','activity.view'].includes(p)),
-    ],
-    companyId, scope: 'company', isSystem: true,
-  },
-  {
-    name: 'purchasing_officer',
-    label: 'مسؤول المشتريات',
-    color: '#b45309',
-    description: 'إنشاء طلبات الشراء ومتابعتها مع إدارة المستودع',
-    permissions: [
-      ...perms('purchasing'),
-      ...all.filter(p => [
-        'warehouse.view','tasks.view','tasks.create','tasks.update',
-        'expenses.view','expenses.create','documents.view','documents.create','reports.view',
-      ].includes(p)),
-    ],
-    companyId, scope: 'company', isSystem: true,
-  },
-  {
-    name: 'financial_manager',
-    label: 'المدير المالي',
-    color: '#166534',
-    description: 'إدارة كاملة للجانب المالي: فواتير، مدفوعات، مصروفات، أقساط، تقارير',
-    permissions: [
-      ...perms('invoices', 'payments', 'expenses', 'installments', 'reports', 'documents', 'notifications'),
-      ...all.filter(p => [
-        'contracts.view','customers.view','properties.view','units.view',
-        'warehouse.view','purchasing.view','audit.view','activity.view',
-      ].includes(p)),
-    ],
-    companyId, scope: 'company', isSystem: true,
-  },
-  {
-    name: 'media_manager',
-    label: 'مدير المحتوى والوسائط',
-    color: '#7c3aed',
-    description: 'إدارة مكتبة الصور والوسائط والمحتوى التسويقي',
-    permissions: [
-      ...perms('media', 'notifications'),
-      ...all.filter(p => [
-        'properties.view','units.view','customers.view',
-        'tasks.view','tasks.create','tasks.update',
-        'reports.view',
-      ].includes(p)),
-    ],
+    name: 'company_admin',
+    label: 'مدير الشركة',
+    color: '#231f20',
+    description: 'صلاحيات كاملة بما فيها الإعدادات وإدارة الفريق',
+    permissions: all,
     companyId, scope: 'company', isSystem: true,
   },
   {
@@ -164,9 +197,7 @@ const buildDefaultCompanyRoles = (companyId) => [
     label: 'مراقب (قراءة فقط)',
     color: '#64748b',
     description: 'صلاحيات عرض كاملة على جميع أقسام الشركة بدون أي تعديل',
-    permissions: all.filter(p =>
-      p.endsWith('.view') || p === 'reports.export'
-    ),
+    permissions: all.filter(p => p.endsWith('.view') || p === 'reports.export'),
     companyId, scope: 'company', isSystem: true,
   },
 ];

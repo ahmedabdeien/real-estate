@@ -88,6 +88,42 @@ const PERMISSIONS = [
   { name: 'documents.delete',      label: 'حذف وثيقة',               module: 'documents' },
   { name: 'audit.view',            label: 'عرض سجل العمليات',         module: 'audit' },
   { name: 'activity.view',         label: 'عرض سجل النشاط',           module: 'activity' },
+
+  // ── العملاء المحتملون (Leads)
+  { name: 'leads.view',            label: 'عرض العملاء المحتملين',     module: 'leads' },
+  { name: 'leads.create',          label: 'إضافة عميل محتمل',          module: 'leads' },
+  { name: 'leads.update',          label: 'تعديل عميل محتمل',          module: 'leads' },
+  { name: 'leads.delete',          label: 'حذف عميل محتمل',            module: 'leads' },
+  { name: 'leads.convert',         label: 'تحويل عميل محتمل',          module: 'leads' },
+  { name: 'leads.own',             label: 'بياناته فقط (عملاء محتملون)', module: 'leads' },
+
+  // ── الصفقات (Deals)
+  { name: 'deals.view',            label: 'عرض الصفقات',               module: 'deals' },
+  { name: 'deals.create',          label: 'إضافة صفقة',                module: 'deals' },
+  { name: 'deals.update',          label: 'تعديل صفقة',                module: 'deals' },
+  { name: 'deals.delete',          label: 'حذف صفقة',                  module: 'deals' },
+  { name: 'deals.own',             label: 'بياناته فقط (صفقات)',        module: 'deals' },
+
+  // ── التقويم
+  { name: 'calendar.view',         label: 'عرض التقويم',               module: 'calendar' },
+  { name: 'calendar.create',       label: 'إضافة حدث',                 module: 'calendar' },
+  { name: 'calendar.update',       label: 'تعديل حدث',                 module: 'calendar' },
+  { name: 'calendar.delete',       label: 'حذف حدث',                   module: 'calendar' },
+  { name: 'calendar.own',          label: 'أحداثه فقط',                module: 'calendar' },
+
+  // ── مركز القيادة
+  { name: 'command_center.view',   label: 'عرض مركز القيادة',          module: 'command_center' },
+
+  // ── الأتمتة
+  { name: 'automation.view',       label: 'عرض الأتمتة',               module: 'automation' },
+  { name: 'automation.manage',     label: 'إدارة الأتمتة',              module: 'automation' },
+
+  // ── إعلانات فيسبوك
+  { name: 'facebook_ads.view',     label: 'عرض الإعلانات',             module: 'facebook_ads' },
+  { name: 'facebook_ads.create',   label: 'إنشاء إعلان',               module: 'facebook_ads' },
+  { name: 'facebook_ads.update',   label: 'تعديل إعلان',               module: 'facebook_ads' },
+  { name: 'facebook_ads.delete',   label: 'حذف إعلان',                 module: 'facebook_ads' },
+  { name: 'facebook_ads.publish',  label: 'نشر إعلان',                 module: 'facebook_ads' },
 ];
 
 module.exports = PERMISSIONS;

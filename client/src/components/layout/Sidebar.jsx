@@ -10,7 +10,7 @@ import {
   FaLayerGroup, FaUserTie, FaChevronLeft, FaChevronRight,
   FaFolderOpen, FaChartBar, FaShield, FaCalendarCheck,
   FaBullhorn, FaNewspaper, FaWandMagicSparkles, FaImages, FaLock,
-  FaCodeBranch, FaArrowsLeftRight,
+  FaCodeBranch, FaArrowsLeftRight, FaFacebook,
 } from 'react-icons/fa6';
 import { logout } from '../../store/authSlice';
 import { toggleSidebar, setSidebarMobile } from '../../store/uiSlice';
@@ -73,8 +73,9 @@ const menuGroups = [
   {
     label: 'التسويق',
     items: [
-      { label: 'صفحات الموقع', icon: FaWandMagicSparkles, path: '/page-builder',    module: 'theme', perm: 'pages.view' },
-      { label: 'مكتبة الصور',  icon: FaImages,             path: '/marketing/media', module: 'media', perm: 'media.view' },
+      { label: 'إعلانات فيسبوك', icon: FaFacebook,          path: '/marketing/facebook-ads', perm: 'facebook_ads.view' },
+      { label: 'مكتبة الصور',    icon: FaImages,             path: '/marketing/media',        module: 'media', perm: 'media.view' },
+      { label: 'صفحات الموقع',   icon: FaWandMagicSparkles,  path: '/page-builder',           module: 'theme', perm: 'pages.view' },
     ],
   },
   {

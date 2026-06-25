@@ -13,7 +13,7 @@ import {
   FaPlus, FaPen, FaTrash, FaShield, FaUsers, FaBuilding, FaFileContract,
   FaChartBar, FaBell, FaGear, FaWarehouse, FaImages, FaCopy,
   FaCrown, FaLayerGroup, FaCreditCard, FaWandMagicSparkles, FaUserGroup,
-  FaWhatsapp, FaLock,
+  FaWhatsapp, FaLock, FaBullhorn, FaFacebook, FaCalendarDays,
 } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
 
@@ -27,6 +27,8 @@ const MODULE_LABELS = {
   companies:'الشركات', plans:'خطط الاشتراك', billing:'الفواتير والاشتراكات',
   platformRoles:'أدوار المنصة', team:'فريق المنصة', sitePages:'صفحات الموقع',
   platformSettings:'إعدادات المنصة', platformReports:'تقارير المنصة',
+  leads:'العملاء المحتملون', deals:'الصفقات', calendar:'التقويم',
+  command_center:'مركز القيادة', automation:'الأتمتة', facebook_ads:'إعلانات فيسبوك',
 };
 const MODULE_ICONS = {
   users:FaUsers, roles:FaShield, properties:FaBuilding, units:FaBuilding,
@@ -38,6 +40,8 @@ const MODULE_ICONS = {
   companies:FaLayerGroup, plans:FaCreditCard, billing:FaCreditCard,
   platformRoles:FaCrown, team:FaUserGroup, sitePages:FaWandMagicSparkles,
   platformSettings:FaGear, platformReports:FaChartBar,
+  leads:FaUsers, deals:FaBullhorn, calendar:FaCalendarDays,
+  command_center:FaChartBar, automation:FaWandMagicSparkles, facebook_ads:FaFacebook,
 };
 const COLORS = ['#da1f27','#009756','#fbb140','#2563eb','#7c3aed','#0d9488','#db2777','#231f20'];
 const emptyForm = { name:'', label:'', description:'', permissions:[], color:'#da1f27' };
