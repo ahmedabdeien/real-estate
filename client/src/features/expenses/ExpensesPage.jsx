@@ -90,7 +90,7 @@ export default function ExpensesPage() {
         </span>
       </div>
     )},
-    { header: 'المورد', render: (r) => r.vendor || '—' },
+    { header: 'المورد', hidden: 'md', render: (r) => r.vendor || '—' },
     { header: 'المبلغ', render: (r) => (
       <span className="font-black" style={{ color: '#dc2626' }}>
         {fmt(r.amount)} <span className="text-xs font-normal opacity-60">ج.م</span>
@@ -110,7 +110,7 @@ export default function ExpensesPage() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="إدارة المصروفات"
         subtitle={`${total.toLocaleString('en-US')} مصروف مسجل`}

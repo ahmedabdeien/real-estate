@@ -126,6 +126,7 @@ export default function InvoicesPage() {
     },
     {
       header: 'المدفوع / المتبقي',
+      hidden: 'md',
       render: (r) => {
         const pct = r.total ? ((r.paidAmount || 0) / r.total) * 100 : 0;
         return (
@@ -145,6 +146,7 @@ export default function InvoicesPage() {
     },
     {
       header: 'الاستحقاق',
+      hidden: 'sm',
       render: (r) => r.dueDate ? (
         <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
           {new Date(r.dueDate).toLocaleDateString('ar-EG-u-nu-latn')}
@@ -166,7 +168,7 @@ export default function InvoicesPage() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="إدارة الفواتير"
         subtitle={`${total.toLocaleString('en-US')} فاتورة`}

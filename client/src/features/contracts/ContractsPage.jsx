@@ -154,6 +154,7 @@ export default function ContractsPage() {
     },
     {
       header: 'النوع',
+      hidden: 'md',
       render: (r) => (
         <span className="px-2.5 py-1 rounded-xl text-xs font-bold"
           style={{
@@ -166,6 +167,7 @@ export default function ContractsPage() {
     },
     {
       header: 'القيمة / المتبقي',
+      hidden: 'sm',
       render: (r) => {
         const pct = r.totalPrice ? ((r.downPayment || 0) / r.totalPrice) * 100 : 0;
         return (
@@ -201,7 +203,7 @@ export default function ContractsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="إدارة العقود"
         subtitle={`${total.toLocaleString('en-US')} عقد مسجل`}

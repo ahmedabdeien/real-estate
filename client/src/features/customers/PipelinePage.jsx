@@ -243,7 +243,7 @@ export default function PipelinePage() {
   }
 
   return (
-    <div className="p-6" style={{ minHeight: '100vh' }}>
+    <div className="space-y-5" style={{ minHeight: '100vh' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

@@ -195,8 +195,8 @@ ${summary}`
 
       {/* Date filter */}
       <div className="card p-4 mb-5 flex flex-wrap gap-4 items-end">
-        <Input label="من تاريخ" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-48" />
-        <Input label="إلى تاريخ" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-48" />
+        <Input label="من تاريخ" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="flex-1 min-w-[140px]" />
+        <Input label="إلى تاريخ" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="flex-1 min-w-[140px]" />
         {(startDate || endDate) && (
           <Button variant="ghost" size="sm" onClick={() => { setStartDate(''); setEndDate(''); }}>مسح الفلتر</Button>
         )}

@@ -170,7 +170,7 @@ export default function DocumentsPage() {
   const pages = Math.ceil(total / filters.limit);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="إدارة المستندات"
         subtitle={`${total.toLocaleString('en-US')} مستند محفوظ`}

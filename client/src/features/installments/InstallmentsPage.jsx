@@ -169,7 +169,7 @@ export default function InstallmentsPage() {
   }, [data]);
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="تتبع الأقساط"
         subtitle="جميع أقساط العقود ومواعيد الاستحقاق"

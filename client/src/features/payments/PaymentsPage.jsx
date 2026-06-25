@@ -127,13 +127,13 @@ export default function PaymentsPage() {
         {fmt(r.amount)} <span className="text-xs font-normal opacity-60">ج.م</span>
       </span>
     )},
-    { header: 'طريقة الدفع', render: (r) => <MethodBadge method={r.method} /> },
-    { header: 'التاريخ', render: (r) => (
+    { header: 'طريقة الدفع', hidden: 'sm', render: (r) => <MethodBadge method={r.method} /> },
+    { header: 'التاريخ', hidden: 'sm', render: (r) => (
       <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
         {new Date(r.date || r.createdAt).toLocaleDateString('ar-EG-u-nu-latn')}
       </span>
     )},
-    { header: 'المرجع', render: (r) => r.reference || r.checkNumber || '—' },
+    { header: 'المرجع', hidden: 'lg', render: (r) => r.reference || r.checkNumber || '—' },
     { header: '', render: (r) => (
       <Button variant="ghost" size="icon" className="text-red-500" onClick={() => setDelId(r._id)}>
         <FaTrash />
@@ -142,7 +142,7 @@ export default function PaymentsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="المدفوعات والإيصالات"
         subtitle={`${total.toLocaleString('en-US')} دفعة مسجلة`}

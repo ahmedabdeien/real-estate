@@ -178,7 +178,7 @@ ${summary}`
   const currentStage = PIPELINE_STAGES.find(s => s.id === c.pipelineStage) || PIPELINE_STAGES[0];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title={c.name || 'ملف العميل'}
         subtitle="ملف العميل الكامل"

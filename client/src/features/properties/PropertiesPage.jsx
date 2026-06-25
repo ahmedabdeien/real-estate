@@ -148,7 +148,7 @@ export default function PropertiesPage() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="المشاريع العقارية"
         subtitle={`${total.toLocaleString('en-US')} مشروع عقاري`}

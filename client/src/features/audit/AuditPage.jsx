@@ -210,7 +210,7 @@ export default function AuditPage() {
   const topModules   = statsData?.byModule || [];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="سجل النشاطات"
         subtitle={`${total.toLocaleString('en-US')} عملية مسجلة — من فعل ماذا ومتى`}

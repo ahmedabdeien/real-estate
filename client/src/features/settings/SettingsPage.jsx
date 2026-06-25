@@ -516,9 +516,9 @@ const SettingsPage = () => {
     <div>
       <PageHeader title="الإعدادات" subtitle="إدارة إعدادات حسابك وشركتك" />
 
-      <div className="flex gap-6">
+      <div className="flex flex-col sm:flex-row gap-6">
         {/* Vertical tabs */}
-        <div className="w-48 flex-shrink-0">
+        <div className="w-full sm:w-48 flex-shrink-0">
           <div className="card p-2 space-y-0.5">
             {TABS.map(tab => {
               const Icon = tab.icon;

@@ -299,9 +299,9 @@ const MediaLibraryPage = () => {
         }
       />
 
-      <div className="flex gap-4 flex-1 min-h-0">
+      <div className="flex flex-col sm:flex-row gap-4 flex-1 min-h-0">
         {/* Sidebar folders */}
-        <div className="w-44 flex-shrink-0">
+        <div className="w-full sm:w-44 flex-shrink-0">
           <div className="bg-white rounded-2xl border border-gray-100 p-3 space-y-1">
             <p className="text-xs font-bold text-gray-400 px-2 mb-2 uppercase tracking-wider">المجلدات</p>
             {FOLDERS.map(f => (

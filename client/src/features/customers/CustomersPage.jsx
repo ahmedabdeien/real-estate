@@ -101,12 +101,14 @@ export default function CustomersPage() {
     },
     {
       header: 'البريد الإلكتروني',
+      hidden: 'md',
       render: (r) => (
         <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{r.email || '—'}</span>
       ),
     },
     {
       header: 'المصدر',
+      hidden: 'md',
       render: (r) => {
         const color = SOURCE_COLORS[r.source] || '#6b7280';
         return (
@@ -150,7 +152,7 @@ export default function CustomersPage() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="space-y-5">
       <PageHeader
         title="إدارة العملاء"
         subtitle={`${total.toLocaleString('en-US')} عميل مسجل`}

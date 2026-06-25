@@ -30,6 +30,7 @@ const buildColumns = (cols) =>
     header: col.header,
     enableSorting: !!col.sortable,
     size:   col.width ? parseInt(col.width) : undefined,
+    meta:   { hidden: col.hidden },
     cell:   ({ row }) =>
       col.render
         ? col.render(row.original)
@@ -183,7 +184,12 @@ const DataTable = ({
                       onClick={header.column.getToggleSortingHandler()}
                       style={{ width: header.getSize() !== 150 ? header.getSize() : undefined,
                                cursor: header.column.getCanSort() ? 'pointer' : 'default' }}
-                      className={header.column.getCanSort() ? 'select-none hover:bg-gray-50 transition-colors' : ''}>
+                      className={[
+                        header.column.getCanSort() ? 'select-none hover:bg-gray-50 transition-colors' : '',
+                        header.column.columnDef.meta?.hidden === 'sm'  ? 'hidden sm:table-cell'  : '',
+                        header.column.columnDef.meta?.hidden === 'md'  ? 'hidden md:table-cell'  : '',
+                        header.column.columnDef.meta?.hidden === 'lg'  ? 'hidden lg:table-cell'  : '',
+                      ].join(' ')}>
                       <div className="flex items-center gap-1.5">
                         {flexRender(header.column.columnDef.header, header.getContext())}
                         {header.column.getCanSort() && (
@@ -241,7 +247,12 @@ const DataTable = ({
                   className="group"
                   style={{ animation: `fadeIn 0.15s ease both`, animationDelay: `${Math.min(ri * 15, 150)}ms` }}>
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className={rowPad}>
+                    <td key={cell.id} className={[
+                      rowPad,
+                      cell.column.columnDef.meta?.hidden === 'sm' ? 'hidden sm:table-cell' : '',
+                      cell.column.columnDef.meta?.hidden === 'md' ? 'hidden md:table-cell' : '',
+                      cell.column.columnDef.meta?.hidden === 'lg' ? 'hidden lg:table-cell' : '',
+                    ].join(' ')}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
