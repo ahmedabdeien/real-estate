@@ -2,12 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "real-estate-client",
+      "name": "JestrCRM Client",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "cwd": "client",
-      "port": 5177,
-      "autoPort": false
+      "runtimeArgs": ["--prefix", "/Users/ahmedhussein/work/programming/JestrـCRM/client", "run", "dev"],
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }
