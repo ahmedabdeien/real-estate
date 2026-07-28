@@ -26,7 +26,7 @@ const careerSchema = z.object({
   titleAr:        z.string().min(3, "العنوان بالعربية مطلوب"),
   titleEn:        z.string().optional(),
   departmentAr:   z.string().min(2, "القسم مطلوب"),
-  location:       z.string().min(2, "الموقع مطلوب"),
+  locationAr:     z.string().min(2, "الموقع مطلوب"),
   type:           z.enum(["full_time", "part_time", "contract", "internship"]),
   descriptionAr:  z.string().min(10, "الوصف مطلوب"),
   descriptionEn:  z.string().optional(),
@@ -39,7 +39,7 @@ const careerSchema = z.object({
 
 const emptyValues = {
   titleAr: "", titleEn: "",
-  departmentAr: "", location: "",
+  departmentAr: "", locationAr: "",
   type: "full_time",
   descriptionAr: "", descriptionEn: "",
   requirementsAr: "",
@@ -93,7 +93,7 @@ export default function AdminCareers() {
       titleAr:        career.title?.ar ?? career.titleAr ?? "",
       titleEn:        career.title?.en ?? career.titleEn ?? "",
       departmentAr:   career.department?.ar ?? career.departmentAr ?? "",
-      location:       career.location ?? "",
+      locationAr:     career.location?.ar ?? career.location ?? career.locationAr ?? "",
       type:           career.type ?? "full_time",
       descriptionAr:  career.description?.ar ?? career.descriptionAr ?? "",
       descriptionEn:  career.description?.en ?? career.descriptionEn ?? "",
@@ -113,7 +113,7 @@ export default function AdminCareers() {
     const payload = {
       title:        { ar: values.titleAr, en: values.titleEn },
       department:   { ar: values.departmentAr },
-      location:     values.location,
+      location:     { ar: values.locationAr },
       type:         values.type,
       description:  { ar: values.descriptionAr, en: values.descriptionEn },
       requirements: values.requirementsAr
@@ -248,7 +248,7 @@ export default function AdminCareers() {
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-xs">
                         <div className="flex items-center gap-1">
                           <FaLocationDot className="w-3 h-3 opacity-50" />
-                          {career.location ?? "—"}
+                          {career.location?.ar ?? career.location ?? "—"}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -358,8 +358,8 @@ export default function AdminCareers() {
               <FormField label="القسم" error={form.errors.departmentAr} required>
                 <input {...form.register("departmentAr")} placeholder="مثال: المبيعات..." className={inputCls} />
               </FormField>
-              <FormField label="الموقع" error={form.errors.location} required>
-                <input {...form.register("location")} placeholder="مثال: القاهرة..." className={inputCls} />
+              <FormField label="الموقع" error={form.errors.locationAr} required>
+                <input {...form.register("locationAr")} placeholder="مثال: القاهرة..." className={inputCls} />
               </FormField>
             </div>
             <FormField label="الوصف الوظيفي" error={form.errors.descriptionAr} required>
