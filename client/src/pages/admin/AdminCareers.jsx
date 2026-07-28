@@ -97,7 +97,9 @@ export default function AdminCareers() {
       type:           career.type ?? "full_time",
       descriptionAr:  career.description?.ar ?? career.descriptionAr ?? "",
       descriptionEn:  career.description?.en ?? career.descriptionEn ?? "",
-      requirementsAr: career.requirements?.ar ?? career.requirementsAr ?? "",
+      requirementsAr: Array.isArray(career.requirements)
+        ? career.requirements.join("\n")
+        : career.requirements?.ar ?? career.requirementsAr ?? "",
       salaryMin:      career.salary?.min ?? "",
       salaryMax:      career.salary?.max ?? "",
       isActive:       career.isActive ?? true,
@@ -114,7 +116,10 @@ export default function AdminCareers() {
       location:     values.location,
       type:         values.type,
       description:  { ar: values.descriptionAr, en: values.descriptionEn },
-      requirements: { ar: values.requirementsAr },
+      requirements: values.requirementsAr
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
       salary:       { min: values.salaryMin || null, max: values.salaryMax || null },
       isActive:     values.isActive,
       deadline:     values.deadline || null,
@@ -361,7 +366,7 @@ export default function AdminCareers() {
               <TextareaField {...form.register("descriptionAr")} rows={5} placeholder="وصف الوظيفة والمهام..." />
             </FormField>
             <FormField label="المتطلبات والمؤهلات">
-              <TextareaField {...form.register("requirementsAr")} rows={4} placeholder="المتطلبات والمؤهلات المطلوبة..." />
+              <TextareaField {...form.register("requirementsAr")} rows={4} placeholder="اكتب كل متطلب في سطر منفصل..." />
             </FormField>
           </div>
         )}
