@@ -114,11 +114,11 @@ function HeroSearch() {
 function StatItem({ icon: Icon, value, label }) {
   return (
     <Stack align="center" gap={6}>
-      <ThemeIcon size={56} radius="xl" variant="light" color="gray.0" c="white" style={{ background: "rgba(255,255,255,0.12)" }}>
+      <ThemeIcon size={56} radius="xl" variant="light" color="brand">
         <Icon size={26} />
       </ThemeIcon>
-      <Text fw={900} size="34px" c="white">{value}</Text>
-      <Text size="sm" c="brand.1">{label}</Text>
+      <Text fw={900} size="34px" c="dark.8">{value}</Text>
+      <Text size="sm" c="dimmed">{label}</Text>
     </Stack>
   );
 }
@@ -193,23 +193,23 @@ export default function HomePage() {
   return (
     <Box>
       {/* Hero */}
-      <Box className="public-hero" py={{ base: 60, md: 100 }}>
+      <Box bg="white" py={{ base: 56, md: 90 }}>
         <Container size="md" ta="center" dir="rtl">
-          <MantineBadge size="lg" variant="light" color="gray.0" mb="lg" style={{ background: "rgba(255,255,255,0.15)", color: "white" }}>
+          <MantineBadge size="lg" variant="light" color="brand" mb="lg">
             الصرح للتطوير العقاري — مستقبلك يبدأ هنا
           </MantineBadge>
-          <Title order={1} c="white" fz={{ base: 32, sm: 42, md: 56 }} fw={900} lh={1.15} mb="md">
+          <Title order={1} c="dark.8" fz={{ base: 32, sm: 42, md: 54 }} fw={900} lh={1.15} mb="md">
             {heroCms.title_ar}
           </Title>
-          <Text c="brand.1" fz={{ base: "md", md: "xl" }} maw={640} mx="auto" mb="xl">
+          <Text c="dimmed" fz={{ base: "md", md: "xl" }} maw={640} mx="auto" mb="xl">
             {heroCms.subtitle_ar}
           </Text>
           <Box mb="xl"><HeroSearch /></Box>
           <Group justify="center" gap="md">
-            <Button component={Link} to="/projects" size="lg" radius="md" color="dark.8">
+            <Button component={Link} to="/projects" size="lg" radius="md" color="brand">
               {heroCms.cta_text_ar}
             </Button>
-            <Button component={Link} to="/contact" size="lg" radius="md" variant="outline" color="gray.0" c="white">
+            <Button component={Link} to="/contact" size="lg" radius="md" variant="outline" color="dark">
               تواصل معنا
             </Button>
           </Group>
@@ -217,7 +217,7 @@ export default function HomePage() {
       </Box>
 
       {/* Stats */}
-      <Box bg="brand.6" py={{ base: 40, md: 60 }}>
+      <Box bg="brand.0" py={{ base: 40, md: 56 }}>
         <Container size="xl" dir="rtl">
           <SimpleGrid cols={{ base: 2, lg: 4 }} spacing="lg">
             <StatItem icon={FaBuilding} value={statsCms.projects_count} label={statsCms.projects_label} />
@@ -286,12 +286,12 @@ export default function HomePage() {
       </Box>
 
       {/* CTA Banner */}
-      <Box bg="dark.8" py={{ base: 50, md: 70 }} dir="rtl">
+      <Box bg="brand.6" py={{ base: 50, md: 70 }} dir="rtl">
         <Container size="md" ta="center">
           <Title order={2} c="white" fz={{ base: 26, md: 34 }} mb="md">{ctaCms.cta_title}</Title>
-          {ctaCms.cta_subtitle && <Text c="gray.5" fz="lg" mb="xl" maw={560} mx="auto">{ctaCms.cta_subtitle}</Text>}
+          {ctaCms.cta_subtitle && <Text c="brand.1" fz="lg" mb="xl" maw={560} mx="auto">{ctaCms.cta_subtitle}</Text>}
           <Group justify="center" gap="md">
-            <Button component={Link} to={ctaCms.cta_button_link || "/contact"} size="lg" color="brand">
+            <Button component={Link} to={ctaCms.cta_button_link || "/contact"} size="lg" color="dark.8">
               {ctaCms.cta_button_text}
             </Button>
             {ctaCms.cta_phone && (

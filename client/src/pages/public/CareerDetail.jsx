@@ -90,9 +90,9 @@ export default function CareerDetail() {
 
   return (
     <Box mih="100vh" bg="gray.0" dir="rtl">
-      <Box bg="brand.6" py={56}>
+      <Box bg="white" py={40} className="page-hero">
         <Container size="xl">
-          <Anchor component={Link} to="/careers" c="brand.1" size="sm" mb="lg" display="inline-flex" style={{ alignItems: "center", gap: 8 }}>
+          <Anchor component={Link} to="/careers" c="brand.6" size="sm" mb="lg" display="inline-flex" style={{ alignItems: "center", gap: 8 }}>
             <FaArrowRight size={13} /> العودة للوظائف
           </Anchor>
           <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
@@ -102,18 +102,18 @@ export default function CareerDetail() {
                 {career.published && !isExpired && <Badge color="green" variant="light">متاحة</Badge>}
                 {isExpired && <Badge color="red" variant="light">انتهت المدة</Badge>}
               </Group>
-              <Title order={1} c="white" fz={{ base: 28, md: 36 }} mb={8}>{career.title?.ar}</Title>
-              {career.title?.en && <Text c="brand.2" fz="lg" mb="md">{career.title.en}</Text>}
-              <Group gap="lg" c="brand.1">
+              <Title order={1} c="dark.8" fz={{ base: 28, md: 36 }} mb={8}>{career.title?.ar}</Title>
+              {career.title?.en && <Text c="dimmed" fz="lg" mb="md">{career.title.en}</Text>}
+              <Group gap="lg" c="dimmed">
                 {career.department?.ar && <Group gap={6}><FaBriefcase size={14} /><Text size="sm">{career.department.ar}</Text></Group>}
                 {career.location?.ar && <Group gap={6}><FaLocationDot size={14} /><Text size="sm">{career.location.ar}</Text></Group>}
                 {career.deadline && (
-                  <Group gap={6} c={isExpired ? "red.3" : undefined}>
+                  <Group gap={6} c={isExpired ? "red.6" : undefined}>
                     <FaCalendar size={14} /><Text size="sm">آخر موعد: {new Date(career.deadline).toLocaleDateString("ar-EG")}</Text>
                   </Group>
                 )}
                 {career.salary?.min && !career.salary?.hidden && (
-                  <Group gap={6} c="green.3">
+                  <Group gap={6} c="green.7">
                     <FaDollarSign size={14} />
                     <Text size="sm">{Number(career.salary.min).toLocaleString("ar-EG")} — {Number(career.salary.max).toLocaleString("ar-EG")} {career.salary.currency}</Text>
                   </Group>
@@ -123,7 +123,7 @@ export default function CareerDetail() {
 
             <Popover position="bottom-end" shadow="lg" radius="lg">
               <Popover.Target>
-                <Button variant="white" color="dark" leftSection={<FaShareNodes size={14} />}>مشاركة</Button>
+                <Button variant="default" color="dark" leftSection={<FaShareNodes size={14} />}>مشاركة</Button>
               </Popover.Target>
               <Popover.Dropdown w={260}>
                 <Text size="xs" fw={700} c="dimmed" mb="sm">مشاركة الوظيفة</Text>

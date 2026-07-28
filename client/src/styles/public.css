@@ -66,6 +66,10 @@
   background: var(--mantine-color-brand-6);
   color: white;
 }
+
+.page-hero {
+  border-bottom: 1px solid var(--mantine-color-gray-1);
+}
 .public-card {
   border: 1px solid var(--mantine-color-gray-2);
   transition: box-shadow 150ms ease, transform 150ms ease;
