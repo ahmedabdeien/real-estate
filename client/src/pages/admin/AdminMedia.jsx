@@ -45,7 +45,7 @@ function UploadItem({ file, queueId, onDone, onError }) {
 
   return (
     <div className={`flex items-center gap-3 p-3 rounded-xl border ${style.border} ${style.bg}`}>
-      <ImageIcon className={`w-5 h-5 shrink-0 ${style.icon}`} />
+      <FaImage className={`w-5 h-5 shrink-0 ${style.icon}`} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{file.name}</p>
         {status === "uploading" && (
@@ -469,7 +469,7 @@ export default function AdminMedia() {
           }`}
         >
           <div className="flex items-center gap-2">
-            <ImageIcon className="w-4 h-4" />
+            <FaImage className="w-4 h-4" />
             كل الصور
           </div>
           <span className={`text-xs rounded-full px-2 py-0.5 ${activeFolder === "all" ? "bg-white/20" : "bg-gray-100 dark:bg-gray-700"}`}>
@@ -643,7 +643,7 @@ export default function AdminMedia() {
           {loading ? (
             <LoadingSpinner className="h-40" size="lg" />
           ) : media.length === 0 ? (
-            <EmptyState icon={ImageIcon} title="لا توجد صور" description="ارفع أول صورة بالسحب والإفلات" />
+            <EmptyState icon={FaImage} title="لا توجد صور" description="ارفع أول صورة بالسحب والإفلات" />
           ) : (
             <>
               <div className={`grid ${gridCols} gap-3`}>
