@@ -1,14 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import {
+  Box, Container, TextInput, SimpleGrid, Card, Image, Group, Text, Title,
+  Anchor, Loader, Pagination as MantinePagination, Stack,
+} from "@mantine/core";
+import { FaMagnifyingGlass, FaCalendar, FaEye, FaFileLines } from "react-icons/fa6";
 
 import api from "../../api/axios";
-import LoadingSpinner from "../../Components/UI/LoadingSpinner";
-import Pagination from "../../Components/UI/Pagination";
-import EmptyState from "../../Components/UI/EmptyState";
 import { useCms } from "../../hooks/useCms";
 import PageHero from "../../Components/shared/PageHero";
-import SectionHeader from "../../Components/shared/SectionHeader";
 
 export default function BlogPage() {
   const { data: cms } = useCms("blog_page", {
@@ -32,6 +32,7 @@ export default function BlogPage() {
       setTotal(res.data.total);
       setPages(res.data.pages);
     } catch {
+      // ignore
     } finally {
       setLoading(false);
     }
@@ -48,70 +49,61 @@ export default function BlogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      {/* Hero */}
-      <PageHero
-        title={cms.title_ar}
-        subtitle={cms.subtitle_ar}
-        image={cms.hero_image}
-      />
+    <Box mih="100vh" bg="gray.0" dir="rtl">
+      <PageHero title={cms.title_ar} subtitle={cms.subtitle_ar} image={cms.hero_image} />
 
-      <div className="container mx-auto px-4 py-10">
-        <div className="flex gap-3 mb-8">
-          <div className="relative">
-            <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-            <input value={search} onChange={handleSearchChange} onKeyDown={(e) => { if (e.key === "Enter") { clearTimeout(timerRef.current); setPage(1); load(search, 1); } }}
-              placeholder="ابحث عن مقال..."
-              className="pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64" />
-          </div>
-        </div>
+      <Container size="xl" py="xl">
+        <TextInput
+          value={search} onChange={handleSearchChange}
+          onKeyDown={(e) => { if (e.key === "Enter") { clearTimeout(timerRef.current); setPage(1); load(search, 1); } }}
+          placeholder="ابحث عن مقال..." leftSection={<FaMagnifyingGlass size={14} />}
+          radius="md" w={280} mb="xl"
+        />
 
-        {loading ? <LoadingSpinner className="h-64" size="lg" /> : blogs.length === 0 ? (
-          <EmptyState icon={FileText} title="لا توجد مقالات" description="لا توجد مقالات منشورة حالياً" />
+        {loading ? (
+          <Group justify="center" py={80}><Loader color="brand" size="lg" /></Group>
+        ) : blogs.length === 0 ? (
+          <Stack align="center" py={80} gap="xs">
+            <FaFileLines size={40} color="var(--mantine-color-gray-4)" />
+            <Text fw={600} c="dark.6">لا توجد مقالات</Text>
+            <Text size="sm" c="dimmed">لا توجد مقالات منشورة حالياً</Text>
+          </Stack>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
               {blogs.map((b) => (
-                <motion.article key={b._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100">
-                  <div className="h-48 overflow-hidden bg-gray-100">
+                <Card key={b._id} component="article" className="public-card" padding={0} radius="lg">
+                  <Box h={192} bg="gray.1">
                     {b.coverImage ? (
-                      <img src={b.coverImage} alt={b.title?.ar} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <Image src={b.coverImage} alt={b.title?.ar} h={192} fit="cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(to bottom right, var(--primary), var(--primary-dark))" }}>
-                        <FaFileLines className="w-12 h-12 text-white/30" />
-                      </div>
+                      <Box h={192} display="flex" style={{ alignItems: "center", justifyContent: "center", background: "var(--mantine-color-brand-6)" }}>
+                        <FaFileLines size={44} color="rgba(255,255,255,0.3)" />
+                      </Box>
                     )}
-                  </div>
-                  <div className="p-5">
-                    <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
-                      <span className="flex items-center gap-1">
-                        <FaCalendar className="w-3 h-3" />
-                        {new Date(b.createdAt).toLocaleDateString("ar-EG")}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <FaEye className="w-3 h-3" />
-                        {b.views}
-                      </span>
-                    </div>
-                    <h3 className="font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-[var(--primary)] transition-colors">
-                      {b.title?.ar}
-                    </h3>
-                    {b.excerpt?.ar && (
-                      <p className="text-gray-500 text-sm line-clamp-2 mb-4">{b.excerpt.ar}</p>
-                    )}
-                    <Link to={`/blog/${b.slug}`}
-                      className="text-[var(--primary)] font-semibold text-sm hover:underline">
+                  </Box>
+                  <Stack gap={8} p="lg">
+                    <Group gap="md" c="dimmed">
+                      <Group gap={4}><FaCalendar size={11} /><Text size="xs">{new Date(b.createdAt).toLocaleDateString("ar-EG")}</Text></Group>
+                      <Group gap={4}><FaEye size={11} /><Text size="xs">{b.views}</Text></Group>
+                    </Group>
+                    <Title order={3} size="lg" c="dark.8" lineClamp={2}>{b.title?.ar}</Title>
+                    {b.excerpt?.ar && <Text size="sm" c="dimmed" lineClamp={2}>{b.excerpt.ar}</Text>}
+                    <Anchor component={Link} to={`/blog/${b.slug}`} c="brand.6" fw={600} size="sm" underline="never">
                       اقرأ المزيد ←
-                    </Link>
-                  </div>
-                </motion.article>
+                    </Anchor>
+                  </Stack>
+                </Card>
               ))}
-            </div>
-            <Pagination page={page} pages={pages} onPage={setPage} />
+            </SimpleGrid>
+            {pages > 1 && (
+              <Group justify="center" mt="xl">
+                <MantinePagination value={page} onChange={setPage} total={pages} color="brand" radius="md" />
+              </Group>
+            )}
           </>
         )}
-      </div>
-    </div>
+      </Container>
+    </Box>
   );
 }

@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { Box, Container, Grid, SimpleGrid, Card, Title, Text, Image, ThemeIcon, Stack } from "@mantine/core";
+import { FaBuilding, FaEye, FaBullseye, FaAward, FaUsers } from "react-icons/fa6";
 
 import { useCms } from "../../hooks/useCms";
 import PageHero from "../../Components/shared/PageHero";
-import SectionHeader from "../../Components/shared/SectionHeader";
 
 export default function AboutPage() {
   useEffect(() => { document.title = "عن الشركة | الصرح للتطوير العقاري"; }, []);
@@ -15,120 +15,94 @@ export default function AboutPage() {
     image: "",
   });
   const { data: stats } = useCms("stats", {
-    projects_count: "50+",
-    units_count: "2000+",
-    clients_count: "5000+",
-    years_experience: "15+",
+    projects_count: "50+", units_count: "2000+", clients_count: "5000+", years_experience: "15+",
   });
+  const { data: hero } = useCms("about_hero", { title_ar: "", subtitle_ar: "شركة رائدة في مجال التطوير العقاري", hero_image: "" });
 
-  const { data: hero } = useCms("about_hero", {
-    title_ar: "",
-    subtitle_ar: "شركة رائدة في مجال التطوير العقاري",
-    hero_image: "",
-  });
+  const statItems = [
+    { label: "مشروع", value: stats.projects_count },
+    { label: "وحدة سكنية", value: stats.units_count },
+    { label: "عملاء", value: stats.clients_count },
+    { label: "سنة خبرة", value: stats.years_experience },
+  ];
+
+  const values = [
+    { icon: FaAward, title: "الجودة", desc: "نلتزم بأعلى معايير الجودة في كل مشروع" },
+    { icon: FaUsers, title: "خدمة العملاء", desc: "عملاؤنا في قلب كل قرار نتخذه" },
+    { icon: FaBuilding, title: "الابتكار", desc: "نستمر في تطوير حلول عقارية مبتكرة" },
+  ];
 
   return (
-    <div className="min-h-screen" dir="rtl">
-      {/* Hero */}
-      <PageHero
-        title={hero.title_ar || content.title_ar}
-        subtitle={hero.subtitle_ar}
-        badge="الصرح للتطوير العقاري"
-        image={hero.hero_image}
-      />
+    <Box dir="rtl">
+      <PageHero title={hero.title_ar || content.title_ar} subtitle={hero.subtitle_ar} badge="الصرح للتطوير العقاري" image={hero.hero_image} />
 
       {/* Story */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-              <span className="text-[var(--primary)] font-semibold text-sm uppercase tracking-widest">قصتنا</span>
-              <h2 className="text-3xl font-black text-gray-900 mt-2 mb-5">
+      <Box className="public-section" bg="white">
+        <Container size="xl">
+          <Grid gutter={48} align="center">
+            <Grid.Col span={{ base: 12, lg: 6 }}>
+              <Text c="brand.6" fw={700} size="sm" tt="uppercase" mb={6}>قصتنا</Text>
+              <Title order={2} fz={{ base: 26, md: 32 }} mb="md">
                 {content.founded_year ? `منذ عام ${content.founded_year}` : "رواد في عالم العقارات"}
-              </h2>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                {content.body_ar}
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: "مشروع", value: stats.projects_count },
-                  { label: "وحدة سكنية", value: stats.units_count },
-                  { label: "عملاء", value: stats.clients_count },
-                  { label: "سنة خبرة", value: stats.years_experience },
-                ].map(({ label, value }) => (
-                  <div key={label} className="bg-[#f8fafc] rounded-xl p-4">
-                    <p className="text-3xl font-black text-[var(--primary)]">{value}</p>
-                    <p className="text-gray-500 text-sm">{label}</p>
-                  </div>
+              </Title>
+              <Text c="dimmed" lh={1.8} mb="lg">{content.body_ar}</Text>
+              <SimpleGrid cols={2} spacing="md">
+                {statItems.map(({ label, value }) => (
+                  <Card key={label} bg="gray.0" radius="md" p="md">
+                    <Text fw={900} size="28px" c="brand.6">{value}</Text>
+                    <Text size="sm" c="dimmed">{label}</Text>
+                  </Card>
                 ))}
-              </div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+              </SimpleGrid>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, lg: 6 }}>
               {content.image ? (
-                <img src={content.image} alt="الصرح للتطوير العقاري" className="rounded-2xl w-full h-80 object-cover shadow-xl" />
+                <Image src={content.image} alt="الصرح للتطوير العقاري" radius="lg" h={320} fit="cover" />
               ) : (
-                <div className="rounded-2xl w-full h-80 flex items-center justify-center shadow-xl" style={{ background: "linear-gradient(to bottom right, var(--primary), var(--primary-dark))" }}>
-                  <FaBuilding className="w-24 h-24 text-white/30" />
-                </div>
+                <Box h={320} bg="brand.6" display="flex" style={{ alignItems: "center", justifyContent: "center", borderRadius: "var(--mantine-radius-lg)" }}>
+                  <FaBuilding size={96} color="rgba(255,255,255,0.3)" />
+                </Box>
               )}
-            </motion.div>
-          </div>
-        </div>
-      </section>
+            </Grid.Col>
+          </Grid>
+        </Container>
+      </Box>
 
       {/* Vision & Mission */}
-      <section className="py-16 bg-[#f8fafc]">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-5">
-                <FaEye className="w-6 h-6 text-[var(--primary)]" />
-              </div>
-              <h3 className="text-xl font-black text-gray-900 mb-3">رؤيتنا</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {content.vision_ar}
-              </p>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center mb-5">
-                <Target className="w-6 h-6 text-[var(--accent)]" />
-              </div>
-              <h3 className="text-xl font-black text-gray-900 mb-3">رسالتنا</h3>
-              <p className="text-gray-600 leading-relaxed">
-                {content.mission_ar}
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+      <Box className="public-section" bg="gray.0">
+        <Container size="xl">
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+            <Card className="public-card" radius="lg" p="xl">
+              <ThemeIcon size={48} radius="lg" variant="light" color="brand" mb="md"><FaEye size={22} /></ThemeIcon>
+              <Title order={3} size="xl" mb="sm">رؤيتنا</Title>
+              <Text c="dimmed" lh={1.8}>{content.vision_ar}</Text>
+            </Card>
+            <Card className="public-card" radius="lg" p="xl">
+              <ThemeIcon size={48} radius="lg" variant="light" color="dark" mb="md"><FaBullseye size={22} /></ThemeIcon>
+              <Title order={3} size="xl" mb="sm">رسالتنا</Title>
+              <Text c="dimmed" lh={1.8}>{content.mission_ar}</Text>
+            </Card>
+          </SimpleGrid>
+        </Container>
+      </Box>
 
       {/* Values */}
-      <section className="py-16" style={{ background: "var(--primary)" }}>
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-black text-white">قيمنا الأساسية</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: Award, title: "الجودة", desc: "نلتزم بأعلى معايير الجودة في كل مشروع" },
-              { icon: Users, title: "خدمة العملاء", desc: "عملاؤنا في قلب كل قرار نتخذه" },
-              { icon: Building2, title: "الابتكار", desc: "نستمر في تطوير حلول عقارية مبتكرة" },
-            ].map(({ icon: Icon, title, desc }) => (
-              <motion.div key={title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                className="text-center bg-white/10 backdrop-blur rounded-2xl p-6">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4">
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-bold text-white text-lg mb-2">{title}</h3>
-                <p className="text-white/70 text-sm">{desc}</p>
-              </motion.div>
+      <Box className="public-section" bg="brand.6">
+        <Container size="xl">
+          <Title order={2} c="white" ta="center" fz={{ base: 26, md: 32 }} mb="xl">قيمنا الأساسية</Title>
+          <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
+            {values.map(({ icon: Icon, title, desc }) => (
+              <Stack key={title} align="center" ta="center" p="lg" gap={8} style={{ background: "rgba(255,255,255,0.1)", borderRadius: "var(--mantine-radius-lg)" }}>
+                <ThemeIcon size={48} radius="lg" variant="light" color="gray.0" style={{ background: "rgba(255,255,255,0.2)" }}>
+                  <Icon size={22} color="white" />
+                </ThemeIcon>
+                <Text fw={700} c="white" size="lg">{title}</Text>
+                <Text c="brand.1" size="sm">{desc}</Text>
+              </Stack>
             ))}
-          </div>
-        </div>
-      </section>
-    </div>
+          </SimpleGrid>
+        </Container>
+      </Box>
+    </Box>
   );
 }

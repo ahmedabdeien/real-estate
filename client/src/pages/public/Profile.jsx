@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Box, Container, Grid, Stack, Card, Title, Text, TextInput, Button, Avatar,
+  Badge, Group, Alert, SimpleGrid,
+} from "@mantine/core";
+import {
+  FaArrowRight, FaPhone, FaLocationDot, FaCalendar, FaRightFromBracket,
+  FaPen, FaUser, FaEnvelope, FaLock, FaFloppyDisk, FaTriangleExclamation,
+} from "react-icons/fa6";
 
-import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axios";
-
-const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm transition-colors";
-const lockedClass = "w-full px-4 py-3 rounded-xl border border-gray-100 bg-gray-50 text-gray-400 text-sm cursor-not-allowed select-none";
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 function canChange(changedAt) {
@@ -16,15 +20,15 @@ function canChange(changedAt) {
 }
 
 const roleLabel = { admin: "مدير النظام", sales: "مبيعات", viewer: "عضو" };
-const roleBg    = { admin: "bg-[var(--primary)]/10 text-[var(--primary)]", sales: "bg-emerald-50 text-emerald-700", viewer: "bg-gray-100 text-gray-600" };
+const roleColor = { admin: "brand", sales: "teal", viewer: "gray" };
 
 export default function ProfilePage() {
   const { user, updateUser, logout } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", age: "" });
-  const [saving, setSaving]   = useState(false);
+  const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState("");
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) { navigate("/"); return; }
@@ -56,155 +60,78 @@ export default function ProfilePage() {
     }
   };
 
-  const avatar = user.name?.[0]?.toUpperCase();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f0f6ff] to-[#f8fafc]" dir="rtl">
-      <div className="max-w-3xl mx-auto px-4 py-10">
-
-        {/* Back */}
-        <button onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 text-gray-500 hover:text-[var(--primary)] text-sm mb-8 transition-colors group">
-          <ArrowRight className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+    <Box mih="100vh" bg="gray.0" dir="rtl">
+      <Container size={900} py="xl">
+        <Button variant="subtle" color="gray" leftSection={<FaArrowRight size={13} />} onClick={() => navigate(-1)} mb="lg">
           رجوع
-        </button>
+        </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Grid gutter="lg">
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Card className="public-card" radius="lg" p="lg" ta="center">
+              <Avatar color="brand" radius="xl" size={96} mx="auto" mb="md" style={{ fontSize: 32, fontWeight: 900 }}>
+                {user.name?.[0]?.toUpperCase()}
+              </Avatar>
+              <Title order={3} size="lg">{user.name}</Title>
+              <Text c="dimmed" size="sm" truncate mt={2}>{user.email}</Text>
+              <Badge color={roleColor[user.role] || "gray"} variant="light" mt="sm">{roleLabel[user.role] || "عضو"}</Badge>
 
-          {/* ── Left: Identity card ── */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="lg:col-span-1">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 text-center">
-              {/* Big Avatar */}
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--primary)] to-[#1a3d5c] flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-4xl font-black text-white">{avatar}</span>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">{user.name}</h2>
-              <p className="text-gray-400 text-sm mt-0.5 truncate">{user.email}</p>
-              <span className={`inline-block mt-3 text-xs font-semibold px-3 py-1 rounded-full ${roleBg[user.role] || roleBg.viewer}`}>
-                {roleLabel[user.role] || "عضو"}
-              </span>
+              <Stack gap={10} mt="lg" pt="lg" style={{ borderTop: "1px solid var(--mantine-color-gray-1)" }} ta="right">
+                {user.phone && <Group gap={10}><FaPhone size={14} color="var(--mantine-color-brand-6)" /><Text size="sm" dir="ltr">{user.phone}</Text></Group>}
+                {user.address && <Group gap={10} align="flex-start"><FaLocationDot size={14} color="var(--mantine-color-brand-6)" style={{ marginTop: 3 }} /><Text size="sm">{user.address}</Text></Group>}
+                {user.age && <Group gap={10}><FaCalendar size={14} color="var(--mantine-color-brand-6)" /><Text size="sm">{user.age} سنة</Text></Group>}
+              </Stack>
 
-              <div className="border-t border-gray-100 mt-5 pt-5 space-y-3 text-right">
-                {user.phone && (
-                  <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                    <FaPhone className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
-                    <span dir="ltr">{user.phone}</span>
-                  </div>
-                )}
-                {user.address && (
-                  <div className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <FaLocationDot className="w-4 h-4 text-[var(--primary)] flex-shrink-0 mt-0.5" />
-                    <span>{user.address}</span>
-                  </div>
-                )}
-                {user.age && (
-                  <div className="flex items-center gap-2.5 text-sm text-gray-600">
-                    <FaCalendar className="w-4 h-4 text-[var(--primary)] flex-shrink-0" />
-                    <span>{user.age} سنة</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Logout */}
-              <button onClick={async () => { await logout(); navigate("/"); }}
-                className="mt-6 w-full flex items-center justify-center gap-2 border border-red-200 text-red-500 hover:bg-red-50 py-2.5 rounded-xl text-sm font-medium transition-colors">
-                <FaRightFromBracket className="w-4 h-4" />
+              <Button
+                variant="light" color="red" fullWidth mt="lg" leftSection={<FaRightFromBracket size={14} />}
+                onClick={async () => { await logout(); navigate("/"); }}
+              >
                 تسجيل الخروج
-              </button>
-            </div>
-          </motion.div>
+              </Button>
+            </Card>
+          </Grid.Col>
 
-          {/* ── Right: Edit form ── */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-            className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-7">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-                  <FaPen className="w-4 h-4 text-[var(--primary)]" />
-                </div>
-                <h3 className="font-bold text-gray-900">تعديل المعلومات</h3>
-              </div>
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Card className="public-card" radius="lg" p="xl" component="form" onSubmit={handleSave}>
+              <Group gap={10} mb="lg">
+                <FaPen size={16} color="var(--mantine-color-brand-6)" />
+                <Text fw={700}>تعديل المعلومات</Text>
+              </Group>
 
-              <form onSubmit={handleSave} className="space-y-4">
-                {/* Name */}
-                <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <FaUser className="w-3.5 h-3.5 text-gray-400" /> الاسم الكامل *
-                  </label>
-                  <input value={form.name} onChange={(e) => f("name", e.target.value)} required className={inputClass} />
-                </div>
+              <Stack gap="md">
+                <TextInput label="الاسم الكامل" required value={form.name} onChange={(e) => f("name", e.target.value)} leftSection={<FaUser size={13} />} radius="md" />
 
-                {/* Phone */}
-                <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <FaPhone className="w-3.5 h-3.5 text-gray-400" /> رقم الهاتف
-                    {!phoneStatus.ok && (
-                      <span className="mr-auto flex items-center gap-1 text-xs text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">
-                        <FaLock className="w-3 h-3" /> بعد {phoneStatus.days} أيام
-                      </span>
-                    )}
-                  </label>
-                  <input value={form.phone} onChange={(e) => f("phone", e.target.value)}
-                    disabled={!phoneStatus.ok} className={phoneStatus.ok ? inputClass : lockedClass} />
-                </div>
+                <TextInput
+                  label="رقم الهاتف" value={form.phone} onChange={(e) => f("phone", e.target.value)}
+                  disabled={!phoneStatus.ok} leftSection={<FaPhone size={13} />} radius="md"
+                  rightSection={!phoneStatus.ok && <FaLock size={13} color="var(--mantine-color-yellow-6)" />}
+                  description={!phoneStatus.ok ? `يمكن التعديل بعد ${phoneStatus.days} أيام` : undefined}
+                />
 
-                {/* Email */}
-                <div>
-                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <FaEnvelope className="w-3.5 h-3.5 text-gray-400" /> البريد الإلكتروني
-                    {!emailStatus.ok && (
-                      <span className="mr-auto flex items-center gap-1 text-xs text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">
-                        <FaLock className="w-3 h-3" /> بعد {emailStatus.days} أيام
-                      </span>
-                    )}
-                  </label>
-                  <input type="email" value={form.email} onChange={(e) => f("email", e.target.value)}
-                    disabled={!emailStatus.ok} className={emailStatus.ok ? inputClass : lockedClass} />
-                </div>
+                <TextInput
+                  type="email" label="البريد الإلكتروني" value={form.email} onChange={(e) => f("email", e.target.value)}
+                  disabled={!emailStatus.ok} leftSection={<FaEnvelope size={13} />} radius="md"
+                  rightSection={!emailStatus.ok && <FaLock size={13} color="var(--mantine-color-yellow-6)" />}
+                  description={!emailStatus.ok ? `يمكن التعديل بعد ${emailStatus.days} أيام` : undefined}
+                />
 
-                {/* Address + Age */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                      <FaLocationDot className="w-3.5 h-3.5 text-gray-400" /> العنوان
-                    </label>
-                    <input value={form.address} onChange={(e) => f("address", e.target.value)}
-                      placeholder="مثال: القاهرة، المعادي" className={inputClass} />
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                      <FaCalendar className="w-3.5 h-3.5 text-gray-400" /> السن
-                    </label>
-                    <input type="number" min="10" max="120" value={form.age} onChange={(e) => f("age", e.target.value)}
-                      placeholder="مثال: 30" className={inputClass} />
-                  </div>
-                </div>
+                <SimpleGrid cols={2} spacing="md">
+                  <TextInput label="العنوان" placeholder="مثال: القاهرة، المعادي" value={form.address} onChange={(e) => f("address", e.target.value)} leftSection={<FaLocationDot size={13} />} radius="md" />
+                  <TextInput type="number" min="10" max="120" label="السن" placeholder="مثال: 30" value={form.age} onChange={(e) => f("age", e.target.value)} leftSection={<FaCalendar size={13} />} radius="md" />
+                </SimpleGrid>
 
-                {/* Feedback */}
-                {error && (
-                  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-                    ⚠️ {error}
-                  </motion.div>
-                )}
-                {success && (
-                  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-                    className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm">
-                    {success}
-                  </motion.div>
-                )}
+                {error && <Alert color="red" icon={<FaTriangleExclamation size={14} />} radius="md">{error}</Alert>}
+                {success && <Alert color="green" radius="md">{success}</Alert>}
 
-                <button type="submit" disabled={saving}
-                  className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[#245079] text-white py-3.5 rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 mt-2">
-                  <Save className="w-4 h-4" />
-                  {saving ? "جاري الحفظ..." : "حفظ التغييرات"}
-                </button>
-              </form>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </div>
+                <Button type="submit" loading={saving} color="brand" size="md" leftSection={<FaFloppyDisk size={14} />}>
+                  حفظ التغييرات
+                </Button>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      </Container>
+    </Box>
   );
 }

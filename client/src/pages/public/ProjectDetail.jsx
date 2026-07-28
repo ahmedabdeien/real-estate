@@ -1,9 +1,19 @@
-import { useEffect, useState } from "react";
-import { FaLocationDot, FaBuilding, FaHouseChimney, FaArrowRight, FaPhone, FaWhatsapp, FaStar, FaShare, FaChevronLeft, FaChevronRight, FaRulerCombined, FaLayerGroup } from 'react-icons/fa6';
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { Carousel } from "@mantine/carousel";
+import {
+  Box, Container, Grid, Stack, Card, Title, Text, Group, Badge, Button,
+  TextInput, Textarea, Anchor, Breadcrumbs, SimpleGrid, Image, Modal, Table,
+  ThemeIcon, Loader,
+} from "@mantine/core";
+import {
+  FaLocationDot, FaBuilding, FaHouseChimney, FaPhone, FaWhatsapp,
+  FaRulerCombined, FaBed, FaBath, FaCircleCheck, FaTag, FaHouse, FaMapPin,
+  FaPlay, FaCodeCompare, FaPen,
+} from "react-icons/fa6";
+
 import api from "../../api/axios";
-import { PageLoader } from "../../Components/UI/LoadingSpinner";
 import { statusBadge } from "../../Components/UI/Badge";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useAuth } from "../../context/AuthContext";
@@ -15,453 +25,10 @@ const unitTypeAr = {
 };
 
 const UNIT_STATUS = {
-  available: { label: "متاح",   bg: "bg-green-50",  text: "text-green-700",  border: "border-green-200" },
-  sold:      { label: "مباعة",  bg: "bg-red-50",    text: "text-red-700",    border: "border-red-200" },
-  reserved:  { label: "محجوز",  bg: "bg-amber-50",  text: "text-amber-700",  border: "border-amber-200" },
+  available: { label: "متاح", color: "green" },
+  sold:      { label: "مباعة", color: "red" },
+  reserved:  { label: "محجوز", color: "yellow" },
 };
-
-export default function ProjectDetailPage() {
-  const { slug } = useParams();
-  const { user } = useAuth();
-  const [project, setProject] = useState(null);
-  const [units, setUnits] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeImg, setActiveImg] = useState(0);
-  const [unitFilter, setUnitFilter] = useState("all");
-  const [compareList, setCompareList] = useState([]);
-  const [showCompare, setShowCompare] = useState(false);
-  const { contact } = useSiteSettings();
-  const waNum = (contact.whatsapp_number || contact.whatsapp || contact.phone || "201000000000").replace(/\D/g, "");
-
-  useEffect(() => {
-    document.title = "تفاصيل المشروع";
-    api.get(`/projects/${slug}`)
-      .then(r => { setProject(r.data.project); setUnits(r.data.units || []); })
-      .finally(() => setLoading(false));
-  }, [slug]);
-
-  if (loading) return <PageLoader />;
-  if (!project) return (
-    <div className="min-h-screen flex items-center justify-center" dir="rtl">
-      <div className="text-center">
-        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <FaBuilding className="w-10 h-10 text-gray-300" />
-        </div>
-        <p className="text-gray-500 mb-4">المشروع غير موجود</p>
-        <Link to="/projects" className="text-[var(--primary)] font-semibold hover:underline">← العودة للمشاريع</Link>
-      </div>
-    </div>
-  );
-
-  const allImages = [project.coverImage, ...(project.images || [])].filter(Boolean);
-  const { label: statusLabel, variant } = statusBadge(project.status);
-  const filteredUnits = unitFilter === "all" ? units : units.filter(u => u.status === unitFilter);
-  const counts = {
-    all: units.length,
-    available: units.filter(u => u.status === "available").length,
-    sold: units.filter(u => u.status === "sold").length,
-    reserved: units.filter(u => u.status === "reserved").length,
-  };
-
-  const toggleCompare = (id) => setCompareList(p => p.includes(id) ? p.filter(x => x !== id) : p.length < 3 ? [...p, id] : p);
-  const compareUnits = units.filter(u => compareList.includes(u._id));
-
-  const buildMapUrl = () => {
-    if (project.mapEmbedUrl) return project.mapEmbedUrl;
-    if (project.location?.lat && project.location?.lng) {
-      return `https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || ""}&q=${project.location.lat},${project.location.lng}&zoom=15`;
-    }
-    return null;
-  };
-  const mapEmbed = buildMapUrl();
-
-  const variantColors = {
-    success: "bg-green-100 text-green-700",
-    warning: "bg-amber-100 text-amber-700",
-    error: "bg-red-100 text-red-700",
-    gray: "bg-gray-100 text-gray-600",
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-
-      {/* Hero */}
-      {allImages.length > 0 && (
-        <div className="relative h-[55vh] bg-[#12283C] overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.img key={activeImg} src={allImages[activeImg]} alt="" className="w-full h-full object-cover opacity-80"
-              initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 0.85, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} />
-          </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#12283C]/80 via-transparent to-transparent" />
-
-          {allImages.length > 1 && (
-            <>
-              <button onClick={() => setActiveImg(i => (i + 1) % allImages.length)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30">
-                <FaChevronLeft className="w-5 h-5" />
-              </button>
-              <button onClick={() => setActiveImg(i => (i - 1 + allImages.length) % allImages.length)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30">
-                <FaChevronRight className="w-5 h-5" />
-              </button>
-              <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {allImages.map((_, i) => (
-                  <button key={i} onClick={() => setActiveImg(i)}
-                    className={`h-1.5 rounded-full transition-all ${i === activeImg ? "w-6 bg-white" : "w-1.5 bg-white/40"}`} />
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Status pill */}
-          <div className="absolute top-5 right-5">
-            <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${variantColors[variant] || "bg-gray-100 text-gray-600"}`}>{statusLabel}</span>
-          </div>
-
-          {/* Title overlay */}
-          <div className="absolute bottom-0 right-0 left-0 px-6 pb-6">
-            <div className="container mx-auto">
-              <h1 className="text-3xl md:text-4xl font-black text-white mb-1 drop-shadow">{project.name?.ar}</h1>
-              {project.location?.city?.ar && (
-                <p className="text-white/70 text-sm flex items-center gap-1.5">
-                  <FaLocationDot className="w-4 h-4" />
-                  {[project.location.address?.ar, project.location.city.ar].filter(Boolean).join("، ")}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-100 py-2.5">
-        <div className="container mx-auto px-4 flex items-center gap-2 text-sm text-gray-500">
-          <Link to="/" className="hover:text-[var(--primary)]">الرئيسية</Link>
-          <span className="text-gray-300">/</span>
-          <Link to="/projects" className="hover:text-[var(--primary)]">المشاريع</Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-gray-800 font-medium truncate">{project.name?.ar}</span>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ direction: "rtl" }}>
-
-          {/* SIDEBAR (RIGHT in RTL — first in DOM) */}
-          <div className="space-y-4 order-first lg:order-none lg:col-span-1">
-
-            {/* Contact card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-20">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center">
-                  <FaPhone className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 text-sm">احجز استشارة مجانية</p>
-                  <p className="text-xs text-gray-400">نتواصل معك خلال ٢٤ ساعة</p>
-                </div>
-              </div>
-              <ContactForm projectName={project.name?.ar} projectId={project._id} waNumber={waNum} />
-            </div>
-
-            {/* Project stats */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">تفاصيل المشروع</p>
-              <div className="space-y-2.5">
-                {[
-                  project.developer?.ar && { icon: Building2, label: "المطور", value: project.developer.ar },
-                  project.startingPrice > 0 && { icon: Tag, label: "يبدأ من", value: `${project.startingPrice.toLocaleString("ar-EG")} ج.م` },
-                  project.totalUnits > 0 && { icon: Home, label: "إجمالي الوحدات", value: `${project.totalUnits} وحدة` },
-                  counts.available > 0 && { icon: CheckCircle, label: "متاح الآن", value: `${counts.available} وحدة`, green: true },
-                  project.location?.city?.ar && { icon: MapPin, label: "الموقع", value: project.location.city.ar },
-                ].filter(Boolean).map((item, i) => (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <item.icon className={`w-4 h-4 flex-shrink-0 ${item.green ? "text-green-500" : "text-gray-400"}`} />
-                    <span className="text-xs text-gray-400 w-20 flex-shrink-0">{item.label}</span>
-                    <span className={`text-sm font-semibold ${item.green ? "text-green-600" : "text-gray-800"}`}>{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Brochure */}
-            {project.brochureUrl && (
-              <a href={project.brochureUrl} target="_blank" rel="noopener noreferrer"
-                className="block bg-[#12283C] hover:bg-[#1a3a58] text-white text-center py-3 rounded-xl font-semibold text-sm transition-colors">
-                تحميل الكتيب التعريفي
-              </a>
-            )}
-          </div>
-
-          {/* MAIN CONTENT */}
-          <div className="lg:col-span-2 space-y-6">
-
-            {/* Description */}
-            {project.description?.ar && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-3 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-[var(--primary)] rounded-full" />
-                  عن المشروع
-                </h2>
-                <p className="text-gray-600 leading-loose text-sm">{project.description.ar}</p>
-              </div>
-            )}
-
-            {/* Amenities */}
-            {project.amenities?.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-[var(--primary)] rounded-full" />
-                  المميزات والمرافق
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {project.amenities.map(a => (
-                    <div key={a} className="flex items-center gap-2 p-2.5 bg-[var(--primary)]/5 rounded-xl border border-[var(--primary)]/10">
-                      <div className="w-5 h-5 rounded-full bg-[var(--primary)]/15 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="w-3 h-3 text-[var(--primary)]" />
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">{a}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Gallery thumbnails */}
-            {allImages.length > 1 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <h2 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-[var(--primary)] rounded-full" />
-                  معرض الصور
-                </h2>
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                  {allImages.map((img, i) => (
-                    <button key={i} onClick={() => { setActiveImg(i); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-                      className={`aspect-square rounded-xl overflow-hidden transition-all ${i === activeImg ? "ring-2 ring-[var(--primary)]" : "opacity-60 hover:opacity-100"}`}>
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Map */}
-            {mapEmbed && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                  <FaLocationDot className="w-4 h-4 text-[var(--primary)]" />
-                  <h2 className="font-bold text-gray-900">موقع المشروع</h2>
-                </div>
-                <iframe
-                  src={mapEmbed}
-                  width="100%"
-                  height="300"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  title="موقع المشروع"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-            )}
-
-            {/* Video */}
-            {project.videoUrl && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                  <Play className="w-4 h-4 text-[var(--primary)]" />
-                  <h2 className="font-bold text-gray-900">فيديو المشروع</h2>
-                </div>
-                <div className="aspect-video">
-                  <iframe src={project.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
-                    className="w-full h-full" allowFullScreen title="فيديو" />
-                </div>
-              </div>
-            )}
-
-            {/* Units */}
-            {units.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between flex-wrap gap-3">
-                    <h2 className="font-bold text-gray-900 text-lg">وحدات المشروع</h2>
-                    {/* Filter tabs */}
-                    <div className="flex gap-1.5 flex-wrap">
-                      {[
-                        { key: "all", label: "الكل" },
-                        { key: "available", label: "متاح" },
-                        { key: "reserved", label: "محجوز" },
-                        { key: "sold", label: "مباعة" },
-                      ].map(tab => (
-                        <button key={tab.key}
-                          onClick={() => setUnitFilter(tab.key)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                            unitFilter === tab.key
-                              ? "bg-[var(--primary)] text-white"
-                              : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                          }`}>
-                          {tab.label} {counts[tab.key] > 0 && `(${counts[tab.key]})`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Compare bar */}
-                  {compareList.length >= 2 && (
-                    <div className="mt-3 flex items-center justify-between bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-xl px-4 py-2.5">
-                      <span className="text-sm text-[var(--primary)] font-semibold">{compareList.length} وحدات مختارة للمقارنة</span>
-                      <div className="flex gap-2">
-                        <button onClick={() => setShowCompare(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary)] text-white text-xs rounded-lg font-semibold">
-                          <GitCompare className="w-3.5 h-3.5" /> مقارنة
-                        </button>
-                        <button onClick={() => setCompareList([])}
-                          className="px-3 py-1.5 border border-gray-200 text-gray-500 text-xs rounded-lg hover:bg-gray-50">
-                          مسح
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Unit cards - horizontal list */}
-                <div className="divide-y divide-gray-50">
-                  {filteredUnits.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400">
-                      <FaHouseChimney className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                      <p className="text-sm">لا توجد وحدات بهذه الحالة</p>
-                    </div>
-                  ) : filteredUnits.map(u => {
-                    const st = UNIT_STATUS[u.status] || UNIT_STATUS.available;
-                    const inCompare = compareList.includes(u._id);
-                    return (
-                      <motion.div key={u._id}
-                        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                        className={`flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors ${inCompare ? "bg-[var(--primary)]/3" : ""}`}>
-
-                        {/* Image */}
-                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                          {u.images?.[0]
-                            ? <img src={u.images[0]} alt="" className="w-full h-full object-cover" />
-                            : <div className="w-full h-full flex items-center justify-center"><FaHouseChimney className="w-6 h-6 text-gray-300" /></div>
-                          }
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-bold text-gray-900 text-sm">{unitTypeAr[u.type] || u.type} {u.unitNumber && `— ${u.unitNumber}`}</p>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${st.bg} ${st.text} ${st.border}`}>{st.label}</span>
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            {u.area && <span className="flex items-center gap-1"><Maximize2 className="w-3 h-3" />{u.area} م²</span>}
-                            {u.rooms && <span className="flex items-center gap-1"><BedDouble className="w-3 h-3" />{u.rooms} غرف</span>}
-                            {u.bathrooms && <span className="flex items-center gap-1"><Bath className="w-3 h-3" />{u.bathrooms} حمام</span>}
-                            {u.floor && <span>الدور: {u.floor}</span>}
-                          </div>
-                        </div>
-
-                        {/* Price + Compare */}
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          {u.price > 0 && (
-                            <div className="text-left">
-                              <p className="font-black text-[var(--primary)] text-sm">{u.price.toLocaleString("ar-EG")}</p>
-                              <p className="text-xs text-gray-400">ج.م</p>
-                            </div>
-                          )}
-                          <button onClick={() => toggleCompare(u._id)}
-                            title={inCompare ? "إلغاء المقارنة" : "أضف للمقارنة"}
-                            className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all ${
-                              inCompare ? "bg-[var(--primary)] border-[var(--primary)] text-white" : "border-gray-200 text-gray-400 hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                            }`}>
-                            <GitCompare className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Admin quick edit button */}
-      {user && ["admin", "supervisor"].includes(user.role) && project && (
-        <Link to={`/admin/projects?edit=${project._id}`}
-          className="fixed bottom-24 left-6 z-50 flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2.5 rounded-full shadow-xl hover:bg-[#245079] transition-all text-sm font-bold">
-          <FaPen className="w-4 h-4" />
-          تعديل المشروع
-        </Link>
-      )}
-
-      {/* Compare Modal */}
-      <AnimatePresence>
-        {showCompare && compareUnits.length >= 2 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-4"
-            onClick={e => e.target === e.currentTarget && setShowCompare(false)}>
-            <motion.div
-              initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[80vh] overflow-auto" dir="rtl">
-              <div className="sticky top-0 bg-white px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <GitCompare className="w-5 h-5 text-[var(--primary)]" />
-                  <h3 className="font-bold text-gray-900">مقارنة الوحدات</h3>
-                </div>
-                <button onClick={() => setShowCompare(false)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">
-                  <FaXmark className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="p-6 overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr>
-                      <th className="w-28 text-right text-xs text-gray-400 font-medium pb-4"></th>
-                      {compareUnits.map(u => (
-                        <th key={u._id} className="pb-4 px-4">
-                          <div className="bg-[var(--primary)]/5 rounded-2xl p-3 text-center">
-                            {u.images?.[0] && <img src={u.images[0]} alt="" className="w-full h-16 object-cover rounded-xl mb-2" />}
-                            <p className="font-bold text-gray-900 text-sm">{unitTypeAr[u.type] || u.type}</p>
-                            <p className="text-xs text-gray-400">{u.unitNumber}</p>
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { label: "الحالة",      fn: u => { const s = UNIT_STATUS[u.status]; return s ? <span className={`text-xs px-2 py-1 rounded-full font-bold ${s.bg} ${s.text}`}>{s.label}</span> : "—"; } },
-                      { label: "السعر",       fn: u => u.price ? <span className="font-black text-[var(--primary)]">{u.price.toLocaleString("ar-EG")} ج.م</span> : "—" },
-                      { label: "المساحة",     fn: u => u.area ? `${u.area} م²` : "—" },
-                      { label: "الغرف",       fn: u => u.rooms || "—" },
-                      { label: "الحمامات",    fn: u => u.bathrooms || "—" },
-                      { label: "الدور",       fn: u => u.floor || "—" },
-                      { label: "سعر المتر",   fn: u => (u.price && u.area) ? `${Math.round(u.price / u.area).toLocaleString("ar-EG")} ج.م` : "—" },
-                      { label: "المرافق",     fn: u => u.amenities?.length ? <div className="flex flex-wrap gap-1">{u.amenities.slice(0,4).map(a => <span key={a} className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">{a}</span>)}</div> : "—" },
-                    ].map((row, i) => (
-                      <tr key={row.label} className={i % 2 === 0 ? "bg-gray-50/60" : ""}>
-                        <td className="py-3 px-2 text-xs text-gray-500 font-semibold whitespace-nowrap">{row.label}</td>
-                        {compareUnits.map(u => (
-                          <td key={u._id} className="py-3 px-4 text-center text-gray-800 font-medium">{row.fn(u)}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 function ContactForm({ projectName, projectId, waNumber }) {
   const [form, setForm] = useState({ name: "", phone: "", message: "", interestedProject: projectId, source: "website" });
@@ -472,45 +39,356 @@ function ContactForm({ projectName, projectId, waNumber }) {
     e.preventDefault();
     setLoading(true);
     try { await api.post("/leads", form); setSent(true); }
-    catch {} finally { setLoading(false); }
+    catch { /* ignore */ } finally { setLoading(false); }
   };
 
-  if (sent) return (
-    <div className="text-center py-4">
-      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-        <CheckCircle className="w-6 h-6 text-green-500" />
-      </div>
-      <p className="font-bold text-gray-900 text-sm">تم الاستلام!</p>
-      <p className="text-xs text-gray-400 mt-1">سنتواصل معك قريباً</p>
-    </div>
-  );
+  if (sent) {
+    return (
+      <Stack align="center" py="md" gap={4}>
+        <ThemeIcon color="green" variant="light" size={48} radius="xl"><FaCircleCheck size={22} /></ThemeIcon>
+        <Text fw={700} size="sm">تم الاستلام!</Text>
+        <Text size="xs" c="dimmed">سنتواصل معك قريباً</Text>
+      </Stack>
+    );
+  }
 
   return (
-    <form onSubmit={submit} className="space-y-2.5">
-      <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        placeholder="الاسم الكامل" required
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-      <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-        placeholder="رقم الهاتف" required type="tel"
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-      <textarea rows={2} value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-        placeholder="رسالة (اختياري)"
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none" />
-      <button type="submit" disabled={loading}
-        className="w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-2.5 rounded-xl font-bold text-sm transition-colors disabled:opacity-50">
-        {loading ? "..." : "احجز الآن"}
-      </button>
-      <div className="grid grid-cols-2 gap-2">
-        <a href={`tel:${waNumber}`}
-          className="flex items-center justify-center gap-1.5 border border-gray-200 text-gray-600 py-2 rounded-xl text-xs font-medium hover:bg-gray-50">
-          <FaPhone className="w-3.5 h-3.5" /> اتصل
-        </a>
-        <a href={`https://wa.me/${waNumber}?text=${encodeURIComponent(`أريد الاستفسار عن ${projectName}`)}`}
+    <Stack gap="xs" component="form" onSubmit={submit}>
+      <TextInput value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="الاسم الكامل" required radius="md" />
+      <TextInput value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="رقم الهاتف" required type="tel" radius="md" />
+      <Textarea rows={2} value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} placeholder="رسالة (اختياري)" radius="md" />
+      <Button type="submit" loading={loading} color="brand" fullWidth>احجز الآن</Button>
+      <SimpleGrid cols={2} spacing={8}>
+        <Button component="a" href={`tel:${waNumber}`} variant="default" size="xs" leftSection={<FaPhone size={13} />}>اتصل</Button>
+        <Button
+          component="a" color="green" size="xs" leftSection={<FaWhatsapp size={13} />}
+          href={`https://wa.me/${waNumber}?text=${encodeURIComponent(`أريد الاستفسار عن ${projectName}`)}`}
           target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl text-xs font-medium">
-          <MessageCircle className="w-3.5 h-3.5" /> واتساب
-        </a>
-      </div>
-    </form>
+        >
+          واتساب
+        </Button>
+      </SimpleGrid>
+    </Stack>
+  );
+}
+
+export default function ProjectDetailPage() {
+  const { slug } = useParams();
+  const { user } = useAuth();
+  const [unitFilter, setUnitFilter] = useState("all");
+  const [compareList, setCompareList] = useState([]);
+  const [showCompare, setShowCompare] = useState(false);
+  const { contact } = useSiteSettings();
+  const waNum = (contact.whatsapp_number || contact.whatsapp || contact.phone || "201000000000").replace(/\D/g, "");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["project-detail", slug],
+    queryFn: () => api.get(`/projects/${slug}`).then((r) => r.data),
+  });
+  const project = data?.project;
+  const units = data?.units || [];
+
+  if (isLoading) {
+    return <Group justify="center" py={120}><Loader color="brand" size="lg" /></Group>;
+  }
+  if (!project) {
+    return (
+      <Stack align="center" justify="center" mih="60vh" dir="rtl">
+        <ThemeIcon size={72} radius="xl" variant="light" color="gray"><FaBuilding size={32} /></ThemeIcon>
+        <Text c="dimmed">المشروع غير موجود</Text>
+        <Anchor component={Link} to="/projects" c="brand.6" fw={600}>← العودة للمشاريع</Anchor>
+      </Stack>
+    );
+  }
+
+  const allImages = [project.coverImage, ...(project.images || [])].filter(Boolean);
+  const { label: statusLabel, variant } = statusBadge(project.status);
+  const filteredUnits = unitFilter === "all" ? units : units.filter((u) => u.status === unitFilter);
+  const counts = {
+    all: units.length,
+    available: units.filter((u) => u.status === "available").length,
+    sold: units.filter((u) => u.status === "sold").length,
+    reserved: units.filter((u) => u.status === "reserved").length,
+  };
+
+  const toggleCompare = (id) => setCompareList((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length < 3 ? [...p, id] : p));
+  const compareUnits = units.filter((u) => compareList.includes(u._id));
+
+  const mapEmbed = project.mapEmbedUrl
+    || (project.location?.lat && project.location?.lng
+      ? `https://www.google.com/maps/embed/v1/place?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || ""}&q=${project.location.lat},${project.location.lng}&zoom=15`
+      : null);
+
+  const statColorMap = { success: "green", warning: "yellow", error: "red", gray: "gray" };
+
+  const detailRows = [
+    project.developer?.ar && { icon: FaBuilding, label: "المطور", value: project.developer.ar },
+    project.startingPrice > 0 && { icon: FaTag, label: "يبدأ من", value: `${project.startingPrice.toLocaleString("ar-EG")} ج.م` },
+    project.totalUnits > 0 && { icon: FaHouse, label: "إجمالي الوحدات", value: `${project.totalUnits} وحدة` },
+    counts.available > 0 && { icon: FaCircleCheck, label: "متاح الآن", value: `${counts.available} وحدة`, green: true },
+    project.location?.city?.ar && { icon: FaMapPin, label: "الموقع", value: project.location.city.ar },
+  ].filter(Boolean);
+
+  const compareRows = [
+    { label: "الحالة", fn: (u) => { const s = UNIT_STATUS[u.status]; return s ? <Badge color={s.color} variant="light">{s.label}</Badge> : "—"; } },
+    { label: "السعر", fn: (u) => (u.price ? <Text fw={900} c="brand.6">{u.price.toLocaleString("ar-EG")} ج.م</Text> : "—") },
+    { label: "المساحة", fn: (u) => (u.area ? `${u.area} م²` : "—") },
+    { label: "الغرف", fn: (u) => u.rooms || "—" },
+    { label: "الحمامات", fn: (u) => u.bathrooms || "—" },
+    { label: "الدور", fn: (u) => u.floor || "—" },
+    { label: "سعر المتر", fn: (u) => (u.price && u.area ? `${Math.round(u.price / u.area).toLocaleString("ar-EG")} ج.م` : "—") },
+  ];
+
+  return (
+    <Box bg="gray.0" dir="rtl">
+      {/* Hero */}
+      {allImages.length > 0 && (
+        <Box pos="relative" h="55vh" bg="dark.9" style={{ overflow: "hidden" }}>
+          <Carousel withIndicators={allImages.length > 1} withControls={allImages.length > 1} height="55vh" style={{ height: "100%" }}>
+            {allImages.map((img, i) => (
+              <Carousel.Slide key={i}><Image src={img} alt="" h="55vh" fit="cover" style={{ opacity: 0.85 }} /></Carousel.Slide>
+            ))}
+          </Carousel>
+          <Box pos="absolute" top={20} right={20} style={{ zIndex: 2 }}>
+            <Badge size="lg" color={statColorMap[variant] || "gray"} variant="filled">{statusLabel}</Badge>
+          </Box>
+          <Box pos="absolute" bottom={0} left={0} right={0} p="lg" style={{ zIndex: 2, background: "rgba(0,0,0,0.35)" }}>
+            <Container size="xl">
+              <Title order={1} c="white" fz={{ base: 26, md: 36 }} mb={4}>{project.name?.ar}</Title>
+              {project.location?.city?.ar && (
+                <Group gap={6} c="gray.3">
+                  <FaLocationDot size={14} />
+                  <Text size="sm">{[project.location.address?.ar, project.location.city.ar].filter(Boolean).join("، ")}</Text>
+                </Group>
+              )}
+            </Container>
+          </Box>
+        </Box>
+      )}
+
+      {/* Breadcrumb */}
+      <Box bg="white" style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }} py={10}>
+        <Container size="xl">
+          <Breadcrumbs>
+            <Anchor component={Link} to="/" size="sm" c="dimmed">الرئيسية</Anchor>
+            <Anchor component={Link} to="/projects" size="sm" c="dimmed">المشاريع</Anchor>
+            <Text size="sm" fw={600} truncate maw={200}>{project.name?.ar}</Text>
+          </Breadcrumbs>
+        </Container>
+      </Box>
+
+      <Container size="xl" py="xl">
+        <Grid gutter="xl">
+          {/* Sidebar */}
+          <Grid.Col span={{ base: 12, lg: 4 }} order={{ base: 1, lg: 2 }}>
+            <Stack gap="md" style={{ position: "sticky", top: 84 }}>
+              <Card className="public-card" radius="lg" p="lg">
+                <Group gap={10} mb="md">
+                  <ThemeIcon color="brand" size={36} radius="md"><FaPhone size={16} /></ThemeIcon>
+                  <Box>
+                    <Text fw={700} size="sm">احجز استشارة مجانية</Text>
+                    <Text size="xs" c="dimmed">نتواصل معك خلال ٢٤ ساعة</Text>
+                  </Box>
+                </Group>
+                <ContactForm projectName={project.name?.ar} projectId={project._id} waNumber={waNum} />
+              </Card>
+
+              <Card className="public-card" radius="lg" p="lg">
+                <Text size="xs" fw={700} c="dimmed" tt="uppercase" mb="sm">تفاصيل المشروع</Text>
+                <Stack gap={10}>
+                  {detailRows.map((item, i) => (
+                    <Group key={i} gap={10} wrap="nowrap">
+                      <item.icon size={14} color={item.green ? "var(--mantine-color-green-6)" : "var(--mantine-color-gray-5)"} />
+                      <Text size="xs" c="dimmed" w={90} style={{ flexShrink: 0 }}>{item.label}</Text>
+                      <Text size="sm" fw={600} c={item.green ? "green.7" : "dark.7"}>{item.value}</Text>
+                    </Group>
+                  ))}
+                </Stack>
+              </Card>
+
+              {project.brochureUrl && (
+                <Button component="a" href={project.brochureUrl} target="_blank" rel="noopener noreferrer" color="dark.8" fullWidth>
+                  تحميل الكتيب التعريفي
+                </Button>
+              )}
+            </Stack>
+          </Grid.Col>
+
+          {/* Main content */}
+          <Grid.Col span={{ base: 12, lg: 8 }} order={{ base: 2, lg: 1 }}>
+            <Stack gap="lg">
+              {project.description?.ar && (
+                <Card className="public-card" radius="lg" p="lg">
+                  <Title order={2} size="lg" mb="sm">عن المشروع</Title>
+                  <Text c="dimmed" lh={1.8} size="sm">{project.description.ar}</Text>
+                </Card>
+              )}
+
+              {project.amenities?.length > 0 && (
+                <Card className="public-card" radius="lg" p="lg">
+                  <Title order={2} size="lg" mb="md">المميزات والمرافق</Title>
+                  <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="sm">
+                    {project.amenities.map((a) => (
+                      <Group key={a} gap={8} p={10} bg="brand.0" style={{ borderRadius: "var(--mantine-radius-md)" }}>
+                        <ThemeIcon size={20} radius="xl" color="brand" variant="light"><FaCircleCheck size={11} /></ThemeIcon>
+                        <Text size="sm" fw={500}>{a}</Text>
+                      </Group>
+                    ))}
+                  </SimpleGrid>
+                </Card>
+              )}
+
+              {allImages.length > 1 && (
+                <Card className="public-card" radius="lg" p="lg">
+                  <Title order={2} size="lg" mb="md">معرض الصور</Title>
+                  <SimpleGrid cols={{ base: 4, sm: 5 }} spacing={8}>
+                    {allImages.map((img, i) => (
+                      <Image key={i} src={img} alt="" radius="md" style={{ aspectRatio: "1/1", objectFit: "cover" }} />
+                    ))}
+                  </SimpleGrid>
+                </Card>
+              )}
+
+              {mapEmbed && (
+                <Card className="public-card" radius="lg" p={0} style={{ overflow: "hidden" }}>
+                  <Group gap={8} p="lg" pb="sm">
+                    <FaLocationDot size={15} color="var(--mantine-color-brand-6)" />
+                    <Title order={2} size="lg">موقع المشروع</Title>
+                  </Group>
+                  <iframe src={mapEmbed} width="100%" height="300" style={{ border: 0, display: "block" }} loading="lazy" title="موقع المشروع" allowFullScreen referrerPolicy="no-referrer-when-downgrade" />
+                </Card>
+              )}
+
+              {project.videoUrl && (
+                <Card className="public-card" radius="lg" p={0} style={{ overflow: "hidden" }}>
+                  <Group gap={8} p="lg" pb="sm">
+                    <FaPlay size={14} color="var(--mantine-color-brand-6)" />
+                    <Title order={2} size="lg">فيديو المشروع</Title>
+                  </Group>
+                  <Box style={{ aspectRatio: "16/9" }}>
+                    <iframe
+                      src={project.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
+                      style={{ width: "100%", height: "100%", border: 0 }} allowFullScreen title="فيديو"
+                    />
+                  </Box>
+                </Card>
+              )}
+
+              {units.length > 0 && (
+                <Card className="public-card" radius="lg" p="lg">
+                  <Group justify="space-between" wrap="wrap" mb="md">
+                    <Title order={2} size="lg">وحدات المشروع</Title>
+                    <Group gap={6}>
+                      {[
+                        { key: "all", label: "الكل" },
+                        { key: "available", label: "متاح" },
+                        { key: "reserved", label: "محجوز" },
+                        { key: "sold", label: "مباعة" },
+                      ].map((tab) => (
+                        <Button key={tab.key} size="xs" radius="xl" color="brand" variant={unitFilter === tab.key ? "filled" : "light"} onClick={() => setUnitFilter(tab.key)}>
+                          {tab.label} {counts[tab.key] > 0 && `(${counts[tab.key]})`}
+                        </Button>
+                      ))}
+                    </Group>
+                  </Group>
+
+                  {compareList.length >= 2 && (
+                    <Group justify="space-between" bg="brand.0" p="sm" mb="md" style={{ borderRadius: "var(--mantine-radius-md)" }}>
+                      <Text size="sm" c="brand.7" fw={600}>{compareList.length} وحدات مختارة للمقارنة</Text>
+                      <Group gap={6}>
+                        <Button size="xs" color="brand" leftSection={<FaCodeCompare size={12} />} onClick={() => setShowCompare(true)}>مقارنة</Button>
+                        <Button size="xs" variant="default" onClick={() => setCompareList([])}>مسح</Button>
+                      </Group>
+                    </Group>
+                  )}
+
+                  <Stack gap={0}>
+                    {filteredUnits.length === 0 ? (
+                      <Stack align="center" py="xl" gap={4}>
+                        <FaHouseChimney size={36} color="var(--mantine-color-gray-4)" />
+                        <Text size="sm" c="dimmed">لا توجد وحدات بهذه الحالة</Text>
+                      </Stack>
+                    ) : filteredUnits.map((u) => {
+                      const st = UNIT_STATUS[u.status] || UNIT_STATUS.available;
+                      const inCompare = compareList.includes(u._id);
+                      return (
+                        <Group key={u._id} wrap="nowrap" py="sm" px={4} bg={inCompare ? "brand.0" : undefined} style={{ borderBottom: "1px solid var(--mantine-color-gray-1)" }}>
+                          <Box w={64} h={64} style={{ borderRadius: "var(--mantine-radius-md)", overflow: "hidden", flexShrink: 0 }} bg="gray.1">
+                            {u.images?.[0] ? <Image src={u.images[0]} alt="" w={64} h={64} fit="cover" /> : (
+                              <Group justify="center" align="center" h="100%"><FaHouseChimney size={22} color="var(--mantine-color-gray-4)" /></Group>
+                            )}
+                          </Box>
+                          <Box style={{ flex: 1, minWidth: 0 }}>
+                            <Group gap={8} mb={2}>
+                              <Text fw={700} size="sm">{unitTypeAr[u.type] || u.type} {u.unitNumber && `— ${u.unitNumber}`}</Text>
+                              <Badge size="xs" color={st.color} variant="light">{st.label}</Badge>
+                            </Group>
+                            <Group gap="md" c="dimmed">
+                              {u.area && <Group gap={4}><FaRulerCombined size={11} /><Text size="xs">{u.area} م²</Text></Group>}
+                              {u.rooms && <Group gap={4}><FaBed size={11} /><Text size="xs">{u.rooms} غرف</Text></Group>}
+                              {u.bathrooms && <Group gap={4}><FaBath size={11} /><Text size="xs">{u.bathrooms} حمام</Text></Group>}
+                              {u.floor && <Text size="xs">الدور: {u.floor}</Text>}
+                            </Group>
+                          </Box>
+                          <Group gap={10} style={{ flexShrink: 0 }}>
+                            {u.price > 0 && (
+                              <Box ta="left">
+                                <Text fw={900} size="sm" c="brand.6">{u.price.toLocaleString("ar-EG")}</Text>
+                                <Text size="xs" c="dimmed">ج.م</Text>
+                              </Box>
+                            )}
+                            <ThemeIcon
+                              size={32} radius="md" variant={inCompare ? "filled" : "default"} color="brand"
+                              style={{ cursor: "pointer" }} onClick={() => toggleCompare(u._id)}
+                            >
+                              <FaCodeCompare size={13} />
+                            </ThemeIcon>
+                          </Group>
+                        </Group>
+                      );
+                    })}
+                  </Stack>
+                </Card>
+              )}
+            </Stack>
+          </Grid.Col>
+        </Grid>
+      </Container>
+
+      {user && ["admin", "supervisor"].includes(user.role) && (
+        <Anchor component={Link} to={`/admin/projects?edit=${project._id}`} pos="fixed" bottom={96} left={24} style={{ zIndex: 100 }}>
+          <Button color="brand" radius="xl" leftSection={<FaPen size={13} />} style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}>تعديل المشروع</Button>
+        </Anchor>
+      )}
+
+      <Modal opened={showCompare} onClose={() => setShowCompare(false)} title="مقارنة الوحدات" size="lg" radius="lg">
+        <Table.ScrollContainer minWidth={500}>
+          <Table verticalSpacing="sm">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th />
+                {compareUnits.map((u) => (
+                  <Table.Th key={u._id} ta="center">
+                    <Stack gap={4} align="center">
+                      {u.images?.[0] && <Image src={u.images[0]} alt="" w="100%" h={64} radius="md" fit="cover" />}
+                      <Text fw={700} size="sm">{unitTypeAr[u.type] || u.type}</Text>
+                      <Text size="xs" c="dimmed">{u.unitNumber}</Text>
+                    </Stack>
+                  </Table.Th>
+                ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {compareRows.map((row) => (
+                <Table.Tr key={row.label}>
+                  <Table.Td fw={600} c="dimmed" fz="xs">{row.label}</Table.Td>
+                  {compareUnits.map((u) => <Table.Td key={u._id} ta="center">{row.fn(u)}</Table.Td>)}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      </Modal>
+    </Box>
   );
 }

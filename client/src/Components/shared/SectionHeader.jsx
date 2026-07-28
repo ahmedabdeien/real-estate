@@ -2,33 +2,15 @@
  * SectionHeader — عنوان القسم المشترك
  * Usage: <SectionHeader badge="مشاريعنا" title="المشاريع المميزة" desc="..." />
  */
-import { motion } from "framer-motion";
+import { Stack, Text, Title } from "@mantine/core";
 
-export default function SectionHeader({ badge, title, desc, align = "center", className = "", animate = true }) {
-  const alignClass = { center: "text-center", right: "text-right", left: "text-left" }[align] || "text-center";
-  const Wrapper = animate ? motion.div : "div";
-  const wrapperProps = animate
-    ? { initial: { opacity: 0, y: 20 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.5 } }
-    : {};
-
+export default function SectionHeader({ badge, title, desc, align = "center" }) {
+  const ta = { center: "center", right: "right", left: "left" }[align] || "center";
   return (
-    <Wrapper className={`${alignClass} ${className}`} {...wrapperProps}>
-      {badge && (
-        <span className="inline-block text-xs font-black tracking-[0.3em] uppercase mb-3" style={{ color: "var(--primary)" }}>
-          {badge}
-        </span>
-      )}
-      {title && (
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 dark:text-white mt-1 mb-3 leading-tight">
-          {title}
-        </h2>
-      )}
-      {desc && (
-        <p className="text-gray-500 dark:text-gray-400 leading-relaxed"
-          style={{ maxWidth: align === "center" ? "560px" : undefined, margin: align === "center" ? "0 auto" : undefined }}>
-          {desc}
-        </p>
-      )}
-    </Wrapper>
+    <Stack align={ta === "center" ? "center" : ta === "right" ? "flex-end" : "flex-start"} gap={6} ta={ta}>
+      {badge && <Text c="brand.6" fw={800} size="sm" tt="uppercase" style={{ letterSpacing: 2 }}>{badge}</Text>}
+      {title && <Title order={2} fz={{ base: 26, sm: 30, md: 36 }} c="dark.8" mt={4}>{title}</Title>}
+      {desc && <Text c="dimmed" maw={ta === "center" ? 560 : undefined}>{desc}</Text>}
+    </Stack>
   );
 }

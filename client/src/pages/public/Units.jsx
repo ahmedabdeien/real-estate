@@ -1,20 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
-import { FaHouseChimney, FaMagnifyingGlass, FaFilter, FaArrowRight, FaRulerCombined, FaLayerGroup, FaBed, FaBath, FaChevronDown } from 'react-icons/fa6';
-import { motion } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
+import {
+  Box, Container, Card, Group, Stack, TextInput, Select, Button, SimpleGrid,
+  Text, Title, Badge, Image, ThemeIcon, Loader, Pagination as MantinePagination,
+  Affix, Modal, Table, ActionIcon,
+} from "@mantine/core";
+import {
+  FaMagnifyingGlass, FaSliders, FaBuilding, FaBed, FaBath, FaRulerCombined,
+  FaLayerGroup, FaArrowLeft, FaCheck, FaCodeCompare, FaXmark, FaHouse,
+} from "react-icons/fa6";
+
 import api from "../../api/axios";
-import LoadingSpinner from "../../Components/UI/LoadingSpinner";
-import Pagination from "../../Components/UI/Pagination";
-import EmptyState from "../../Components/UI/EmptyState";
 import { useCms } from "../../hooks/useCms";
 import { useAuth } from "../../context/AuthContext";
 import PageHero from "../../Components/shared/PageHero";
-import SectionHeader from "../../Components/shared/SectionHeader";
 
 const unitTypeAr = {
   apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس",
   penthouse: "بنتهاوس", office: "مكتب", shop: "محل", chalet: "شاليه",
 };
+const statusLabel = { available: "متاحة", reserved: "محجوزة", sold: "مبيعة" };
+const statusColor = { available: "green", reserved: "yellow", sold: "red" };
 
 export default function UnitsPage() {
   const { data: cms } = useCms("units_page", {
@@ -42,9 +48,7 @@ export default function UnitsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/units", {
-        params: { page, status, project, published: true, public: true, search },
-      });
+      const res = await api.get("/units", { params: { page, status, project, published: true, public: true, search } });
       setUnits(res.data.units || []);
       setTotal(res.data.total);
       setPages(res.data.pages);
@@ -58,30 +62,17 @@ export default function UnitsPage() {
   useEffect(() => { document.title = "الوحدات | الصرح للتطوير العقاري"; }, []);
   useEffect(() => { load(); }, [page, status, project, search]);
   useEffect(() => {
-    api.get("/projects", { params: { limit: 100, published: true } })
-      .then((r) => setProjects(r.data.projects || []));
+    api.get("/projects", { params: { limit: 100, published: true } }).then((r) => setProjects(r.data.projects || []));
   }, []);
 
   const submitSearch = (e) => {
     e?.preventDefault?.();
     setPage(1);
     setSearch(searchInput.trim());
-    if (searchInput.trim()) {
-      setSearchParams({ search: searchInput.trim() });
-    } else {
-      setSearchParams({});
-    }
+    setSearchParams(searchInput.trim() ? { search: searchInput.trim() } : {});
   };
 
-  const toggleCompare = (id) => {
-    setCompareIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((i) => i !== id)
-        : prev.length < 3
-          ? [...prev, id]
-          : prev
-    );
-  };
+  const toggleCompare = (id) => setCompareIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : prev.length < 3 ? [...prev, id] : prev));
 
   const sortedUnits = useMemo(() => {
     const arr = [...units];
@@ -93,292 +84,185 @@ export default function UnitsPage() {
 
   const compareUnits = units.filter((u) => compareIds.includes(u._id));
 
-  return (
-    <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      {/* Hero */}
-      <PageHero
-        title={cms.title_ar}
-        subtitle={cms.subtitle_ar}
-        image={cms.hero_image}
-      />
+  const compareRows = [
+    ["النوع", (u) => unitTypeAr[u.type] || u.type || "—"],
+    ["السعر", (u) => (u.price ? `${u.price.toLocaleString("ar-EG")} ج.م` : "—")],
+    ["المساحة", (u) => (u.area ? `${u.area} م²` : "—")],
+    ["الغرف", (u) => u.rooms ?? "—"],
+    ["الحمامات", (u) => u.bathrooms ?? "—"],
+    ["الدور", (u) => u.floor ?? "—"],
+    ["نوع الإنهاء", (u) => u.finishing || "—"],
+    ["الجهة", (u) => u.facing || "—"],
+    ["الحالة", (u) => statusLabel[u.status] || "—"],
+    ["المرافق", (u) => u.amenities?.join("، ") || "—"],
+  ];
 
-      <div className="container mx-auto px-4 py-10">
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
-          <form onSubmit={submitSearch} className="flex flex-wrap gap-3 items-center">
-            <div className="relative flex-1 min-w-[200px]">
-              <FaMagnifyingGlass className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-              <input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="ابحث برقم الوحدة، النوع، المشروع..."
-                className="w-full pr-9 pl-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              />
-            </div>
-            <select
-              value={project}
-              onChange={(e) => { setProject(e.target.value); setPage(1); }}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-            >
-              <option value="">كل المشاريع</option>
-              {projects.map((p) => (
-                <option key={p._id} value={p._id}>{p.name?.ar}</option>
-              ))}
-            </select>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-            >
-              <option value="">الترتيب الافتراضي</option>
-              <option value="price_asc">الأرخص</option>
-              <option value="price_desc">الأغلى</option>
-              <option value="area_desc">الأكبر مساحة</option>
-            </select>
-            <div className="flex gap-2">
-              {[
-                { value: "", label: "الكل" },
-                { value: "available", label: "متاحة" },
-                { value: "reserved", label: "محجوزة" },
-              ].map((o) => (
-                <button
-                  key={o.value}
-                  type="button"
-                  onClick={() => { setStatus(o.value); setPage(1); }}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    status === o.value
-                      ? "bg-[var(--primary)] text-white"
-                      : "bg-white border border-gray-200 text-gray-600 hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                  }`}
-                >
+  return (
+    <Box mih="100vh" bg="gray.0" dir="rtl">
+      <PageHero title={cms.title_ar} subtitle={cms.subtitle_ar} image={cms.hero_image} />
+
+      <Container size="xl" py="xl">
+        <Card className="public-card" radius="lg" p="md" mb="lg" component="form" onSubmit={submitSearch}>
+          <Group gap="sm" wrap="wrap">
+            <TextInput
+              value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="ابحث برقم الوحدة، النوع، المشروع..."
+              leftSection={<FaMagnifyingGlass size={14} />} radius="md"
+              style={{ flex: 1, minWidth: 200 }}
+            />
+            <Select
+              value={project} onChange={(v) => { setProject(v || ""); setPage(1); }}
+              data={[{ value: "", label: "كل المشاريع" }, ...projects.map((p) => ({ value: p._id, label: p.name?.ar }))]}
+              radius="md" w={180} allowDeselect={false}
+            />
+            <Select
+              value={sort} onChange={(v) => setSort(v || "")}
+              data={[
+                { value: "", label: "الترتيب الافتراضي" },
+                { value: "price_asc", label: "الأرخص" },
+                { value: "price_desc", label: "الأغلى" },
+                { value: "area_desc", label: "الأكبر مساحة" },
+              ]}
+              radius="md" w={180} allowDeselect={false}
+            />
+            <Group gap={6}>
+              {[{ value: "", label: "الكل" }, { value: "available", label: "متاحة" }, { value: "reserved", label: "محجوزة" }].map((o) => (
+                <Button key={o.value} size="sm" radius="md" color="brand" variant={status === o.value ? "filled" : "default"} onClick={() => { setStatus(o.value); setPage(1); }}>
                   {o.label}
-                </button>
+                </Button>
               ))}
-            </div>
-            <button
-              type="submit"
-              className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-sm px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              بحث
-            </button>
-          </form>
-        </div>
+            </Group>
+            <Button type="submit" color="brand" leftSection={<FaSliders size={14} />}>بحث</Button>
+          </Group>
+        </Card>
 
         {loading ? (
-          <LoadingSpinner className="h-64" size="lg" />
+          <Group justify="center" py={80}><Loader color="brand" size="lg" /></Group>
         ) : sortedUnits.length === 0 ? (
-          <EmptyState icon={Home} title="لا توجد وحدات" description="جرب تغيير فلاتر البحث" />
+          <Stack align="center" py={80} gap="xs">
+            <FaHouse size={40} color="var(--mantine-color-gray-4)" />
+            <Text fw={600} c="dark.6">لا توجد وحدات</Text>
+            <Text size="sm" c="dimmed">جرب تغيير فلاتر البحث</Text>
+          </Stack>
         ) : (
           <>
-            <p className="text-gray-500 text-sm mb-5">{total} وحدة</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <Text c="dimmed" size="sm" mb="md">{total} وحدة</Text>
+            <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
               {sortedUnits.map((unit) => {
                 const coverImage = unit.coverImage || unit.images?.[0];
                 const isCompared = compareIds.includes(unit._id);
                 return (
-                  <motion.div
-                    key={unit._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden border border-gray-100 group"
-                  >
-                    {/* Image */}
-                    <div className="relative aspect-[4/3] overflow-hidden">
+                  <Card key={unit._id} className="public-card" padding={0} radius="lg">
+                    <Box pos="relative" style={{ aspectRatio: "4/3" }} bg="gray.1">
                       {coverImage ? (
-                        <img
-                          src={coverImage}
-                          alt=""
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                        <Image src={coverImage} alt="" h="100%" fit="cover" />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[var(--primary)]/20 to-[var(--primary)]/5 flex items-center justify-center">
-                          <FaBuilding className="w-12 h-12 text-[var(--primary)]/30" />
-                        </div>
+                        <Box h="100%" display="flex" style={{ alignItems: "center", justifyContent: "center", background: "var(--mantine-color-brand-6)" }}>
+                          <FaBuilding size={44} color="rgba(255,255,255,0.3)" />
+                        </Box>
                       )}
-                      {/* Type badge */}
-                      <span className="absolute top-3 right-3 bg-[var(--primary)] text-white text-xs px-2 py-1 rounded-lg font-medium">
-                        {unitTypeAr[unit.type] || unit.type}
-                      </span>
-                      {/* Status badge */}
-                      <span
-                        className={`absolute top-3 left-3 text-xs px-2 py-1 rounded-lg font-medium ${
-                          unit.status === "available"
-                            ? "bg-green-500 text-white"
-                            : unit.status === "reserved"
-                              ? "bg-yellow-500 text-white"
-                              : "bg-red-500 text-white"
-                        }`}
-                      >
-                        {unit.status === "available"
-                          ? "متاحة"
-                          : unit.status === "reserved"
-                            ? "محجوزة"
-                            : "مبيعة"}
-                      </span>
-                      {/* Compare checkbox - only for logged-in users */}
+                      <Badge pos="absolute" top={12} right={12} color="brand" variant="filled">{unitTypeAr[unit.type] || unit.type}</Badge>
+                      <Badge pos="absolute" top={12} left={12} color={statusColor[unit.status] || "gray"} variant="filled">{statusLabel[unit.status] || unit.status}</Badge>
                       {user && (
-                        <button
+                        <ActionIcon
+                          pos="absolute" bottom={12} left={12} size={30} radius="md"
+                          variant={isCompared ? "filled" : "white"} color="brand"
                           onClick={(e) => { e.preventDefault(); toggleCompare(unit._id); }}
                           title="مقارنة"
-                          className={`absolute bottom-3 left-3 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
-                            isCompared
-                              ? "bg-[var(--primary)] border-[var(--primary)] text-white"
-                              : "bg-white/80 border-white text-gray-400 hover:text-[var(--primary)]"
-                          }`}
                         >
-                          {isCompared ? <FaCheck className="w-4 h-4" /> : <GitCompare className="w-3.5 h-3.5" />}
-                        </button>
+                          {isCompared ? <FaCheck size={13} /> : <FaCodeCompare size={13} />}
+                        </ActionIcon>
                       )}
-                    </div>
-                    {/* Content */}
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 text-base mb-1">
-                        {unit.unitNumber} {unit.project?.name?.ar ? `— ${unit.project.name.ar}` : ""}
-                      </h3>
-                      {unit.project?.name?.ar && (
-                        <div className="flex items-center gap-1 text-gray-500 text-xs mb-2">
-                          <FaBuilding className="w-3 h-3" />
-                          <span>{unit.project.name.ar}</span>
-                        </div>
-                      )}
-                      {/* Features grid */}
-                      <div className="grid grid-cols-4 gap-2 my-3">
+                    </Box>
+                    <Stack gap={8} p="md">
+                      <Box>
+                        <Title order={3} size="md" c="dark.8">{unit.unitNumber} {unit.project?.name?.ar ? `— ${unit.project.name.ar}` : ""}</Title>
+                        {unit.project?.name?.ar && (
+                          <Group gap={4} c="dimmed" mt={2}><FaBuilding size={11} /><Text size="xs">{unit.project.name.ar}</Text></Group>
+                        )}
+                      </Box>
+                      <SimpleGrid cols={4} spacing={4}>
                         {[
-                          { icon: BedDouble, value: unit.rooms ?? "—", label: "غرفة" },
-                          { icon: Bath, value: unit.bathrooms ?? "—", label: "حمام" },
-                          { icon: Maximize2, value: unit.area ?? "—", label: "م²" },
-                          { icon: Layers, value: unit.floor ?? "—", label: "الدور" },
+                          { icon: FaBed, value: unit.rooms ?? "—", label: "غرفة" },
+                          { icon: FaBath, value: unit.bathrooms ?? "—", label: "حمام" },
+                          { icon: FaRulerCombined, value: unit.area ?? "—", label: "م²" },
+                          { icon: FaLayerGroup, value: unit.floor ?? "—", label: "الدور" },
                         ].map(({ icon: Icon, value, label }) => (
-                          <div key={label} className="text-center">
-                            <Icon className="w-4 h-4 text-[var(--primary)] mx-auto mb-0.5" />
-                            <p className="text-xs font-semibold text-gray-800">{value}</p>
-                            <p className="text-[10px] text-gray-400">{label}</p>
-                          </div>
+                          <Stack key={label} align="center" gap={2}>
+                            <Icon size={14} color="var(--mantine-color-brand-6)" />
+                            <Text size="xs" fw={700} c="dark.7">{value}</Text>
+                            <Text size={10} c="dimmed">{label}</Text>
+                          </Stack>
                         ))}
-                      </div>
-                      {/* Amenities */}
+                      </SimpleGrid>
                       {unit.amenities?.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {unit.amenities.slice(0, 3).map((a) => (
-                            <span key={a} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{a}</span>
-                          ))}
-                          {unit.amenities.length > 3 && (
-                            <span className="text-[10px] text-gray-400">+{unit.amenities.length - 3}</span>
-                          )}
-                        </div>
+                        <Group gap={4}>
+                          {unit.amenities.slice(0, 3).map((a) => <Badge key={a} size="xs" variant="light" color="gray">{a}</Badge>)}
+                          {unit.amenities.length > 3 && <Text size={10} c="dimmed">+{unit.amenities.length - 3}</Text>}
+                        </Group>
                       )}
-                      {/* Price + CTA */}
-                      <div className="flex items-center justify-between mt-2 pt-3 border-t border-gray-50">
-                        <div>
-                          <p className="text-lg font-bold text-[var(--primary)]">
-                            {unit.price ? unit.price.toLocaleString("ar-EG") : "—"}
-                          </p>
-                          <p className="text-xs text-gray-400">جنيه مصري</p>
-                        </div>
-                        <Link
-                          to={`/projects/${unit.project?.slug || unit.project?._id || ""}`}
-                          className="bg-[var(--primary)] text-white text-sm px-4 py-2 rounded-xl hover:bg-[var(--primary-dark)] transition-colors flex items-center gap-1"
-                        >
+                      <Group justify="space-between" pt="sm" mt={4} style={{ borderTop: "1px solid var(--mantine-color-gray-1)" }}>
+                        <Box>
+                          <Text fw={800} c="brand.6" size="lg">{unit.price ? unit.price.toLocaleString("ar-EG") : "—"}</Text>
+                          <Text size="xs" c="dimmed">جنيه مصري</Text>
+                        </Box>
+                        <Button component={Link} to={`/projects/${unit.project?.slug || unit.project?._id || ""}`} size="xs" color="brand" rightSection={<FaArrowLeft size={12} />}>
                           التفاصيل
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.div>
+                        </Button>
+                      </Group>
+                    </Stack>
+                  </Card>
                 );
               })}
-            </div>
-            <Pagination page={page} pages={pages} onPage={setPage} />
+            </SimpleGrid>
+            {pages > 1 && (
+              <Group justify="center" mt="xl">
+                <MantinePagination value={page} onChange={setPage} total={pages} color="brand" radius="md" />
+              </Group>
+            )}
           </>
         )}
-      </div>
+      </Container>
 
-      {/* Floating compare bar */}
       {compareIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[var(--primary)] text-white rounded-2xl shadow-2xl px-6 py-3 flex items-center gap-4">
-          <span className="text-sm font-medium">تم اختيار {compareIds.length} وحدة</span>
-          <button
-            onClick={() => setShowCompare(true)}
-            disabled={compareIds.length < 2}
-            className="bg-white text-[var(--primary)] text-sm font-bold px-4 py-1.5 rounded-xl hover:bg-gray-100 disabled:opacity-60"
-          >
-            مقارنة
-          </button>
-          <button onClick={() => setCompareIds([])} className="text-white/70 hover:text-white">
-            <FaXmark className="w-4 h-4" />
-          </button>
-        </div>
+        <Affix position={{ bottom: 24, left: "50%" }} style={{ transform: "translateX(-50%)" }}>
+          <Group bg="brand.6" c="white" px="lg" py={10} style={{ borderRadius: "var(--mantine-radius-xl)", boxShadow: "0 8px 24px rgba(0,0,0,0.2)" }}>
+            <Text size="sm" fw={600}>تم اختيار {compareIds.length} وحدة</Text>
+            <Button size="xs" color="gray.0" c="brand.7" disabled={compareIds.length < 2} onClick={() => setShowCompare(true)}>مقارنة</Button>
+            <ActionIcon variant="transparent" c="white" onClick={() => setCompareIds([])}><FaXmark size={16} /></ActionIcon>
+          </Group>
+        </Affix>
       )}
 
-      {/* Compare modal */}
-      {showCompare && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
-          onClick={() => setShowCompare(false)}
-        >
-          <div
-            className="bg-white rounded-2xl max-w-4xl w-full max-h-[85vh] overflow-auto p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">مقارنة الوحدات</h2>
-              <button onClick={() => setShowCompare(false)}>
-                <FaXmark className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-right border-collapse">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-3 px-4 text-gray-500 font-medium w-36">المواصفة</th>
-                    {compareUnits.map((u) => (
-                      <th key={u._id} className="py-3 px-4 font-bold text-[var(--primary)]">
-                        {u.unitNumber}
-                        <button
-                          onClick={() => setCompareIds((p) => p.filter((i) => i !== u._id))}
-                          className="mr-2 text-gray-300 hover:text-red-400"
-                        >
-                          <FaXmark className="w-3 h-3 inline" />
-                        </button>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["النوع", (u) => unitTypeAr[u.type] || u.type || "—"],
-                    ["السعر", (u) => u.price ? u.price.toLocaleString("ar-EG") + " ج.م" : "—"],
-                    ["المساحة", (u) => u.area ? u.area + " م²" : "—"],
-                    ["الغرف", (u) => u.rooms ?? "—"],
-                    ["الحمامات", (u) => u.bathrooms ?? "—"],
-                    ["الدور", (u) => u.floor ?? "—"],
-                    ["نوع الإنهاء", (u) => u.finishing || "—"],
-                    ["الجهة", (u) => u.facing || "—"],
-                    [
-                      "الحالة",
-                      (u) =>
-                        u.status === "available"
-                          ? "متاحة"
-                          : u.status === "reserved"
-                            ? "محجوزة"
-                            : "مبيعة",
-                    ],
-                    ["المرافق", (u) => u.amenities?.join("، ") || "—"],
-                  ].map(([label, fn]) => (
-                    <tr key={label} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium text-gray-600">{label}</td>
-                      {compareUnits.map((u) => (
-                        <td key={u._id} className="py-3 px-4">{fn(u)}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <Modal opened={showCompare} onClose={() => setShowCompare(false)} title="مقارنة الوحدات" size="xl" radius="lg">
+        <Table.ScrollContainer minWidth={500}>
+          <Table verticalSpacing="sm" withRowBorders>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th w={140}>المواصفة</Table.Th>
+                {compareUnits.map((u) => (
+                  <Table.Th key={u._id}>
+                    <Group gap={6} wrap="nowrap">
+                      <Text fw={700} c="brand.6">{u.unitNumber}</Text>
+                      <ActionIcon size="xs" variant="subtle" color="red" onClick={() => setCompareIds((p) => p.filter((i) => i !== u._id))}>
+                        <FaXmark size={11} />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Th>
+                ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {compareRows.map(([label, fn]) => (
+                <Table.Tr key={label}>
+                  <Table.Td fw={600} c="dimmed" fz="sm">{label}</Table.Td>
+                  {compareUnits.map((u) => <Table.Td key={u._id} fz="sm">{fn(u)}</Table.Td>)}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+      </Modal>
+    </Box>
   );
 }

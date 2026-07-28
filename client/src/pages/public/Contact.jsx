@@ -1,45 +1,40 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import {
+  Box, Container, Grid, Stack, Card, Title, Text, TextInput, Textarea,
+  Button, ThemeIcon, SimpleGrid, Anchor, Group,
+} from "@mantine/core";
+import {
+  FaPhone, FaEnvelope, FaLocationDot, FaClock, FaWhatsapp, FaPaperPlane,
+  FaCircleCheck, FaLocationArrow,
+} from "react-icons/fa6";
 
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useCms } from "../../hooks/useCms";
 import PageHero from "../../Components/shared/PageHero";
-import SectionHeader from "../../Components/shared/SectionHeader";
 
 export default function ContactPage() {
   const { user } = useAuth();
   const { contact: siteContact, settings } = useSiteSettings();
   const { data: cmsContact } = useCms("contact", {
-    phone: "",
-    whatsapp: "",
-    email: "",
-    address_ar: "",
-    working_hours: "",
-    facebook: "",
-    instagram: "",
-    youtube: "",
+    phone: "", whatsapp: "", email: "", address_ar: "", working_hours: "",
+    facebook: "", instagram: "", youtube: "",
   });
 
   const [form, setForm] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    email: user?.email || "",
-    message: "",
-    source: "website",
+    name: user?.name || "", phone: user?.phone || "", email: user?.email || "", message: "", source: "website",
   });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { document.title = "تواصل معنا | الصرح للتطوير العقاري"; }, []);
 
-  // Update form if user logs in after page load
   useEffect(() => {
     if (user) {
       setForm((prev) => ({
         ...prev,
-        name:  prev.name  || user.name  || "",
+        name: prev.name || user.name || "",
         email: prev.email || user.email || "",
         phone: prev.phone || user.phone || "",
       }));
@@ -49,187 +44,124 @@ export default function ContactPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try {
-      await api.post("/leads", form);
-      setSent(true);
-    } catch {
-    } finally {
-      setLoading(false);
-    }
+    try { await api.post("/leads", form); setSent(true); }
+    catch { /* ignore */ } finally { setLoading(false); }
   };
 
   const f = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  // Resolve contact info: prefer CMS → siteContact context → settings → fallback
-  const phone    = cmsContact.phone    || siteContact.phone    || "01234567890";
-  const email    = cmsContact.email    || siteContact.email    || "info@elsarh.com";
-  const address  = cmsContact.address_ar || siteContact.address_ar || "القاهرة، جمهورية مصر العربية";
-  const hours    = cmsContact.working_hours || siteContact.working_hours || "السبت - الخميس: 9 صباحاً - 6 مساءً";
+  const phone = cmsContact.phone || siteContact.phone || "01234567890";
+  const email = cmsContact.email || siteContact.email || "info@elsarh.com";
+  const address = cmsContact.address_ar || siteContact.address_ar || "القاهرة، جمهورية مصر العربية";
+  const hours = cmsContact.working_hours || siteContact.working_hours || "السبت - الخميس: 9 صباحاً - 6 مساءً";
   const whatsapp = cmsContact.whatsapp || siteContact.whatsapp || phone;
-  const facebook  = cmsContact.facebook  || siteContact.facebook  || settings.facebook_url  || "#";
-  const instagram = cmsContact.instagram || siteContact.instagram || settings.instagram_url || "#";
-  const youtube   = cmsContact.youtube   || siteContact.youtube   || settings.youtube_url   || "#";
 
   let branches = [];
-  try { branches = settings.branches ? JSON.parse(settings.branches) : []; } catch {}
+  try { branches = settings.branches ? JSON.parse(settings.branches) : []; } catch { /* ignore */ }
+
+  const infoItems = [
+    { icon: FaPhone, title: "الهاتف", value: phone, href: `tel:+2${phone}` },
+    { icon: FaEnvelope, title: "البريد الإلكتروني", value: email, href: `mailto:${email}` },
+    { icon: FaLocationDot, title: "العنوان", value: address },
+    { icon: FaClock, title: "أوقات العمل", value: hours },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      <PageHero
-        title="تواصل معنا"
-        subtitle="نحن هنا لمساعدتك في رحلتك العقارية"
-      />
+    <Box mih="100vh" bg="gray.0" dir="rtl">
+      <PageHero title="تواصل معنا" subtitle="نحن هنا لمساعدتك في رحلتك العقارية" />
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Contact Info */}
-          <div className="space-y-4">
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-              <h2 className="text-2xl font-black text-gray-900 mb-6">معلومات التواصل</h2>
-              {[
-                { icon: Phone,   title: "الهاتف",               value: phone,   href: `tel:+2${phone}` },
-                { icon: Mail,    title: "البريد الإلكتروني",     value: email,   href: `mailto:${email}` },
-                { icon: MapPin,  title: "العنوان",               value: address },
-                { icon: Clock,   title: "أوقات العمل",           value: hours },
-              ].map(({ icon: Icon, title, value, href }) => (
-                <div key={title} className="flex items-start gap-4 p-4 bg-white rounded-2xl shadow-sm border border-gray-100 mb-3">
-                  <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-[var(--primary)]" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">{title}</p>
-                    {href ? (
-                      <a href={href} className="font-semibold text-gray-900 hover:text-[var(--primary)] transition-colors">{value}</a>
-                    ) : (
-                      <p className="font-semibold text-gray-900">{value}</p>
-                    )}
-                  </div>
-                </div>
+      <Container size="xl" py="xl">
+        <Grid gutter={40}>
+          <Grid.Col span={{ base: 12, lg: 6 }}>
+            <Title order={2} fz={{ base: 24, md: 28 }} mb="lg">معلومات التواصل</Title>
+            <Stack gap="sm" mb="md">
+              {infoItems.map(({ icon: Icon, title, value, href }) => (
+                <Card key={title} className="public-card" radius="lg" p="md">
+                  <Group gap="md" wrap="nowrap">
+                    <ThemeIcon size={44} radius="md" variant="light" color="brand"><Icon size={18} /></ThemeIcon>
+                    <Box>
+                      <Text size="xs" c="dimmed" fw={600} tt="uppercase">{title}</Text>
+                      {href ? (
+                        <Anchor href={href} fw={700} c="dark.8" underline="never">{value}</Anchor>
+                      ) : (
+                        <Text fw={700} c="dark.8">{value}</Text>
+                      )}
+                    </Box>
+                  </Group>
+                </Card>
               ))}
-            </motion.div>
+            </Stack>
 
-            {/* WhatsApp CTA */}
-            <a href={whatsapp.startsWith("http") ? whatsapp : `https://wa.me/2${whatsapp.replace(/\D/g, "")}`}
-              target="_blank" rel="noreferrer"
-              className="flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white px-6 py-4 rounded-2xl font-bold text-lg transition-all hover:-translate-y-0.5 w-full">
-              <MessageCircle className="w-5 h-5" />
+            <Button
+              component="a" color="green" size="lg" fullWidth leftSection={<FaWhatsapp size={20} />}
+              href={whatsapp.startsWith("http") ? whatsapp : `https://wa.me/2${whatsapp.replace(/\D/g, "")}`}
+              target="_blank" rel="noreferrer" mb="md"
+            >
               تواصل عبر واتساب
-            </a>
+            </Button>
 
-            {/* Map embed */}
             {siteContact.map_embed && (
-              <div
-                className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm"
+              <Card className="public-card" radius="lg" p={0} style={{ overflow: "hidden" }}
                 dangerouslySetInnerHTML={{ __html: siteContact.map_embed.replace('width="600"', 'width="100%"').replace('height="450"', 'height="280"') }}
               />
             )}
-          </div>
+          </Grid.Col>
 
-          {/* Form */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+          <Grid.Col span={{ base: 12, lg: 6 }}>
             {sent ? (
-              <div className="bg-white rounded-2xl p-10 shadow-sm border border-gray-100 text-center">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">تم إرسال رسالتك!</h3>
-                <p className="text-gray-500">سيتواصل معك فريقنا في أقرب وقت ممكن</p>
-                <button onClick={() => setSent(false)} className="mt-6 text-[var(--primary)] text-sm font-semibold hover:underline">
-                  إرسال رسالة أخرى
-                </button>
-              </div>
+              <Card className="public-card" radius="lg" p={40} ta="center">
+                <ThemeIcon size={64} radius="xl" color="green" variant="light" mx="auto" mb="md"><FaCircleCheck size={30} /></ThemeIcon>
+                <Title order={3} size="xl" mb={6}>تم إرسال رسالتك!</Title>
+                <Text c="dimmed">سيتواصل معك فريقنا في أقرب وقت ممكن</Text>
+                <Anchor mt="lg" c="brand.6" fw={600} onClick={() => setSent(false)} style={{ cursor: "pointer" }}>إرسال رسالة أخرى</Anchor>
+              </Card>
             ) : (
-              <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 space-y-4">
-                <h2 className="text-2xl font-black text-gray-900 mb-2">أرسل رسالتك</h2>
-                <p className="text-gray-500 text-sm mb-4">سنرد عليك خلال 24 ساعة</p>
+              <Card className="public-card" radius="lg" p="xl" component="form" onSubmit={handleSubmit}>
+                <Title order={2} fz={{ base: 24, md: 28 }} mb={4}>أرسل رسالتك</Title>
+                <Text c="dimmed" size="sm" mb="lg">سنرد عليك خلال 24 ساعة</Text>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">الاسم الكامل *</label>
-                    <input value={form.name} onChange={(e) => f("name", e.target.value)} required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">رقم الهاتف *</label>
-                    <input value={form.phone} onChange={(e) => f("phone", e.target.value)} required
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm" />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">البريد الإلكتروني</label>
-                  <input type="email" value={form.email} onChange={(e) => f("email", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm" />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">رسالتك</label>
-                  <textarea rows={5} value={form.message} onChange={(e) => f("message", e.target.value)}
-                    placeholder="أخبرنا عن احتياجاتك العقارية..."
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm resize-none" />
-                </div>
-
-                <button type="submit" disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-4 rounded-xl font-bold transition-all hover:-translate-y-0.5 disabled:opacity-50 text-sm">
-                  <FaPaperPlane className="w-4 h-4" />
-                  {loading ? "جاري الإرسال..." : "إرسال الرسالة"}
-                </button>
-              </form>
+                <Stack gap="md">
+                  <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                    <TextInput label="الاسم الكامل" required value={form.name} onChange={(e) => f("name", e.target.value)} radius="md" />
+                    <TextInput label="رقم الهاتف" required value={form.phone} onChange={(e) => f("phone", e.target.value)} radius="md" />
+                  </SimpleGrid>
+                  <TextInput type="email" label="البريد الإلكتروني" value={form.email} onChange={(e) => f("email", e.target.value)} radius="md" />
+                  <Textarea label="رسالتك" rows={5} placeholder="أخبرنا عن احتياجاتك العقارية..." value={form.message} onChange={(e) => f("message", e.target.value)} radius="md" />
+                  <Button type="submit" loading={loading} color="brand" size="md" leftSection={<FaPaperPlane size={14} />}>
+                    إرسال الرسالة
+                  </Button>
+                </Stack>
+              </Card>
             )}
-          </motion.div>
-        </div>
-      </div>
+          </Grid.Col>
+        </Grid>
+      </Container>
 
-      {/* Branches Section */}
       {branches.length > 0 && (
-        <div className="container mx-auto px-4 pb-16">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-2xl font-black text-gray-900 mb-6 text-center">فروعنا</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {branches.map((br, i) => (
-                <motion.div key={i}
-                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                      <FaLocationDot className="w-5 h-5 text-[var(--primary)]" />
-                    </div>
-                    <h3 className="font-bold text-gray-900">{br.name || `فرع ${i + 1}`}</h3>
-                  </div>
-                  <div className="space-y-2.5 text-sm text-gray-600">
-                    {br.address && (
-                      <div className="flex items-start gap-2">
-                        <FaLocationDot className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <span>{br.address}</span>
-                      </div>
-                    )}
-                    {br.phone && (
-                      <div className="flex items-center gap-2">
-                        <FaPhone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <a href={`tel:${br.phone}`} className="hover:text-[var(--primary)] transition-colors">{br.phone}</a>
-                      </div>
-                    )}
-                    {br.hours && (
-                      <div className="flex items-center gap-2">
-                        <FaClock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span>{br.hours}</span>
-                      </div>
-                    )}
-                  </div>
-                  {br.map_link && (
-                    <a href={br.map_link} target="_blank" rel="noreferrer"
-                      className="mt-4 flex items-center justify-center gap-2 bg-[var(--primary)]/10 hover:bg-[var(--primary)] text-[var(--primary)] hover:text-white py-2.5 rounded-xl text-sm font-semibold transition-all">
-                      <Navigation className="w-4 h-4" />
-                      عرض على الخريطة
-                    </a>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
+        <Container size="xl" pb={64}>
+          <Title order={2} fz={{ base: 24, md: 28 }} ta="center" mb="lg">فروعنا</Title>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+            {branches.map((br, i) => (
+              <Card key={i} className="public-card" radius="lg" p="lg">
+                <Group gap={10} mb="md">
+                  <ThemeIcon size={40} radius="md" variant="light" color="brand"><FaLocationDot size={17} /></ThemeIcon>
+                  <Text fw={700}>{br.name || `فرع ${i + 1}`}</Text>
+                </Group>
+                <Stack gap={8}>
+                  {br.address && <Group gap={8} align="flex-start"><FaLocationDot size={13} color="var(--mantine-color-gray-5)" style={{ marginTop: 3 }} /><Text size="sm" c="dimmed">{br.address}</Text></Group>}
+                  {br.phone && <Group gap={8}><FaPhone size={13} color="var(--mantine-color-gray-5)" /><Anchor href={`tel:${br.phone}`} size="sm" c="dimmed" underline="never">{br.phone}</Anchor></Group>}
+                  {br.hours && <Group gap={8}><FaClock size={13} color="var(--mantine-color-gray-5)" /><Text size="sm" c="dimmed">{br.hours}</Text></Group>}
+                </Stack>
+                {br.map_link && (
+                  <Button component="a" href={br.map_link} target="_blank" rel="noreferrer" variant="light" color="brand" fullWidth mt="md" leftSection={<FaLocationArrow size={13} />}>
+                    عرض على الخريطة
+                  </Button>
+                )}
+              </Card>
+            ))}
+          </SimpleGrid>
+        </Container>
       )}
-    </div>
+    </Box>
   );
 }

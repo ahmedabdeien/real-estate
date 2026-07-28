@@ -1,12 +1,35 @@
 import { useEffect, useState } from "react";
-import { FaBriefcase, FaLocationDot, FaClock, FaMoneyBill, FaArrowRight, FaCheck } from 'react-icons/fa6';
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import {
+  Box, Container, Grid, Stack, Card, Group, Title, Text, Badge, Button,
+  TextInput, Anchor, Popover, SimpleGrid, ThemeIcon, Loader,
+} from "@mantine/core";
+import {
+  FaBriefcase, FaLocationDot, FaCalendar, FaDollarSign, FaArrowRight,
+  FaShareNodes, FaCopy, FaCircleCheck, FaLink, FaArrowUpRightFromSquare,
+  FaWhatsapp, FaFacebook, FaXTwitter, FaLinkedin,
+} from "react-icons/fa6";
 import api from "../../api/axios";
-import LoadingSpinner from "../../Components/UI/LoadingSpinner";
 
 const TYPE_LABELS = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
-const TYPE_COLORS = { full_time: "bg-blue-100 text-blue-700", part_time: "bg-purple-100 text-purple-700", contract: "bg-amber-100 text-amber-700", internship: "bg-green-100 text-green-700" };
+const TYPE_COLORS = { full_time: "blue", part_time: "grape", contract: "yellow", internship: "green" };
+
+function ShareGrid({ shareLinks, copied, copyLink }) {
+  return (
+    <Stack gap="xs">
+      <SimpleGrid cols={2} spacing={8}>
+        {shareLinks.map((s) => (
+          <Button key={s.label} component="a" href={s.href} target="_blank" rel="noreferrer" color={s.color} size="xs" leftSection={<s.icon size={13} />}>
+            {s.label}
+          </Button>
+        ))}
+      </SimpleGrid>
+      <Button variant={copied ? "light" : "default"} color={copied ? "green" : "gray"} size="xs" leftSection={<FaCopy size={12} />} onClick={copyLink}>
+        {copied ? "تم النسخ!" : "نسخ الرابط"}
+      </Button>
+    </Stack>
+  );
+}
 
 export default function CareerDetail() {
   const { id } = useParams();
@@ -18,7 +41,6 @@ export default function CareerDetail() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showShare, setShowShare] = useState(false);
 
   const pageUrl = window.location.href;
 
@@ -29,7 +51,7 @@ export default function CareerDetail() {
       api.get("/careers", { params: { published: true } }),
     ]).then(([det, all]) => {
       setCareer(det.data.career);
-      setRelated((all.data.careers || []).filter(c => c._id !== id).slice(0, 3));
+      setRelated((all.data.careers || []).filter((c) => c._id !== id).slice(0, 3));
     }).catch(() => navigate("/careers"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -39,16 +61,11 @@ export default function CareerDetail() {
     setSending(true);
     try {
       await api.post("/leads", {
-        name: form.name,
-        phone: form.phone,
-        email: form.email,
-        cv_link: form.cv_link || "",
-        career: id,
-        source: "website",
-        message: `تقديم على وظيفة: ${career?.title?.ar}`,
+        name: form.name, phone: form.phone, email: form.email, cv_link: form.cv_link || "",
+        career: id, source: "website", message: `تقديم على وظيفة: ${career?.title?.ar}`,
       });
       setSent(true);
-    } catch (err) {
+    } catch {
       alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى");
     } finally { setSending(false); }
   };
@@ -59,270 +76,159 @@ export default function CareerDetail() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareLinks = [
-    {
-      label: "واتساب",
-      icon: MessageCircle,
-      color: "bg-green-500 hover:bg-green-600",
-      href: `https://wa.me/?text=${encodeURIComponent(`وظيفة: ${career?.title?.ar}\n${pageUrl}`)}`,
-    },
-    {
-      label: "فيسبوك",
-      icon: Facebook,
-      color: "bg-blue-600 hover:bg-blue-700",
-      href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`,
-    },
-    {
-      label: "X",
-      icon: Twitter,
-      color: "bg-gray-900 hover:bg-black",
-      href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`وظيفة شاغرة: ${career?.title?.ar}`)}&url=${encodeURIComponent(pageUrl)}`,
-    },
-    {
-      label: "LinkedIn",
-      icon: Linkedin,
-      color: "bg-blue-700 hover:bg-blue-800",
-      href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`,
-    },
-  ];
-
-  if (loading) return <LoadingSpinner className="min-h-screen" size="lg" />;
+  if (loading) return <Group justify="center" py={120}><Loader color="brand" size="lg" /></Group>;
   if (!career) return null;
 
   const isExpired = career.deadline && new Date(career.deadline) < new Date();
 
+  const shareLinks = [
+    { label: "واتساب", icon: FaWhatsapp, color: "green", href: `https://wa.me/?text=${encodeURIComponent(`وظيفة: ${career.title?.ar}\n${pageUrl}`)}` },
+    { label: "فيسبوك", icon: FaFacebook, color: "blue", href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}` },
+    { label: "X", icon: FaXTwitter, color: "dark", href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`وظيفة شاغرة: ${career.title?.ar}`)}&url=${encodeURIComponent(pageUrl)}` },
+    { label: "LinkedIn", icon: FaLinkedin, color: "indigo", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}` },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#f8fafc]" dir="rtl">
-      {/* Hero */}
-      <div className="bg-gradient-to-br from-[#1a3d5c] to-[var(--primary)] py-14">
-        <div className="container mx-auto px-4">
-          <Link to="/careers" className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm mb-6 transition-colors">
-            <ArrowRight className="w-4 h-4" /> العودة للوظائف
-          </Link>
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${TYPE_COLORS[career.type]} border border-white/20`}>
-                  {TYPE_LABELS[career.type]}
-                </span>
-                {career.published && !isExpired && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-400/20 text-green-300 border border-green-400/30">
-                    متاحة
-                  </span>
-                )}
-                {isExpired && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-400/20 text-red-300 border border-red-400/30">
-                    انتهت المدة
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white mb-3">{career.title?.ar}</h1>
-              {career.title?.en && <p className="text-white/60 text-lg mb-4">{career.title.en}</p>}
-              <div className="flex flex-wrap gap-5 text-white/70 text-sm">
-                {career.department?.ar && (
-                  <span className="flex items-center gap-2"><FaBriefcase className="w-4 h-4" />{career.department.ar}</span>
-                )}
-                {career.location?.ar && (
-                  <span className="flex items-center gap-2"><FaLocationDot className="w-4 h-4" />{career.location.ar}</span>
-                )}
+    <Box mih="100vh" bg="gray.0" dir="rtl">
+      <Box bg="brand.6" py={56}>
+        <Container size="xl">
+          <Anchor component={Link} to="/careers" c="brand.1" size="sm" mb="lg" display="inline-flex" style={{ alignItems: "center", gap: 8 }}>
+            <FaArrowRight size={13} /> العودة للوظائف
+          </Anchor>
+          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+            <Box style={{ flex: 1, minWidth: 0 }}>
+              <Group gap={8} mb="sm">
+                <Badge color={TYPE_COLORS[career.type]} variant="light">{TYPE_LABELS[career.type]}</Badge>
+                {career.published && !isExpired && <Badge color="green" variant="light">متاحة</Badge>}
+                {isExpired && <Badge color="red" variant="light">انتهت المدة</Badge>}
+              </Group>
+              <Title order={1} c="white" fz={{ base: 28, md: 36 }} mb={8}>{career.title?.ar}</Title>
+              {career.title?.en && <Text c="brand.2" fz="lg" mb="md">{career.title.en}</Text>}
+              <Group gap="lg" c="brand.1">
+                {career.department?.ar && <Group gap={6}><FaBriefcase size={14} /><Text size="sm">{career.department.ar}</Text></Group>}
+                {career.location?.ar && <Group gap={6}><FaLocationDot size={14} /><Text size="sm">{career.location.ar}</Text></Group>}
                 {career.deadline && (
-                  <span className={`flex items-center gap-2 ${isExpired ? "text-red-300" : ""}`}>
-                    <FaCalendar className="w-4 h-4" />
-                    آخر موعد: {new Date(career.deadline).toLocaleDateString("ar-EG")}
-                  </span>
+                  <Group gap={6} c={isExpired ? "red.3" : undefined}>
+                    <FaCalendar size={14} /><Text size="sm">آخر موعد: {new Date(career.deadline).toLocaleDateString("ar-EG")}</Text>
+                  </Group>
                 )}
                 {career.salary?.min && !career.salary?.hidden && (
-                  <span className="flex items-center gap-2 text-green-300">
-                    <FaDollarSign className="w-4 h-4" />
-                    {Number(career.salary.min).toLocaleString("ar-EG")} — {Number(career.salary.max).toLocaleString("ar-EG")} {career.salary.currency}
-                  </span>
+                  <Group gap={6} c="green.3">
+                    <FaDollarSign size={14} />
+                    <Text size="sm">{Number(career.salary.min).toLocaleString("ar-EG")} — {Number(career.salary.max).toLocaleString("ar-EG")} {career.salary.currency}</Text>
+                  </Group>
                 )}
-              </div>
-            </div>
+              </Group>
+            </Box>
 
-            {/* Share button */}
-            <div className="relative">
-              <button onClick={() => setShowShare(p => !p)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors border border-white/20">
-                <Share2 className="w-4 h-4" /> مشاركة
-              </button>
-              {showShare && (
-                <motion.div initial={{ opacity: 0, scale: 0.9, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-                  className="absolute left-0 top-12 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-64 z-50" dir="rtl">
-                  <p className="text-xs font-bold text-gray-500 mb-3">مشاركة الوظيفة</p>
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    {shareLinks.map(s => (
-                      <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-white text-xs font-medium transition-colors ${s.color}`}>
-                        <s.icon className="w-4 h-4" /> {s.label}
-                      </a>
+            <Popover position="bottom-end" shadow="lg" radius="lg">
+              <Popover.Target>
+                <Button variant="white" color="dark" leftSection={<FaShareNodes size={14} />}>مشاركة</Button>
+              </Popover.Target>
+              <Popover.Dropdown w={260}>
+                <Text size="xs" fw={700} c="dimmed" mb="sm">مشاركة الوظيفة</Text>
+                <ShareGrid shareLinks={shareLinks} copied={copied} copyLink={copyLink} />
+              </Popover.Dropdown>
+            </Popover>
+          </Group>
+        </Container>
+      </Box>
+
+      <Container size="xl" py="xl">
+        <Grid gutter="xl">
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Stack gap="lg">
+              {career.description?.ar && (
+                <Card className="public-card" radius="lg" p="lg">
+                  <Group gap={8} mb="md"><FaBriefcase size={17} color="var(--mantine-color-brand-6)" /><Title order={2} size="lg">وصف الوظيفة</Title></Group>
+                  <Text c="dimmed" lh={1.8} style={{ whiteSpace: "pre-line" }}>{career.description.ar}</Text>
+                </Card>
+              )}
+
+              {career.requirements?.length > 0 && (
+                <Card className="public-card" radius="lg" p="lg">
+                  <Group gap={8} mb="md"><FaCircleCheck size={17} color="var(--mantine-color-brand-6)" /><Title order={2} size="lg">المتطلبات</Title></Group>
+                  <Stack gap="sm">
+                    {career.requirements.map((r, i) => (
+                      <Group key={i} gap={10} align="flex-start" wrap="nowrap">
+                        <ThemeIcon size={20} radius="xl" variant="light" color="brand" mt={2}><FaCircleCheck size={11} /></ThemeIcon>
+                        <Text size="sm" c="dimmed" lh={1.7}>{r}</Text>
+                      </Group>
                     ))}
-                  </div>
-                  <button onClick={copyLink}
-                    className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-medium transition-colors ${
-                      copied ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                    }`}>
-                    <FaCopy className="w-3.5 h-3.5" />
-                    {copied ? "تم النسخ!" : "نسخ الرابط"}
-                  </button>
-                </motion.div>
+                  </Stack>
+                </Card>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            {career.description?.ar && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <FaBriefcase className="w-5 h-5 text-[var(--primary)]" /> وصف الوظيفة
-                </h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{career.description.ar}</p>
-              </div>
-            )}
+              <Card className="public-card" radius="lg" p="lg" hiddenFrom="lg">
+                <Group gap={8} mb="sm"><FaShareNodes size={15} color="var(--mantine-color-brand-6)" /><Text fw={700} size="sm">شارك هذه الوظيفة</Text></Group>
+                <ShareGrid shareLinks={shareLinks} copied={copied} copyLink={copyLink} />
+              </Card>
+            </Stack>
+          </Grid.Col>
 
-            {/* Requirements */}
-            {career.requirements?.length > 0 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-[var(--primary)]" /> المتطلبات
-                </h2>
-                <ul className="space-y-3">
-                  {career.requirements.map((r, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <span className="w-5 h-5 rounded-full bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircle className="w-3 h-3 text-[var(--primary)]" />
-                      </span>
-                      <span className="text-gray-700 text-sm leading-relaxed">{r}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Stack gap="md" style={{ position: "sticky", top: 84 }}>
+              <Card className="public-card" radius="lg" p="lg">
+                <Title order={2} size="lg" mb="md">قدّم الآن</Title>
+                {isExpired ? (
+                  <Stack align="center" py="lg" gap={6}>
+                    <FaCalendar size={36} color="var(--mantine-color-red-3)" />
+                    <Text size="sm" c="dimmed" ta="center">انتهت مدة التقديم على هذه الوظيفة</Text>
+                  </Stack>
+                ) : sent ? (
+                  <Stack align="center" py="lg" gap={4}>
+                    <ThemeIcon size={56} radius="xl" color="green" variant="light"><FaCircleCheck size={26} /></ThemeIcon>
+                    <Text fw={700}>تم إرسال طلبك!</Text>
+                    <Text size="sm" c="dimmed" ta="center">سيتواصل معك فريق الموارد البشرية قريباً</Text>
+                  </Stack>
+                ) : career.cv_link ? (
+                  <Stack gap="sm">
+                    <Text size="sm" c="dimmed">للتقديم على هذه الوظيفة يرجى الضغط على الزر أدناه</Text>
+                    <Button component="a" href={career.cv_link} target="_blank" rel="noreferrer" color="brand" fullWidth leftSection={<FaArrowUpRightFromSquare size={14} />}>
+                      تقديم عبر الرابط
+                    </Button>
+                  </Stack>
+                ) : (
+                  <Stack gap="sm" component="form" onSubmit={handleApply}>
+                    <TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="الاسم الكامل *" required radius="md" />
+                    <TextInput value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="رقم الهاتف *" required radius="md" />
+                    <TextInput type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="البريد الإلكتروني *" required radius="md" />
+                    <TextInput
+                      type="url" value={form.cv_link} onChange={(e) => setForm({ ...form, cv_link: e.target.value })}
+                      placeholder="https://drive.google.com/..." radius="md"
+                      label="رابط السيرة الذاتية (اختياري)" leftSection={<FaLink size={13} />}
+                    />
+                    <Button type="submit" loading={sending} color="brand" fullWidth>إرسال الطلب</Button>
+                  </Stack>
+                )}
+              </Card>
 
-            {/* Share section (mobile) */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm lg:hidden">
-              <h2 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-[var(--primary)]" /> شارك هذه الوظيفة
-              </h2>
-              <div className="grid grid-cols-2 gap-2">
-                {shareLinks.map(s => (
-                  <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${s.color}`}>
-                    <s.icon className="w-4 h-4" /> {s.label}
-                  </a>
-                ))}
-              </div>
-              <button onClick={copyLink}
-                className={`w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-medium transition-colors ${copied ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                <FaCopy className="w-4 h-4" /> {copied ? "تم النسخ!" : "نسخ الرابط"}
-              </button>
-            </div>
-          </div>
+              <Card className="public-card" radius="lg" p="lg" visibleFrom="lg">
+                <Group gap={8} mb="sm"><FaShareNodes size={15} color="var(--mantine-color-brand-6)" /><Text fw={700} size="sm">مشاركة الوظيفة</Text></Group>
+                <ShareGrid shareLinks={shareLinks} copied={copied} copyLink={copyLink} />
+              </Card>
+            </Stack>
+          </Grid.Col>
+        </Grid>
 
-          {/* Sidebar */}
-          <div className="space-y-5">
-            {/* Apply Card */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm sticky top-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">قدّم الآن</h2>
-
-              {isExpired ? (
-                <div className="text-center py-6">
-                  <FaCalendar className="w-10 h-10 text-red-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">انتهت مدة التقديم على هذه الوظيفة</p>
-                </div>
-              ) : sent ? (
-                <div className="text-center py-6">
-                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-7 h-7 text-green-500" />
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-1">تم إرسال طلبك!</h3>
-                  <p className="text-gray-500 text-sm">سيتواصل معك فريق الموارد البشرية قريباً</p>
-                </div>
-              ) : career.cv_link ? (
-                <div>
-                  <p className="text-gray-500 text-sm mb-4">للتقديم على هذه الوظيفة يرجى الضغط على الزر أدناه</p>
-                  <a href={career.cv_link} target="_blank" rel="noreferrer"
-                    className="flex items-center justify-center gap-2 w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-3 rounded-xl text-sm font-bold transition-colors">
-                    <FaArrowUpRightFromSquare className="w-4 h-4" /> تقديم عبر الرابط
-                  </a>
-                </div>
-              ) : (
-                <form onSubmit={handleApply} className="space-y-3">
-                  <input value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                    placeholder="الاسم الكامل *" required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-                  <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
-                    placeholder="رقم الهاتف *" required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-                  <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
-                    placeholder="البريد الإلكتروني *" required
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Link2 className="w-3.5 h-3.5 text-gray-400" />
-                      <label className="text-xs text-gray-500">رابط السيرة الذاتية (اختياري)</label>
-                    </div>
-                    <input type="url" value={form.cv_link} onChange={e => setForm({...form, cv_link: e.target.value})}
-                      placeholder="https://drive.google.com/..."
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)]" />
-                  </div>
-                  <button type="submit" disabled={sending}
-                    className="w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-50">
-                    {sending ? "جاري الإرسال..." : "إرسال الطلب"}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Share (desktop) */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hidden lg:block">
-              <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-[var(--primary)]" /> مشاركة الوظيفة
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {shareLinks.map(s => (
-                  <a key={s.label} href={s.href} target="_blank" rel="noreferrer"
-                    className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-white text-xs font-medium transition-colors ${s.color}`}>
-                    <s.icon className="w-3.5 h-3.5" /> {s.label}
-                  </a>
-                ))}
-              </div>
-              <button onClick={copyLink}
-                className={`w-full mt-2 flex items-center justify-center gap-2 py-2 rounded-xl border text-xs font-medium transition-colors ${copied ? "border-green-300 text-green-600 bg-green-50" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
-                <FaCopy className="w-3.5 h-3.5" /> {copied ? "تم النسخ!" : "نسخ الرابط"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Related Jobs */}
         {related.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-bold text-gray-900 mb-5">وظائف أخرى قد تهمك</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {related.map(c => (
-                <Link key={c._id} to={`/careers/${c._id}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:border-[var(--primary)]/30 hover:shadow-md transition-all group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-                      <FaBriefcase className="w-4 h-4 text-[var(--primary)]" />
-                    </div>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[c.type]}`}>{TYPE_LABELS[c.type]}</span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-[var(--primary)] transition-colors">{c.title?.ar}</h3>
-                  <p className="text-gray-400 text-xs">{c.department?.ar} • {c.location?.ar}</p>
-                </Link>
+          <Box mt={48}>
+            <Title order={2} size="xl" mb="lg">وظائف أخرى قد تهمك</Title>
+            <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
+              {related.map((c) => (
+                <Card key={c._id} component={Link} to={`/careers/${c._id}`} className="public-card" radius="lg" p="lg" style={{ textDecoration: "none" }}>
+                  <Group gap={10} mb="sm">
+                    <ThemeIcon size={36} radius="md" variant="light" color="brand"><FaBriefcase size={15} /></ThemeIcon>
+                    <Badge color={TYPE_COLORS[c.type]} variant="light" size="sm">{TYPE_LABELS[c.type]}</Badge>
+                  </Group>
+                  <Text fw={700} size="sm" c="dark.8" mb={2}>{c.title?.ar}</Text>
+                  <Text size="xs" c="dimmed">{c.department?.ar} • {c.location?.ar}</Text>
+                </Card>
               ))}
-            </div>
-          </div>
+            </SimpleGrid>
+          </Box>
         )}
-      </div>
-    </div>
+      </Container>
+    </Box>
   );
 }
