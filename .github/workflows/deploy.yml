@@ -1,11 +1,12 @@
 # ──────────────────────────────────────────────────────────
 # Auto-deploy to Vercel (elsarh.co) on every push to main
+# or cloudflare/workers-autoconfig
 # ──────────────────────────────────────────────────────────
 name: Deploy to Vercel (Production)
 
 on:
   push:
-    branches: [main]
+    branches: [main, cloudflare/workers-autoconfig]
 
 jobs:
   deploy:
