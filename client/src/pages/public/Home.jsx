@@ -194,20 +194,20 @@ export default function HomePage() {
   return (
     <Box>
       {/* Hero */}
-      <Box pos="relative" bg="white" py={{ base: 56, md: 90 }} style={{ overflow: "hidden" }}>
+      <Box pos="relative" bg="dark.8" py={{ base: 56, md: 90 }} style={{ overflow: "hidden" }}>
         <Box
           pos="absolute" inset={0}
           style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
         />
-        <Box pos="absolute" inset={0} bg="white" style={{ opacity: 0.88 }} />
+        <Box pos="absolute" inset={0} bg="dark.9" style={{ opacity: 0.55 }} />
         <Container size="md" ta="center" dir="rtl" pos="relative">
-          <MantineBadge size="lg" variant="light" color="brand" mb="lg">
+          <MantineBadge size="lg" variant="filled" color="brand" mb="lg">
             AG Development — مستقبلك يبدأ هنا
           </MantineBadge>
-          <Title order={1} c="dark.8" fz={{ base: 32, sm: 42, md: 54 }} fw={900} lh={1.15} mb="md">
+          <Title order={1} c="white" fz={{ base: 32, sm: 42, md: 54 }} fw={900} lh={1.15} mb="md">
             {heroCms.title_ar}
           </Title>
-          <Text c="dimmed" fz={{ base: "md", md: "xl" }} maw={640} mx="auto" mb="xl">
+          <Text c="gray.3" fz={{ base: "md", md: "xl" }} maw={640} mx="auto" mb="xl">
             {heroCms.subtitle_ar}
           </Text>
           <Box mb="xl"><HeroSearch /></Box>
@@ -215,7 +215,7 @@ export default function HomePage() {
             <Button component={Link} to="/projects" size="lg" radius="md" color="brand">
               {heroCms.cta_text_ar}
             </Button>
-            <Button component={Link} to="/contact" size="lg" radius="md" variant="outline" color="dark">
+            <Button component={Link} to="/contact" size="lg" radius="md" variant="outline" color="gray.0" c="white">
               تواصل معنا
             </Button>
           </Group>
