@@ -13,6 +13,7 @@ import {
 import api from "../../api/axios";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useCms } from "../../hooks/useCms";
+import heroBg from "../../assets/home-hero-bg.webp";
 
 const typeColor = { project: "blue", unit: "teal", blog: "grape", career: "orange" };
 
@@ -193,8 +194,13 @@ export default function HomePage() {
   return (
     <Box>
       {/* Hero */}
-      <Box bg="white" py={{ base: 56, md: 90 }}>
-        <Container size="md" ta="center" dir="rtl">
+      <Box pos="relative" bg="white" py={{ base: 56, md: 90 }} style={{ overflow: "hidden" }}>
+        <Box
+          pos="absolute" inset={0}
+          style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
+        />
+        <Box pos="absolute" inset={0} bg="white" style={{ opacity: 0.88 }} />
+        <Container size="md" ta="center" dir="rtl" pos="relative">
           <MantineBadge size="lg" variant="light" color="brand" mb="lg">
             AG Development — مستقبلك يبدأ هنا
           </MantineBadge>
