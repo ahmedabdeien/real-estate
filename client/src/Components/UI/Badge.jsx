@@ -24,13 +24,15 @@ export default function Badge({ children, variant = "default", className }) {
 
 export function statusBadge(status) {
   const map = {
-    available:   { label: "متاح",     variant: "success" },
-    sold:        { label: "مباع",      variant: "danger" },
-    reserved:    { label: "محجوز",     variant: "warning" },
-    coming_soon: { label: "قريباً",    variant: "info" },
-    active:      { label: "نشط",      variant: "success" },
-    inactive:    { label: "غير نشط",  variant: "default" },
-    featured:    { label: "مميز",     variant: "primary" },
+    available:         { label: "متاح",          variant: "success" },
+    sold:              { label: "مباع",           variant: "danger" },
+    reserved:          { label: "محجوز",          variant: "warning" },
+    coming_soon:       { label: "قريباً",          variant: "info" },
+    under_construction:{ label: "قيد الإنشاء",    variant: "warning" },
+    ready:             { label: "جاهز للتسليم",   variant: "success" },
+    active:            { label: "نشط",            variant: "success" },
+    inactive:          { label: "غير نشط",        variant: "default" },
+    featured:          { label: "مميز",           variant: "primary" },
   };
   return map[status] || { label: status || "—", variant: "default" };
 }
