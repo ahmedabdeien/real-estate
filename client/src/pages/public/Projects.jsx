@@ -13,7 +13,6 @@ import api from "../../api/axios";
 import Badge, { statusBadge } from "../../Components/UI/Badge";
 import { useCms } from "../../hooks/useCms";
 import { useAuth } from "../../context/AuthContext";
-import PageHero from "../../Components/shared/PageHero";
 
 const statusOptions = [
   { value: "", label: "كل المشاريع" },
@@ -140,8 +139,6 @@ export default function ProjectsPage() {
 
   return (
     <Box mih="100vh" bg="gray.0" dir="rtl">
-      <PageHero title={cmsPage.title_ar} subtitle={cmsPage.subtitle_ar} image={cmsPage.hero_image} />
-
       <Container size="xl" py="xl">
         <Group justify="space-between" mb="lg" wrap="wrap" gap="sm">
           <TextInput

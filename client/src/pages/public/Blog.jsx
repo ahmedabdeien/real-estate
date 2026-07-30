@@ -8,7 +8,6 @@ import { FaMagnifyingGlass, FaCalendar, FaEye, FaFileLines } from "react-icons/f
 
 import api from "../../api/axios";
 import { useCms } from "../../hooks/useCms";
-import PageHero from "../../Components/shared/PageHero";
 
 export default function BlogPage() {
   const { data: cms } = useCms("blog_page", {
@@ -50,8 +49,6 @@ export default function BlogPage() {
 
   return (
     <Box mih="100vh" bg="gray.0" dir="rtl">
-      <PageHero title={cms.title_ar} subtitle={cms.subtitle_ar} image={cms.hero_image} />
-
       <Container size="xl" py="xl">
         <TextInput
           value={search} onChange={handleSearchChange}

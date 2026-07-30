@@ -11,7 +11,8 @@ export const mantineTheme = createTheme({
   primaryShade: 6,
   fontFamily: "inherit",
   headings: { fontFamily: "inherit", fontWeight: "800" },
-  defaultRadius: "md",
+  defaultRadius: 0,
+  radius: { xs: "0", sm: "0", md: "0", lg: "0", xl: "0" },
   colors: {
     brand: [
       "#EDF3FC",
@@ -25,13 +26,5 @@ export const mantineTheme = createTheme({
       "#003B76",
       "#002E5C",
     ],
-  },
-  components: {
-    Button: {
-      defaultProps: { radius: "md" },
-    },
-    Card: {
-      defaultProps: { radius: "lg" },
-    },
   },
 });

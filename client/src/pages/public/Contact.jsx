@@ -13,7 +13,6 @@ import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useCms } from "../../hooks/useCms";
-import PageHero from "../../Components/shared/PageHero";
 
 export default function ContactPage() {
   const { user } = useAuth();
@@ -80,8 +79,6 @@ export default function ContactPage() {
 
   return (
     <Box mih="100vh" bg="gray.0" dir="rtl">
-      <PageHero title="تواصل معنا" subtitle="نحن هنا لمساعدتك في رحلتك العقارية" />
-
       <Container size="xl" py="xl">
         <Grid gutter={40}>
           <Grid.Col span={{ base: 12, lg: 6 }}>

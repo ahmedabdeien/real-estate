@@ -13,7 +13,6 @@ import {
 import api from "../../api/axios";
 import { useCms } from "../../hooks/useCms";
 import { useAuth } from "../../context/AuthContext";
-import PageHero from "../../Components/shared/PageHero";
 
 const unitTypeAr = {
   apartment: "شقة", villa: "فيلا", studio: "استوديو", duplex: "دوبلكس",
@@ -99,8 +98,6 @@ export default function UnitsPage() {
 
   return (
     <Box mih="100vh" bg="gray.0" dir="rtl">
-      <PageHero title={cms.title_ar} subtitle={cms.subtitle_ar} image={cms.hero_image} />
-
       <Container size="xl" py="xl">
         <Card className="public-card" radius="lg" p="md" mb="lg" component="form" onSubmit={submitSearch}>
           <Group gap="sm" wrap="wrap">

@@ -11,7 +11,6 @@ import {
 
 import api from "../../api/axios";
 import { useCms } from "../../hooks/useCms";
-import PageHero from "../../Components/shared/PageHero";
 
 const TYPE_LABELS = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
 const TYPE_COLORS = { full_time: "blue", part_time: "grape", contract: "yellow", internship: "green" };
@@ -43,8 +42,6 @@ export default function CareersPage() {
 
   return (
     <Box mih="100vh" bg="gray.0" dir="rtl">
-      <PageHero title={cmsPage.title_ar} subtitle={cmsPage.subtitle_ar} badge={`${active} وظيفة متاحة`} image={cmsPage.image} />
-
       <Container size="xl" py="xl">
         <Group mb="xl" wrap="wrap">
           <TextInput

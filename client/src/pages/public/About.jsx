@@ -3,7 +3,6 @@ import { Box, Container, Grid, SimpleGrid, Card, Title, Text, Image, ThemeIcon, 
 import { FaBuilding, FaEye, FaBullseye, FaAward, FaUsers } from "react-icons/fa6";
 
 import { useCms } from "../../hooks/useCms";
-import PageHero from "../../Components/shared/PageHero";
 
 export default function AboutPage() {
   useEffect(() => { document.title = "عن الشركة | AG Development"; }, []);
@@ -34,8 +33,6 @@ export default function AboutPage() {
 
   return (
     <Box dir="rtl">
-      <PageHero title={hero.title_ar || content.title_ar} subtitle={hero.subtitle_ar} badge="AG Development" image={hero.hero_image} />
-
       {/* Story */}
       <Box className="public-section" bg="white">
         <Container size="xl">
