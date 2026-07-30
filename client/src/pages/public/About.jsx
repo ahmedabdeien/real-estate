@@ -6,10 +6,10 @@ import { useCms } from "../../hooks/useCms";
 import PageHero from "../../Components/shared/PageHero";
 
 export default function AboutPage() {
-  useEffect(() => { document.title = "عن الشركة | الصرح للتطوير العقاري"; }, []);
+  useEffect(() => { document.title = "عن الشركة | AG Development"; }, []);
   const { data: content } = useCms("about", {
-    title_ar: "عن الصرح للتطوير العقاري",
-    body_ar: "الصرح للتطوير العقاري شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها.",
+    title_ar: "عن AG Development",
+    body_ar: "AG Development شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها.",
     vision_ar: "أن نكون الخيار الأول للتطوير العقاري في مصر، من خلال تقديم مشاريع مبتكرة تلبي تطلعات العملاء وتساهم في بناء مجتمعات متكاملة.",
     mission_ar: "تقديم حلول عقارية متكاملة تجمع بين الجودة والابتكار وخدمة العملاء الاستثنائية، مع الحفاظ على أعلى معايير الشفافية والمصداقية.",
     image: "",
@@ -34,7 +34,7 @@ export default function AboutPage() {
 
   return (
     <Box dir="rtl">
-      <PageHero title={hero.title_ar || content.title_ar} subtitle={hero.subtitle_ar} badge="الصرح للتطوير العقاري" image={hero.hero_image} />
+      <PageHero title={hero.title_ar || content.title_ar} subtitle={hero.subtitle_ar} badge="AG Development" image={hero.hero_image} />
 
       {/* Story */}
       <Box className="public-section" bg="white">
@@ -57,7 +57,7 @@ export default function AboutPage() {
             </Grid.Col>
             <Grid.Col span={{ base: 12, lg: 6 }}>
               {content.image ? (
-                <Image src={content.image} alt="الصرح للتطوير العقاري" radius="lg" h={320} fit="cover" />
+                <Image src={content.image} alt="AG Development" radius="lg" h={320} fit="cover" />
               ) : (
                 <Box h={320} bg="brand.6" display="flex" style={{ alignItems: "center", justifyContent: "center", borderRadius: "var(--mantine-radius-lg)" }}>
                   <FaBuilding size={96} color="rgba(255,255,255,0.3)" />

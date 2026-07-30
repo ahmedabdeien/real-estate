@@ -38,7 +38,7 @@ export default function BlogPage() {
     }
   };
 
-  useEffect(() => { document.title = "المقالات | الصرح للتطوير العقاري"; }, []);
+  useEffect(() => { document.title = "المقالات | AG Development"; }, []);
   useEffect(() => { load(search, page); }, [page]);
 
   const handleSearchChange = (e) => {

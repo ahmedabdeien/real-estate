@@ -2,9 +2,9 @@
  * PageHero — مكوّن الهيدر المشترك لجميع صفحات الموقع العام
  * Usage: <PageHero title="..." subtitle="..." badge="..." image="..." />
  */
-import { Box, Container, Title, Text, Badge, Image } from "@mantine/core";
+import { Box, Container, Title, Text, Badge } from "@mantine/core";
 
-export default function PageHero({ title, subtitle, badge, image, children, align = "center" }) {
+export default function PageHero({ title, subtitle, badge, children, align = "center" }) {
   const ta = { center: "center", right: "right", left: "left" }[align] || "center";
 
   return (
@@ -24,9 +24,6 @@ export default function PageHero({ title, subtitle, badge, image, children, alig
           <Text c="dimmed" fz={{ base: "sm", md: "lg" }} maw={620} mx={ta === "center" ? "auto" : 0}>
             {subtitle}
           </Text>
-        )}
-        {image && (
-          <Image src={image} alt="" radius="lg" mt="xl" mah={280} fit="cover" />
         )}
         {children && <Box mt="lg">{children}</Box>}
       </Container>

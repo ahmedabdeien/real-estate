@@ -3,9 +3,10 @@ import {
   Box, Container, SimpleGrid, Stack, Text, Title, Group, ActionIcon,
   Anchor, Image, Divider, Button,
 } from "@mantine/core";
-import { FaBuilding, FaPhone, FaEnvelope, FaLocationDot, FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa6";
+import { FaPhone, FaEnvelope, FaLocationDot, FaFacebook, FaInstagram, FaYoutube } from "react-icons/fa6";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
 import { useCms } from "../../hooks/useCms";
+import logo from "../../assets/logo.svg";
 
 const quickLinks = [
   { to: "/projects", label: "مشاريعنا" },
@@ -26,8 +27,7 @@ export default function Footer() {
   const phone   = cmsFooter.phone    || contact.phone    || settings.company_phone   || "01234567890";
   const email   = cmsFooter.email    || contact.email    || settings.company_email   || "info@elsarh.com";
   const address = cmsFooter.address  || contact.address_ar || settings.company_address || "القاهرة، مصر";
-  const logo    = settings.company_logo;
-  const name    = cmsFooter.companyName || settings.company_name_ar || "الصرح للتطوير العقاري";
+  const name    = cmsFooter.companyName || settings.company_name_ar || "AG Development";
   const desc    = cmsFooter.companyDesc || "شركة عقارية رائدة متخصصة في توفير أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة.";
 
   const facebook  = contact.facebook  || settings.facebook_url  || "#";
@@ -39,16 +39,9 @@ export default function Footer() {
       <Container size="xl" py="xl">
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="xl">
           <Stack gap="sm">
-            <Group gap={10}>
-              {logo ? (
-                <Image src={logo} alt={name} h={40} w="auto" fit="contain" />
-              ) : (
-                <Box className="logo-badge">
-                  <FaBuilding size={20} color="white" />
-                </Box>
-              )}
-              <Text fw={700} size="lg" c="white">{name}</Text>
-            </Group>
+            <Box bg="white" p={8} style={{ borderRadius: "var(--mantine-radius-md)", display: "inline-block", width: "fit-content" }}>
+              <Image src={logo} alt={name} h={36} w="auto" fit="contain" />
+            </Box>
             <Text size="sm" lh={1.7}>{desc}</Text>
             <Group gap="xs" mt="xs">
               <ActionIcon component="a" href={facebook} target="_blank" rel="noreferrer" variant="light" color="gray" radius="md" size="lg">

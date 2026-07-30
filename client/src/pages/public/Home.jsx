@@ -163,7 +163,7 @@ export default function HomePage() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const { data: heroCms } = useCms("hero", {
-    title_ar: "الصرح للتطوير العقاري",
+    title_ar: "AG Development",
     subtitle_ar: "نقدم لكم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة",
     background_image: "",
     cta_text_ar: "اكتشف مشاريعنا",
@@ -182,7 +182,7 @@ export default function HomePage() {
     cta_phone: "",
   });
 
-  useEffect(() => { document.title = "الصرح للتطوير العقاري - الرئيسية"; }, []);
+  useEffect(() => { document.title = "AG Development - الرئيسية"; }, []);
 
   useEffect(() => {
     api.get("/projects", { params: { featured: true, published: true, limit: 6 } })
@@ -196,7 +196,7 @@ export default function HomePage() {
       <Box bg="white" py={{ base: 56, md: 90 }}>
         <Container size="md" ta="center" dir="rtl">
           <MantineBadge size="lg" variant="light" color="brand" mb="lg">
-            الصرح للتطوير العقاري — مستقبلك يبدأ هنا
+            AG Development — مستقبلك يبدأ هنا
           </MantineBadge>
           <Title order={1} c="dark.8" fz={{ base: 32, sm: 42, md: 54 }} fw={900} lh={1.15} mb="md">
             {heroCms.title_ar}

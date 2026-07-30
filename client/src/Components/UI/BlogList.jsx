@@ -50,7 +50,7 @@ export default function BlogList() {
     return (
         <div dir="rtl" className="min-h-screen pb-20" style={{ background: '#faf8f4' }}>
             <Helmet>
-                <title>المدونة | {config?.siteName || 'الصرح للتطوير العقاري'}</title>
+                <title>المدونة | {config?.siteName || 'AG Development'}</title>
             </Helmet>
 
             {/* Hero */}

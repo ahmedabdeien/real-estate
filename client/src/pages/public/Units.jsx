@@ -59,7 +59,7 @@ export default function UnitsPage() {
     }
   };
 
-  useEffect(() => { document.title = "الوحدات | الصرح للتطوير العقاري"; }, []);
+  useEffect(() => { document.title = "الوحدات | AG Development"; }, []);
   useEffect(() => { load(); }, [page, status, project, search]);
   useEffect(() => {
     api.get("/projects", { params: { limit: 100, published: true } }).then((r) => setProjects(r.data.projects || []));

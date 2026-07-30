@@ -268,7 +268,7 @@ export default function AdminChangelog() {
 
       {/* Footer */}
       <div className="text-center text-xs text-gray-400 pt-4">
-        الصرح للتطوير العقاري © 2026
+        AG Development © 2026
       </div>
     </div>
   );

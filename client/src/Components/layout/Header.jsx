@@ -6,11 +6,12 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
-  FaBuilding, FaPhone, FaUser, FaGear, FaRightFromBracket, FaChevronDown,
+  FaPhone, FaUser, FaGear, FaRightFromBracket, FaChevronDown,
 } from "react-icons/fa6";
 
 import { useAuth } from "../../context/AuthContext";
 import { useSiteSettings } from "../../context/SiteSettingsContext";
+import logo from "../../assets/logo.svg";
 
 const links = [
   { to: "/", label: "الرئيسية", exact: true },
@@ -89,8 +90,7 @@ export default function Header() {
   const { contact, settings } = useSiteSettings();
 
   const phone = contact.phone || settings.company_phone || "01234567890";
-  const logo  = settings.company_logo;
-  const name  = settings.company_name_ar || "الصرح للتطوير العقاري";
+  const name  = settings.company_name_ar || "AG Development";
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
@@ -110,14 +110,7 @@ export default function Header() {
       <Container size="xl">
         <Group h={64} justify="space-between" wrap="nowrap">
           <Group component={Link} to="/" gap={10} wrap="nowrap" style={{ textDecoration: "none" }}>
-            {logo ? (
-              <Image src={logo} alt={name} h={36} w="auto" fit="contain" />
-            ) : (
-              <Box className="logo-badge">
-                <FaBuilding size={18} color="white" />
-              </Box>
-            )}
-            <Text fw={800} size="lg" c="dark.8" visibleFrom="xs">{name}</Text>
+            <Image src={logo} alt={name} h={40} w="auto" fit="contain" />
           </Group>
 
           <Group gap={4} visibleFrom="lg">

@@ -131,7 +131,7 @@ export default function ProjectsPage() {
     }
   };
 
-  useEffect(() => { document.title = "المشاريع | الصرح للتطوير العقاري"; }, []);
+  useEffect(() => { document.title = "المشاريع | AG Development"; }, []);
   useEffect(() => { load(); }, [page, status, debouncedSearch]);
   useEffect(() => { loadCounts(); }, []);
 

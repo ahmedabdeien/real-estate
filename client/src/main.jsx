@@ -8,6 +8,12 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { store, persistor } from "./store";
 import App from "./App.jsx";
+import "@fontsource/cairo/arabic-400.css";
+import "@fontsource/cairo/arabic-500.css";
+import "@fontsource/cairo/arabic-600.css";
+import "@fontsource/cairo/arabic-700.css";
+import "@fontsource/cairo/arabic-800.css";
+import "@fontsource/cairo/arabic-900.css";
 import "./index.scss";
 
 export const queryClient = new QueryClient({

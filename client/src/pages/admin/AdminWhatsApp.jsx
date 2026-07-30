@@ -141,7 +141,7 @@ export default function AdminWhatsApp() {
 
   /* ── Test ───────────────────────────────────── */
   const [testPhone, setTestPhone] = useState("");
-  const [testMsg, setTestMsg]     = useState("مرحباً، رسالة اختبار من الصرح للتطوير العقاري 🏢");
+  const [testMsg, setTestMsg]     = useState("مرحباً، رسالة اختبار من AG Development 🏢");
   const [testTemplate, setTestTemplate] = useState("");
   const [sending, setSending]     = useState(false);
   const [testLog, setTestLog]     = useState([]); // local test history
@@ -760,7 +760,7 @@ export default function AdminWhatsApp() {
                   placeholder="اسم القالب (مثال: ترحيب عميل)"
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-gray-900 dark:text-white" />
                 <textarea value={newTpl.body} onChange={(e) => setNewTpl(n => ({...n, body: e.target.value}))} rows={4}
-                  placeholder={"مرحباً {name}،\nشكراً لتواصلك مع الصرح للتطوير العقاري 🏢\nسيتواصل معك فريقنا قريباً."}
+                  placeholder={"مرحباً {name}،\nشكراً لتواصلك مع AG Development 🏢\nسيتواصل معك فريقنا قريباً."}
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-gray-900 dark:text-white resize-none" dir="rtl" />
                 <div className="flex items-center justify-between">
                   <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">

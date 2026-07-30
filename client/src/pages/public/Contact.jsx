@@ -29,7 +29,7 @@ export default function ContactPage() {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { document.title = "تواصل معنا | الصرح للتطوير العقاري"; }, []);
+  useEffect(() => { document.title = "تواصل معنا | AG Development"; }, []);
 
   useEffect(() => {
     if (user) {

@@ -19,7 +19,7 @@ const TYPE_COLORS = { full_time: "blue", part_time: "grape", contract: "yellow",
 export default function CareersPage() {
   const { data: cmsPage } = useCms("careers_page", {
     title_ar: "الوظائف المتاحة",
-    subtitle_ar: "انضم إلى فريق الصرح للتطوير العقاري",
+    subtitle_ar: "انضم إلى فريق AG Development",
     image: "",
   });
   const [careers, setCareers] = useState([]);

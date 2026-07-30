@@ -3386,7 +3386,7 @@ export default function AdminAccounting({ branch = null, branchLabel = null }) {
 
       {/* Sidebar footer */}
       <div className="px-4 py-3 border-t border-white/10 bg-[#1a3349] flex-shrink-0">
-        <p className="text-[10px] text-white/20 text-center">نظام الحسابات — الصرح للتطوير العقاري</p>
+        <p className="text-[10px] text-white/20 text-center">نظام الحسابات — AG Development</p>
       </div>
     </div>
   );

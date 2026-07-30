@@ -27,9 +27,9 @@ const groups = [
     key: "company", label: "معلومات الشركة", icon: FaBuilding, color: "blue",
     desc: "بيانات الشركة الأساسية والتواصل",
     fields: [
-      { key: "site_name",         label: "اسم التبويب في المتصفح",    type: "text",     placeholder: "الصرح للعقارات" },
+      { key: "site_name",         label: "اسم التبويب في المتصفح",    type: "text",     placeholder: "AG Development" },
       { key: "favicon_url",       label: "أيقونة المتصفح (Favicon)",  type: "image" },
-      { key: "company_name_ar",   label: "اسم الشركة (عربي)",         type: "text",     placeholder: "الصرح للتطوير العقاري" },
+      { key: "company_name_ar",   label: "اسم الشركة (عربي)",         type: "text",     placeholder: "AG Development" },
       { key: "company_name_en",   label: "اسم الشركة (إنجليزي)",      type: "text",     placeholder: "Al-Sarh Real Estate" },
       { key: "company_logo",      label: "شعار الشركة",               type: "image" },
       { key: "company_logo_dark", label: "شعار (نسخة فاتحة)",         type: "image" },
@@ -57,7 +57,7 @@ const groups = [
     key: "seo", label: "محركات البحث SEO", icon: FaGlobe, color: "green",
     desc: "إعدادات الظهور في نتائج البحث",
     fields: [
-      { key: "meta_title_ar",       label: "عنوان الموقع (عربي)",      type: "text",     placeholder: "الصرح للتطوير العقاري" },
+      { key: "meta_title_ar",       label: "عنوان الموقع (عربي)",      type: "text",     placeholder: "AG Development" },
       { key: "meta_description_ar", label: "وصف الموقع (عربي)",        type: "textarea", placeholder: "وصف الشركة والخدمات..." },
       { key: "meta_title_en",       label: "عنوان الموقع (إنجليزي)",   type: "text",     placeholder: "Al-Sarh Real Estate" },
       { key: "og_image",            label: "صورة المشاركة (OG Image)",  type: "image" },
@@ -100,7 +100,7 @@ const groups = [
       { key: "smtp_port",     label: "SMTP Port",     type: "text",     placeholder: "587" },
       { key: "smtp_user",     label: "SMTP Username", type: "email",    placeholder: "your@gmail.com" },
       { key: "smtp_pass",     label: "SMTP Password", type: "password", placeholder: "App Password" },
-      { key: "smtp_from",     label: "From Name",     type: "text",     placeholder: "الصرح للعقارات" },
+      { key: "smtp_from",     label: "From Name",     type: "text",     placeholder: "AG Development" },
     ],
   },
   {

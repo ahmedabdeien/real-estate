@@ -197,7 +197,7 @@ export default function StaffLayout() {
               <FaBuilding className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-gray-900 text-sm leading-tight hidden sm:block">
-              الصرح للتطوير العقاري
+              AG Development
             </span>
           </div>
 

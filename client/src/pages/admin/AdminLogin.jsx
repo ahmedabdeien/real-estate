@@ -30,7 +30,7 @@ export default function AdminLogin() {
 
   // CMS content
   const [cms, setCms] = useState({
-    heroTitle: "الصرح للتطوير العقاري",
+    heroTitle: "AG Development",
     heroSubtitle: "تسجيل الدخول إلى لوحة التحكم",
     heroTagline: "ندير أعمالك بكفاءة واحترافية",
     heroImage: "",
@@ -41,7 +41,7 @@ export default function AdminLogin() {
       .then((r) => {
         const d = r.data.data || {};
         setCms({
-          heroTitle:    d.heroTitle    || "الصرح للتطوير العقاري",
+          heroTitle:    d.heroTitle    || "AG Development",
           heroSubtitle: d.heroSubtitle || "تسجيل الدخول إلى لوحة التحكم",
           heroTagline:  d.heroTagline  || "ندير أعمالك بكفاءة واحترافية",
           heroImage:    d.heroImage    || "",
@@ -96,13 +96,13 @@ export default function AdminLogin() {
     <div className="min-h-screen flex" dir="rtl">
       {/* Left panel — info/image (desktop only) */}
       <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[var(--primary)] overflow-hidden"
+        className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[#245079] overflow-hidden"
       >
         {/* Background image overlay */}
         {cms.heroImage && (
           <div className="absolute inset-0">
             <img src={cms.heroImage} alt="" className="w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0f2336]/80 to-[var(--primary)]/60" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0f2336]/80 to-[#245079]/60" />
           </div>
         )}
         <div className="relative z-10 text-center text-white">
@@ -118,13 +118,13 @@ export default function AdminLogin() {
           <p className="text-white/90 text-base font-medium">{cms.heroTagline}</p>
           <div className="mt-10 flex flex-col gap-3 text-sm text-white/50">
             <div className="w-32 h-0.5 bg-white/20 mx-auto" />
-            <p>© {new Date().getFullYear()} الصرح للتطوير العقاري</p>
+            <p>© {new Date().getFullYear()} AG Development</p>
           </div>
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[var(--primary)] via-[#1a3d5c] to-[#0f2336] lg:bg-none lg:bg-[#f8fafc] relative p-4">
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[#245079] via-[#1a3d5c] to-[#0f2336] lg:bg-none lg:bg-[#f8fafc] relative p-4">
         {/* Home button */}
         <Link
           to="/"
