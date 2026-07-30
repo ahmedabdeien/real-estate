@@ -2,7 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Box, Container, Title, Text, Button, SimpleGrid, Card, Group, Stack,
-  TextInput, Paper, Loader, Badge as MantineBadge, Image, ThemeIcon,
+  TextInput, Loader, Skeleton, Badge as MantineBadge, Image, ThemeIcon,
+  Combobox, useCombobox,
 } from "@mantine/core";
 import {
   FaMagnifyingGlass, FaXmark, FaBuilding, FaLocationDot, FaPhone,
@@ -19,30 +20,26 @@ function HeroSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [open, setOpen] = useState(false);
   const timerRef = useRef(null);
-  const inputRef = useRef(null);
-  const boxRef  = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const handler = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+  });
 
   const search = useCallback((q) => {
-    if (!q || q.length < 2) { setResults([]); setOpen(false); return; }
+    if (!q || q.length < 2) { setResults([]); return; }
     setSearching(true);
     api.get("/search", { params: { q } })
-      .then((r) => { setResults(r.data.results || []); setOpen(true); })
+      .then((r) => { setResults(r.data.results || []); combobox.openDropdown(); })
       .catch(() => {})
       .finally(() => setSearching(false));
-  }, []);
+  }, [combobox]);
 
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
+    combobox.updateSelectedOptionIndex();
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => search(val), 350);
   };
@@ -50,63 +47,66 @@ function HeroSearch() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
-    setOpen(false);
+    combobox.closeDropdown();
     const hasUnit = results.some((r) => r.type === "unit");
     navigate(hasUnit
       ? `/units?search=${encodeURIComponent(query.trim())}`
       : `/projects?search=${encodeURIComponent(query.trim())}`);
   };
 
-  const clear = () => { setQuery(""); setResults([]); setOpen(false); inputRef.current?.focus(); };
+  const clear = () => { setQuery(""); setResults([]); };
 
   return (
-    <Box ref={boxRef} pos="relative" w="100%" maw={640} mx="auto" dir="rtl">
-      <form onSubmit={handleSubmit}>
-        <TextInput
-          ref={inputRef}
-          value={query}
-          onChange={handleChange}
-          onFocus={() => results.length && setOpen(true)}
-          placeholder="ابحث عن مشاريع، وحدات، أخبار، وظائف..."
-          size="lg"
-          radius="lg"
-          leftSection={<FaMagnifyingGlass size={16} />}
-          rightSection={
-            searching ? <Loader size={16} /> :
-            query ? <FaXmark size={16} onClick={clear} style={{ cursor: "pointer" }} /> : null
-          }
-        />
-      </form>
+    <Box pos="relative" w="100%" maw={640} mx="auto" dir="rtl">
+      <Combobox
+        store={combobox}
+        onOptionSubmit={(href) => { combobox.closeDropdown(); navigate(href); }}
+      >
+        <form onSubmit={handleSubmit}>
+          <Combobox.Target>
+            <TextInput
+              value={query}
+              onChange={handleChange}
+              onFocus={() => results.length && combobox.openDropdown()}
+              placeholder="ابحث عن مشاريع، وحدات، أخبار، وظائف..."
+              size="lg"
+              radius="lg"
+              leftSection={<FaMagnifyingGlass size={16} />}
+              rightSection={
+                searching ? <Loader size={16} /> :
+                query ? <FaXmark size={16} onClick={clear} style={{ cursor: "pointer" }} /> : null
+              }
+            />
+          </Combobox.Target>
+        </form>
 
-      {open && results.length > 0 && (
-        <Paper shadow="lg" radius="lg" withBorder mt="xs" pos="absolute" top="100%" left={0} right={0} style={{ zIndex: 50, maxHeight: 320, overflowY: "auto" }}>
-          {results.map((r, i) => (
-            <Group
-              key={i} component={Link} to={r.href} onClick={() => setOpen(false)} wrap="nowrap"
-              px="md" py="sm" style={{ textDecoration: "none", borderBottom: "1px solid var(--mantine-color-gray-1)" }}
-              className="search-result-row"
-            >
-              {r.img ? (
-                <Image src={r.img} alt="" w={40} h={40} radius="md" fit="cover" />
-              ) : (
-                <ThemeIcon size={40} radius="md" variant="light" color="brand">
-                  <FaMagnifyingGlass size={16} />
-                </ThemeIcon>
-              )}
-              <Box style={{ flex: 1, minWidth: 0 }}>
-                <Text size="sm" fw={600} truncate c="dark.7">{r.label}</Text>
-                {r.sub && <Text size="xs" c="dimmed" truncate>{r.sub}</Text>}
-              </Box>
-              <MantineBadge color={typeColor[r.type] || "gray"} variant="filled" size="sm">{r.badge}</MantineBadge>
-            </Group>
-          ))}
-        </Paper>
-      )}
-      {open && results.length === 0 && !searching && query.length >= 2 && (
-        <Paper shadow="md" radius="lg" withBorder mt="xs" pos="absolute" top="100%" left={0} right={0} p="lg" ta="center" style={{ zIndex: 50 }}>
-          <Text c="dimmed" size="sm">لا توجد نتائج لـ «{query}»</Text>
-        </Paper>
-      )}
+        <Combobox.Dropdown>
+          <Combobox.Options mah={320} style={{ overflowY: "auto" }}>
+            {results.length > 0 ? results.map((r) => (
+              <Combobox.Option value={r.href} key={r.href}>
+                <Group wrap="nowrap">
+                  {r.img ? (
+                    <Image src={r.img} alt="" w={40} h={40} radius="md" fit="cover" />
+                  ) : (
+                    <ThemeIcon size={40} radius="md" variant="light" color="brand">
+                      <FaMagnifyingGlass size={16} />
+                    </ThemeIcon>
+                  )}
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Text size="sm" fw={600} truncate c="dark.7">{r.label}</Text>
+                    {r.sub && <Text size="xs" c="dimmed" truncate>{r.sub}</Text>}
+                  </Box>
+                  <MantineBadge color={typeColor[r.type] || "gray"} variant="filled" size="sm">{r.badge}</MantineBadge>
+                </Group>
+              </Combobox.Option>
+            )) : (
+              !searching && query.length >= 2 && (
+                <Combobox.Empty>لا توجد نتائج لـ «{query}»</Combobox.Empty>
+              )
+            )}
+          </Combobox.Options>
+        </Combobox.Dropdown>
+      </Combobox>
     </Box>
   );
 }
@@ -270,7 +270,18 @@ export default function HomePage() {
           </Stack>
 
           {loadingProjects ? (
-            <Group justify="center" py="xl"><Loader color="brand" size="lg" /></Group>
+            <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} padding={0} radius="lg" withBorder>
+                  <Skeleton height={200} radius={0} />
+                  <Stack gap={8} p="lg">
+                    <Skeleton height={20} width="70%" />
+                    <Skeleton height={14} width="40%" />
+                    <Skeleton height={32} mt="sm" />
+                  </Stack>
+                </Card>
+              ))}
+            </SimpleGrid>
           ) : (
             <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
               {projects.map((p) => <ProjectCard key={p._id} project={p} />)}

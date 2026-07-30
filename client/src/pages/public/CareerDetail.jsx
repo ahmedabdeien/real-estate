@@ -7,8 +7,9 @@ import {
 import {
   FaBriefcase, FaLocationDot, FaCalendar, FaDollarSign, FaArrowRight,
   FaShareNodes, FaCopy, FaCircleCheck, FaLink, FaArrowUpRightFromSquare,
-  FaWhatsapp, FaFacebook, FaXTwitter, FaLinkedin,
+  FaWhatsapp, FaFacebook, FaXTwitter, FaLinkedin, FaTriangleExclamation,
 } from "react-icons/fa6";
+import { notifications } from "@mantine/notifications";
 import api from "../../api/axios";
 
 const TYPE_LABELS = { full_time: "دوام كامل", part_time: "دوام جزئي", contract: "عقد", internship: "تدريب" };
@@ -66,7 +67,12 @@ export default function CareerDetail() {
       });
       setSent(true);
     } catch {
-      alert("حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى");
+      notifications.show({
+        color: "red",
+        icon: <FaTriangleExclamation size={16} />,
+        title: "تعذر إرسال الطلب",
+        message: "حدث خطأ أثناء إرسال الطلب، يرجى المحاولة مرة أخرى",
+      });
     } finally { setSending(false); }
   };
 

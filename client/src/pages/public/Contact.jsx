@@ -5,8 +5,9 @@ import {
 } from "@mantine/core";
 import {
   FaPhone, FaEnvelope, FaLocationDot, FaClock, FaWhatsapp, FaPaperPlane,
-  FaCircleCheck, FaLocationArrow,
+  FaCircleCheck, FaLocationArrow, FaTriangleExclamation,
 } from "react-icons/fa6";
+import { notifications } from "@mantine/notifications";
 
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
@@ -44,8 +45,19 @@ export default function ContactPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try { await api.post("/leads", form); setSent(true); }
-    catch { /* ignore */ } finally { setLoading(false); }
+    try {
+      await api.post("/leads", form);
+      setSent(true);
+    } catch {
+      notifications.show({
+        color: "red",
+        icon: <FaTriangleExclamation size={16} />,
+        title: "تعذر إرسال الرسالة",
+        message: "يرجى المحاولة مرة أخرى أو التواصل عبر واتساب",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const f = (k, v) => setForm((p) => ({ ...p, [k]: v }));

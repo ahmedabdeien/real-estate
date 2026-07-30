@@ -10,8 +10,9 @@ import {
 import {
   FaLocationDot, FaBuilding, FaHouseChimney, FaPhone, FaWhatsapp,
   FaRulerCombined, FaBed, FaBath, FaCircleCheck, FaTag, FaHouse, FaMapPin,
-  FaPlay, FaCodeCompare, FaPen,
+  FaPlay, FaCodeCompare, FaPen, FaTriangleExclamation,
 } from "react-icons/fa6";
+import { notifications } from "@mantine/notifications";
 
 import api from "../../api/axios";
 import { statusBadge } from "../../Components/UI/Badge";
@@ -38,8 +39,19 @@ function ContactForm({ projectName, projectId, waNumber }) {
   const submit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try { await api.post("/leads", form); setSent(true); }
-    catch { /* ignore */ } finally { setLoading(false); }
+    try {
+      await api.post("/leads", form);
+      setSent(true);
+    } catch {
+      notifications.show({
+        color: "red",
+        icon: <FaTriangleExclamation size={16} />,
+        title: "تعذر إرسال الطلب",
+        message: "يرجى المحاولة مرة أخرى",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (sent) {

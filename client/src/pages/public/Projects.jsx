@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Box, Container, Group, Stack, TextInput, Button, SimpleGrid, Card, Title, Text,
-  Image, Loader, Pagination as MantinePagination, ActionIcon, Anchor,
+  Image, Skeleton, Pagination as MantinePagination, Chip, SegmentedControl, Anchor,
 } from "@mantine/core";
 import {
   FaMagnifyingGlass, FaTableCellsLarge, FaTableList, FaWandMagicSparkles,
@@ -21,6 +21,20 @@ const statusOptions = [
   { value: "ready", label: "جاهز للتسليم" },
   { value: "coming_soon", label: "قريباً" },
 ];
+
+function ProjectCardSkeleton() {
+  return (
+    <Card padding={0} radius="lg" withBorder>
+      <Skeleton height={220} radius={0} />
+      <Stack gap={8} p="lg">
+        <Skeleton height={20} width="70%" />
+        <Skeleton height={14} width="40%" />
+        <Skeleton height={14} width="90%" />
+        <Skeleton height={32} mt="sm" />
+      </Stack>
+    </Card>
+  );
+}
 
 function ProjectCard({ p, view = "grid" }) {
   const { label, variant } = statusBadge(p.status);
@@ -138,32 +152,30 @@ export default function ProjectsPage() {
             radius="md"
             style={{ flex: 1, minWidth: 220 }}
           />
-          <Group gap={6} wrap="wrap">
-            {statusOptions.map((o) => (
-              <Button
-                key={o.value}
-                onClick={() => { setStatus(o.value); setPage(1); }}
-                variant={status === o.value ? "filled" : "default"}
-                color="brand"
-                size="sm"
-                radius="md"
-              >
-                {o.label} {allCounts[o.value] > 0 && <Text component="span" opacity={0.7} ms={4}>({allCounts[o.value]})</Text>}
-              </Button>
-            ))}
-          </Group>
-          <Group gap={0}>
-            <ActionIcon variant={view === "grid" ? "filled" : "default"} color="brand" size="lg" radius="md" onClick={() => setView("grid")}>
-              <FaTableCellsLarge size={15} />
-            </ActionIcon>
-            <ActionIcon variant={view === "list" ? "filled" : "default"} color="brand" size="lg" radius="md" onClick={() => setView("list")} ml={6}>
-              <FaTableList size={15} />
-            </ActionIcon>
-          </Group>
+          <Chip.Group value={status} onChange={(v) => { setStatus(v); setPage(1); }}>
+            <Group gap={6} wrap="wrap">
+              {statusOptions.map((o) => (
+                <Chip key={o.value} value={o.value} color="brand" variant="filled" radius="md">
+                  {o.label} {allCounts[o.value] > 0 && `(${allCounts[o.value]})`}
+                </Chip>
+              ))}
+            </Group>
+          </Chip.Group>
+          <SegmentedControl
+            value={view}
+            onChange={setView}
+            color="brand"
+            data={[
+              { value: "grid", label: <FaTableCellsLarge size={14} /> },
+              { value: "list", label: <FaTableList size={14} /> },
+            ]}
+          />
         </Group>
 
         {loading ? (
-          <Group justify="center" py={80}><Loader color="brand" size="lg" /></Group>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+            {Array.from({ length: 6 }).map((_, i) => <ProjectCardSkeleton key={i} />)}
+          </SimpleGrid>
         ) : projects.length === 0 ? (
           <Stack align="center" py={80} gap="xs">
             <FaInbox size={40} color="var(--mantine-color-gray-4)" />

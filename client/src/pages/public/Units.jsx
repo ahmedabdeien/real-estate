@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Box, Container, Card, Group, Stack, TextInput, Select, Button, SimpleGrid,
-  Text, Title, Badge, Image, ThemeIcon, Loader, Pagination as MantinePagination,
-  Affix, Modal, Table, ActionIcon,
+  Text, Title, Badge, Image, Skeleton, Pagination as MantinePagination,
+  Affix, Modal, Table, ActionIcon, Chip,
 } from "@mantine/core";
 import {
   FaMagnifyingGlass, FaSliders, FaBuilding, FaBed, FaBath, FaRulerCombined,
@@ -125,19 +125,30 @@ export default function UnitsPage() {
               ]}
               radius="md" w={180} allowDeselect={false}
             />
-            <Group gap={6}>
-              {[{ value: "", label: "الكل" }, { value: "available", label: "متاحة" }, { value: "reserved", label: "محجوزة" }].map((o) => (
-                <Button key={o.value} size="sm" radius="md" color="brand" variant={status === o.value ? "filled" : "default"} onClick={() => { setStatus(o.value); setPage(1); }}>
-                  {o.label}
-                </Button>
-              ))}
-            </Group>
+            <Chip.Group value={status} onChange={(v) => { setStatus(v); setPage(1); }}>
+              <Group gap={6}>
+                {[{ value: "", label: "الكل" }, { value: "available", label: "متاحة" }, { value: "reserved", label: "محجوزة" }].map((o) => (
+                  <Chip key={o.value} value={o.value} color="brand" variant="filled" radius="md">{o.label}</Chip>
+                ))}
+              </Group>
+            </Chip.Group>
             <Button type="submit" color="brand" leftSection={<FaSliders size={14} />}>بحث</Button>
           </Group>
         </Card>
 
         {loading ? (
-          <Group justify="center" py={80}><Loader color="brand" size="lg" /></Group>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} padding={0} radius="lg" withBorder>
+                <Skeleton height={0} style={{ paddingBottom: "75%" }} radius={0} />
+                <Stack gap={8} p="md">
+                  <Skeleton height={18} width="60%" />
+                  <Skeleton height={30} />
+                  <Skeleton height={32} mt="sm" />
+                </Stack>
+              </Card>
+            ))}
+          </SimpleGrid>
         ) : sortedUnits.length === 0 ? (
           <Stack align="center" py={80} gap="xs">
             <FaHouse size={40} color="var(--mantine-color-gray-4)" />

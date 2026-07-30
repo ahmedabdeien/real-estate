@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Box, Container, Card, Group, Stack, TextInput, Select, Button, SimpleGrid,
-  Text, Title, Badge, ThemeIcon, Loader,
+  Text, Title, Badge, ThemeIcon, Skeleton,
 } from "@mantine/core";
 import {
   FaBriefcase, FaLocationDot, FaMagnifyingGlass, FaCircleCheck,
@@ -63,7 +63,22 @@ export default function CareersPage() {
         </Group>
 
         {loading ? (
-          <Group justify="center" py={80}><Loader color="brand" size="lg" /></Group>
+          <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} padding={0} radius="lg" withBorder>
+                <Skeleton height={4} radius={0} />
+                <Stack gap={10} p="lg">
+                  <Group justify="space-between">
+                    <Skeleton height={44} width={44} radius="md" />
+                    <Skeleton height={20} width={70} radius="xl" />
+                  </Group>
+                  <Skeleton height={18} width="70%" />
+                  <Skeleton height={14} width="50%" />
+                  <Skeleton height={36} mt="sm" />
+                </Stack>
+              </Card>
+            ))}
+          </SimpleGrid>
         ) : filtered.length === 0 ? (
           <Stack align="center" py={80} gap="xs">
             <FaBriefcase size={40} color="var(--mantine-color-gray-4)" />

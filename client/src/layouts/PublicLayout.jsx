@@ -1,7 +1,9 @@
 import { Outlet } from "react-router-dom";
-import { MantineProvider } from "@mantine/core";
+import { MantineProvider, AppShell } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import "@mantine/core/styles.css";
 import "@mantine/carousel/styles.css";
+import "@mantine/notifications/styles.css";
 import "../styles/public.css";
 import { mantineTheme } from "../mantineTheme";
 import Header from "../Components/layout/Header";
@@ -13,16 +15,19 @@ import PopupAnnouncement from "../Components/public/PopupAnnouncement";
 export default function PublicLayout() {
   return (
     <MantineProvider theme={mantineTheme}>
-      <div className="flex flex-col min-h-screen" dir="rtl">
-        <SiteMeta />
-        <Header />
-        <main className="flex-1 pt-16">
+      <Notifications position="top-center" dir="rtl" />
+      <AppShell header={{ height: 64 }} padding={0} dir="rtl">
+        <AppShell.Header>
+          <SiteMeta />
+          <Header />
+        </AppShell.Header>
+        <AppShell.Main>
           <Outlet />
-        </main>
-        <Footer />
-        <FloatingSocial />
-        <PopupAnnouncement />
-      </div>
+        </AppShell.Main>
+      </AppShell>
+      <Footer />
+      <FloatingSocial />
+      <PopupAnnouncement />
     </MantineProvider>
   );
 }

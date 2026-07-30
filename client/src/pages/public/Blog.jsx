@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Box, Container, TextInput, SimpleGrid, Card, Image, Group, Text, Title,
-  Anchor, Loader, Pagination as MantinePagination, Stack,
+  Anchor, Skeleton, Pagination as MantinePagination, Stack,
 } from "@mantine/core";
 import { FaMagnifyingGlass, FaCalendar, FaEye, FaFileLines } from "react-icons/fa6";
 
@@ -61,7 +61,18 @@ export default function BlogPage() {
         />
 
         {loading ? (
-          <Group justify="center" py={80}><Loader color="brand" size="lg" /></Group>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} padding={0} radius="lg" withBorder>
+                <Skeleton height={192} radius={0} />
+                <Stack gap={8} p="lg">
+                  <Skeleton height={12} width="40%" />
+                  <Skeleton height={20} width="80%" />
+                  <Skeleton height={40} />
+                </Stack>
+              </Card>
+            ))}
+          </SimpleGrid>
         ) : blogs.length === 0 ? (
           <Stack align="center" py={80} gap="xs">
             <FaFileLines size={40} color="var(--mantine-color-gray-4)" />
