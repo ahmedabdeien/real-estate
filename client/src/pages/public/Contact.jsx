@@ -113,9 +113,11 @@ export default function ContactPage() {
             </Button>
 
             {siteContact.map_embed && (
-              <Card className="public-card" radius="lg" p={0} style={{ overflow: "hidden" }}
-                dangerouslySetInnerHTML={{ __html: siteContact.map_embed.replace('width="600"', 'width="100%"').replace('height="450"', 'height="280"') }}
-              />
+              <Card className="public-card" radius="lg" p={0} style={{ overflow: "hidden" }}>
+                <div
+                  dangerouslySetInnerHTML={{ __html: siteContact.map_embed.replace('width="600"', 'width="100%"').replace('height="450"', 'height="280"') }}
+                />
+              </Card>
             )}
           </Grid.Col>
 
