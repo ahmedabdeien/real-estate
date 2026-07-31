@@ -11,7 +11,7 @@ import {
   FaCommentDots, FaChevronDown, FaChevronUp,
   FaAnglesLeft, FaAnglesRight,
 } from "react-icons/fa6";
-import LogoSvg from "../../assets/images/logo.svg";
+import LogoSvg from "../../assets/logo.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { fetchUnreadCount } from "../../store/slices/notificationsSlice";
@@ -125,22 +125,16 @@ export default function Sidebar({ collapsed, onToggle }) {
     <motion.aside
       animate={{ width: isCollapsed ? 72 : 256 }}
       transition={{ type: "spring", stiffness: 300, damping: 35 }}
-      className="h-screen flex flex-col bg-[#0f1e2e] border-l border-white/5 overflow-hidden relative select-none"
+      className="fixed top-0 right-0 h-screen z-30 flex flex-col bg-[#0f1e2e] border-l border-white/5 overflow-hidden select-none"
       dir="rtl"
     >
       {/* ── Logo ── */}
       <div className="flex items-center gap-3 px-4 py-4 border-b border-white/5 flex-shrink-0">
-        <img src={LogoSvg} alt="logo" className="w-8 h-8 flex-shrink-0 rounded-lg" />
-        <AnimatePresence initial={false}>
-          {!isCollapsed && (
-            <motion.span
-              initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }}
-              className="text-white font-bold text-sm leading-tight whitespace-nowrap flex-1"
-            >
-              الصـرح للعقارات
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {!isCollapsed && (
+          <div className="flex-1 bg-white rounded-lg px-2 py-1.5 flex items-center overflow-hidden">
+            <img src={LogoSvg} alt="AG Development" className="h-6 w-auto object-contain" />
+          </div>
+        )}
         <button
           onClick={handleToggle}
           className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors"

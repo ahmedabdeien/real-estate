@@ -1,15 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";
-import { FaBuilding, FaHouseChimney, FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa6";
+import {
+  Box, Container, Stack, Title, Text, TextInput, PasswordInput, Button,
+  Divider, ThemeIcon, Group, Center, Paper, MantineProvider,
+} from "@mantine/core";
+import "@mantine/core/styles.css";
+import { FaBuilding, FaHouseChimney, FaEnvelope, FaLock } from "react-icons/fa6";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../api/axios";
 import { useCms } from "../../hooks/useCms";
+import { mantineTheme } from "../../mantineTheme";
 
-// Google icon SVG
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
       <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -23,12 +28,10 @@ export default function AdminLogin() {
   const toast = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
-  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const { data: loginCms } = useCms("login_page");
 
-  // CMS content
   const [cms, setCms] = useState({
     heroTitle: "AG Development",
     heroSubtitle: "تسجيل الدخول إلى لوحة التحكم",
@@ -65,7 +68,6 @@ export default function AdminLogin() {
       navigate("/admin");
     } catch (err) {
       const msg = err.response?.data?.message;
-      // If Google account — highlight the Google button
       if (msg?.includes("Google")) {
         toast.error("هذا الحساب مسجّل بـ Google، استخدم زر تسجيل الدخول بـ Google أعلاه");
       } else {
@@ -93,146 +95,116 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex" dir="rtl">
-      {/* Left panel — info/image (desktop only) */}
-      <div
-        className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 bg-gradient-to-br from-[#0f2336] via-[#1a3d5c] to-[#245079] overflow-hidden"
+    <MantineProvider theme={mantineTheme}>
+    <Box dir="rtl" style={{ minHeight: "100vh", display: "flex" }}>
+      {/* Left panel — brand */}
+      <Box
+        visibleFrom="lg"
+        pos="relative"
+        style={{
+          width: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden", padding: 48,
+          background: "linear-gradient(135deg, #0B1F33 0%, #0f2f4d 45%, #004F9E 100%)",
+        }}
       >
-        {/* Background image overlay */}
         {cms.heroImage && (
-          <div className="absolute inset-0">
-            <img src={cms.heroImage} alt="" className="w-full h-full object-cover opacity-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0f2336]/80 to-[#245079]/60" />
-          </div>
+          <Box pos="absolute" inset={0}>
+            <img src={cms.heroImage} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.2 }} />
+            <Box pos="absolute" inset={0} style={{ background: "linear-gradient(135deg, rgba(11,31,51,0.8), rgba(0,79,158,0.6))" }} />
+          </Box>
         )}
-        <div className="relative z-10 text-center text-white">
-          <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-8">
+        <Stack align="center" ta="center" pos="relative" gap="md" maw={380}>
+          <ThemeIcon size={80} variant="light" color="gray.0" style={{ background: "rgba(255,255,255,0.15)" }}>
             {loginCms?.logo_url ? (
-              <img src={loginCms.logo_url} alt="logo" className="h-12 object-contain" />
+              <img src={loginCms.logo_url} alt="logo" style={{ height: 44, objectFit: "contain" }} />
             ) : (
-              <FaBuilding className="w-10 h-10 text-white" />
+              <FaBuilding size={36} color="white" />
             )}
-          </div>
-          <h1 className="text-3xl font-black mb-3 leading-tight">{cms.heroTitle}</h1>
-          <p className="text-white/70 text-lg mb-2">{cms.heroSubtitle}</p>
-          <p className="text-white/90 text-base font-medium">{cms.heroTagline}</p>
-          <div className="mt-10 flex flex-col gap-3 text-sm text-white/50">
-            <div className="w-32 h-0.5 bg-white/20 mx-auto" />
-            <p>© {new Date().getFullYear()} AG Development</p>
-          </div>
-        </div>
-      </div>
+          </ThemeIcon>
+          <Title order={1} c="white" fz={30} fw={900}>{cms.heroTitle}</Title>
+          <Text c="rgba(255,255,255,0.7)" fz="lg">{cms.heroSubtitle}</Text>
+          <Text c="white" fz="md" fw={600}>{cms.heroTagline}</Text>
+          <Divider w={120} color="rgba(255,255,255,0.2)" mt="lg" />
+          <Text c="rgba(255,255,255,0.5)" fz="sm">© {new Date().getFullYear()} AG Development</Text>
+        </Stack>
+      </Box>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-[#245079] via-[#1a3d5c] to-[#0f2336] lg:bg-none lg:bg-[#f8fafc] relative p-4">
-        {/* Home button */}
-        <Link
-          to="/"
-          className="absolute top-4 left-4 flex items-center gap-2 bg-white/15 hover:bg-white/25 lg:bg-gray-100 lg:hover:bg-gray-200 text-white lg:text-gray-700 px-3 py-2 rounded-xl text-sm font-medium transition-colors backdrop-blur-sm"
+      <Box style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }} bg="gray.0">
+        <Button
+          component={Link} to="/" variant="white" size="sm" radius={0}
+          pos="absolute" top={16} left={16}
+          leftSection={<FaHouseChimney size={14} />}
         >
-          <FaHouseChimney className="w-4 h-4" />
-          <span className="hidden sm:inline">الرئيسية</span>
-        </Link>
+          الرئيسية
+        </Button>
 
-        <div className="w-full max-w-md">
-          {/* Mobile logo/title */}
-          <div className="text-center mb-8 lg:hidden">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center mx-auto mb-4">
-              {loginCms?.logo_url ? (
-                <img src={loginCms.logo_url} alt="logo" className="h-10 object-contain" />
-              ) : (
-                <FaBuilding className="w-8 h-8 text-white" />
-              )}
-            </div>
-            <h1 className="text-2xl font-bold text-white">{cms.heroTitle}</h1>
-            <p className="text-white/60 mt-1 text-sm">{cms.heroSubtitle}</p>
-            <p className="text-white/80 mt-1 text-sm font-medium">{cms.heroTagline}</p>
-          </div>
+        <Container size={440} w="100%">
+          <Center mb="xl" hiddenFrom="lg">
+            <Stack align="center" gap={6}>
+              <ThemeIcon size={64} variant="light" color="brand">
+                {loginCms?.logo_url ? (
+                  <img src={loginCms.logo_url} alt="logo" style={{ height: 36, objectFit: "contain" }} />
+                ) : (
+                  <FaBuilding size={28} />
+                )}
+              </ThemeIcon>
+              <Title order={2} fz={22}>{cms.heroTitle}</Title>
+              <Text c="dimmed" size="sm">{cms.heroSubtitle}</Text>
+            </Stack>
+          </Center>
 
-          {/* Desktop heading */}
-          <div className="hidden lg:block mb-8 text-center">
-            <h2 className="text-2xl font-black text-gray-900">مرحباً بعودتك</h2>
-            <p className="text-gray-500 mt-1 text-sm">{cms.heroSubtitle}</p>
-          </div>
+          <Box visibleFrom="lg" mb="xl" ta="center">
+            <Title order={2} fz={26} fw={900}>مرحباً بعودتك</Title>
+            <Text c="dimmed" mt={4}>{cms.heroSubtitle}</Text>
+          </Box>
 
-          {/* Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">تسجيل الدخول</h2>
+          <Paper withBorder p="xl" bg="white">
+            <Title order={3} fz="lg" mb="lg">تسجيل الدخول</Title>
 
-            {/* Google Button */}
-            <button
+            <Button
               onClick={handleGoogle}
-              disabled={googleLoading || loading}
-              className="w-full flex items-center justify-center gap-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50 mb-4 text-sm"
+              loading={googleLoading}
+              disabled={loading}
+              variant="default"
+              fullWidth
+              leftSection={<GoogleIcon />}
+              mb="md"
             >
-              {googleLoading ? (
-                <span className="w-5 h-5 border-2 border-gray-400 border-t-[#4285F4] rounded-full animate-spin" />
-              ) : (
-                <GoogleIcon />
-              )}
-              {googleLoading ? "جاري التسجيل..." : "تسجيل الدخول بـ Google"}
-            </button>
+              تسجيل الدخول بـ Google
+            </Button>
 
-            {/* Divider */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
-              <span className="text-gray-400 text-xs">أو بالبريد الإلكتروني</span>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
-            </div>
+            <Divider label="أو بالبريد الإلكتروني" labelPosition="center" mb="md" />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  البريد الإلكتروني
-                </label>
-                <div className="relative">
-                  <FaEnvelope className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="admin@elsarh.com"
-                    required
-                    className="w-full pr-10 pl-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  كلمة المرور
-                </label>
-                <div className="relative">
-                  <FaLock className="absolute top-1/2 -translate-y-1/2 right-3 w-4 h-4 text-gray-400" />
-                  <input
-                    type={showPass ? "text" : "password"}
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="••••••••"
-                    required
-                    className="w-full pr-10 pl-10 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute top-1/2 -translate-y-1/2 left-3 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPass ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || googleLoading}
-                className="w-full bg-[var(--primary)] hover:bg-[#245079] text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 text-sm"
-              >
-                {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
-              </button>
+            <form onSubmit={handleSubmit}>
+              <Stack gap="md">
+                <TextInput
+                  label="البريد الإلكتروني" type="email" required
+                  placeholder="admin@agdevelopment.com"
+                  leftSection={<FaEnvelope size={14} />}
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+                <PasswordInput
+                  label="كلمة المرور" required
+                  placeholder="••••••••"
+                  leftSection={<FaLock size={14} />}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                />
+                <Button type="submit" color="brand" fullWidth loading={loading} disabled={googleLoading} mt="xs">
+                  تسجيل الدخول
+                </Button>
+              </Stack>
             </form>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Paper>
+
+          <Group justify="center" mt="lg">
+            <Text size="xs" c="dimmed">© {new Date().getFullYear()} AG Development</Text>
+          </Group>
+        </Container>
+      </Box>
+    </Box>
+    </MantineProvider>
   );
 }

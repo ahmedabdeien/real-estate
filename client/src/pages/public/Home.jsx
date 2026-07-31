@@ -194,13 +194,16 @@ export default function HomePage() {
   return (
     <Box>
       {/* Hero */}
-      <Box pos="relative" bg="dark.8" py={{ base: 56, md: 90 }} style={{ overflow: "hidden" }}>
+      <Box
+        pos="relative" bg="dark.8" mih="100vh" py={{ base: 56, md: 90 }}
+        style={{ overflow: "hidden", display: "flex", alignItems: "center" }}
+      >
         <Box
           pos="absolute" inset={0}
           style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
         />
         <Box pos="absolute" inset={0} bg="dark.9" style={{ opacity: 0.55 }} />
-        <Container size="md" ta="center" dir="rtl" pos="relative">
+        <Container size="md" ta="center" dir="rtl" pos="relative" w="100%">
           <MantineBadge size="lg" variant="filled" color="brand" mb="lg">
             AG Development — مستقبلك يبدأ هنا
           </MantineBadge>

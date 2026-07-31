@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaClock } from "react-icons/fa6";
-import Logo from "./assets/images/logo.svg";
+import Logo from "./assets/logo.svg";
 
 const Loading = () => {
   const [progress, setProgress] = useState(0);

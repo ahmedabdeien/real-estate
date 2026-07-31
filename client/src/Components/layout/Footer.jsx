@@ -101,7 +101,6 @@ export default function Footer() {
           <Text size="sm" c="gray.6">© {year} {name}. جميع الحقوق محفوظة.</Text>
           <Group gap="lg">
             <Anchor component={Link} to="/contact" c="gray.6" size="sm" underline="never">سياسة الخصوصية</Anchor>
-            <Anchor component={Link} to="/admin" c="gray.7" size="xs" underline="never">لوحة الإدارة</Anchor>
           </Group>
         </Group>
       </Container>

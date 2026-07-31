@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   Box, Container, Grid, Stack, Card, Title, Text, TextInput, Textarea,
-  Button, ThemeIcon, SimpleGrid, Anchor, Group,
+  Button, ThemeIcon, SimpleGrid, Anchor, Group, Badge,
 } from "@mantine/core";
 import {
   FaPhone, FaEnvelope, FaLocationDot, FaClock, FaWhatsapp, FaPaperPlane,
@@ -78,28 +78,35 @@ export default function ContactPage() {
   ];
 
   return (
-    <Box mih="100vh" bg="gray.0" dir="rtl">
-      <Container size="xl" py="xl">
+    <Box dir="rtl">
+      <Box className="public-section" bg="white">
+        <Container size="md" ta="center">
+          <Badge size="lg" variant="light" color="brand" mb="md">تواصل معنا</Badge>
+          <Title order={1} fz={{ base: 28, md: 38 }} fw={900} mb="md">نحن هنا لمساعدتك</Title>
+          <Text c="dimmed" fz={{ base: "md", md: "lg" }} maw={620} mx="auto">
+            سواء كان لديك استفسار عن أحد مشاريعنا أو تريد حجز استشارة مجانية، فريقنا جاهز للرد عليك
+          </Text>
+        </Container>
+      </Box>
+
+      <Box className="public-section" bg="gray.0">
+      <Container size="xl">
         <Grid gutter={40}>
           <Grid.Col span={{ base: 12, lg: 6 }}>
             <Title order={2} fz={{ base: 24, md: 28 }} mb="lg">معلومات التواصل</Title>
-            <Stack gap="sm" mb="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" mb="md">
               {infoItems.map(({ icon: Icon, title, value, href }) => (
-                <Card key={title} className="public-card" radius="lg" p="md">
-                  <Group gap="md" wrap="nowrap">
-                    <ThemeIcon size={44} radius="md" variant="light" color="brand"><Icon size={18} /></ThemeIcon>
-                    <Box>
-                      <Text size="xs" c="dimmed" fw={600} tt="uppercase">{title}</Text>
-                      {href ? (
-                        <Anchor href={href} fw={700} c="dark.8" underline="never">{value}</Anchor>
-                      ) : (
-                        <Text fw={700} c="dark.8">{value}</Text>
-                      )}
-                    </Box>
-                  </Group>
+                <Card key={title} className="public-card" p="md">
+                  <ThemeIcon size={44} variant="light" color="brand" mb="sm"><Icon size={18} /></ThemeIcon>
+                  <Text size="xs" c="dimmed" fw={600} tt="uppercase">{title}</Text>
+                  {href ? (
+                    <Anchor href={href} fw={700} c="dark.8" underline="never">{value}</Anchor>
+                  ) : (
+                    <Text fw={700} c="dark.8">{value}</Text>
+                  )}
                 </Card>
               ))}
-            </Stack>
+            </SimpleGrid>
 
             <Button
               component="a" color="green" size="lg" fullWidth leftSection={<FaWhatsapp size={20} />}
@@ -147,31 +154,34 @@ export default function ContactPage() {
           </Grid.Col>
         </Grid>
       </Container>
+      </Box>
 
       {branches.length > 0 && (
-        <Container size="xl" pb={64}>
-          <Title order={2} fz={{ base: 24, md: 28 }} ta="center" mb="lg">فروعنا</Title>
-          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
-            {branches.map((br, i) => (
-              <Card key={i} className="public-card" radius="lg" p="lg">
-                <Group gap={10} mb="md">
-                  <ThemeIcon size={40} radius="md" variant="light" color="brand"><FaLocationDot size={17} /></ThemeIcon>
-                  <Text fw={700}>{br.name || `فرع ${i + 1}`}</Text>
-                </Group>
-                <Stack gap={8}>
-                  {br.address && <Group gap={8} align="flex-start"><FaLocationDot size={13} color="var(--mantine-color-gray-5)" style={{ marginTop: 3 }} /><Text size="sm" c="dimmed">{br.address}</Text></Group>}
-                  {br.phone && <Group gap={8}><FaPhone size={13} color="var(--mantine-color-gray-5)" /><Anchor href={`tel:${br.phone}`} size="sm" c="dimmed" underline="never">{br.phone}</Anchor></Group>}
-                  {br.hours && <Group gap={8}><FaClock size={13} color="var(--mantine-color-gray-5)" /><Text size="sm" c="dimmed">{br.hours}</Text></Group>}
-                </Stack>
-                {br.map_link && (
-                  <Button component="a" href={br.map_link} target="_blank" rel="noreferrer" variant="light" color="brand" fullWidth mt="md" leftSection={<FaLocationArrow size={13} />}>
-                    عرض على الخريطة
-                  </Button>
-                )}
-              </Card>
-            ))}
-          </SimpleGrid>
-        </Container>
+        <Box className="public-section" bg="white">
+          <Container size="xl">
+            <Title order={2} fz={{ base: 24, md: 28 }} ta="center" mb="lg">فروعنا</Title>
+            <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+              {branches.map((br, i) => (
+                <Card key={i} className="public-card" p="lg">
+                  <Group gap={10} mb="md">
+                    <ThemeIcon size={40} variant="light" color="brand"><FaLocationDot size={17} /></ThemeIcon>
+                    <Text fw={700}>{br.name || `فرع ${i + 1}`}</Text>
+                  </Group>
+                  <Stack gap={8}>
+                    {br.address && <Group gap={8} align="flex-start"><FaLocationDot size={13} color="var(--mantine-color-gray-5)" style={{ marginTop: 3 }} /><Text size="sm" c="dimmed">{br.address}</Text></Group>}
+                    {br.phone && <Group gap={8}><FaPhone size={13} color="var(--mantine-color-gray-5)" /><Anchor href={`tel:${br.phone}`} size="sm" c="dimmed" underline="never">{br.phone}</Anchor></Group>}
+                    {br.hours && <Group gap={8}><FaClock size={13} color="var(--mantine-color-gray-5)" /><Text size="sm" c="dimmed">{br.hours}</Text></Group>}
+                  </Stack>
+                  {br.map_link && (
+                    <Button component="a" href={br.map_link} target="_blank" rel="noreferrer" variant="light" color="brand" fullWidth mt="md" leftSection={<FaLocationArrow size={13} />}>
+                      عرض على الخريطة
+                    </Button>
+                  )}
+                </Card>
+              ))}
+            </SimpleGrid>
+          </Container>
+        </Box>
       )}
     </Box>
   );
