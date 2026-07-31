@@ -1,14 +1,15 @@
 import { useEffect } from "react";
-import { Box, Container, Grid, SimpleGrid, Card, Title, Text, Image, ThemeIcon, Stack } from "@mantine/core";
+import { Box, Container, Grid, SimpleGrid, Card, Title, Text, Image, ThemeIcon, Stack, Badge } from "@mantine/core";
 import { FaBuilding, FaEye, FaBullseye, FaAward, FaUsers } from "react-icons/fa6";
 
 import { useCms } from "../../hooks/useCms";
+import rebrandImg from "../../assets/about-rebrand.webp";
 
 export default function AboutPage() {
   useEffect(() => { document.title = "عن الشركة | AG Development"; }, []);
   const { data: content } = useCms("about", {
     title_ar: "عن AG Development",
-    body_ar: "AG Development شركة رائدة في مجال التطوير العقاري، تأسست بهدف تقديم أفضل الوحدات السكنية والتجارية بأعلى معايير الجودة وأسعار تنافسية. نؤمن بأن كل عائلة تستحق بيتاً يليق بها.",
+    body_ar: "تُعد AG Development الامتداد الجديد لشركة الصرح للتطوير العقاري، حيث تمثل الهوية الجديدة تطورًا طبيعيًا لمسيرتنا وخبراتنا السابقة، مع الحفاظ على نفس الرؤية والقيم والخبرة التي بنيناها على مدار السنوات. ومن خلال AG Development، نبدأ مرحلة جديدة بهوية أكثر تطورًا وطموحًا، لتصبح المظلة الرئيسية لجميع أعمالنا ومشروعاتنا الحالية والمستقبلية في مجال التطوير العقاري، بينما نستمر في البناء على ما حققته شركة الصرح وتقديم مشروعات تعكس التزامنا بالجودة والثقة والقيمة المستدامة.",
     vision_ar: "أن نكون الخيار الأول للتطوير العقاري في مصر، من خلال تقديم مشاريع مبتكرة تلبي تطلعات العملاء وتساهم في بناء مجتمعات متكاملة.",
     mission_ar: "تقديم حلول عقارية متكاملة تجمع بين الجودة والابتكار وخدمة العملاء الاستثنائية، مع الحفاظ على أعلى معايير الشفافية والمصداقية.",
     image: "",
@@ -38,9 +39,9 @@ export default function AboutPage() {
         <Container size="xl">
           <Grid gutter={48} align="center">
             <Grid.Col span={{ base: 12, lg: 6 }}>
-              <Text c="brand.6" fw={700} size="sm" tt="uppercase" mb={6}>قصتنا</Text>
+              <Badge size="lg" variant="light" color="brand" mb={10}>من الصرح إلى AG Development</Badge>
               <Title order={2} fz={{ base: 26, md: 32 }} mb="md">
-                {content.founded_year ? `منذ عام ${content.founded_year}` : "رواد في عالم العقارات"}
+                هوية جديدة، نفس الثقة
               </Title>
               <Text c="dimmed" lh={1.8} mb="lg">{content.body_ar}</Text>
               <SimpleGrid cols={2} spacing="md">
@@ -53,13 +54,9 @@ export default function AboutPage() {
               </SimpleGrid>
             </Grid.Col>
             <Grid.Col span={{ base: 12, lg: 6 }}>
-              {content.image ? (
-                <Image src={content.image} alt="AG Development" radius="lg" h={320} fit="cover" />
-              ) : (
-                <Box h={320} bg="brand.6" display="flex" style={{ alignItems: "center", justifyContent: "center", borderRadius: "var(--mantine-radius-lg)" }}>
-                  <FaBuilding size={96} color="rgba(255,255,255,0.3)" />
-                </Box>
-              )}
+              <Box p="lg" bg="gray.0">
+                <Image src={content.image || rebrandImg} alt="AG Development" fit="contain" h={280} />
+              </Box>
             </Grid.Col>
           </Grid>
         </Container>
