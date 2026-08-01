@@ -11,8 +11,21 @@ import Footer from "../Components/layout/Footer";
 import SiteMeta from "../Components/SiteMeta";
 import FloatingSocial from "../Components/public/FloatingSocial";
 import PopupAnnouncement from "../Components/public/PopupAnnouncement";
+import MaintenancePage from "../pages/public/MaintenancePage";
+
+// Public site is undergoing a full redesign — set to false to relaunch.
+const MAINTENANCE_MODE = true;
 
 export default function PublicLayout() {
+  if (MAINTENANCE_MODE) {
+    return (
+      <MantineProvider theme={mantineTheme}>
+        <SiteMeta />
+        <MaintenancePage />
+      </MantineProvider>
+    );
+  }
+
   return (
     <MantineProvider theme={mantineTheme}>
       <Notifications position="top-center" dir="rtl" />
