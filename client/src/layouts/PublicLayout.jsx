@@ -13,8 +13,9 @@ import FloatingSocial from "../Components/public/FloatingSocial";
 import PopupAnnouncement from "../Components/public/PopupAnnouncement";
 import MaintenancePage from "../pages/public/MaintenancePage";
 
-// Public site is undergoing a full redesign — set to false to relaunch.
-const MAINTENANCE_MODE = true;
+// Public site is undergoing a full redesign — shown only in production builds
+// so local dev (npm run dev) always shows the real site. Set to false to relaunch.
+const MAINTENANCE_MODE = import.meta.env.PROD;
 
 export default function PublicLayout() {
   if (MAINTENANCE_MODE) {
