@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { NavLink as RouterNavLink, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  Box, Group, Text, UnstyledButton, ScrollArea, NavLink, Avatar,
+  ActionIcon, Tooltip, Collapse, Image,
+} from "@mantine/core";
 import {
   FaTableColumns, FaBuilding, FaHouse, FaUsers, FaFileLines,
   FaImage, FaGear, FaBriefcase, FaRightFromBracket,
@@ -18,7 +21,6 @@ import { fetchUnreadCount } from "../../store/slices/notificationsSlice";
 import { toggleSidebar, selectSidebarCollapsed } from "../../store/slices/uiSlice";
 import { selectUnreadCount } from "../../store";
 
-// ─── Nav groups ──────────────────────────────────────────────────────────────
 const navGroups = [
   {
     label: "الرئيسية",
@@ -92,17 +94,54 @@ const roleLabels = {
   sales:      "مبيعات",
 };
 
-export default function Sidebar({ collapsed, onToggle }) {
+function SidebarLink({ item, collapsed, unreadCount, active }) {
+  const badgeCount = item.badge ? unreadCount : 0;
+
+  const link = (
+    <NavLink
+      component={RouterNavLink}
+      to={item.to}
+      active={active}
+      label={!collapsed ? item.label : undefined}
+      leftSection={<item.icon size={14} />}
+      rightSection={
+        badgeCount > 0 && !collapsed ? (
+          <Box bg="red.6" c="white" fz={9} fw={700} px={6} py={1} style={{ borderRadius: 999, lineHeight: 1.5 }}>
+            {badgeCount > 99 ? "99+" : badgeCount}
+          </Box>
+        ) : null
+      }
+      mx={collapsed ? 6 : 8}
+      my={2}
+      styles={{
+        root: {
+          padding: collapsed ? "10px 0" : "10px 12px",
+          justifyContent: collapsed ? "center" : "flex-start",
+          backgroundColor: active ? "rgba(255,255,255,0.08)" : "transparent",
+        },
+        label: { fontSize: 12, color: active ? "#fff" : "rgba(255,255,255,0.55)", fontWeight: active ? 600 : 400 },
+        section: { color: active ? "var(--mantine-color-brand-4)" : "rgba(255,255,255,0.45)" },
+        body: { flex: collapsed ? "0 0 auto" : 1 },
+      }}
+    />
+  );
+
+  return collapsed ? (
+    <Tooltip label={item.label} position="left" withArrow offset={10}>
+      {link}
+    </Tooltip>
+  ) : link;
+}
+
+export default function Sidebar() {
   const { user, logout } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const unreadCount = useSelector(selectUnreadCount);
-  const reduxCollapsed = useSelector(selectSidebarCollapsed);
+  const isCollapsed = useSelector(selectSidebarCollapsed);
   const [openGroups, setOpenGroups] = useState({});
-
-  const isCollapsed = collapsed ?? reduxCollapsed;
-  const handleToggle = onToggle ?? (() => dispatch(toggleSidebar()));
 
   useEffect(() => {
     if (!user || user.role === "viewer") return;
@@ -117,153 +156,73 @@ export default function Sidebar({ collapsed, onToggle }) {
     navigate("/admin/login");
   };
 
-  const toggleGroup = (label) => {
-    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
-  };
+  const toggleGroup = (label) => setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
 
   return (
-    <motion.aside
-      animate={{ width: isCollapsed ? 72 : 256 }}
-      transition={{ type: "spring", stiffness: 300, damping: 35 }}
-      className="fixed top-0 right-0 h-screen z-30 flex flex-col bg-[#0f1e2e] border-l border-white/5 overflow-hidden select-none"
-      dir="rtl"
-    >
-      {/* ── Logo ── */}
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/5 flex-shrink-0">
+    <Box h="100%" dir="rtl" style={{ display: "flex", flexDirection: "column", background: "#0f1e2e" }}>
+      <Group px="md" py="md" wrap="nowrap" gap="xs" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
         {!isCollapsed && (
-          <div className="flex-1 bg-white rounded-lg px-2 py-1.5 flex items-center overflow-hidden">
-            <img src={LogoSvg} alt="AG Development" className="h-6 w-auto object-contain" />
-          </div>
+          <Box bg="white" px={8} py={6} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center" }}>
+            <Image src={LogoSvg} alt="AG Development" h={22} w="auto" fit="contain" />
+          </Box>
         )}
-        <button
-          onClick={handleToggle}
-          className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+        <ActionIcon
+          variant="subtle" color="gray.6" size="sm"
+          onClick={() => dispatch(toggleSidebar())}
+          style={isCollapsed ? { marginInline: "auto" } : undefined}
         >
-          {isCollapsed ? <FaAnglesRight className="w-3 h-3" /> : <FaAnglesLeft className="w-3 h-3" />}
-        </button>
-      </div>
+          {isCollapsed ? <FaAnglesRight size={12} /> : <FaAnglesLeft size={12} />}
+        </ActionIcon>
+      </Group>
 
-      {/* ── Nav ── */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden py-2 no-scrollbar">
+      <ScrollArea style={{ flex: 1 }} scrollbarSize={4} py="xs" scrollHideDelay={0}>
         {navGroups.map((group) => {
           const visibleItems = group.items.filter((item) => canSee(user, item.pageKey));
           if (!visibleItems.length) return null;
           const isOpen = openGroups[group.label] !== false;
 
           return (
-            <div key={group.label} className="mb-1">
+            <Box key={group.label} mb={4}>
               {!isCollapsed ? (
-                <button
+                <UnstyledButton
                   onClick={() => toggleGroup(group.label)}
-                  className="w-full flex items-center justify-between px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white/25 hover:text-white/50 transition-colors"
+                  px="md" py={6}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}
                 >
-                  {group.label}
-                  {isOpen ? <FaChevronUp className="w-2 h-2" /> : <FaChevronDown className="w-2 h-2" />}
-                </button>
+                  <Text fz={10} fw={700} tt="uppercase" c="gray.6" style={{ letterSpacing: 1 }}>{group.label}</Text>
+                  {isOpen ? <FaChevronUp size={8} color="var(--mantine-color-gray-6)" /> : <FaChevronDown size={8} color="var(--mantine-color-gray-6)" />}
+                </UnstyledButton>
               ) : (
-                <div className="my-1 mx-4 border-t border-white/5" />
+                <Box mx="md" my={4} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }} />
               )}
 
-              <AnimatePresence initial={false}>
-                {(isOpen || isCollapsed) && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
-                    className="overflow-hidden"
-                  >
-                    {visibleItems.map((item) => (
-                      <SidebarItem
-                        key={item.to}
-                        item={item}
-                        collapsed={isCollapsed}
-                        unreadCount={item.badge ? unreadCount : 0}
-                      />
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+              <Collapse in={isOpen || isCollapsed}>
+                {visibleItems.map((item) => {
+                  const active = item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to);
+                  return (
+                    <SidebarLink key={item.to} item={item} collapsed={isCollapsed} unreadCount={unreadCount} active={active} />
+                  );
+                })}
+              </Collapse>
+            </Box>
           );
         })}
-      </nav>
+      </ScrollArea>
 
-      {/* ── User footer ── */}
-      <div className="border-t border-white/5 p-3 flex-shrink-0">
-        <div className={`flex items-center gap-3 ${isCollapsed ? "justify-center" : ""}`}>
-          <div
-            className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm font-bold text-white"
-            style={{ background: "var(--primary)" }}
-          >
-            {user?.name?.[0]?.toUpperCase() || "A"}
-          </div>
-          <AnimatePresence initial={false}>
-            {!isCollapsed && (
-              <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex-1 min-w-0"
-              >
-                <p className="text-white text-xs font-semibold truncate">{user?.name || "مدير النظام"}</p>
-                <p className="text-white/40 text-[10px] truncate">{roleLabels[user?.role] || "مستخدم"}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {!isCollapsed && (
-            <button
-              onClick={handleLogout}
-              title="تسجيل الخروج"
-              className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-            >
-              <FaRightFromBracket className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-      </div>
-    </motion.aside>
-  );
-}
-
-function SidebarItem({ item, collapsed, unreadCount }) {
-  return (
-    <NavLink
-      to={item.to}
-      end={item.exact}
-      className={({ isActive }) =>
-        `relative flex items-center gap-3 mx-2 my-0.5 px-3 py-2.5 rounded-xl text-sm transition-all group
-        ${isActive
-          ? "bg-white/10 text-white font-semibold"
-          : "text-white/45 hover:bg-white/5 hover:text-white/75"}`
-      }
-    >
-      {({ isActive }) => (
-        <>
-          {isActive && (
-            <span
-              className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-l-full"
-              style={{ background: "var(--primary)" }}
-            />
-          )}
-          <item.icon
-            className={`w-3.5 h-3.5 flex-shrink-0 transition-colors ${isActive ? "text-[color:var(--primary)]" : ""}`}
-          />
-          {!collapsed && (
-            <span className="flex-1 truncate text-[12px]">{item.label}</span>
-          )}
-          {unreadCount > 0 && (
-            <span className={`flex-shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white leading-none
-              ${collapsed ? "absolute -top-1 -left-1 min-w-[16px] text-center" : ""}`}>
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-          {collapsed && (
-            <span className="absolute right-full mr-3 px-2.5 py-1.5 bg-gray-900/95 backdrop-blur-sm text-white text-xs rounded-lg
-              whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] shadow-xl border border-white/10">
-              {item.label}
-            </span>
-          )}
-        </>
-      )}
-    </NavLink>
+      <Group px="md" py="sm" wrap="nowrap" gap="xs" justify={isCollapsed ? "center" : "flex-start"} style={{ borderTop: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
+        <Avatar size={32} color="brand">{user?.name?.[0]?.toUpperCase() || "A"}</Avatar>
+        {!isCollapsed && (
+          <>
+            <Box style={{ flex: 1, minWidth: 0 }}>
+              <Text c="white" fz={11} fw={600} truncate>{user?.name || "مدير النظام"}</Text>
+              <Text c="gray.6" fz={9} truncate>{roleLabels[user?.role] || "مستخدم"}</Text>
+            </Box>
+            <ActionIcon variant="subtle" color="gray.6" onClick={handleLogout} title="تسجيل الخروج">
+              <FaRightFromBracket size={12} />
+            </ActionIcon>
+          </>
+        )}
+      </Group>
+    </Box>
   );
 }
