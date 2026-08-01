@@ -12,6 +12,12 @@ import {
   FaCodeMerge, FaThumbtack, FaMessage,
 } from "react-icons/fa6";
 import {
+  BookOpen, BookMarked, Calculator, DollarSign, TrendingUp, TrendingDown, PiggyBank,
+  Wallet, CreditCard, Receipt, FileText, Layers, Archive, Building2, BarChart3,
+  Sigma, Target, Activity, PieChart, Users, Zap, ArrowUpRight, ArrowDownRight,
+  Package, Table2, RefreshCcw, GitMerge, Grid3x3, ClipboardList, FileSpreadsheet, Plus,
+} from "lucide-react";
+import {
   BarChart, Bar, LineChart, Line, PieChart as RePieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   AreaChart, Area, RadialBarChart, RadialBar,

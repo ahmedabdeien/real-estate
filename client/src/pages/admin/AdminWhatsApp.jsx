@@ -8,6 +8,10 @@ import {
   FaChartBar, FaCalendar, FaBriefcase, FaUserCheck,
   FaCirclePlay, FaCirclePause, FaArrowRotateLeft, FaFilter,
 } from "react-icons/fa6";
+import {
+  Wifi, Zap, Users, FileText, BarChart2, Send, Phone, Bell, CheckCircle,
+  Clock, BriefcaseBusiness, UserCheck, Calendar, MessageCircle, AlertCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";

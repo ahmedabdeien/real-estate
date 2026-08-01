@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { FaPlus, FaTrash, FaPen, FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown } from 'react-icons/fa6';
+import { PiggyBank } from 'lucide-react';
 
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";

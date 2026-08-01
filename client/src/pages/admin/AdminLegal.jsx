@@ -4,6 +4,7 @@ import {
   FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaScaleBalanced, FaFileLines,
   FaMessage, FaChartBar, FaTriangleExclamation, FaEye,
 } from "react-icons/fa6";
+import { Scale, FileText, MessageSquare, AlertTriangle } from "lucide-react";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";

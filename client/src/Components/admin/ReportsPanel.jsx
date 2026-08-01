@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { FaChartBar, FaDownload, FaPrint, FaFilter, FaCalendar } from 'react-icons/fa6';
+import { FileText, BarChart3, Columns } from 'lucide-react';
 
 
 function formatCell(val, type) {

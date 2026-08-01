@@ -8,6 +8,7 @@
  */
 import { useState, lazy, Suspense } from "react";
 import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaCheck, FaDownload, FaUpload, FaArrowsRotate, FaPrint, FaChevronDown, FaChevronUp, FaGripLines, FaTableList, FaFileExcel, FaFilter, FaBookmark, FaBookOpen, FaCalculator, FaEye, FaEyeSlash, FaCopy, FaFileArrowDown, FaClipboardList, FaSortUp, FaSortDown, FaBars, FaWandMagicSparkles, FaChartBar, FaCircleExclamation } from 'react-icons/fa6';
+import { Link2, Grid3x3, Globe, Cloud, FolderOpen } from 'lucide-react';
 import { useToast } from "../../context/ToastContext";
 
 const HansoEditor = lazy(() => import("./HansoEditor"));

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { FaUser, FaEnvelope, FaPhone, FaGear, FaPen, FaCheck } from 'react-icons/fa6';
+import { Shield } from 'lucide-react';
 
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";

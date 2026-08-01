@@ -3,6 +3,7 @@
  * ══════════════════════════════════════════════════
  * ✅ Drag & Drop file import (prominent zone)
 import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaCheck, FaDownload, FaUpload, FaArrowsRotate, FaPrint, FaChevronDown, FaChevronUp, FaGripLines, FaTableList, FaFileExcel, FaFilter, FaBookmark, FaBookOpen, FaCalculator, FaEye, FaEyeSlash, FaCopy, FaFileArrowDown, FaClipboardList, FaSortUp, FaSortDown, FaBars, FaWandMagicSparkles, FaChartBar, FaCircleExclamation } from 'react-icons/fa6';
+import { Minimize2, Maximize2 } from 'lucide-react';
  * ✅ All formats: .xlsx  .xls  .csv  .tsv  .ods  (Microsoft + Apple Numbers export)
  * ✅ Multi-sheet tabs — shows all sheets from imported file
  * ✅ Full Excel-like editing: formulas, sort, filter, merge, undo/redo

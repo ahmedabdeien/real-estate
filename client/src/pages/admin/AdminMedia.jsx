@@ -5,6 +5,7 @@ import {
   FaMagnifyingGlass, FaTableCellsLarge, FaTableList, FaChevronRight, FaChevronLeft,
   FaFolderPlus, FaFolder, FaXmark, FaPen, FaArrowRight, FaSquareCheck,
 } from "react-icons/fa6";
+import { Rows3, Grid2X2, LayoutGrid } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadToCloudinary, getCloudinaryThumb } from "../../lib/cloudinary";
 import api from "../../api/axios";

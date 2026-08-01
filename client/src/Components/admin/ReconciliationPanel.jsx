@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { FaCheck, FaXmark, FaArrowsRotate, FaCircleCheck, FaCircleXmark } from 'react-icons/fa6';
+import { CheckCircle2 } from 'lucide-react';
 
 import * as XLSX from "xlsx";
 
