@@ -1,31 +1,25 @@
-import { useState, useRef, useEffect } from "react";
-import { FaChevronRight, FaChevronLeft, FaCalendar, FaXmark } from 'react-icons/fa6';
-import { createPortal } from "react-dom";
+import { useState, useEffect } from "react";
+import { MantineProvider, Popover, UnstyledButton, Group, Text, ActionIcon, Box, Stack, SimpleGrid } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { FaChevronRight, FaChevronLeft, FaCalendar, FaXmark } from "react-icons/fa6";
+import { mantineTheme } from "../../mantineTheme";
 
-
-const MONTHS_AR = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
-const DAYS_AR = ["أح","إث","ث","أر","خ","ج","س"];
+const MONTHS_AR = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+const DAYS_AR = ["أح", "إث", "ث", "أر", "خ", "ج", "س"];
 
 function formatAr(dateStr) {
   if (!dateStr) return "";
-  try {
-    return new Date(dateStr).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
-  } catch { return dateStr; }
+  try { return new Date(dateStr).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" }); } catch { return dateStr; }
 }
 
-export default function ArabicDatePicker({ value, onChange, placeholder = "اختر تاريخاً", className = "", label, disabled }) {
+function ArabicDatePickerInner({ value, onChange, placeholder = "اختر تاريخاً", label, disabled }) {
   const [open, setOpen] = useState(false);
-  const [dropdownStyle, setDropdownStyle] = useState({});
-  const ref = useRef(null);
-  const buttonRef = useRef(null);
 
-  // Parse current value to get initial month/year
   const today = new Date();
   const parsed = value ? new Date(value) : null;
   const [viewYear, setViewYear] = useState(parsed?.getFullYear() || today.getFullYear());
   const [viewMonth, setViewMonth] = useState(parsed?.getMonth() ?? today.getMonth());
 
-  // Sync viewYear/viewMonth when value changes from outside
   useEffect(() => {
     if (value) {
       const d = new Date(value);
@@ -33,38 +27,9 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
     }
   }, [value]);
 
-  useEffect(() => {
-    const fn = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", fn);
-    return () => document.removeEventListener("mousedown", fn);
-  }, []);
+  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear((y) => y - 1); } else setViewMonth((m) => m - 1); };
+  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear((y) => y + 1); } else setViewMonth((m) => m + 1); };
 
-  const handleOpen = () => {
-    if (disabled) return;
-    if (!open && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const dropH = 320; // approx calendar height
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const openUp = spaceBelow < dropH;
-
-      setDropdownStyle({
-        position: "fixed",
-        zIndex: 9999,
-        minWidth: "260px",
-        right: undefined,
-        left: rect.left,
-        ...(openUp
-          ? { bottom: window.innerHeight - rect.top + 4 }
-          : { top: rect.bottom + 4 }),
-      });
-    }
-    setOpen(o => !o);
-  };
-
-  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
-  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
-
-  // Build calendar days
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const cells = [];
@@ -83,91 +48,80 @@ export default function ArabicDatePicker({ value, onChange, placeholder = "اخ�
     const p = new Date(value);
     return p.getFullYear() === viewYear && p.getMonth() === viewMonth && p.getDate() === d;
   };
-
-  const isToday = (d) => {
-    if (!d) return false;
-    return today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === d;
-  };
-
-  const dropdown = open && (
-    <div style={dropdownStyle}
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 p-3"
-      onMouseDown={e => e.stopPropagation()}
-    >
-      {/* Month/Year header */}
-      <div className="flex items-center justify-between mb-3" dir="rtl">
-        <button type="button" onClick={nextMonth}
-          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <FaChevronRight className="w-4 h-4 text-gray-500" />
-        </button>
-        <div className="text-center">
-          <span className="font-bold text-gray-900 dark:text-white text-sm">
-            {MONTHS_AR[viewMonth]} {viewYear.toLocaleString("ar-EG", { useGrouping: false })}
-          </span>
-        </div>
-        <button type="button" onClick={prevMonth}
-          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <FaChevronLeft className="w-4 h-4 text-gray-500" />
-        </button>
-      </div>
-
-      {/* Day headers */}
-      <div className="grid grid-cols-7 mb-1" dir="rtl">
-        {DAYS_AR.map(d => (
-          <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
-        ))}
-      </div>
-
-      {/* Days grid */}
-      <div className="grid grid-cols-7 gap-0.5" dir="rtl">
-        {cells.map((d, i) => (
-          <div key={i} className="aspect-square flex items-center justify-center">
-            {d ? (
-              <button type="button" onClick={() => selectDay(d)}
-                className={`w-8 h-8 rounded-full text-xs font-medium transition-all ${
-                  isSelected(d)
-                    ? "bg-[var(--primary)] text-white"
-                    : isToday(d)
-                    ? "bg-[var(--primary)]/10 text-[var(--primary)] font-bold"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}>
-                {d.toLocaleString("ar-EG")}
-              </button>
-            ) : null}
-          </div>
-        ))}
-      </div>
-
-      {/* Today button */}
-      <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700" dir="rtl">
-        <button type="button"
-          onClick={() => { const t = today; onChange(`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`); setOpen(false); }}
-          className="w-full text-xs text-[var(--primary)] hover:underline font-medium py-1">
-          اليوم
-        </button>
-      </div>
-    </div>
-  );
+  const isToday = (d) => d && today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === d;
 
   return (
-    <div className={`relative ${className}`} ref={ref} dir="rtl">
-      {label && <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>}
-      <button type="button" disabled={disabled} ref={buttonRef}
-        onClick={handleOpen}
-        className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-colors hover:border-[var(--primary)]/50 disabled:opacity-50">
-        <FaCalendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        <span className={`flex-1 text-right ${value ? "text-gray-900 dark:text-white" : "text-gray-400"}`}>
-          {value ? formatAr(value) : placeholder}
-        </span>
-        {value && (
-          <span onClick={(e) => { e.stopPropagation(); onChange(""); }}
-            className="text-gray-300 hover:text-red-400 transition-colors cursor-pointer">
-            <FaXmark className="w-3.5 h-3.5" />
-          </span>
-        )}
-      </button>
+    <Box dir="rtl">
+      {label && <Text size="sm" fw={500} mb={4}>{label}</Text>}
+      <Popover opened={open} onChange={setOpen} position="bottom-start" shadow="md" width={260} withinPortal>
+        <Popover.Target>
+          <UnstyledButton
+            disabled={disabled}
+            onClick={() => !disabled && setOpen((o) => !o)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 8,
+              padding: "9px 12px", border: "1px solid var(--mantine-color-gray-4)",
+              opacity: disabled ? 0.5 : 1,
+            }}
+          >
+            <FaCalendar size={14} color="var(--mantine-color-gray-5)" />
+            <Text size="sm" c={value ? undefined : "dimmed"} style={{ flex: 1, textAlign: "right" }}>
+              {value ? formatAr(value) : placeholder}
+            </Text>
+            {value && (
+              <ActionIcon variant="transparent" size="xs" onClick={(e) => { e.stopPropagation(); onChange(""); }}>
+                <FaXmark size={12} />
+              </ActionIcon>
+            )}
+          </UnstyledButton>
+        </Popover.Target>
+        <Popover.Dropdown p="sm">
+          <Group justify="space-between" mb="sm">
+            <ActionIcon variant="subtle" color="gray" onClick={nextMonth}><FaChevronRight size={13} /></ActionIcon>
+            <Text fw={700} size="sm">{MONTHS_AR[viewMonth]} {viewYear.toLocaleString("ar-EG", { useGrouping: false })}</Text>
+            <ActionIcon variant="subtle" color="gray" onClick={prevMonth}><FaChevronLeft size={13} /></ActionIcon>
+          </Group>
 
-      {typeof document !== "undefined" && createPortal(dropdown, document.body)}
-    </div>
+          <SimpleGrid cols={7} spacing={2} mb={4}>
+            {DAYS_AR.map((d) => <Text key={d} size="xs" c="dimmed" ta="center">{d}</Text>)}
+          </SimpleGrid>
+
+          <SimpleGrid cols={7} spacing={2}>
+            {cells.map((d, i) => (
+              <Box key={i} style={{ aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {d ? (
+                  <UnstyledButton
+                    onClick={() => selectDay(d)}
+                    bg={isSelected(d) ? "brand.6" : isToday(d) ? "brand.0" : undefined}
+                    c={isSelected(d) ? "white" : isToday(d) ? "brand.6" : undefined}
+                    fw={isSelected(d) || isToday(d) ? 700 : 400}
+                    style={{ width: 28, height: 28, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}
+                  >
+                    {d.toLocaleString("ar-EG")}
+                  </UnstyledButton>
+                ) : null}
+              </Box>
+            ))}
+          </SimpleGrid>
+
+          <Stack mt="xs" pt="xs" style={{ borderTop: "1px solid var(--mantine-color-gray-2)" }}>
+            <UnstyledButton
+              onClick={() => { const t = today; onChange(`${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`); setOpen(false); }}
+              style={{ textAlign: "center" }}
+            >
+              <Text size="xs" fw={600} c="brand.6">اليوم</Text>
+            </UnstyledButton>
+          </Stack>
+        </Popover.Dropdown>
+      </Popover>
+    </Box>
+  );
+}
+
+export default function ArabicDatePicker(props) {
+  return (
+    <MantineProvider theme={mantineTheme}>
+      <ArabicDatePickerInner {...props} />
+    </MantineProvider>
   );
 }
