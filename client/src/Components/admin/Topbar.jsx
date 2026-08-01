@@ -45,7 +45,6 @@ const QUICK_PAGES = [
   { label: "الوظائف", path: "/admin/careers", icon: "💼" },
   { label: "المستخدمون", path: "/admin/users", icon: "👤" },
   { label: "المهام", path: "/admin/tasks", icon: "✅" },
-  { label: "المخازن", path: "/admin/warehouse", icon: "📦" },
 ];
 
 export default function Topbar({ onMenuClick, navbarOpened }) {

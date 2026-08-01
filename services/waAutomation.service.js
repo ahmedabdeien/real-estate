@@ -159,46 +159,12 @@ export async function startReminderCron() {
 }
 
 // ─── Reminder Job Logic ───────────────────────────────────────────────────────
-async function runReminderJob(cfg) {
-  try {
-    const Purchasing = (await import("../models/purchasing.model.js")).default;
-    const daysBefore = cfg.reminder?.daysBefore || 3;
-    const msgTemplate = cfg.reminder?.msg || DEFAULT_AUTOMATION.reminder.msg;
-
-    const now = new Date();
-    const targetDate = new Date(now);
-    targetDate.setDate(targetDate.getDate() + daysBefore);
-
-    // Find items with dueDate in the next N days that are not paid
-    const start = new Date(targetDate); start.setHours(0, 0, 0, 0);
-    const end   = new Date(targetDate); end.setHours(23, 59, 59, 999);
-
-    const items = await Purchasing.find({
-      dueDate: { $gte: start, $lte: end },
-      paymentStatus: { $ne: "paid" },
-    }).lean();
-
-    console.log(`[WA-Cron] Found ${items.length} reminders to send`);
-
-    for (const item of items) {
-      const phone = item.supplierPhone || item.phone;
-      if (!phone) continue;
-
-      const msg = formatMsg(msgTemplate, {
-        amount: Number(item.totalAmount || item.amount || 0).toLocaleString("ar-EG"),
-        date: item.dueDate
-          ? new Date(item.dueDate).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" })
-          : "—",
-        name: item.supplierName || item.name || "عميل",
-        ref: item.referenceNumber || item._id.toString().slice(-6),
-      });
-
-      await sendWhatsApp(phone, msg);
-      await new Promise((r) => setTimeout(r, 3000)); // 3s delay between messages
-    }
-  } catch (err) {
-    console.error("[WA-Cron] Error:", err.message);
-  }
+// Note: this reminder relied on the Purchasing module (supplier payment due
+// dates), which has been removed along with accounting/warehouse. Left as a
+// no-op so existing settings/toggles don't error out; there's no longer a
+// data source to generate reminders from.
+async function runReminderJob() {
+  console.log("[WA-Cron] Purchasing-based reminders are discontinued — skipping.");
 }
 
 // ─── Export cron control ──────────────────────────────────────────────────────

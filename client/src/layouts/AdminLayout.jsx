@@ -26,7 +26,6 @@ export default function AdminLayout() {
   if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/admin/login" replace />;
 
-  const isFullPage = /\/admin\/accounting/.test(location.pathname);
   const isStandardRole = ["admin", "supervisor", "manager", "employee", "sales"].includes(user.role);
   const isCustomRole = !!user.customRoleKey;
   if (!isStandardRole && !isCustomRole) return <Navigate to="/" replace />;
@@ -52,11 +51,7 @@ export default function AdminLayout() {
         </AppShell.Navbar>
 
         <AppShell.Main bg="gray.0">
-          {isFullPage ? (
-            <Box h="calc(100vh - 56px)" style={{ overflow: "hidden" }}><Outlet /></Box>
-          ) : (
-            <Box p={{ base: "sm", sm: "md", lg: "lg" }}><Outlet /></Box>
-          )}
+          <Box p={{ base: "sm", sm: "md", lg: "lg" }}><Outlet /></Box>
         </AppShell.Main>
       </AppShell>
     </MantineProvider>

@@ -6,10 +6,9 @@ import {
 import {
   FaPlus, FaTrash, FaPen, FaShieldHalved, FaLock,
   FaGauge, FaBell, FaBuilding, FaHouseChimney, FaChartLine,
-  FaUserPlus, FaFileLines, FaSquareCheck, FaCalculator,
-  FaBookOpen, FaBox, FaCartShopping, FaScaleBalanced,
+  FaUserPlus, FaFileLines, FaSquareCheck, FaScaleBalanced,
   FaWandMagicSparkles, FaImage, FaBriefcase, FaUsers,
-  FaGear, FaCircleUser, FaClockRotateLeft, FaStore,
+  FaGear, FaCircleUser, FaClockRotateLeft,
 } from "react-icons/fa6";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
@@ -27,12 +26,6 @@ const ALL_PAGES = [
   { key: "client-reg", label: "تسجيل العملاء", Icon: FaUserPlus },
   { key: "blogs", label: "المقالات", Icon: FaFileLines },
   { key: "tasks", label: "المهام", Icon: FaSquareCheck },
-  { key: "accounting", label: "الحسابات", Icon: FaCalculator },
-  { key: "accounting-beni-suef", label: "حسابات فرع بني سويف", Icon: FaStore },
-  { key: "accounting-records", label: "السجلات المحاسبية", Icon: FaBookOpen },
-  { key: "accounting-records-beni-suef", label: "سجلات فرع بني سويف", Icon: FaBookOpen },
-  { key: "warehouse", label: "المخازن", Icon: FaBox },
-  { key: "purchasing", label: "المشتريات", Icon: FaCartShopping },
   { key: "legal", label: "الشئون القانونية", Icon: FaScaleBalanced },
   { key: "content", label: "المحتوى", Icon: FaWandMagicSparkles },
   { key: "media", label: "المكتبة", Icon: FaImage },

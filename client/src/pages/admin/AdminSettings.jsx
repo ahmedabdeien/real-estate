@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FaBuilding, FaPalette, FaGlobe, FaMapPin, FaShareNodes,
+  FaBuilding, FaGlobe, FaMapPin, FaShareNodes,
   FaEnvelope, FaShieldHalved, FaDatabase, FaCircleInfo,
   FaDownload, FaCloud, FaArrowUpRightFromSquare, FaPlus,
   FaTrash, FaFloppyDisk, FaRotateLeft,
@@ -39,18 +39,6 @@ const groups = [
       { key: "company_address",   label: "العنوان الرئيسي",           type: "text",     placeholder: "القاهرة، مصر الجديدة" },
       { key: "company_founded",   label: "سنة التأسيس",               type: "text",     placeholder: "2010" },
       { key: "company_about",     label: "نبذة عن الشركة",            type: "textarea", placeholder: "اكتب وصفاً مختصراً..." },
-    ],
-  },
-  {
-    key: "theme", label: "الألوان والثيم", icon: FaPalette, color: "purple",
-    desc: "تخصيص ألوان الموقع والهوية البصرية",
-    extra: "theme_presets",
-    fields: [
-      { key: "primary_color",   label: "اللون الرئيسي",    type: "color", defaultVal: "#8A6924", hint: "الأزرار والروابط" },
-      { key: "secondary_color", label: "اللون الثانوي",    type: "color", defaultVal: "#12283C", hint: "الهيدر والخلفيات" },
-      { key: "accent_color",    label: "لون التمييز",      type: "color", defaultVal: "#f59e0b", hint: "التنبيهات والإشارات" },
-      { key: "secondary_mid",   label: "لون ثانوي متوسط", type: "color", defaultVal: "#1a3d5c" },
-      { key: "secondary_light", label: "لون ثانوي فاتح",  type: "color", defaultVal: "var(--primary)" },
     ],
   },
   {
@@ -143,7 +131,6 @@ const groups = [
 
 const colorMap = {
   blue:   { bg: "bg-blue-50 dark:bg-blue-900/20",    text: "text-blue-600",    iconBg: "bg-blue-100 dark:bg-blue-900/40" },
-  purple: { bg: "bg-purple-50 dark:bg-purple-900/20", text: "text-purple-600",  iconBg: "bg-purple-100 dark:bg-purple-900/40" },
   green:  { bg: "bg-green-50 dark:bg-green-900/20",   text: "text-green-600",   iconBg: "bg-green-100 dark:bg-green-900/40" },
   orange: { bg: "bg-orange-50 dark:bg-orange-900/20", text: "text-orange-600",  iconBg: "bg-orange-100 dark:bg-orange-900/40" },
   pink:   { bg: "bg-pink-50 dark:bg-pink-900/20",     text: "text-pink-600",    iconBg: "bg-pink-100 dark:bg-pink-900/40" },
@@ -153,15 +140,6 @@ const colorMap = {
   indigo: { bg: "bg-indigo-50 dark:bg-indigo-900/20", text: "text-indigo-600",  iconBg: "bg-indigo-100 dark:bg-indigo-900/40" },
   gray:   { bg: "bg-gray-50 dark:bg-gray-800",         text: "text-gray-600",    iconBg: "bg-gray-100 dark:bg-gray-700" },
 };
-
-const themePresets = [
-  { name: "ذهبي وبحري",   primary: "#8A6924", secondary: "#12283C", accent: "#DFBA6B", secMid: "#1a3d5c", secLight: "var(--primary)" },
-  { name: "أزرق احترافي", primary: "#1d4ed8", secondary: "#0f172a", accent: "#60a5fa", secMid: "#1e3a5f", secLight: "#2563eb" },
-  { name: "أخضر طبيعي",   primary: "#16a34a", secondary: "#052e16", accent: "#4ade80", secMid: "#064e3b", secLight: "#15803d" },
-  { name: "أحمر عصري",    primary: "#dc2626", secondary: "#1c1917", accent: "#f87171", secMid: "#292524", secLight: "#b91c1c" },
-  { name: "بنفسجي فاخر",  primary: "#7c3aed", secondary: "#1e1b4b", accent: "#a78bfa", secMid: "#2e1065", secLight: "#6d28d9" },
-  { name: "برتقالي حيوي", primary: "#ea580c", secondary: "#1c0a00", accent: "#fb923c", secMid: "#431407", secLight: "#c2410c" },
-];
 
 const inputCls = "w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm outline-none focus:border-[color:var(--primary)] focus:ring-2 focus:ring-[color:var(--primary)]/20 transition-all placeholder:text-gray-400";
 
@@ -321,11 +299,6 @@ export default function AdminSettings() {
                 </div>
 
                 <div className="p-6">
-                  {/* Theme Presets */}
-                  {activeGroup === "theme" && (
-                    <ThemePresetsSection values={values} set={set} />
-                  )}
-
                   {/* Regular Fields */}
                   {currentGroup?.fields && (
                     <div className="space-y-5">
@@ -391,55 +364,6 @@ function SaveButton({ onClick, saving, large }) {
         <><FaFloppyDisk className={large ? "w-4 h-4" : "w-3 h-3"} /> حفظ التغييرات</>
       )}
     </button>
-  );
-}
-
-// ─────────────────────────────────────────────
-function ThemePresetsSection({ values, set }) {
-  return (
-    <div className="mb-6">
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">قوالب ألوان جاهزة</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
-        {themePresets.map((preset) => (
-          <button key={preset.name} onClick={() => {
-            set("primary_color", preset.primary);
-            set("secondary_color", preset.secondary);
-            set("accent_color", preset.accent);
-            set("secondary_mid", preset.secMid);
-            set("secondary_light", preset.secLight);
-          }}
-            className="flex items-center gap-2 p-2.5 rounded-xl border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 bg-gray-50 dark:bg-gray-800 transition-all"
-          >
-            <div className="flex gap-1">
-              {[preset.primary, preset.secondary, preset.accent].map((c) => (
-                <span key={c} className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ background: c }} />
-              ))}
-            </div>
-            <span className="text-[11px] text-gray-600 dark:text-gray-400 truncate">{preset.name}</span>
-          </button>
-        ))}
-      </div>
-      {/* Live Preview */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
-        <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          معاينة مباشرة
-        </div>
-        <div className="p-4" style={{ background: values.secondary_color || "#12283C" }}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white text-sm"
-              style={{ background: values.primary_color || "#8A6924" }}>ص</div>
-            <div>
-              <div className="h-2.5 w-24 rounded mb-1.5" style={{ background: values.primary_color || "#8A6924" }} />
-              <div className="h-1.5 w-16 rounded opacity-60" style={{ background: values.accent_color || "#f59e0b" }} />
-            </div>
-            <button className="mr-auto px-3 py-1.5 rounded-lg text-xs text-white font-semibold"
-              style={{ background: values.primary_color || "#8A6924" }}>زر تجريبي</button>
-          </div>
-          <div className="h-0.5 rounded opacity-40" style={{ background: values.accent_color || "#f59e0b" }} />
-        </div>
-      </div>
-      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">ألوان مخصصة</p>
-    </div>
   );
 }
 

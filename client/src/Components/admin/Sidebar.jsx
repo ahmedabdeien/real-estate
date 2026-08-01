@@ -8,9 +8,9 @@ import {
 import {
   FaTableColumns, FaBuilding, FaHouse, FaUsers, FaFileLines,
   FaImage, FaGear, FaBriefcase, FaRightFromBracket,
-  FaChartLine, FaWaveSquare, FaSquareCheck, FaCalculator, FaClockRotateLeft,
-  FaCircleUser, FaPenToSquare, FaBook, FaBell, FaUserPlus,
-  FaBoxesStacked, FaCartShopping, FaScaleBalanced, FaShieldHalved,
+  FaChartLine, FaWaveSquare, FaSquareCheck, FaClockRotateLeft,
+  FaCircleUser, FaPenToSquare, FaBell, FaUserPlus,
+  FaScaleBalanced, FaShieldHalved,
   FaCommentDots, FaChevronDown, FaChevronUp,
   FaAnglesLeft, FaAnglesRight,
 } from "react-icons/fa6";
@@ -40,20 +40,9 @@ const navGroups = [
     ],
   },
   {
-    label: "الحسابات",
+    label: "الشئون القانونية",
     items: [
-      { to: "/admin/accounting",                   label: "الحسابات الرئيسية",   icon: FaCalculator, pageKey: "accounting" },
-      { to: "/admin/accounting-beni-suef",         label: "حسابات بني سويف",    icon: FaCalculator, pageKey: "accounting-beni-suef" },
-      { to: "/admin/accounting-records",           label: "السجلات المحاسبية",  icon: FaBook,       pageKey: "accounting-records" },
-      { to: "/admin/accounting-records-beni-suef", label: "سجلات بني سويف",     icon: FaBook,       pageKey: "accounting-records-beni-suef" },
-    ],
-  },
-  {
-    label: "المخازن",
-    items: [
-      { to: "/admin/warehouse",  label: "المخازن",              icon: FaBoxesStacked,  pageKey: "warehouse" },
-      { to: "/admin/purchasing", label: "المشتريات",            icon: FaCartShopping,  pageKey: "purchasing" },
-      { to: "/admin/legal",      label: "الشئون القانونية",     icon: FaScaleBalanced, pageKey: "legal" },
+      { to: "/admin/legal", label: "الشئون القانونية", icon: FaScaleBalanced, pageKey: "legal" },
     ],
   },
   {

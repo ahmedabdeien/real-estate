@@ -45,16 +45,10 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
-const AdminAccounting = lazy(() => import("./pages/admin/AdminAccounting"));
-const AdminAccountingBeniSuef = lazy(() => import("./pages/admin/AdminAccountingBeniSuef"));
-const AdminAccountingRecords = lazy(() => import("./pages/admin/AdminAccountingRecords"));
-const AdminAccountingRecordsBeniSuef = lazy(() => import("./pages/admin/AdminAccountingRecordsBeniSuef"));
 const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminClientReg = lazy(() => import("./pages/admin/AdminClientReg"));
-const AdminWarehouse = lazy(() => import("./pages/admin/AdminWarehouse"));
-const AdminPurchasing = lazy(() => import("./pages/admin/AdminPurchasing"));
 const AdminLegal = lazy(() => import("./pages/admin/AdminLegal"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminWhatsApp = lazy(() => import("./pages/admin/AdminWhatsApp"));
@@ -86,8 +80,6 @@ function DashboardRoute() {
   if (user.customRoleKey) {
     const pages = user.allowedPages || [];
     if (pages.includes("tasks")) return <Navigate to="/admin/tasks" replace />;
-    if (pages.includes("accounting")) return <Navigate to="/admin/accounting" replace />;
-    if (pages.includes("accounting-beni-suef")) return <Navigate to="/admin/accounting-beni-suef" replace />;
     if (pages.length > 0) return <Navigate to={`/admin/${pages[0]}`} replace />;
   }
   return <Navigate to="/" replace />;
@@ -163,7 +155,6 @@ export default function App() {
                 <Route index element={<Navigate to="/admin" replace />} />
                 <Route path="tasks" element={<TasksPage />} />
                 <Route path="profile" element={<StaffProfile />} />
-                <Route path="accounting" element={<AdminAccounting />} />
                 <Route path="projects" element={<AdminProjects />} />
                 <Route path="units" element={<AdminUnits />} />
                 <Route path="leads" element={<AdminLeads />} />
@@ -186,15 +177,9 @@ export default function App() {
                 <Route path="settings"      element={<AdminOnlyRoute><AdminSettings /></AdminOnlyRoute>} />
                 <Route path="activity"      element={<AdminOnlyRoute><AdminActivity /></AdminOnlyRoute>} />
                 <Route path="tasks"         element={<PageGuard pageKey="tasks"><TasksPage embedded={true} /></PageGuard>} />
-                <Route path="accounting"         element={<PageGuard pageKey="accounting"><AdminAccounting /></PageGuard>} />
-                <Route path="accounting-records" element={<PageGuard pageKey="accounting-records"><AdminAccountingRecords /></PageGuard>} />
-                <Route path="accounting-beni-suef" element={<PageGuard pageKey="accounting-beni-suef"><AdminAccountingBeniSuef /></PageGuard>} />
-                <Route path="accounting-records-beni-suef" element={<PageGuard pageKey="accounting-records-beni-suef"><AdminAccountingRecordsBeniSuef /></PageGuard>} />
                 <Route path="profile"       element={<AdminProfile />} />
                 <Route path="changelog"     element={<PageGuard pageKey="changelog"><AdminChangelog /></PageGuard>} />
                 <Route path="notifications" element={<PageGuard pageKey="notifications"><AdminNotifications /></PageGuard>} />
-                <Route path="warehouse"     element={<PageGuard pageKey="warehouse"><AdminWarehouse /></PageGuard>} />
-                <Route path="purchasing"    element={<PageGuard pageKey="purchasing"><AdminPurchasing /></PageGuard>} />
                 <Route path="legal"         element={<PageGuard pageKey="legal"><AdminLegal /></PageGuard>} />
                 <Route path="roles"         element={<AdminOnlyRoute><AdminRoles /></AdminOnlyRoute>} />
                 <Route path="whatsapp"     element={<AdminOnlyRoute><AdminWhatsApp /></AdminOnlyRoute>} />

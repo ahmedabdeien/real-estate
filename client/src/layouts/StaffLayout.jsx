@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, Navigate, NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
-  FaBuilding, FaRightFromBracket, FaUser, FaSquareCheck, FaBars, FaXmark, FaCalculator,
+  FaBuilding, FaRightFromBracket, FaUser, FaSquareCheck, FaBars, FaXmark,
   FaBell, FaHouseChimney, FaChartLine, FaFileLines, FaLayerGroup,
 } from "react-icons/fa6";
 import { useAuth } from "../context/AuthContext";
@@ -124,10 +124,9 @@ export default function StaffLayout() {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAccounting = location.pathname.startsWith("/staff/accounting");
   const isSalesPage = ["/staff/projects", "/staff/units", "/staff/leads", "/staff/blogs"]
     .some((p) => location.pathname.startsWith(p));
-  const fullWidth = isAccounting || isSalesPage;
+  const fullWidth = isSalesPage;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -170,9 +169,6 @@ export default function StaffLayout() {
   const navLinks = [
     { to: "/staff/tasks",   label: "مهامي",        icon: FaSquareCheck },
     { to: "/staff/profile", label: "الملف الشخصي", icon: FaUser },
-    ...(user?.department === "accounts"
-      ? [{ to: "/staff/accounting", label: "الحسابات", icon: FaCalculator }]
-      : []),
     ...(user?.role === "sales"
       ? [
           { to: "/staff/projects", label: "المشاريع", icon: FaHouseChimney },
@@ -304,11 +300,9 @@ export default function StaffLayout() {
       </header>
 
       <main className={
-        isAccounting
-          ? "h-[calc(100vh-64px)] overflow-hidden"
-          : fullWidth
-            ? "px-4 py-6"
-            : "max-w-5xl mx-auto px-4 py-6"
+        fullWidth
+          ? "px-4 py-6"
+          : "max-w-5xl mx-auto px-4 py-6"
       }>
         <Outlet />
       </main>

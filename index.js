@@ -29,18 +29,11 @@ import activityRouter from "./routes/activity.route.js";
 import searchRouter from "./routes/search.route.js";
 import taskRouter from "./routes/task.route.js";
 import notificationRouter from "./routes/notification.route.js";
-import accountingRouter from "./routes/accounting.route.js";
-import advancedAccountingRouter from "./routes/advanced-accounting.route.js";
-import warehouseRouter from "./routes/warehouse.route.js";
-import purchasingRouter from "./routes/purchasing.route.js";
 import legalRouter from "./routes/legal.route.js";
 import aiRouter from "./routes/ai.route.js";
 import roleConfigRouter from "./routes/roleConfig.route.js";
 import whatsappRouter from "./routes/whatsapp.route.js";
-import budgetRouter from "./routes/budget.route.js";
 import { seedDefaultRoles } from "./controllers/roleConfig.controller.js";
-import recurringTransactionRouter from "./routes/recurringTransaction.route.js";
-import { processRecurring } from "./controllers/recurringTransaction.controller.js";
 
 dotenv.config();
 const app = express();
@@ -150,18 +143,6 @@ mongoose
         .catch((err) => console.warn("[WA-Cron] Start skipped:", err.message));
     }, 8000);
 
-    // Start recurring transactions cron — daily at 08:00
-    setTimeout(async () => {
-      try {
-        const cron = await import("node-cron");
-        cron.default.schedule("0 8 * * *", () => {
-          processRecurring().catch((e) => console.error("[RecurringCron]", e.message));
-        });
-        console.log("[RecurringCron] Scheduled daily at 08:00");
-      } catch (err) {
-        console.warn("[RecurringCron] Schedule skipped:", err.message);
-      }
-    }, 10000);
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
@@ -219,18 +200,10 @@ app.use("/api/activity", activityRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/notifications", notificationRouter);
-app.use("/api/accounting", accountingRouter);
-app.use("/api/accounting-cs", advancedAccountingRouter);
-
-// Advanced Accounting (Node.js implementation — same API as C#)
-app.use("/api/warehouse", warehouseRouter);
-app.use("/api/purchasing", purchasingRouter);
 app.use("/api/legal", legalRouter);
 app.use("/api/ai", aiRouter);
 app.use("/api/roles", roleConfigRouter);
 app.use("/api/whatsapp", whatsappRouter);
-app.use("/api/budgets", budgetRouter);
-app.use("/api/recurring-transactions", recurringTransactionRouter);
 
 // Serve frontend only if client/dist exists (monolith mode)
 const distPath = path.join(__dirname, "./client/dist");

@@ -7,13 +7,6 @@ const DEFAULT_ROLES = [
   { roleKey: "employee",    label: "موظف",                isSystem: true,  allowedPages: ["notifications","tasks","profile","changelog"] },
   { roleKey: "sales",       label: "مبيعات",              isSystem: true,  allowedPages: ["notifications","projects","units","leads","client-reg","blogs","tasks","profile","changelog"] },
   { roleKey: "viewer",      label: "مشاهد",               isSystem: true,  allowedPages: [] },
-  {
-    roleKey: "branch_accounts_beni_suef",
-    label: "محاسب فرع بني سويف",
-    branch: "بني سويف",
-    isSystem: false,
-    allowedPages: ["notifications","tasks","accounting","accounting-beni-suef","accounting-records","accounting-records-beni-suef","profile","changelog"],
-  },
 ];
 
 export const seedDefaultRoles = async () => {
