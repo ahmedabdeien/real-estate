@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaSquareCheck, FaUser, FaCalendar, FaChartLine, FaArrowsRotate } from 'react-icons/fa6';
+import { FaPlus, FaTrash, FaPen, FaXmark, FaMagnifyingGlass, FaSquareCheck, FaUser, FaCalendar, FaChartLine, FaArrowsRotate, FaLayerGroup, FaClock, FaBuilding, FaCheck, FaFileLines, FaRightFromBracket, FaTriangleExclamation } from 'react-icons/fa6';
 import { Layers, Clock, AlertCircle, CheckCircle2, MoreVertical, Flag, AlignLeft, ArrowRight, CalendarDays, List, LayoutGrid, Columns } from 'lucide-react';
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";

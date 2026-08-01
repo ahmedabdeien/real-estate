@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { FaPlus, FaTrash, FaPen, FaArrowsRotate, FaDownload, FaMagnifyingGlass, FaXmark, FaFilter, FaChevronDown } from 'react-icons/fa6';
+import { FaPlus, FaTrash, FaPen, FaArrowsRotate, FaDownload, FaMagnifyingGlass, FaXmark, FaFilter, FaChevronDown, FaTriangleExclamation, FaBookOpen, FaChartLine, FaScaleBalanced, FaCalendar } from 'react-icons/fa6';
 import { TrendingDown } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";

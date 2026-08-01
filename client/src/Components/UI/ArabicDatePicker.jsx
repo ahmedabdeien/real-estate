@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FaChevronRight, FaChevronLeft, FaCalendar } from 'react-icons/fa6';
+import { FaChevronRight, FaChevronLeft, FaCalendar, FaXmark } from 'react-icons/fa6';
 import { createPortal } from "react-dom";
 
 

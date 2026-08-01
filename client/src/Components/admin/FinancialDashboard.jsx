@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown, FaCircleExclamation } from 'react-icons/fa6';
+import { FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown, FaCircleExclamation, FaLayerGroup, FaPrint, FaArrowsRotate, FaPlus, FaUpload, FaFileLines } from 'react-icons/fa6';
 import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign, BookOpen } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,

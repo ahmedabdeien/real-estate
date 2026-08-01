@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { FaPlus, FaTrash, FaPen, FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown } from 'react-icons/fa6';
+import { FaPlus, FaTrash, FaPen, FaChartBar, FaCoins, FaArrowTrendUp, FaArrowTrendDown, FaArrowsRotate } from 'react-icons/fa6';
 import { PiggyBank } from 'lucide-react';
 
 import api from "../../api/axios";
