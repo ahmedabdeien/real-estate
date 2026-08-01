@@ -1,68 +1,44 @@
 /**
- * DataTable — مكوّن جدول شامل يستخدم TanStack Table v8
+ * DataTable — مكوّن جدول شامل يستخدم TanStack Table v8 (Mantine)
  * يدعم: pagination، sorting، filtering، column visibility، row selection
  */
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  flexRender,
+  useReactTable, getCoreRowModel, getSortedRowModel, getFilteredRowModel,
+  getPaginationRowModel, flexRender,
 } from "@tanstack/react-table";
 import {
-  FaChevronUp, FaChevronDown, FaChevronRight, FaChevronLeft,
-  FaAnglesRight, FaAnglesLeft, FaMagnifyingGlass, FaTableColumns,
-  FaSpinner, FaInbox,
+  MantineProvider, Box, Group, Stack, Text, TextInput, Table, Checkbox,
+  Menu, ActionIcon, Pagination, Select, Loader, Badge,
+} from "@mantine/core";
+import "@mantine/core/styles.css";
+import {
+  FaChevronUp, FaChevronDown, FaMagnifyingGlass, FaTableColumns,
 } from "react-icons/fa6";
+import { mantineTheme } from "../../mantineTheme";
 
-export default function DataTable({
-  data = [],
-  columns = [],
-  loading = false,
-  totalCount,
-  // Server-side pagination
-  pageIndex: externalPage,
-  pageSize: externalSize = 15,
-  onPageChange,
-  onPageSizeChange,
-  // Client-side pagination (when no server callbacks)
+function DataTableInner({
+  data = [], columns = [], loading = false, totalCount,
+  pageIndex: externalPage, pageSize: externalSize = 15, onPageChange, onPageSizeChange,
   clientPagination = false,
-  // Search
-  globalFilter: externalFilter,
-  onFilterChange,
-  searchPlaceholder = "بحث...",
-  // Selection
-  enableRowSelection = false,
-  onSelectionChange,
-  // Actions bar slot
-  toolbar,
-  // Empty state
-  emptyMessage = "لا توجد بيانات",
-  emptyIcon,
+  globalFilter: externalFilter, onFilterChange, searchPlaceholder = "بحث...",
+  enableRowSelection = false, onSelectionChange,
+  toolbar, emptyMessage = "لا توجد بيانات", emptyIcon,
 }) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
-  const [showColPicker, setShowColPicker] = useState(false);
 
   const isServerPaginated = typeof onPageChange === "function";
 
   const table = useReactTable({
-    data,
-    columns,
+    data, columns,
     state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
+      sorting, columnFilters, columnVisibility, rowSelection,
       globalFilter: externalFilter ?? globalFilter,
-      pagination: isServerPaginated
-        ? { pageIndex: externalPage ?? 0, pageSize: externalSize }
-        : undefined,
+      pagination: isServerPaginated ? { pageIndex: externalPage ?? 0, pageSize: externalSize } : undefined,
     },
     enableRowSelection,
     onRowSelectionChange: (updater) => {
@@ -82,187 +58,133 @@ export default function DataTable({
     getPaginationRowModel: clientPagination ? getPaginationRowModel() : undefined,
     manualPagination: isServerPaginated,
     rowCount: isServerPaginated ? (totalCount ?? data.length) : undefined,
-    pageCount: isServerPaginated && totalCount
-      ? Math.ceil(totalCount / externalSize)
-      : undefined,
+    pageCount: isServerPaginated && totalCount ? Math.ceil(totalCount / externalSize) : undefined,
   });
 
   const currentPage = isServerPaginated ? (externalPage ?? 0) : table.getState().pagination?.pageIndex ?? 0;
   const currentSize = isServerPaginated ? externalSize : table.getState().pagination?.pageSize ?? externalSize;
-  const totalPages = isServerPaginated
-    ? (totalCount ? Math.ceil(totalCount / currentSize) : 1)
-    : table.getPageCount?.() ?? 1;
+  const totalPages = isServerPaginated ? (totalCount ? Math.ceil(totalCount / currentSize) : 1) : table.getPageCount?.() ?? 1;
 
-  const handlePageChange = (p) => {
-    if (isServerPaginated) onPageChange(p);
-    else table.setPageIndex(p);
-  };
+  const handlePageChange = (p) => { if (isServerPaginated) onPageChange(p); else table.setPageIndex(p); };
 
   return (
-    <div className="flex flex-col gap-3" dir="rtl">
-      {/* ── Toolbar ── */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <FaMagnifyingGlass className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-          <input
-            value={(onFilterChange ? externalFilter : globalFilter) ?? ""}
-            onChange={(e) => onFilterChange ? onFilterChange(e.target.value) : setGlobalFilter(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="w-full pr-9 pl-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white outline-none focus:border-[color:var(--primary)] focus:ring-2 focus:ring-[color:var(--primary)]/20 transition-all"
-          />
-        </div>
+    <Stack gap="sm" dir="rtl">
+      <Group gap="sm" wrap="wrap">
+        <TextInput
+          style={{ flex: 1, minWidth: 200, maxWidth: 320 }}
+          leftSection={<FaMagnifyingGlass size={13} />}
+          placeholder={searchPlaceholder}
+          value={(onFilterChange ? externalFilter : globalFilter) ?? ""}
+          onChange={(e) => onFilterChange ? onFilterChange(e.target.value) : setGlobalFilter(e.target.value)}
+        />
 
-        {/* Custom toolbar slot */}
-        {toolbar && <div className="flex items-center gap-2">{toolbar}</div>}
+        {toolbar && <Group gap={8}>{toolbar}</Group>}
 
-        {/* Column visibility */}
-        <div className="relative">
-          <button
-            onClick={() => setShowColPicker((p) => !p)}
-            className="flex items-center gap-2 px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:border-gray-300 transition-all"
-          >
-            <FaTableColumns className="w-3.5 h-3.5" />
-            الأعمدة
-          </button>
-          {showColPicker && (
-            <div className="absolute left-0 top-10 z-30 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3 min-w-[160px]">
-              {table.getAllLeafColumns().filter((c) => c.id !== "select" && c.id !== "actions").map((col) => (
-                <label key={col.id} className="flex items-center gap-2 py-1.5 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={col.getIsVisible()}
-                    onChange={col.getToggleVisibilityHandler()}
-                    className="w-3.5 h-3.5 accent-[color:var(--primary)]"
-                  />
-                  <span className="text-xs text-gray-700 dark:text-gray-300">
-                    {typeof col.columnDef.header === "string" ? col.columnDef.header : col.id}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
+        <Menu shadow="md" width={180} closeOnItemClick={false}>
+          <Menu.Target>
+            <ActionIcon variant="default" size="lg"><FaTableColumns size={13} /></ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown dir="rtl">
+            <Menu.Label>الأعمدة</Menu.Label>
+            {table.getAllLeafColumns().filter((c) => c.id !== "select" && c.id !== "actions").map((c) => (
+              <Menu.Item key={c.id} closeMenuOnClick={false}>
+                <Checkbox
+                  size="xs" checked={c.getIsVisible()} onChange={c.getToggleVisibilityHandler()}
+                  label={typeof c.columnDef.header === "string" ? c.columnDef.header : c.id}
+                />
+              </Menu.Item>
+            ))}
+          </Menu.Dropdown>
+        </Menu>
 
-        {/* Selection count */}
         {enableRowSelection && Object.keys(rowSelection).length > 0 && (
-          <span className="text-xs text-[color:var(--primary)] font-semibold bg-[color:var(--primary)]/10 px-3 py-1.5 rounded-lg">
-            تم اختيار {Object.keys(rowSelection).length} صف
-          </span>
+          <Badge variant="light" color="brand" size="lg">تم اختيار {Object.keys(rowSelection).length} صف</Badge>
         )}
-      </div>
+      </Group>
 
-      {/* ── Table ── */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700/60 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
+      <Box style={{ border: "1px solid var(--mantine-color-gray-2)", overflow: "hidden" }}>
+        <Box style={{ overflowX: "auto" }}>
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead bg="gray.0">
               {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id} className="border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                <Table.Tr key={hg.id}>
                   {hg.headers.map((header) => (
-                    <th
+                    <Table.Th
                       key={header.id}
                       onClick={header.column.getToggleSortingHandler()}
-                      className={`px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap
-                        ${header.column.getCanSort() ? "cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200" : ""}`}
-                      style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                      style={{ cursor: header.column.getCanSort() ? "pointer" : undefined, whiteSpace: "nowrap" }}
                     >
                       {header.isPlaceholder ? null : (
-                        <div className="flex items-center gap-1.5 justify-start">
+                        <Group gap={6} wrap="nowrap">
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {header.column.getCanSort() && (
-                            <span className="text-gray-300 dark:text-gray-600">
-                              {{ asc: <FaChevronUp className="w-2.5 h-2.5 text-[color:var(--primary)]" />, desc: <FaChevronDown className="w-2.5 h-2.5 text-[color:var(--primary)]" /> }[header.column.getIsSorted()] ?? <FaChevronDown className="w-2.5 h-2.5 opacity-30" />}
-                            </span>
+                            {
+                              asc: <FaChevronUp size={10} color="var(--mantine-color-brand-6)" />,
+                              desc: <FaChevronDown size={10} color="var(--mantine-color-brand-6)" />,
+                            }[header.column.getIsSorted()] ?? <FaChevronDown size={10} color="var(--mantine-color-gray-3)" />
                           )}
-                        </div>
+                        </Group>
                       )}
-                    </th>
+                    </Table.Th>
                   ))}
-                </tr>
+                </Table.Tr>
               ))}
-            </thead>
-            <tbody>
+            </Table.Thead>
+            <Table.Tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={columns.length} className="py-16 text-center">
-                    <FaSpinner className="w-6 h-6 animate-spin text-[color:var(--primary)] mx-auto mb-2" />
-                    <p className="text-sm text-gray-400">جاري التحميل...</p>
-                  </td>
-                </tr>
+                <Table.Tr>
+                  <Table.Td colSpan={columns.length} py={64}>
+                    <Stack align="center" gap={8}><Loader color="gray" size="sm" /><Text size="sm" c="dimmed">جاري التحميل...</Text></Stack>
+                  </Table.Td>
+                </Table.Tr>
               ) : table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length} className="py-16 text-center">
-                    <div className="text-4xl mb-3">{emptyIcon || "📭"}</div>
-                    <p className="text-sm text-gray-400">{emptyMessage}</p>
-                  </td>
-                </tr>
+                <Table.Tr>
+                  <Table.Td colSpan={columns.length} py={64}>
+                    <Stack align="center" gap={8}>
+                      <Text fz={32}>{emptyIcon || "📭"}</Text>
+                      <Text size="sm" c="dimmed">{emptyMessage}</Text>
+                    </Stack>
+                  </Table.Td>
+                </Table.Tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={`border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors
-                      ${row.getIsSelected() ? "bg-[color:var(--primary)]/5 dark:bg-[color:var(--primary)]/10" : ""}`}
-                  >
+                  <Table.Tr key={row.id} bg={row.getIsSelected() ? "brand.0" : undefined}>
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      <Table.Td key={cell.id} style={{ whiteSpace: "nowrap" }}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
+                      </Table.Td>
                     ))}
-                  </tr>
+                  </Table.Tr>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
+            </Table.Tbody>
+          </Table>
+        </Box>
 
-        {/* ── Pagination ── */}
         {(clientPagination || isServerPaginated) && (
-          <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-3 bg-gray-50/50 dark:bg-gray-800/20">
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span>عرض</span>
-              <select
-                value={currentSize}
-                onChange={(e) => {
-                  const s = Number(e.target.value);
-                  if (isServerPaginated) onPageSizeChange?.(s);
-                  else table.setPageSize(s);
-                }}
-                className="px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 outline-none"
-              >
-                {[10, 15, 25, 50].map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <span>صف لكل صفحة</span>
-              {totalCount != null && (
-                <span className="mr-2">· الإجمالي: <strong>{totalCount}</strong></span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1">
-              <PagBtn onClick={() => handlePageChange(0)} disabled={currentPage === 0} icon={<FaAnglesRight className="w-3 h-3" />} />
-              <PagBtn onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 0} icon={<FaChevronRight className="w-3 h-3" />} />
-              <span className="text-xs text-gray-600 dark:text-gray-400 px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 min-w-[80px] text-center">
-                {currentPage + 1} / {totalPages}
-              </span>
-              <PagBtn onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage >= totalPages - 1} icon={<FaChevronLeft className="w-3 h-3" />} />
-              <PagBtn onClick={() => handlePageChange(totalPages - 1)} disabled={currentPage >= totalPages - 1} icon={<FaAnglesLeft className="w-3 h-3" />} />
-            </div>
-          </div>
+          <Group justify="space-between" wrap="wrap" px="md" py="sm" bg="gray.0" style={{ borderTop: "1px solid var(--mantine-color-gray-2)" }}>
+            <Group gap={8}>
+              <Text size="xs" c="dimmed">عرض</Text>
+              <Select
+                w={70} size="xs" data={["10", "15", "25", "50"]} value={String(currentSize)}
+                onChange={(v) => { const s = Number(v); if (isServerPaginated) onPageSizeChange?.(s); else table.setPageSize(s); }}
+              />
+              <Text size="xs" c="dimmed">صف لكل صفحة</Text>
+              {totalCount != null && <Text size="xs" c="dimmed">· الإجمالي: <Text component="span" fw={700}>{totalCount}</Text></Text>}
+            </Group>
+            <Pagination size="sm" total={totalPages} value={currentPage + 1} onChange={(p) => handlePageChange(p - 1)} />
+          </Group>
         )}
-      </div>
-    </div>
+      </Box>
+    </Stack>
   );
 }
 
-function PagBtn({ onClick, disabled, icon }) {
+export default function DataTable(props) {
   return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-    >
-      {icon}
-    </button>
+    <MantineProvider theme={mantineTheme}>
+      <DataTableInner {...props} />
+    </MantineProvider>
   );
 }
 
@@ -272,20 +194,17 @@ export function checkboxColumn() {
     id: "select",
     size: 40,
     header: ({ table }) => (
-      <input
-        type="checkbox"
+      <Checkbox
         checked={table.getIsAllPageRowsSelected()}
+        indeterminate={table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}
         onChange={table.getToggleAllPageRowsSelectedHandler()}
-        className="w-4 h-4 accent-[color:var(--primary)] cursor-pointer"
       />
     ),
     cell: ({ row }) => (
-      <input
-        type="checkbox"
+      <Checkbox
         checked={row.getIsSelected()}
         onChange={row.getToggleSelectedHandler()}
         onClick={(e) => e.stopPropagation()}
-        className="w-4 h-4 accent-[color:var(--primary)] cursor-pointer"
       />
     ),
     enableSorting: false,
