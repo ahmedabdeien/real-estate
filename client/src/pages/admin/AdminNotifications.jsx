@@ -1,17 +1,17 @@
 /**
- * AdminNotifications — migrated to TanStack Query + shared UI components
+ * AdminNotifications — TanStack Query + Mantine
  */
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import {
+  Box, Group, Stack, Text, ThemeIcon, Chip, ActionIcon, Card, Loader, Pagination, Indicator,
+} from "@mantine/core";
 import {
   FaBell, FaBriefcase, FaCheck, FaCheckDouble, FaListCheck,
   FaClipboardList, FaArrowsRotate, FaTrash, FaUsers, FaXmark,
 } from "react-icons/fa6";
 
-import {
-  useNotifications, useMarkAllRead, useMarkOneRead,
-} from "../../hooks/queries/useNotifications";
+import { useNotifications, useMarkAllRead, useMarkOneRead } from "../../hooks/queries/useNotifications";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { NOTIF_KEY } from "../../hooks/queries/useNotifications";
 import { notificationsApi } from "../../lib/api";
@@ -20,54 +20,46 @@ import ConfirmDialog from "../../Components/UI/ConfirmDialog";
 import { useDisclosure } from "../../hooks/useDisclosure";
 import { useToast } from "../../context/ToastContext";
 
-// ── Constants ──────────────────────────────────────────────────────────────
 const PAGE_SIZE = 20;
 
 const FILTERS = [
-  { value: "all",                label: "الكل" },
-  { value: "unread",             label: "غير المقروءة" },
-  { value: "new_lead",           label: "عملاء جدد" },
-  { value: "new_job_application",label: "وظائف" },
-  { value: "task_assigned",      label: "مهام مسندة" },
-  { value: "task_updated",       label: "مهام محدثة" },
+  { value: "all", label: "الكل" },
+  { value: "unread", label: "غير المقروءة" },
+  { value: "new_lead", label: "عملاء جدد" },
+  { value: "new_job_application", label: "وظائف" },
+  { value: "task_assigned", label: "مهام مسندة" },
+  { value: "task_updated", label: "مهام محدثة" },
 ];
 
-const TYPE_ICON = {
-  new_lead:            { Icon: FaUsers,        bg: "bg-blue-100 dark:bg-blue-900/30",   text: "text-blue-600" },
-  new_job_application: { Icon: FaBriefcase,    bg: "bg-amber-100 dark:bg-amber-900/30", text: "text-amber-600" },
-  task_assigned:       { Icon: FaClipboardList,bg: "bg-purple-100 dark:bg-purple-900/30",text: "text-purple-600" },
-  task_updated:        { Icon: FaListCheck,    bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-600" },
-  default:             { Icon: FaBell,         bg: "bg-gray-100 dark:bg-gray-700",       text: "text-gray-500" },
+const TYPE_META = {
+  new_lead: { icon: FaUsers, color: "blue" },
+  new_job_application: { icon: FaBriefcase, color: "yellow" },
+  task_assigned: { icon: FaClipboardList, color: "grape" },
+  task_updated: { icon: FaListCheck, color: "green" },
+  default: { icon: FaBell, color: "gray" },
 };
 
 const formatDate = (d) => {
-  try {
-    return new Date(d).toLocaleString("ar-EG", {
-      year: "numeric", month: "short", day: "numeric",
-      hour: "2-digit", minute: "2-digit",
-    });
-  } catch { return ""; }
+  try { return new Date(d).toLocaleString("ar-EG", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
 };
 
-// ── Component ──────────────────────────────────────────────────────────────
 export default function AdminNotifications() {
-  const toast     = useToast();
-  const navigate  = useNavigate();
-  const qc        = useQueryClient();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
   const [filter, setFilter] = useState("all");
-  const [page,   setPage]   = useState(1);
+  const [page, setPage] = useState(1);
 
   const confirmClear = useDisclosure();
 
-  // ── Queries ──
   const { data, isLoading, refetch, isFetching } = useNotifications();
   const items = data?.notifications ?? [];
 
-  const markAllMutation  = useMarkAllRead();
-  const markOneMutation  = useMarkOneRead();
+  const markAllMutation = useMarkAllRead();
+  const markOneMutation = useMarkOneRead();
 
   const deleteOneMutation = useMutation({
-    mutationFn: (id) => notificationsApi.markOne(id), // uses markOne as delete proxy, or add deleteApi
+    mutationFn: (id) => notificationsApi.markOne(id),
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: [NOTIF_KEY] });
       const prev = qc.getQueryData([NOTIF_KEY, {}]);
@@ -94,7 +86,6 @@ export default function AdminNotifications() {
     onError: () => toast.error("فشل مسح الإشعارات"),
   });
 
-  // ── Derived state ──
   const unreadCount = items.filter((n) => !n.read).length;
 
   const typeCounts = useMemo(() => {
@@ -104,201 +95,109 @@ export default function AdminNotifications() {
   }, [items]);
 
   const filtered = useMemo(() => {
-    if (filter === "all")    return items;
+    if (filter === "all") return items;
     if (filter === "unread") return items.filter((n) => !n.read);
     return items.filter((n) => n.type === filter);
   }, [items, filter]);
 
-  const pages     = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleFilterChange = (v) => { setFilter(v); setPage(1); };
-
   const handleClick = async (n) => {
     if (!n.read) markOneMutation.mutate(n._id);
     if (n.link) navigate(n.link);
   };
 
-  // ── Render ──
   return (
-    <div className="flex flex-col h-full" dir="rtl">
-      {/* Header */}
+    <Box dir="rtl">
       <PageHeader
-        title="الإشعارات"
-        subtitle={`${items.length} إشعار · ${unreadCount} غير مقروء`}
-        icon={<FaBell />}
-        loading={isFetching && !isLoading}
+        title="الإشعارات" subtitle={`${items.length} إشعار · ${unreadCount} غير مقروء`} icon={<FaBell size={16} />} loading={isFetching && !isLoading}
         actions={
           <>
-            <SecondaryButton icon={<FaArrowsRotate className="w-3.5 h-3.5" />} onClick={() => refetch()}>
-              تحديث
-            </SecondaryButton>
-            <PrimaryButton
-              icon={<FaCheckDouble className="w-3.5 h-3.5" />}
-              onClick={() => markAllMutation.mutate()}
-              loading={markAllMutation.isPending}
-              disabled={unreadCount === 0}
-            >
+            <SecondaryButton icon={<FaArrowsRotate size={13} />} onClick={() => refetch()}>تحديث</SecondaryButton>
+            <PrimaryButton icon={<FaCheckDouble size={13} />} onClick={() => markAllMutation.mutate()} loading={markAllMutation.isPending} disabled={unreadCount === 0}>
               تحديد الكل كمقروء
             </PrimaryButton>
-            <DangerButton
-              icon={<FaTrash className="w-3.5 h-3.5" />}
-              onClick={confirmClear.open}
-              disabled={items.length === 0}
-            >
-              مسح الكل
-            </DangerButton>
+            <DangerButton icon={<FaTrash size={13} />} onClick={confirmClear.open} disabled={items.length === 0}>مسح الكل</DangerButton>
           </>
         }
       />
 
-      <div className="flex-1 overflow-auto p-6 space-y-5">
-        {/* Filter tabs */}
-        <div className="flex gap-2 flex-wrap">
-          {FILTERS.map((ft) => {
-            const count = ft.value === "all" ? items.length
-              : ft.value === "unread" ? unreadCount
-              : (typeCounts[ft.value] || 0);
-            const active = filter === ft.value;
-            return (
-              <button
-                key={ft.value}
-                onClick={() => handleFilterChange(ft.value)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  active
-                    ? "text-white shadow-sm"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-                }`}
-                style={active ? { background: "var(--primary)" } : {}}
-              >
-                {ft.label}
-                {count > 0 && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
-                    active ? "bg-white/20 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                  }`}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      <Box p="lg">
+        <Stack gap="lg">
+          <Chip.Group value={filter} onChange={handleFilterChange}>
+            <Group gap={8}>
+              {FILTERS.map((ft) => {
+                const count = ft.value === "all" ? items.length : ft.value === "unread" ? unreadCount : (typeCounts[ft.value] || 0);
+                return <Chip key={ft.value} value={ft.value} variant="filled" color="brand">{ft.label}{count > 0 ? ` (${count})` : ""}</Chip>;
+              })}
+            </Group>
+          </Chip.Group>
 
-        {/* List */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-48">
-              <FaArrowsRotate className="w-6 h-6 animate-spin text-gray-300" />
-            </div>
-          ) : pageItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 gap-3 text-gray-400">
-              <FaBell className="w-10 h-10 opacity-20" />
-              <p className="text-sm">لا توجد إشعارات في هذا القسم</p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-              <AnimatePresence initial={false}>
-                {pageItems.map((n) => {
-                  const { Icon, bg, text } = TYPE_ICON[n.type] || TYPE_ICON.default;
+          <Card withBorder padding={0}>
+            {isLoading ? (
+              <Group justify="center" py={64}><Loader color="gray" /></Group>
+            ) : pageItems.length === 0 ? (
+              <Stack align="center" py={64} gap="sm">
+                <FaBell size={40} color="var(--mantine-color-gray-3)" />
+                <Text c="dimmed" size="sm">لا توجد إشعارات في هذا القسم</Text>
+              </Stack>
+            ) : (
+              <Stack gap={0}>
+                {pageItems.map((n, i) => {
+                  const meta = TYPE_META[n.type] || TYPE_META.default;
                   return (
-                    <motion.li
-                      key={n._id}
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.15 }}
-                      className={`px-5 py-4 flex items-start gap-3 transition-colors ${
-                        !n.read ? "bg-[color:var(--primary)]/5 dark:bg-[color:var(--primary)]/10" : ""
-                      } ${n.link ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" : ""}`}
+                    <Group
+                      key={n._id} wrap="nowrap" align="flex-start" px="lg" py="md"
+                      bg={!n.read ? "brand.0" : undefined}
+                      style={{ borderTop: i ? "1px solid var(--mantine-color-gray-0)" : undefined, cursor: n.link ? "pointer" : "default" }}
                       onClick={() => handleClick(n)}
                     >
-                      {/* Icon */}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        !n.read ? "text-white" : `${bg} ${text}`
-                      }`}
-                        style={!n.read ? { background: "var(--primary)" } : {}}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-gray-900 dark:text-white text-sm">{typeof n.title === "object" ? (n.title?.ar ?? n.title?.en ?? "—") : (n.title ?? "—")}</p>
-                            {!n.read && (
-                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "var(--primary)" }} />
-                            )}
-                          </div>
-                          <span className="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">{formatDate(n.createdAt)}</span>
-                        </div>
-                        {n.body && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{typeof n.body === "object" ? (n.body?.ar ?? n.body?.en ?? "") : n.body}</p>}
-                        {n.link && (
-                          <span className="text-xs mt-1 inline-block font-semibold" style={{ color: "var(--primary)" }}>
-                            اضغط للفتح ←
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <Indicator disabled={n.read} color="brand" size={8} offset={4}>
+                        <ThemeIcon size={38} variant={n.read ? "light" : "filled"} color={n.read ? meta.color : "brand"} radius="xl">
+                          <meta.icon size={15} />
+                        </ThemeIcon>
+                      </Indicator>
+                      <Box style={{ flex: 1, minWidth: 0 }}>
+                        <Group justify="space-between" wrap="nowrap" gap={8}>
+                          <Text fw={600} size="sm">{typeof n.title === "object" ? (n.title?.ar ?? n.title?.en ?? "—") : (n.title ?? "—")}</Text>
+                          <Text size="xs" c="dimmed" style={{ flexShrink: 0 }}>{formatDate(n.createdAt)}</Text>
+                        </Group>
+                        {n.body && <Text size="sm" c="dimmed" mt={2}>{typeof n.body === "object" ? (n.body?.ar ?? n.body?.en ?? "") : n.body}</Text>}
+                        {n.link && <Text size="xs" fw={600} c="brand.6" mt={4}>اضغط للفتح ←</Text>}
+                      </Box>
+                      <Group gap={2} wrap="nowrap" style={{ flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
                         {!n.read && (
-                          <button
-                            onClick={() => markOneMutation.mutate(n._id)}
-                            title="تحديد كمقروء"
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-green-600 transition-colors"
-                          >
-                            <FaCheck className="w-3.5 h-3.5" />
-                          </button>
+                          <ActionIcon variant="subtle" color="green" onClick={() => markOneMutation.mutate(n._id)} title="تحديد كمقروء">
+                            <FaCheck size={13} />
+                          </ActionIcon>
                         )}
-                        <button
-                          onClick={() => deleteOneMutation.mutate(n._id)}
-                          title="حذف الإشعار"
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <FaXmark className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </motion.li>
+                        <ActionIcon variant="subtle" color="red" onClick={() => deleteOneMutation.mutate(n._id)} title="حذف الإشعار">
+                          <FaXmark size={13} />
+                        </ActionIcon>
+                      </Group>
+                    </Group>
                   );
                 })}
-              </AnimatePresence>
-            </ul>
+              </Stack>
+            )}
+          </Card>
+
+          {filtered.length > PAGE_SIZE && (
+            <Group justify="space-between">
+              <Text size="sm" c="dimmed">عرض {pageItems.length} من {filtered.length}</Text>
+              <Pagination size="sm" total={pages} value={page} onChange={setPage} />
+            </Group>
           )}
-        </div>
+        </Stack>
+      </Box>
 
-        {/* Pagination */}
-        {filtered.length > PAGE_SIZE && (
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>عرض {pageItems.length} من {filtered.length}</span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >السابق</button>
-              <span className="px-3 py-1.5 font-semibold">{page} / {pages}</span>
-              <button
-                onClick={() => setPage((p) => Math.min(pages, p + 1))}
-                disabled={page >= pages}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >التالي</button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Confirm clear all */}
       <ConfirmDialog
-        isOpen={confirmClear.isOpen}
-        onClose={confirmClear.close}
-        onConfirm={() => clearAllMutation.mutate()}
-        title="مسح جميع الإشعارات"
-        message="هل تريد تحديد جميع الإشعارات كمقروءة؟"
-        confirmLabel="تأكيد"
-        variant="warning"
+        isOpen={confirmClear.isOpen} onClose={confirmClear.close} onConfirm={() => clearAllMutation.mutate()}
+        title="مسح جميع الإشعارات" message="هل تريد تحديد جميع الإشعارات كمقروءة؟" confirmLabel="تأكيد" variant="warning"
         loading={clearAllMutation.isPending}
       />
-    </div>
+    </Box>
   );
 }

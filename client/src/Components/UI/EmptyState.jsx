@@ -1,14 +1,17 @@
+import { MantineProvider, Stack, ThemeIcon, Title, Text, Box } from "@mantine/core";
+import "@mantine/core/styles.css";
 import { FaInbox } from "react-icons/fa6";
+import { mantineTheme } from "../../mantineTheme";
 
 export default function EmptyState({ icon: Icon = FaInbox, title = "لا توجد بيانات", description, action }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-4">
-        <Icon className="w-8 h-8 text-gray-400" />
-      </div>
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{title}</h3>
-      {description && <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm">{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
-    </div>
+    <MantineProvider theme={mantineTheme}>
+      <Stack align="center" py={64} px="md" gap={4}>
+        <ThemeIcon size={64} variant="light" color="gray" mb="xs"><Icon size={28} /></ThemeIcon>
+        <Title order={3} size="h4">{title}</Title>
+        {description && <Text c="dimmed" size="sm" maw={360} ta="center">{description}</Text>}
+        {action && <Box mt="sm">{action}</Box>}
+      </Stack>
+    </MantineProvider>
   );
 }

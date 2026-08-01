@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
 import {
-  FaPlus, FaTrash, FaPen, FaShieldHalved, FaLock, FaCheck,
+  Box, Group, Stack, Text, Card, Table, Code, Badge, TextInput,
+  Checkbox, SimpleGrid, ScrollArea, Button, ActionIcon, Loader, Anchor,
+} from "@mantine/core";
+import {
+  FaPlus, FaTrash, FaPen, FaShieldHalved, FaLock,
   FaGauge, FaBell, FaBuilding, FaHouseChimney, FaChartLine,
   FaUserPlus, FaFileLines, FaSquareCheck, FaCalculator,
   FaBookOpen, FaBox, FaCartShopping, FaScaleBalanced,
@@ -10,37 +13,36 @@ import {
 } from "react-icons/fa6";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
-import PageHeader, { PrimaryButton, SecondaryButton } from "../../Components/UI/PageHeader";
+import PageHeader, { PrimaryButton } from "../../Components/UI/PageHeader";
 import AdminModal from "../../Components/UI/AdminModal";
 import ConfirmDialog from "../../Components/UI/ConfirmDialog";
-import FormField, { inputCls } from "../../Components/UI/FormField";
 import EmptyState from "../../Components/UI/EmptyState";
 
 const ALL_PAGES = [
-  { key: "dashboard",                           label: "لوحة التحكم",           Icon: FaGauge },
-  { key: "notifications",                       label: "الإشعارات",              Icon: FaBell },
-  { key: "projects",                            label: "المشاريع",               Icon: FaBuilding },
-  { key: "units",                               label: "الوحدات",                Icon: FaHouseChimney },
-  { key: "leads",                               label: "العملاء",                Icon: FaChartLine },
-  { key: "client-reg",                          label: "تسجيل العملاء",          Icon: FaUserPlus },
-  { key: "blogs",                               label: "المقالات",               Icon: FaFileLines },
-  { key: "tasks",                               label: "المهام",                 Icon: FaSquareCheck },
-  { key: "accounting",                          label: "الحسابات",               Icon: FaCalculator },
-  { key: "accounting-beni-suef",                label: "حسابات فرع بني سويف",   Icon: FaStore },
-  { key: "accounting-records",                  label: "السجلات المحاسبية",      Icon: FaBookOpen },
-  { key: "accounting-records-beni-suef",        label: "سجلات فرع بني سويف",    Icon: FaBookOpen },
-  { key: "warehouse",                           label: "المخازن",                Icon: FaBox },
-  { key: "purchasing",                          label: "المشتريات",              Icon: FaCartShopping },
-  { key: "legal",                               label: "الشئون القانونية",       Icon: FaScaleBalanced },
-  { key: "content",                             label: "المحتوى",                Icon: FaWandMagicSparkles },
-  { key: "media",                               label: "المكتبة",                Icon: FaImage },
-  { key: "careers",                             label: "الوظائف",                Icon: FaBriefcase },
-  { key: "users",                               label: "المستخدمين",             Icon: FaUsers },
-  { key: "roles",                               label: "إدارة الأدوار",          Icon: FaShieldHalved },
-  { key: "activity",                            label: "سجل النشاط",             Icon: FaChartLine },
-  { key: "settings",                            label: "الإعدادات",              Icon: FaGear },
-  { key: "profile",                             label: "الملف الشخصي",           Icon: FaCircleUser },
-  { key: "changelog",                           label: "التحديثات",              Icon: FaClockRotateLeft },
+  { key: "dashboard", label: "لوحة التحكم", Icon: FaGauge },
+  { key: "notifications", label: "الإشعارات", Icon: FaBell },
+  { key: "projects", label: "المشاريع", Icon: FaBuilding },
+  { key: "units", label: "الوحدات", Icon: FaHouseChimney },
+  { key: "leads", label: "العملاء", Icon: FaChartLine },
+  { key: "client-reg", label: "تسجيل العملاء", Icon: FaUserPlus },
+  { key: "blogs", label: "المقالات", Icon: FaFileLines },
+  { key: "tasks", label: "المهام", Icon: FaSquareCheck },
+  { key: "accounting", label: "الحسابات", Icon: FaCalculator },
+  { key: "accounting-beni-suef", label: "حسابات فرع بني سويف", Icon: FaStore },
+  { key: "accounting-records", label: "السجلات المحاسبية", Icon: FaBookOpen },
+  { key: "accounting-records-beni-suef", label: "سجلات فرع بني سويف", Icon: FaBookOpen },
+  { key: "warehouse", label: "المخازن", Icon: FaBox },
+  { key: "purchasing", label: "المشتريات", Icon: FaCartShopping },
+  { key: "legal", label: "الشئون القانونية", Icon: FaScaleBalanced },
+  { key: "content", label: "المحتوى", Icon: FaWandMagicSparkles },
+  { key: "media", label: "المكتبة", Icon: FaImage },
+  { key: "careers", label: "الوظائف", Icon: FaBriefcase },
+  { key: "users", label: "المستخدمين", Icon: FaUsers },
+  { key: "roles", label: "إدارة الأدوار", Icon: FaShieldHalved },
+  { key: "activity", label: "سجل النشاط", Icon: FaChartLine },
+  { key: "settings", label: "الإعدادات", Icon: FaGear },
+  { key: "profile", label: "الملف الشخصي", Icon: FaCircleUser },
+  { key: "changelog", label: "التحديثات", Icon: FaClockRotateLeft },
 ];
 
 const emptyForm = { roleKey: "", label: "", branch: "", allowedPages: [] };
@@ -61,41 +63,22 @@ export default function AdminRoles() {
     try {
       const res = await api.get("/roles");
       setRoles(res.data.roles || []);
-    } catch {
-      toast.error("فشل تحميل الأدوار");
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error("فشل تحميل الأدوار"); }
+    finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => {
-    setEditItem(null);
-    setForm(emptyForm);
-    setModal(true);
-  };
-
+  const openCreate = () => { setEditItem(null); setForm(emptyForm); setModal(true); };
   const openEdit = (r) => {
     setEditItem(r);
-    setForm({
-      roleKey: r.roleKey,
-      label: r.label,
-      branch: r.branch || "",
-      allowedPages: r.allowedPages || [],
-    });
+    setForm({ roleKey: r.roleKey, label: r.label, branch: r.branch || "", allowedPages: r.allowedPages || [] });
     setModal(true);
   };
 
-  const togglePage = (key) => {
-    setForm((prev) => {
-      const pages = prev.allowedPages.includes(key)
-        ? prev.allowedPages.filter((p) => p !== key)
-        : [...prev.allowedPages, key];
-      return { ...prev, allowedPages: pages };
-    });
-  };
-
+  const togglePage = (key) => setForm((prev) => ({
+    ...prev, allowedPages: prev.allowedPages.includes(key) ? prev.allowedPages.filter((p) => p !== key) : [...prev.allowedPages, key],
+  }));
   const selectAll = () => setForm((p) => ({ ...p, allowedPages: ALL_PAGES.map((pg) => pg.key) }));
   const clearAll = () => setForm((p) => ({ ...p, allowedPages: [] }));
 
@@ -117,9 +100,7 @@ export default function AdminRoles() {
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || "حدث خطأ");
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
@@ -131,251 +112,138 @@ export default function AdminRoles() {
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || "فشل الحذف");
-    } finally {
-      setDeleting(false);
-    }
+    } finally { setDeleting(false); }
   };
 
   return (
-    <div className="space-y-5" dir="rtl">
-      {/* Header */}
+    <Box dir="rtl">
       <PageHeader
-        title="إدارة الأدوار والصلاحيات"
-        subtitle={`${roles.length} دور`}
-        icon={<FaShieldHalved />}
-        loading={loading}
-        actions={
-          <PrimaryButton icon={<FaPlus className="w-4 h-4" />} onClick={openCreate}>
-            إضافة دور
-          </PrimaryButton>
-        }
+        title="إدارة الأدوار والصلاحيات" subtitle={`${roles.length} دور`} icon={<FaShieldHalved size={16} />} loading={loading}
+        actions={<PrimaryButton icon={<FaPlus size={13} />} onClick={openCreate}>إضافة دور</PrimaryButton>}
       />
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-40 text-gray-400">جاري التحميل...</div>
-        ) : roles.length === 0 ? (
-          <EmptyState
-            icon={FaShieldHalved}
-            title="لا توجد أدوار"
-            description="أضف أول دور للنظام"
-            action={
-              <PrimaryButton icon={<FaPlus className="w-4 h-4" />} onClick={openCreate}>
-                إضافة دور
-              </PrimaryButton>
-            }
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                <tr>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الاسم</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">المفتاح</th>
-                  <th className="hidden sm:table-cell text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الفرع</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">الصفحات</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">النوع</th>
-                  <th className="text-right text-xs font-semibold text-gray-500 dark:text-gray-400 px-4 sm:px-6 py-3">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
-                {roles.map((r) => (
-                  <motion.tr
-                    key={r._id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                  >
-                    <td className="px-4 sm:px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <FaShieldHalved className="w-4 h-4 flex-shrink-0" style={{ color: "var(--primary)" }} />
-                        <span className="font-medium text-gray-900 dark:text-white text-sm">{r.label}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-4">
-                      <code className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-lg">
-                        {r.roleKey}
-                      </code>
-                    </td>
-                    <td className="hidden sm:table-cell px-4 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {r.branch || "—"}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4">
-                      {r.allowedPages?.includes("*") ? (
-                        <span
-                          className="text-xs px-2 py-1 rounded-full font-medium"
-                          style={{ background: "var(--primary)", opacity: 0.1, color: "var(--primary)" }}
-                        >
-                          كل الصفحات
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">{r.allowedPages?.length || 0} صفحة</span>
-                      )}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4">
-                      {r.isSystem ? (
-                        <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded-full">
-                          <FaLock className="w-3 h-3" /> أساسي
-                        </span>
-                      ) : (
-                        <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded-full">مخصص</span>
-                      )}
-                    </td>
-                    <td className="px-4 sm:px-6 py-4">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openEdit(r)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 transition-colors"
-                          title="تعديل"
-                        >
-                          <FaPen className="w-4 h-4" />
-                        </button>
-                        {!r.isSystem && (
-                          <button
-                            onClick={() => setDeleteId(r._id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 transition-colors"
-                            title="حذف"
-                          >
-                            <FaTrash className="w-4 h-4" />
-                          </button>
+      <Box p="lg">
+        <Card withBorder padding={0}>
+          {loading ? (
+            <Group justify="center" py={64}><Loader color="gray" /></Group>
+          ) : roles.length === 0 ? (
+            <EmptyState icon={FaShieldHalved} title="لا توجد أدوار" description="أضف أول دور للنظام"
+              action={<PrimaryButton icon={<FaPlus size={13} />} onClick={openCreate}>إضافة دور</PrimaryButton>} />
+          ) : (
+            <ScrollArea>
+              <Table verticalSpacing="sm" horizontalSpacing="lg">
+                <Table.Thead bg="gray.0">
+                  <Table.Tr>
+                    <Table.Th>الاسم</Table.Th>
+                    <Table.Th>المفتاح</Table.Th>
+                    <Table.Th visibleFrom="sm">الفرع</Table.Th>
+                    <Table.Th>الصفحات</Table.Th>
+                    <Table.Th>النوع</Table.Th>
+                    <Table.Th>إجراءات</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {roles.map((r) => (
+                    <Table.Tr key={r._id}>
+                      <Table.Td>
+                        <Group gap={8} wrap="nowrap">
+                          <FaShieldHalved size={14} color="var(--mantine-color-brand-6)" />
+                          <Text fw={600} size="sm">{r.label}</Text>
+                        </Group>
+                      </Table.Td>
+                      <Table.Td><Code>{r.roleKey}</Code></Table.Td>
+                      <Table.Td visibleFrom="sm"><Text size="sm" c="dimmed">{r.branch || "—"}</Text></Table.Td>
+                      <Table.Td>
+                        {r.allowedPages?.includes("*") ? (
+                          <Badge variant="light" color="brand">كل الصفحات</Badge>
+                        ) : (
+                          <Text size="xs" c="dimmed">{r.allowedPages?.length || 0} صفحة</Text>
                         )}
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                      </Table.Td>
+                      <Table.Td>
+                        {r.isSystem ? (
+                          <Badge variant="light" color="yellow" leftSection={<FaLock size={9} />}>أساسي</Badge>
+                        ) : (
+                          <Badge variant="light" color="green">مخصص</Badge>
+                        )}
+                      </Table.Td>
+                      <Table.Td>
+                        <Group gap={2}>
+                          <ActionIcon variant="subtle" color="blue" onClick={() => openEdit(r)}><FaPen size={13} /></ActionIcon>
+                          {!r.isSystem && <ActionIcon variant="subtle" color="red" onClick={() => setDeleteId(r._id)}><FaTrash size={13} /></ActionIcon>}
+                        </Group>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </ScrollArea>
+          )}
+        </Card>
+      </Box>
 
-      {/* Create/Edit Modal */}
       <AdminModal
-        isOpen={modal}
-        onClose={() => setModal(false)}
-        title={editItem ? `تعديل: ${editItem.label}` : "إضافة دور جديد"}
-        size="2xl"
+        isOpen={modal} onClose={() => setModal(false)}
+        title={editItem ? `تعديل: ${editItem.label}` : "إضافة دور جديد"} size="2xl"
         footer={
           <>
-            <button
-              onClick={() => setModal(false)}
-              className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium transition-colors"
-            >
-              إلغاء
-            </button>
-            <PrimaryButton onClick={handleSave} loading={saving}>
-              {saving ? "جاري الحفظ..." : "حفظ"}
-            </PrimaryButton>
+            <Button variant="default" onClick={() => setModal(false)}>إلغاء</Button>
+            <PrimaryButton onClick={handleSave} loading={saving}>حفظ</PrimaryButton>
           </>
         }
       >
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField label="مفتاح الدور" required>
-              <input
-                value={form.roleKey}
+        <Stack gap="md">
+          <SimpleGrid cols={{ base: 1, sm: 2 }}>
+            <Box>
+              <TextInput
+                label="مفتاح الدور" required value={form.roleKey}
                 onChange={(e) => setForm((p) => ({ ...p, roleKey: e.target.value }))}
-                disabled={editItem?.isSystem}
-                placeholder="مثال: branch_accounts_cairo"
-                className={`${inputCls} disabled:opacity-50 disabled:cursor-not-allowed`}
+                disabled={editItem?.isSystem} placeholder="مثال: branch_accounts_cairo"
               />
               {editItem?.isSystem && (
-                <p className="mt-1 text-xs text-amber-600 flex items-center gap-1">
-                  <FaLock className="w-3 h-3" /> لا يمكن تغيير مفتاح الأدوار الأساسية
-                </p>
+                <Text size="xs" c="yellow.7" mt={4}><FaLock size={10} style={{ display: "inline", marginLeft: 4 }} />لا يمكن تغيير مفتاح الأدوار الأساسية</Text>
               )}
-            </FormField>
-            <FormField label="الاسم (عربي)" required>
-              <input
-                value={form.label}
-                onChange={(e) => setForm((p) => ({ ...p, label: e.target.value }))}
-                placeholder="مثال: محاسب فرع بني سويف"
-                className={inputCls}
-              />
-            </FormField>
-            <FormField label="الفرع (اختياري)">
-              <input
-                value={form.branch}
-                onChange={(e) => setForm((p) => ({ ...p, branch: e.target.value }))}
-                placeholder="مثال: بني سويف"
-                className={inputCls}
-              />
-            </FormField>
-          </div>
+            </Box>
+            <TextInput label="الاسم (عربي)" required value={form.label} onChange={(e) => setForm((p) => ({ ...p, label: e.target.value }))} placeholder="مثال: محاسب فرع بني سويف" />
+            <TextInput label="الفرع (اختياري)" value={form.branch} onChange={(e) => setForm((p) => ({ ...p, branch: e.target.value }))} placeholder="مثال: بني سويف" />
+          </SimpleGrid>
 
-          {/* Allowed Pages */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">الصفحات المسموح بها</label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={selectAll}
-                  className="text-xs hover:underline"
-                  style={{ color: "var(--primary)" }}
-                >
-                  تحديد الكل
-                </button>
-                <span className="text-gray-300">|</span>
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className="text-xs text-red-500 hover:underline"
-                >
-                  إلغاء الكل
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-1">
-              {ALL_PAGES.map((pg) => {
-                const checked = form.allowedPages.includes(pg.key);
-                return (
-                  <label
-                    key={pg.key}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border cursor-pointer transition-colors text-sm ${
-                      checked
-                        ? "border-[color:var(--primary)]/40 text-[color:var(--primary)]"
-                        : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-[color:var(--primary)]/30 hover:bg-gray-50 dark:hover:bg-gray-700"
-                    }`}
-                    style={checked ? { background: "color-mix(in srgb, var(--primary) 10%, transparent)" } : {}}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => togglePage(pg.key)}
-                      className="sr-only"
+          <Box>
+            <Group justify="space-between" mb={8}>
+              <Text size="sm" fw={600}>الصفحات المسموح بها</Text>
+              <Group gap={8}>
+                <Anchor size="xs" c="brand.6" onClick={selectAll} style={{ cursor: "pointer" }}>تحديد الكل</Anchor>
+                <Text c="gray.4">|</Text>
+                <Anchor size="xs" c="red.6" onClick={clearAll} style={{ cursor: "pointer" }}>إلغاء الكل</Anchor>
+              </Group>
+            </Group>
+            <ScrollArea.Autosize mah={260}>
+              <SimpleGrid cols={{ base: 2, sm: 3 }} spacing={8}>
+                {ALL_PAGES.map((pg) => {
+                  const checked = form.allowedPages.includes(pg.key);
+                  return (
+                    <Checkbox
+                      key={pg.key} checked={checked} onChange={() => togglePage(pg.key)} color="brand"
+                      label={
+                        <Group gap={6} wrap="nowrap">
+                          <pg.Icon size={13} />
+                          <Text size="xs" truncate>{pg.label}</Text>
+                        </Group>
+                      }
                     />
-                    <span
-                      className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                        checked ? "border-[color:var(--primary)]" : "border-gray-300 dark:border-gray-500"
-                      }`}
-                      style={checked ? { background: "var(--primary)" } : {}}
-                    >
-                      {checked && <FaCheck className="w-2.5 h-2.5 text-white" />}
-                    </span>
-                    {pg.Icon && <pg.Icon className="w-4 h-4 flex-shrink-0" />}
-                    <span className="truncate text-xs">{pg.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-xs text-gray-400">
-              {form.allowedPages.length} صفحة محددة
-            </p>
-          </div>
-        </div>
+                  );
+                })}
+              </SimpleGrid>
+            </ScrollArea.Autosize>
+            <Text size="xs" c="dimmed" mt={8}>{form.allowedPages.length} صفحة محددة</Text>
+          </Box>
+        </Stack>
       </AdminModal>
 
-      {/* Delete confirmation */}
       <ConfirmDialog
-        isOpen={!!deleteId}
-        onClose={() => setDeleteId(null)}
-        onConfirm={handleDelete}
-        loading={deleting}
-        title="حذف الدور"
-        message="هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء."
+        isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} loading={deleting}
+        title="حذف الدور" message="هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء."
       />
-    </div>
+    </Box>
   );
 }
