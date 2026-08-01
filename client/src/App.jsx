@@ -49,7 +49,6 @@ const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminClientReg = lazy(() => import("./pages/admin/AdminClientReg"));
-const AdminLegal = lazy(() => import("./pages/admin/AdminLegal"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminWhatsApp = lazy(() => import("./pages/admin/AdminWhatsApp"));
 const AdminProfile  = lazy(() => import("./pages/admin/AdminProfile"));
@@ -180,7 +179,6 @@ export default function App() {
                 <Route path="profile"       element={<AdminProfile />} />
                 <Route path="changelog"     element={<PageGuard pageKey="changelog"><AdminChangelog /></PageGuard>} />
                 <Route path="notifications" element={<PageGuard pageKey="notifications"><AdminNotifications /></PageGuard>} />
-                <Route path="legal"         element={<PageGuard pageKey="legal"><AdminLegal /></PageGuard>} />
                 <Route path="roles"         element={<AdminOnlyRoute><AdminRoles /></AdminOnlyRoute>} />
                 <Route path="whatsapp"     element={<AdminOnlyRoute><AdminWhatsApp /></AdminOnlyRoute>} />
               </Route>

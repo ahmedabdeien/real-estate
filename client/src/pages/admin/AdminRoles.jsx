@@ -6,7 +6,7 @@ import {
 import {
   FaPlus, FaTrash, FaPen, FaShieldHalved, FaLock,
   FaGauge, FaBell, FaBuilding, FaHouseChimney, FaChartLine,
-  FaUserPlus, FaFileLines, FaSquareCheck, FaScaleBalanced,
+  FaUserPlus, FaFileLines, FaSquareCheck,
   FaWandMagicSparkles, FaImage, FaBriefcase, FaUsers,
   FaGear, FaCircleUser, FaClockRotateLeft,
 } from "react-icons/fa6";
@@ -26,7 +26,6 @@ const ALL_PAGES = [
   { key: "client-reg", label: "تسجيل العملاء", Icon: FaUserPlus },
   { key: "blogs", label: "المقالات", Icon: FaFileLines },
   { key: "tasks", label: "المهام", Icon: FaSquareCheck },
-  { key: "legal", label: "الشئون القانونية", Icon: FaScaleBalanced },
   { key: "content", label: "المحتوى", Icon: FaWandMagicSparkles },
   { key: "media", label: "المكتبة", Icon: FaImage },
   { key: "careers", label: "الوظائف", Icon: FaBriefcase },

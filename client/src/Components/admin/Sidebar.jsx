@@ -10,7 +10,7 @@ import {
   FaImage, FaGear, FaBriefcase, FaRightFromBracket,
   FaChartLine, FaWaveSquare, FaSquareCheck, FaClockRotateLeft,
   FaCircleUser, FaPenToSquare, FaBell, FaUserPlus,
-  FaScaleBalanced, FaShieldHalved,
+  FaShieldHalved,
   FaCommentDots, FaChevronDown, FaChevronUp,
   FaAnglesLeft, FaAnglesRight,
 } from "react-icons/fa6";
@@ -37,12 +37,6 @@ const navGroups = [
       { to: "/admin/units",         label: "الوحدات",           icon: FaHouse,        pageKey: "units" },
       { to: "/admin/leads",         label: "العملاء",           icon: FaChartLine,    pageKey: "leads" },
       { to: "/admin/client-reg",    label: "تسجيل العملاء",     icon: FaUserPlus,     pageKey: "client-reg" },
-    ],
-  },
-  {
-    label: "الشئون القانونية",
-    items: [
-      { to: "/admin/legal", label: "الشئون القانونية", icon: FaScaleBalanced, pageKey: "legal" },
     ],
   },
   {
