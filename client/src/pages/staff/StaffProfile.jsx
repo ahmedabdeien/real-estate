@@ -1,31 +1,39 @@
 import { useEffect, useState } from "react";
-import { FaUser, FaEnvelope, FaPhone, FaGear, FaPen, FaCheck, FaBuilding } from 'react-icons/fa6';
-import { Shield } from 'lucide-react';
+import {
+  MantineProvider, Box, Container, Group, Stack, Text, Title, Card, Avatar,
+  TextInput, Button, ThemeIcon, SimpleGrid,
+} from "@mantine/core";
+import "@mantine/core/styles.css";
+import { FaEnvelope, FaPhone, FaBuilding, FaShieldHalved } from "react-icons/fa6";
 
 import api from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import { mantineTheme } from "../../mantineTheme";
 
 const roleLabels = {
-  admin:      "مدير عام",
-  supervisor: "مشرف عام",
-  manager:    "مدير قسم",
-  employee:   "موظف",
-  sales:      "مبيعات",
-  viewer:     "مشاهد",
+  admin: "مدير عام", supervisor: "مشرف عام", manager: "مدير قسم",
+  employee: "موظف", sales: "مبيعات", viewer: "مشاهد",
 };
 
 const departmentLabels = {
-  accounts:       "الحسابات",
-  legal:          "الشئون القانونية",
-  marketing:      "التسويق",
-  administrative: "اداري",
-  projects:       "مشروعات",
-  warehouse:      "المخازن",
-  purchasing:     "المشتريات",
+  accounts: "الحسابات", legal: "الشئون القانونية", marketing: "التسويق",
+  administrative: "اداري", projects: "مشروعات", warehouse: "المخازن", purchasing: "المشتريات",
 };
 
-export default function StaffProfile() {
+function InfoTile({ icon: Icon, label, value }) {
+  return (
+    <Group gap={10} p="sm" bg="gray.0" wrap="nowrap">
+      <ThemeIcon size={32} variant="light" color="brand"><Icon size={14} /></ThemeIcon>
+      <Box style={{ minWidth: 0 }}>
+        <Text size="xs" c="dimmed">{label}</Text>
+        <Text size="sm" fw={600} truncate>{value}</Text>
+      </Box>
+    </Group>
+  );
+}
+
+function StaffProfileInner() {
   const { user, updateUser } = useAuth();
   const toast = useToast();
   const [form, setForm] = useState({ name: "", phone: "", address: "" });
@@ -33,11 +41,7 @@ export default function StaffProfile() {
 
   useEffect(() => {
     if (user) {
-      setForm({
-        name:    user.name    || "",
-        phone:   user.phone   || "",
-        address: user.address || "",
-      });
+      setForm({ name: user.name || "", phone: user.phone || "", address: user.address || "" });
     }
   }, [user]);
 
@@ -55,121 +59,53 @@ export default function StaffProfile() {
     }
   };
 
-  const inputClass =
-    "w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm";
-
   return (
-    <div className="space-y-5 max-w-2xl mx-auto">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">الملف الشخصي</h1>
-        <p className="text-gray-500 text-sm mt-1">بياناتك الشخصية ومعلوماتك</p>
-      </div>
+    <Container size="sm" dir="rtl">
+      <Stack gap="lg">
+        <Box>
+          <Title order={2} size="h3">الملف الشخصي</Title>
+          <Text c="dimmed" size="sm" mt={4}>بياناتك الشخصية ومعلوماتك</Text>
+        </Box>
 
-      {/* Info card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-black text-2xl">
-            {user?.name?.[0]?.toUpperCase()}
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">{user?.name}</h2>
-            <p className="text-gray-400 text-sm">{user?.email}</p>
-          </div>
-        </div>
+        <Card withBorder>
+          <Group gap="md" mb="lg">
+            <Avatar size={64} color="brand" fz="xl" fw={900}>{user?.name?.[0]?.toUpperCase()}</Avatar>
+            <Box>
+              <Text fw={700} size="lg">{user?.name}</Text>
+              <Text c="dimmed" size="sm">{user?.email}</Text>
+            </Box>
+          </Group>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-            <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-              <Shield className="w-4 h-4 text-[var(--primary)]" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">الدور الوظيفي</p>
-              <p className="text-sm font-semibold text-gray-900">{roleLabels[user?.role] || user?.role}</p>
-            </div>
-          </div>
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+            <InfoTile icon={FaShieldHalved} label="الدور الوظيفي" value={roleLabels[user?.role] || user?.role} />
+            {user?.department && (
+              <InfoTile icon={FaBuilding} label="القسم" value={departmentLabels[user.department] || user.department} />
+            )}
+            <InfoTile icon={FaEnvelope} label="البريد الإلكتروني" value={user?.email} />
+            {user?.phone && <InfoTile icon={FaPhone} label="رقم الهاتف" value={user.phone} />}
+          </SimpleGrid>
+        </Card>
 
-          {user?.department && (
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                <FaBuilding className="w-4 h-4 text-[var(--primary)]" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">القسم</p>
-                <p className="text-sm font-semibold text-gray-900">{departmentLabels[user.department] || user.department}</p>
-              </div>
-            </div>
-          )}
+        <Card withBorder>
+          <Title order={3} size="h5" mb="lg">تعديل البيانات</Title>
+          <form onSubmit={handleSubmit}>
+            <Stack gap="md">
+              <TextInput label="الاسم الكامل" placeholder="الاسم الكامل" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <TextInput label="رقم الهاتف" placeholder="رقم الهاتف" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <TextInput label="العنوان" placeholder="العنوان" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              <Button type="submit" color="brand" loading={saving} style={{ alignSelf: "flex-start" }}>حفظ التغييرات</Button>
+            </Stack>
+          </form>
+        </Card>
+      </Stack>
+    </Container>
+  );
+}
 
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-            <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-              <FaEnvelope className="w-4 h-4 text-[var(--primary)]" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">البريد الإلكتروني</p>
-              <p className="text-sm font-semibold text-gray-900 truncate">{user?.email}</p>
-            </div>
-          </div>
-
-          {user?.phone && (
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
-              <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
-                <FaPhone className="w-4 h-4 text-[var(--primary)]" />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">رقم الهاتف</p>
-                <p className="text-sm font-semibold text-gray-900">{user.phone}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Edit form */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 className="font-bold text-gray-900 mb-5">تعديل البيانات</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">الاسم الكامل</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className={inputClass}
-              placeholder="الاسم الكامل"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">رقم الهاتف</label>
-            <input
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className={inputClass}
-              placeholder="رقم الهاتف"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">العنوان</label>
-            <input
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className={inputClass}
-              placeholder="العنوان"
-            />
-          </div>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={saving}
-              className="w-full sm:w-auto px-6 py-2.5 bg-[var(--primary)] hover:bg-[#245079] text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
-            >
-              {saving ? "جاري الحفظ..." : "حفظ التغييرات"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+export default function StaffProfile() {
+  return (
+    <MantineProvider theme={mantineTheme}>
+      <StaffProfileInner />
+    </MantineProvider>
   );
 }
