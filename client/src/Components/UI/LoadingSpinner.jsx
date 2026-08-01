@@ -1,19 +1,30 @@
-export default function LoadingSpinner({ size = "md", className = "" }) {
-  const sizes = { sm: "w-5 h-5 border-2", md: "w-8 h-8 border-2", lg: "w-12 h-12 border-4" };
+import { MantineProvider, Loader, Center, Stack, Text } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { mantineTheme } from "../../mantineTheme";
+
+export default function LoadingSpinner({ size = "md" }) {
+  const sizes = { sm: "sm", md: "md", lg: "lg" };
   return (
-    <div className={`flex items-center justify-center ${className}`}>
-      <div className={`${sizes[size]} border-gray-200 dark:border-gray-700 border-t-[var(--primary)] rounded-full animate-spin`} />
-    </div>
+    <MantineProvider theme={mantineTheme}>
+      <Center>
+        <Loader color="brand" size={sizes[size] || "md"} />
+      </Center>
+    </MantineProvider>
   );
 }
 
 export function PageLoader() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-14 h-14 border-4 border-gray-100 dark:border-gray-800 border-t-[var(--primary)] rounded-full animate-spin" />
-        <span className="text-[var(--primary)] font-bold text-sm tracking-wider">AG Development</span>
-      </div>
-    </div>
+    <MantineProvider theme={mantineTheme}>
+      <Stack
+        align="center"
+        justify="center"
+        gap="md"
+        style={{ position: "fixed", inset: 0, background: "white", zIndex: 9999 }}
+      >
+        <Loader color="brand" size="lg" />
+        <Text c="brand.6" fw={700} size="sm" style={{ letterSpacing: 1 }}>AG Development</Text>
+      </Stack>
+    </MantineProvider>
   );
 }

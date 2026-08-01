@@ -1,28 +1,32 @@
 import { useState } from "react";
+import { MantineProvider, UnstyledButton, Group, Text, Stack, Box, Collapse } from "@mantine/core";
+import "@mantine/core/styles.css";
 import { FaCircleQuestion, FaChevronDown, FaChevronUp } from "react-icons/fa6";
+import { mantineTheme } from "../../mantineTheme";
 
 export default function HelpCard({ title, tips }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-xl overflow-hidden mb-4">
-      <button
-        onClick={() => setOpen((p) => !p)}
-        className="w-full flex items-center gap-2 px-4 py-3 text-blue-700 dark:text-blue-300 hover:bg-blue-100/50 transition-colors"
-      >
-        <FaCircleQuestion className="w-4 h-4 flex-shrink-0" />
-        <span className="text-sm font-medium">{title}</span>
-        {open ? <FaChevronUp className="w-4 h-4 mr-auto" /> : <FaChevronDown className="w-4 h-4 mr-auto" />}
-      </button>
-      {open && (
-        <div className="px-4 pb-4 space-y-1.5">
-          {tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-2 text-sm text-blue-700 dark:text-blue-300">
-              <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
-              <span>{tip}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <MantineProvider theme={mantineTheme}>
+      <Box bg="blue.0" mb="md" style={{ border: "1px solid var(--mantine-color-blue-2)", overflow: "hidden" }}>
+        <UnstyledButton onClick={() => setOpen((p) => !p)} w="100%" px="md" py="sm">
+          <Group gap={8} c="blue.7" wrap="nowrap">
+            <FaCircleQuestion size={14} style={{ flexShrink: 0 }} />
+            <Text size="sm" fw={600}>{title}</Text>
+            {open ? <FaChevronUp size={13} style={{ marginRight: "auto" }} /> : <FaChevronDown size={13} style={{ marginRight: "auto" }} />}
+          </Group>
+        </UnstyledButton>
+        <Collapse in={open}>
+          <Stack gap={6} px="md" pb="md">
+            {tips.map((tip, i) => (
+              <Group key={i} gap={8} align="flex-start" wrap="nowrap">
+                <Box w={6} h={6} bg="blue.4" mt={6} style={{ borderRadius: 999, flexShrink: 0 }} />
+                <Text size="sm" c="blue.7">{tip}</Text>
+              </Group>
+            ))}
+          </Stack>
+        </Collapse>
+      </Box>
+    </MantineProvider>
   );
 }

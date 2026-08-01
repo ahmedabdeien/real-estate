@@ -47,7 +47,6 @@ const AdminCareers = lazy(() => import("./pages/admin/AdminCareers"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminChangelog = lazy(() => import("./pages/admin/AdminChangelog"));
 const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
-const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminClientReg = lazy(() => import("./pages/admin/AdminClientReg"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminWhatsApp = lazy(() => import("./pages/admin/AdminWhatsApp"));
