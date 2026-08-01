@@ -1,39 +1,35 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MantineProvider, Box, Stack, Group, Text, ActionIcon, ThemeIcon } from "@mantine/core";
+import "@mantine/core/styles.css";
 import { FaCircleCheck, FaCircleXmark, FaTriangleExclamation, FaCircleInfo, FaXmark } from "react-icons/fa6";
+import { mantineTheme } from "../mantineTheme";
 
 const ToastContext = createContext(null);
 
-const icons = {
-  success: <FaCircleCheck className="w-5 h-5 text-green-500 flex-shrink-0" />,
-  error: <FaCircleXmark className="w-5 h-5 text-red-500 flex-shrink-0" />,
-  warning: <FaTriangleExclamation className="w-5 h-5 text-yellow-500 flex-shrink-0" />,
-  info: <FaCircleInfo className="w-5 h-5 text-blue-500 flex-shrink-0" />,
-};
-
-const colors = {
-  success: "border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800",
-  error: "border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800",
-  warning: "border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-800",
-  info: "border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800",
-};
+const ICONS = { success: FaCircleCheck, error: FaCircleXmark, warning: FaTriangleExclamation, info: FaCircleInfo };
+const COLORS = { success: "green", error: "red", warning: "yellow", info: "blue" };
 
 function Toast({ toast, onClose }) {
+  const Icon = ICONS[toast.type];
+  const color = COLORS[toast.type];
   return (
     <motion.div
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 50 }}
-      className={`flex items-start gap-3 p-4 rounded-xl border shadow-lg max-w-sm w-full ${colors[toast.type]}`}
     >
-      {icons[toast.type]}
-      <div className="flex-1 min-w-0">
-        {toast.title && <p className="font-semibold text-gray-900 dark:text-white text-sm">{toast.title}</p>}
-        <p className="text-gray-700 dark:text-gray-300 text-sm">{toast.message}</p>
-      </div>
-      <button onClick={() => onClose(toast.id)} className="text-gray-400 hover:text-gray-600 transition-colors">
-        <FaXmark className="w-4 h-4" />
-      </button>
+      <Group
+        align="flex-start" gap={10} p="md" wrap="nowrap" maw={380}
+        bg={`${color}.0`} style={{ border: `1px solid var(--mantine-color-${color}-2)`, boxShadow: "var(--mantine-shadow-lg)" }}
+      >
+        <ThemeIcon variant="transparent" color={color} size={20}><Icon size={18} /></ThemeIcon>
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          {toast.title && <Text fw={700} size="sm">{toast.title}</Text>}
+          <Text size="sm" c="dark.6">{toast.message}</Text>
+        </Box>
+        <ActionIcon variant="transparent" color="gray" size="sm" onClick={() => onClose(toast.id)}><FaXmark size={14} /></ActionIcon>
+      </Group>
     </motion.div>
   );
 }
@@ -64,13 +60,17 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed bottom-4 left-4 z-[9999] flex flex-col gap-2">
-        <AnimatePresence>
-          {toasts.map((t) => (
-            <Toast key={t.id} toast={t} onClose={removeToast} />
-          ))}
-        </AnimatePresence>
-      </div>
+      <MantineProvider theme={mantineTheme}>
+        <Box pos="fixed" bottom={16} left={16} style={{ zIndex: 9999 }}>
+          <Stack gap={8}>
+            <AnimatePresence>
+              {toasts.map((t) => (
+                <Toast key={t.id} toast={t} onClose={removeToast} />
+              ))}
+            </AnimatePresence>
+          </Stack>
+        </Box>
+      </MantineProvider>
     </ToastContext.Provider>
   );
 }

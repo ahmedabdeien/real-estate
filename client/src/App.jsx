@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { lazy, Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { MantineProvider, Box, Stack, Title, Text, Anchor } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { mantineTheme } from "./mantineTheme";
 
 // Contexts
 import { AuthProvider } from "./context/AuthContext";
@@ -109,13 +112,15 @@ function PageGuard({ pageKey, children }) {
 
 function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]" dir="rtl">
-      <div className="text-center">
-        <p className="text-8xl font-black text-gray-200">404</p>
-        <h1 className="text-2xl font-bold text-gray-900 mt-4 mb-2">الصفحة غير موجودة</h1>
-        <a href="/" className="text-[var(--primary)] font-semibold hover:underline">العودة للرئيسية</a>
-      </div>
-    </div>
+    <MantineProvider theme={mantineTheme}>
+      <Box mih="100vh" bg="gray.0" dir="rtl" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Stack align="center" gap={4}>
+          <Text fz={96} fw={900} c="gray.3" lh={1}>404</Text>
+          <Title order={1} fz="xl" mt="md" mb={4}>الصفحة غير موجودة</Title>
+          <Anchor href="/" fw={600} c="brand.6">العودة للرئيسية</Anchor>
+        </Stack>
+      </Box>
+    </MantineProvider>
   );
 }
 
