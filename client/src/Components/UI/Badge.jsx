@@ -1,38 +1,38 @@
-import { cn } from "@/lib/utils";
+import { MantineProvider, Badge as MantineBadge } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { mantineTheme } from "../../mantineTheme";
 
-const variants = {
-  default:     "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-  primary:     "bg-[var(--primary)]/10 text-[var(--primary)] dark:bg-[var(--primary)]/20",
-  success:     "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  warning:     "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  danger:      "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
-  info:        "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  outline:     "border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400",
+const COLORS = {
+  default: "gray",
+  primary: "brand",
+  success: "green",
+  warning: "yellow",
+  danger: "red",
+  info: "blue",
+  outline: "gray",
 };
 
-export default function Badge({ children, variant = "default", className }) {
+export default function Badge({ children, variant = "default" }) {
   return (
-    <span className={cn(
-      "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium",
-      variants[variant] || variants.default,
-      className
-    )}>
-      {children}
-    </span>
+    <MantineProvider theme={mantineTheme}>
+      <MantineBadge variant={variant === "outline" ? "outline" : "light"} color={COLORS[variant] || "gray"}>
+        {children}
+      </MantineBadge>
+    </MantineProvider>
   );
 }
 
 export function statusBadge(status) {
   const map = {
-    available:         { label: "متاح",          variant: "success" },
-    sold:              { label: "مباع",           variant: "danger" },
-    reserved:          { label: "محجوز",          variant: "warning" },
-    coming_soon:       { label: "قريباً",          variant: "info" },
-    under_construction:{ label: "قيد الإنشاء",    variant: "warning" },
-    ready:             { label: "جاهز للتسليم",   variant: "success" },
-    active:            { label: "نشط",            variant: "success" },
-    inactive:          { label: "غير نشط",        variant: "default" },
-    featured:          { label: "مميز",           variant: "primary" },
+    available:          { label: "متاح",         variant: "success" },
+    sold:                { label: "مباع",          variant: "danger" },
+    reserved:            { label: "محجوز",         variant: "warning" },
+    coming_soon:         { label: "قريباً",         variant: "info" },
+    under_construction:  { label: "قيد الإنشاء",   variant: "warning" },
+    ready:               { label: "جاهز للتسليم",  variant: "success" },
+    active:              { label: "نشط",           variant: "success" },
+    inactive:            { label: "غير نشط",       variant: "default" },
+    featured:            { label: "مميز",          variant: "primary" },
   };
   return map[status] || { label: status || "—", variant: "default" };
 }
